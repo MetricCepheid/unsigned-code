@@ -1,0 +1,326 @@
+rom: barrett@athena.cs.uga.edu (Richard Barrett)
+Subject: TAB: AC/DC -- Highway To Hell
+
+>From RBARRETT@uga.cc.uga.edu Sat Feb  6 14:04:48 1993
+To: barrett@athena.cs.uga.edu
+
+Title: Highway To Hell
+Artist: AC/DC
+
+INTRO:
+            A                 D/f#  G      D/f#  G     D/F#  G     D/F#   A
+E------------------------------------------------------------------------------
+B-----------2--2--2-----------3--3--3------3--3--3-----3--3--3------------2--2-
+G-----------2--2--2-----------2--2--0------2--2--0-----2--2--0------2-----2--2-
+D-----------2--2--2-----------0--0--0------0--0--0-----0--0--0------0-----2--2-
+A-----------0--0--0-------------------------------------------------------0--0-
+E-----------------------------2--2--3------2--2--3-----2--2--3------2----------
+
+
+
+A A A
+              D D/F# G              D D/F# G
+     Livin' easy,        ...
+D D/F# G       D/F#    A A
+     Season ticket on a ...
+A A A           D D/F# G             D D/F# G
+     Askin' nothin,      ...
+  D D/F# G     D/F#   A A
+     Takin' ev'rythin' in ...
+
+
+
+     Don't need reason, ...
+     Ain't nothin' ...
+     goin' down, ....E5  <-----instead of an A.
+     my friends are gonna ....
+
+
+Chorus
+             A    A  A   D/A      G   --º
+    i'm on a ...Repeat
+    D/F#     A    A  A   D/A      G
+    on the   .....--º
+
+
+======================================================================== 72
+
+
+
+From sportiga@uoguelph.ca  Tue Oct  5 15:25:10 1993
+Received: from herman.cs.uoguelph.ca by snowhite.cis.uoguelph.ca (5.64/1.35)
+	id AA03707; Tue, 5 Oct 93 15:25:10 -0400
+Message-Id: <9310051925.AA03707@snowhite.cis.uoguelph.ca>
+Received: by herman.cs.uoguelph.ca
+	(1.37.109.4/16.2) id AA18782; Tue, 5 Oct 93 15:26:20 -0400
+Date: Tue, 5 Oct 93 15:26:20 -0400
+From: Steve L Portigal 
+To: sportiga@herman.cs.uoguelph.ca
+Subject: (fwd) TAB: Highway to Hell - AC/DC
+Newsgroups: rec.music.makers.guitar.tablature
+Organization: Akbar and Jeff's Thesis Hut
+Reply-To: stevep@snowhite.cis.uoguelph.ca
+Status: O
+
+Path: nermal.cs.uoguelph.ca!torn!howland.reston.ans.net!pipex!warwick!marbb
+From: marbb@csv.warwick.ac.uk (Mr D A Wood)
+Newsgroups: rec.music.makers.guitar.tablature
+Subject: TAB: Highway to Hell - AC/DC
+Date: 5 Oct 1993 18:14:36 +0100
+Organization: Maths Institute, Warwick University, UK.
+Lines: 111
+Distribution: world
+Message-ID: <28sa1s$46@emmental.csv.warwick.ac.uk>
+NNTP-Posting-Host: emmental.csv.warwick.ac.uk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+
+
+As promised last week, here it is.
+
+                                 Dave.
+
+
+                        Highway to Hell
+                        ---------------
+                           AC/DC
+
+                            
+
+As has been posted already the main riff goes like:
+
+E ---------------|----------------|----------------|----------------
+B ---2---2---2---|---3---3---3----|---3---3---3----|---3---3---3----
+G ---2---2---2---|---2---2---0----|---2---2---0----|---2---2---0----
+D ---2---2---2---|---0---0---0----|---0---0---0----|---0---0---0----
+A ---0---0---0---|----------------|----------------|----------------
+E ---------------|---2---2---3----|---2---2---3----|---2---2---3----
+
+
+E -----------|-------
+B -------2---|---2---
+G ---2---2---|---2---
+D ---0---2---|---2---
+A -------0---|---0---
+E ---2-------|-------
+ 
+ 
+The chorus then goes like this:
+
+   on the    high - ....
+
+E ----2---|-------------------2----|--
+B ----3---|---2---2---2---2---3----|--
+G ----2---|---2---2---2---2---2----|--
+D ----0---|---2---2---2---2---0----|--
+A ----0---|---0---0---0---0---0----|--
+E ----2---|------------------------|--
+   
+And the guitar solo bit : (after 'Don't stop me !')
+
+
+E --2---3---3---2-----|--3---3---3---2----2----|------5-------------------
+B --3---3---3---3-----|--3---3---3---3----3----|----5---------5-5------5--
+G --3---3---3---3-----|--3---3---3---3----2--7b(9)------7b(9)-----7b(9)---
+D --0---0---0---0-----|--0---0---0---0----0----|--------------------------
+A --0---0---0---0-----|--0---0---0---0----0----|--------------------------
+E --------------------|------------------------|--------------------------
+  
+
+
+E -----------------------------------|----------------|------------------------
+B -5--------5--5-------5--5--7--(8)r7b(8)-------------|------------------------
+G ----7b(9)------7b(9)-------7--(8)r7b(8)--5-----7---5b(6)---------------------
+D -----------------------------------|--------7-------|-------4--(5)r4--2------
+A -----------------------------------|----------------|-----X-------------3--0-
+E -----------------------------------|----------------|------------------------
+
+
+E ----------5-----------|----------5--X---------|----------------5--
+B -------------5--------|----------5--X-----5---|-------------------
+G -2--4b(6)------(6)r4--|-2--0-----------4b(5)--|---2--0--X--/2-----
+D ----------------------|-----------------------|-------------------
+A ----------------------|-------0---------------|-------------------
+E ----------------------|-----------------------|-------------------
+  
+
+
+E ---------------------------|-
+B -5-------------------------|-
+G ---4--(5)r4--X/14--X/18\---|-
+D ---------------------------|-
+A ---------------------------|-
+E ---------------------------|-
+
+The trill bit at the end is just frets 12 and 15 on the top string.
+
+Notation used:
+
+    5b(7)  play at fret 5 and bend to fret 7
+    (7)r5  play string already bent to fret 7 and release to fret 5
+    4/6 and 6\4 slide up/down from..to
+     X play muted string
+
+
+
+
+
+
+================================================================================
+|                                                                              |
+|  Dave Wood     University of Warwick Mathematics Institute                   |
+|                email marbb@csv.warwick.ac.uk                                 |
+|                   or daw@maths.warwick.ac.uk                                 |
+|                                                                              |
+|" Standing in the rain with his head hung low                                 |
+|  Couldn't get a ticket, it was a sold-out show                               |
+|  Heard the roar of the crowd, he could picture the scene                     |
+|  Put his ear to the wall, then like a distant scream                         |
+|  He heard one guitar, just blew him away                                     |
+|  He saw stars in his eyes, and the very next day                             |
+|  Bought a beat up six-string, in a second-hand store                         |
+|  Didn't know how to play it, but he knew for sure                            |
+|  That one guitar felt good in his hands, didn't take long to understand      |
+|  Just one guitar, swung way down low                                         |
+|  Was a one way ticket, only one way to go " - Forigner, Juke Box Hero        |
+|                                                                              |
+================================================================================
+
+
+From: tgannon@charlie.usd.edu (spideir)
+
+ HIGHWAY TO HELL (AC/DC)
+ ===============
+  
+ -- from AC/DC's _Highway_to_Hell_ (1979) 
+   --rhythm guitar transcr. tcg, 1994 . . . 
+       {WARNING!: "amateur version"--no professional tabs consulted}
+   -- 4/4 // Key of "A5"(no 3rd) // Allegretto ["oh, sure! right!"]
+   -- distortion pedal ON . . .
+   -- start chords on UP-beat (and UP-pick): 
+        count--(1 & 2 & 3)   &   4   &
+                             UP DOWN UP
+  
+  
+ %PART V-1 [Intro, Verse]--              [*
+  A5              D/F# G5         D/F# G5  D/F# G5      A5
+ -----.-||-------------.-|-------------.-|------.--------|-.------------.--||
+ -------||---------------|---------------|---------------|-----------------||
+ -2-2-2-||o--------------|---------------|-------------2-|-2--------2-2-2-o||
+ -2-2-2-||o------------5-|-------------5-|------5------2-|-2--------2-2-2-o||
+ -0-0-0-||---------5-5-5-|---------5-5-5-|--5-5-5---5--0-|-0--------0-0-0--||
+ -------||---------2-2-3-|---------2-2-3-|--2-2-3---2----|-----------------||
+  & 4 &  1 & 2 & 3 & 4 & 1 & 2 & 3 & 4 &  1 & 2 & 3 & 4 &  1 & 2 &3 & 4 &
+  
+ [*:: last time before Chorus: play PART V-2 instead...]
+  
+ %PART V-2 [end of Verse]
+   D/F# G5  D/F#     E5                               -->to PART C-1(Chorus)
+ |------------------|------------------|-----------------||
+ |------------------|------------------|-----------------||
+ |------------------|------------------|-----------------||
+ |------5-----------|-9-9-9-9-9-9-9-9--|-9-9-9-9-9-9--9--||
+ |--5-5-5----5------|-7-7-7-7-7-7-7-7--|-7-7-7-7-7-7--7--||
+ |--2-2-3----2---0--|-0-0-0-0-0-0-0-0--|-0-0-0-0-0-0--0--||
+  1 & 2 & 3  & 4 &    1 & 2 & 3 & 4 &    1 & 2 & 3 &  4 &
+  
+  
+ **INTRO: [PART V-1 2x]
+  
+ **VERSE 1: [PART V-1 3x; 4th x, go to V-2{see E5 below}]
+       Livin' easy, ...
+       Season ticket on a ...
+       Askin' nothin'--...
+       Takin' everything ...
+       Don't need reason, ...
+       Ain't nothing that ....
+       Goin' down--...
+       My friends are....{E5} be there, too-- [->PART C-1/Chorus 1]
+  
+  
+ %PART C-1 [Chorus]--              [3 times]             [**     [*
+   A5               D             G   D      A5        D             [to V-1]
+ ||-------------------|----2-2----3---2----||----------2=|===2===|==2-------||
+ ||-----------------3=|==3-3-3-3--3---3----||----------3=|===3===|==3-------||
+ ||o--2---2---2--2--2=|==2-2-2-2--0---2---o||-2-2-2--2-2=|===2===|==2-------||
+ ||o--2---2---2--2--0=|==0-0-0-0--0---0---o||-2-2-2--2-0=|===0===|==0-------||
+ ||---0---0---0--0----|--------------------||-0-0-0--0---|-------|----------||
+ ||-------------------|-----------3--------||------------|-------|----------||
+      1   2   3  4  &    1 & 2 &  3   4       1 2 3  4 &---1234----123
+  
+ [*:: end of 2nd Chorus, go to PART C-2 from here...]
+ [**:: middle of 3th Chorus, go to Part C-3 from here...]
+  
+ **CHORUS 1: [PART C-1]
+       I'm on a Highway to ....
+       Highway to Hell-- On ....
+  
+ **VERSE 2: [a` la Verse 1]
+       No stop signs....
+       Nobody's gonna ...
+       Like a wheel, ...
+       Nobody's gonna ....
+       Hey, Satan--....
+       Playin' in a ....
+       Hey, mama, ....
+       I'm on my way ....{E5} Promised ....[oh, poor Bon Scott!...]
+  
+ **CHORUS 2: [PART C-1-->C-2]
+       I'm on a Highway ...
+       I'm on the Highway to ....
+       [to PART C-2] --Don't ...
+  
+ %PART C-2 ["tag" to Chorus2]--
+    D     G     D                         D     G     D        G    D   G
+ |--2-----3-----2===|======2-----------|--2-----3-----2===|=2--3----2---3---||
+ |--3-----3-----3===|======3-----------|--3-----3-----3===|=3--3----3---3---||
+ |--2-----0-----2===|======2-----------|--2-----0-----2===|=2--0----2---0---||
+ |--0-----0-----0===|======0-----------|--0-----0-----0===|=0--0----0---0---||
+ |------------------|------------------|------------------|-----------------||
+ |--------3---------|------------------|--------3---------|----3--------3---||
+    1 & 2 & 3 & 4---------1234            1 & 2 & 3 & 4&----1  &2&  3   4
+                       "--Don't stop now--"
+  
+ **LEAD TACIT [played over PART C-1]
+   (I woulda trancribed Angus's lead, but I thought, hell, YOU can do just
+     as well, jammin' on the A pentatonic minor scale! . . . Of course, a
+       Gibson SG would help!)
+  
+ **CHORUS 3: [PART C-1-->C-3]
+       I'm on a Highway to Hell....
+       I'm on a Highway to .....[stutter-pause: PART C-3]
+  
+  
+ %PART C-3 [stutter-pause in middle of 3rd Chorus]--
+  A5             D  [lead gu. descending smear]
+ |---------------.--|------------------|
+ |---------------3--|-\-\-\------------|
+ |--2--2--2---2--2--|--\-\-\-----------|
+ |--2--2--2---2--0--|---\-\-\----------|
+ |--0--0--0---0--0--|----\-\-\---------|
+ |------------------|------------------|
+    1  2  3   4  &
+   "High__way  to--"[stop]
+  
+ **CHORUS 3 (continued) [PART C-1...]
+                     
+       Highway to Hell--{I'm on a Highway to ....
+       {Highway to Hell}Highway to ....
+ [after Held-D chord:] 
+       And I'm goin' down-- all the way--
+  
+ [then--A5 thirty-second-note extended strum (cliche 70's coda)]
+  
+       I'm on the ....
+  
+ [then--single staccato A5]
+
+  *===*===*===*===*===*===*===*===*===*===*===*===*===*===*===*===*===*===*
+  | Thomas C. Gannon | tgannon@charlie.usd.edu | U of SoDak (Vermillion)  |
+  * ------------------------------- _-^-_ ------------------------------- *
+  | "--If I decide to practice a   / o )=\    slight movement from right  |
+  *  to left . . . or from left   {   /===}    to right . . . it's        *
+  |     nobody's business but my   \ (=o=/    own." (_A_Day_for_Eeyore_)  |
+  *===*===*===*===*===*===*===*===* ^-_=^ *===*===*===*===*===*===*===*===*
