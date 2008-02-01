@@ -264,9 +264,9 @@ if(!fullbright)
 	float bump = saturate(dot(normalVector, dLightVector));
 	float3 reflect = normalize(2 * bump * normalVector - dLightVector);
 	float spec = pow(saturate(dot(reflect, viewVector)), shininess);
-	diffuseCol = saturate(dot(normalVector, dLightVector))*dLDiffuseColor;
+	diffuseCol = saturate(dot(normalVector, dLightVector))*diffuseColor*dLDiffuseColor;
 	if(SpecularEnabled)
-		specularCol = bump*spec*dLSpecularColor;
+		specularCol = bump*spec*specularColor*dLSpecularColor;
   }
 
   // Point Lights
