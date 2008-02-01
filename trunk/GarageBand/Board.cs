@@ -47,7 +47,7 @@ namespace GarageBand
         public byte lastPressed=0;
         private int[] starPts;
         private int score;
-        private bool LeftySwitch = false;
+        private bool LeftySwitch = true;
         private float[] popup, popupSpeed;
         private float StarPowerAmount = 0, SPADisplay = 0;
         private int SPIndex, DFIndex;
