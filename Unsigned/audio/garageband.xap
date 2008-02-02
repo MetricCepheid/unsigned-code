@@ -1,0 +1,1760 @@
+Signature = XACT2;
+Version = 16;
+Content Version = 43;
+Release = August 2007;
+
+Options
+{
+    Verbose Report = 0;
+    Generate C/C++ Headers = 1;
+}
+
+Global Settings
+{
+    Xbox File = Xbox\garageband.xgs;
+    Windows File = Win\garageband.xgs;
+    Header File = garageband.h;
+    Exclude Category Names = 0;
+    Exclude Variable Names = 0;
+    Last Modified Low = 3878388946;
+    Last Modified High = 29905099;
+
+    Category
+    {
+        Name = Global;
+        Public = 1;
+        Background Music = 0;
+        Volume = 0;
+
+        Category Entry
+        {
+        }
+
+        Instance Limit
+        {
+            Max Instances = 255;
+            Behavior = 0;
+
+            Crossfade
+            {
+                Fade In = 0;
+                Fade Out = 0;
+                Crossfade Type = 0;
+            }
+        }
+    }
+
+    Category
+    {
+        Name = Default;
+        Public = 1;
+        Background Music = 0;
+        Volume = 0;
+
+        Category Entry
+        {
+            Name = Global;
+        }
+
+        Instance Limit
+        {
+            Max Instances = 255;
+            Behavior = 0;
+
+            Crossfade
+            {
+                Fade In = 0;
+                Fade Out = 0;
+                Crossfade Type = 0;
+            }
+        }
+    }
+
+    Category
+    {
+        Name = Music;
+        Public = 1;
+        Background Music = 1;
+        Volume = 0;
+
+        Category Entry
+        {
+            Name = Global;
+        }
+
+        Instance Limit
+        {
+            Max Instances = 255;
+            Behavior = 0;
+
+            Crossfade
+            {
+                Fade In = 0;
+                Fade Out = 0;
+                Crossfade Type = 0;
+            }
+        }
+    }
+
+    Variable
+    {
+        Name = OrientationAngle;
+        Public = 1;
+        Global = 0;
+        Internal = 0;
+        External = 0;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 0;
+        Time = 0;
+        Value = 0.000000;
+        Initial Value = 0.000000;
+        Min = -180.000000;
+        Max = 180.000000;
+    }
+
+    Variable
+    {
+        Name = DopplerPitchScalar;
+        Public = 1;
+        Global = 0;
+        Internal = 0;
+        External = 0;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 0;
+        Time = 0;
+        Value = 1.000000;
+        Initial Value = 1.000000;
+        Min = 0.000000;
+        Max = 4.000000;
+    }
+
+    Variable
+    {
+        Name = SpeedOfSound;
+        Public = 1;
+        Global = 1;
+        Internal = 0;
+        External = 0;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 0;
+        Time = 0;
+        Value = 343.500000;
+        Initial Value = 343.500000;
+        Min = 0.000000;
+        Max = 1000000.000000;
+    }
+
+    Variable
+    {
+        Name = ReleaseTime;
+        Public = 1;
+        Global = 0;
+        Internal = 1;
+        External = 1;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 1;
+        Time = 1;
+        Value = 0.000000;
+        Initial Value = 0.000000;
+        Min = 0.000000;
+        Max = 15.000001;
+    }
+
+    Variable
+    {
+        Name = AttackTime;
+        Public = 1;
+        Global = 0;
+        Internal = 1;
+        External = 1;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 1;
+        Time = 1;
+        Value = 0.000000;
+        Initial Value = 0.000000;
+        Min = 0.000000;
+        Max = 15.000001;
+    }
+
+    Variable
+    {
+        Name = NumCueInstances;
+        Public = 1;
+        Global = 0;
+        Internal = 1;
+        External = 1;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 1;
+        Time = 0;
+        Value = 0.000000;
+        Initial Value = 0.000000;
+        Min = 0.000000;
+        Max = 1024.000000;
+    }
+
+    Variable
+    {
+        Name = Distance;
+        Public = 1;
+        Global = 0;
+        Internal = 0;
+        External = 0;
+        Monitored = 1;
+        Reserved = 1;
+        Read Only = 0;
+        Time = 0;
+        Value = 0.000000;
+        Initial Value = 0.000000;
+        Min = 0.000000;
+        Max = 1000000.000000;
+    }
+}
+
+Wave Bank
+{
+    Name = Wave Bank;
+    Xbox File = Xbox\Wave Bank.xwb;
+    Windows File = Win\Wave Bank.xwb;
+    Xbox Bank Path Edited = 1;
+    Windows Bank Path Edited = 1;
+    Seek Tables = 1;
+    Compression Preset Name = <none>;
+    Xbox Bank Last Modified Low = 0;
+    Xbox Bank Last Modified High = 0;
+    PC Bank Last Modified Low = 3878857696;
+    PC Bank Last Modified High = 29905099;
+    Bank Last Revised Low = 3781670196;
+    Bank Last Revised High = 29905099;
+
+    Wave
+    {
+        Name = starching;
+        File = starching.wav;
+        Build Settings Last Modified Low = 707559390;
+        Build Settings Last Modified High = 29895910;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 1;
+            Sampling Rate = 22050;
+            Bits Per Sample = 0;
+            Play Region Offset = 56;
+            Play Region Length = 8729;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 44278140;
+            Last Modified High = 29895910;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme06;
+        File = MetalocalypseTheme06.wav;
+        Build Settings Last Modified Low = 1808340838;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 1270552;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 1745241272;
+            Last Modified High = 29896293;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme01;
+        File = MetalocalypseTheme01.wav;
+        Build Settings Last Modified Low = 1808965838;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 1170304;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2915052318;
+            Last Modified High = 29896292;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme02;
+        File = MetalocalypseTheme02.wav;
+        Build Settings Last Modified Low = 1809434588;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 484476;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 3510521068;
+            Last Modified High = 29896292;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme03;
+        File = MetalocalypseTheme03.wav;
+        Build Settings Last Modified Low = 1809903338;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 913516;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 3056018898;
+            Last Modified High = 29896312;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme04;
+        File = MetalocalypseTheme04.wav;
+        Build Settings Last Modified Low = 1810684588;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 1153480;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 853522522;
+            Last Modified High = 29896293;
+        }
+    }
+
+    Wave
+    {
+        Name = MetalocalypseTheme05;
+        File = MetalocalypseTheme05.wav;
+        Build Settings Last Modified Low = 1811153338;
+        Build Settings Last Modified High = 29896297;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 56;
+            Play Region Length = 1131704;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 1484772522;
+            Last Modified High = 29896293;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway10;
+        File = Highway10.wav;
+        Build Settings Last Modified Low = 3714482696;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 3753032;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2981986320;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway01;
+        File = Highway01.wav;
+        Build Settings Last Modified Low = 3714951446;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 3046740;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 1801830070;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway02;
+        File = Highway02.wav;
+        Build Settings Last Modified Low = 3714951446;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 2936864;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 1956830070;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway03;
+        File = Highway03.wav;
+        Build Settings Last Modified Low = 3715420196;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 2700072;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2118080070;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway04;
+        File = Highway04.wav;
+        Build Settings Last Modified Low = 3715888946;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 3878904;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2292923820;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway05;
+        File = Highway05.wav;
+        Build Settings Last Modified Low = 3716513946;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 5630116;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2429642570;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway06;
+        File = Highway06.wav;
+        Build Settings Last Modified Low = 3716982696;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 3649780;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2569330070;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway07;
+        File = Highway07.wav;
+        Build Settings Last Modified Low = 3717451446;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 7064476;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 1461361320;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway08;
+        File = Highway08.wav;
+        Build Settings Last Modified Low = 3717920196;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 2677928;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2704642570;
+            Last Modified High = 29905080;
+        }
+    }
+
+    Wave
+    {
+        Name = Highway09;
+        File = Highway09.wav;
+        Build Settings Last Modified Low = 3717920196;
+        Build Settings Last Modified High = 29905099;
+
+        Cache
+        {
+            Format Tag = 0;
+            Channels = 2;
+            Sampling Rate = 44100;
+            Bits Per Sample = 1;
+            Play Region Offset = 44;
+            Play Region Length = 1383256;
+            Loop Region Offset = 0;
+            Loop Region Length = 0;
+            File Type = 1;
+            Last Modified Low = 2823705070;
+            Last Modified High = 29905080;
+        }
+    }
+}
+
+Sound Bank
+{
+    Name = Sound Bank;
+    Xbox File = Xbox\Sound Bank.xsb;
+    Windows File = Win\Sound Bank.xsb;
+    Xbox Bank Path Edited = 1;
+    Windows Bank Path Edited = 1;
+    Bank Last Modified Low = 3938232696;
+    Bank Last Modified High = 29905099;
+    Header Last Modified High = 0;
+    Header Last Modified Low = 0;
+
+    Sound
+    {
+        Name = starching;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = starching;
+                    Entry Index = 0;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme05;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme05;
+                    Entry Index = 6;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme06;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme06;
+                    Entry Index = 1;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme01;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme01;
+                    Entry Index = 2;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme02;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme02;
+                    Entry Index = 3;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme03;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme03;
+                    Entry Index = 4;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = MetalocalypseTheme04;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = MetalocalypseTheme04;
+                    Entry Index = 5;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway10;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway10;
+                    Entry Index = 7;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway01;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway01;
+                    Entry Index = 8;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway02;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway02;
+                    Entry Index = 9;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway03;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway03;
+                    Entry Index = 10;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway04;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway04;
+                    Entry Index = 11;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway05;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway05;
+                    Entry Index = 12;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway06;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway06;
+                    Entry Index = 13;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway07;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway07;
+                    Entry Index = 14;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway08;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway08;
+                    Entry Index = 15;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Sound
+    {
+        Name = Highway09;
+        Volume = -1200;
+        Pitch = 0;
+        Priority = 0;
+
+        Category Entry
+        {
+            Name = Default;
+        }
+
+        Track
+        {
+            Volume = 0;
+
+            Play Wave Event
+            {
+                Break Loop = 0;
+                Use Speaker Position = 0;
+                Use Center Speaker = 1;
+                New Speaker Position On Loop = 1;
+                Speaker Position Angle = 0.000000;
+                Speaer Position Arc = 0.000000;
+
+                Event Header
+                {
+                    Timestamp = 0;
+                    Relative = 0;
+                    Random Recurrence = 0;
+                    Random Offset = 0;
+                }
+
+                Wave Entry
+                {
+                    Bank Name = Wave Bank;
+                    Bank Index = 0;
+                    Entry Name = Highway09;
+                    Entry Index = 16;
+                    Weight = 255;
+                    Weight Min = 0;
+                }
+            }
+        }
+    }
+
+    Cue
+    {
+        Name = starching;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = starching;
+            Index = 0;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme05;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme05;
+            Index = 1;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme06;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme06;
+            Index = 2;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme01;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme01;
+            Index = 3;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme02;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme02;
+            Index = 4;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme03;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme03;
+            Index = 5;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = MetalocalypseTheme04;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = MetalocalypseTheme04;
+            Index = 6;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway10;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway10;
+            Index = 7;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway01;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway01;
+            Index = 8;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway02;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway02;
+            Index = 9;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway03;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway03;
+            Index = 10;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway04;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway04;
+            Index = 11;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway05;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway05;
+            Index = 12;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway06;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway06;
+            Index = 13;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway07;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway07;
+            Index = 14;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway08;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway08;
+            Index = 15;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+
+    Cue
+    {
+        Name = Highway09;
+
+        Variation
+        {
+            Variation Type = 3;
+            Variation Table Type = 1;
+            New Variation on Loop = 0;
+        }
+
+        Sound Entry
+        {
+            Name = Highway09;
+            Index = 16;
+            Weight Min = 0;
+            Weight Max = 255;
+        }
+    }
+}

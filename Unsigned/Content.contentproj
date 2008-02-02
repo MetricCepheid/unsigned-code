@@ -1,0 +1,917 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{ABDF3C7E-2E41-4848-87BF-207CFE71172F}</ProjectGuid>
+    <ProjectTypeGuids>{96E2B04D-8817-42c6-938A-82C39BA4D311};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GarageBand</RootNamespace>
+    <AssemblyName>GarageBand</AssemblyName>
+    <XnaFrameworkVersion>v2.0</XnaFrameworkVersion>
+    <ApplicationIcon>Game.ico</ApplicationIcon>
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <ContentRootDirectory>.</ContentRootDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <XnaPlatform>Windows</XnaPlatform>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <XnaPlatform>Windows</XnaPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="graphics\red.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>red</Name>
+    </Compile>
+    <Compile Include="graphics\starcover.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>starcover</Name>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\border00.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border00</Name>
+    </Compile>
+    <Compile Include="graphics\border01.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border01</Name>
+    </Compile>
+    <Compile Include="graphics\border02.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border02</Name>
+    </Compile>
+    <Compile Include="graphics\border03.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border03</Name>
+    </Compile>
+    <Compile Include="graphics\border04.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border04</Name>
+    </Compile>
+    <Compile Include="graphics\border05.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border05</Name>
+    </Compile>
+    <Compile Include="graphics\border06.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border06</Name>
+    </Compile>
+    <Compile Include="graphics\border07.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border07</Name>
+    </Compile>
+    <Compile Include="graphics\border08.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border08</Name>
+    </Compile>
+    <Compile Include="graphics\border09.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border09</Name>
+    </Compile>
+    <Compile Include="graphics\border10.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>border10</Name>
+    </Compile>
+    <Compile Include="graphics\ring.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>ring</Name>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\doorsteps.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>doorsteps</Name>
+    </Compile>
+    <Compile Include="graphics\triggerlit0.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerlit0</Name>
+    </Compile>
+    <Compile Include="graphics\triggerlit1.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerlit1</Name>
+    </Compile>
+    <Compile Include="graphics\triggerlit2.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerlit2</Name>
+    </Compile>
+    <Compile Include="graphics\triggerlit3.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerlit3</Name>
+    </Compile>
+    <Compile Include="graphics\triggerlit4.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerlit4</Name>
+    </Compile>
+    <Compile Include="meshes\bike.x">
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Name>bike</Name>
+    </Compile>
+    <Compile Include="graphics\triggerglow.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerglow</Name>
+    </Compile>
+    <Compile Include="graphics\bassist_tex.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>bassist_tex</Name>
+    </Compile>
+    <Compile Include="graphics\beam.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>beam</Name>
+    </Compile>
+    <Compile Include="graphics\line.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>line</Name>
+    </Compile>
+    <Compile Include="graphics\linetaper.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>linetaper</Name>
+    </Compile>
+    <Compile Include="graphics\scoreboard.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>scoreboard</Name>
+    </Compile>
+    <Compile Include="meshes\char.x">
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Name>char</Name>
+    </Compile>
+    <Compile Include="meshes\gibsonsg.x">
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Name>gibsonsg</Name>
+    </Compile>
+    <Compile Include="BasicFont.spritefont">
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+      <Name>BasicFont</Name>
+    </Compile>
+    <Compile Include="graphics\crate.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>crate</Name>
+    </Compile>
+    <Compile Include="graphics\drummer_tex.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>drummer_tex</Name>
+    </Compile>
+    <Compile Include="graphics\garageshell.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>garageshell</Name>
+    </Compile>
+    <Compile Include="graphics\guitarist_tex.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>guitarist_tex</Name>
+    </Compile>
+    <Compile Include="graphics\note0.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>note0</Name>
+    </Compile>
+    <Compile Include="graphics\note1.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>note1</Name>
+    </Compile>
+    <Compile Include="graphics\note2.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>note2</Name>
+    </Compile>
+    <Compile Include="graphics\note3.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>note3</Name>
+    </Compile>
+    <Compile Include="graphics\note4.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>note4</Name>
+    </Compile>
+    <Compile Include="graphics\singer_tex.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>singer_tex</Name>
+    </Compile>
+    <Compile Include="graphics\trigger0.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>trigger0</Name>
+    </Compile>
+    <Compile Include="graphics\trigger1.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>trigger1</Name>
+    </Compile>
+    <Compile Include="graphics\trigger2.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>trigger2</Name>
+    </Compile>
+    <Compile Include="graphics\trigger3.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>trigger3</Name>
+    </Compile>
+    <Compile Include="graphics\trigger4.png">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>trigger4</Name>
+    </Compile>
+    <Compile Include="graphics\triggerborder.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>triggerborder</Name>
+    </Compile>
+    <Compile Include="graphics\bass_logo.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>bass_logo</Name>
+    </Compile>
+    <Compile Include="graphics\drums_logo.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>drums_logo</Name>
+    </Compile>
+    <Compile Include="graphics\guitar_logo.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>guitar_logo</Name>
+    </Compile>
+    <Compile Include="graphics\logo_stem.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>logo_stem</Name>
+    </Compile>
+    <Compile Include="graphics\vocal_logo.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>vocal_logo</Name>
+    </Compile>
+    <Compile Include="graphics\rockmeter.tga">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>rockmeter</Name>
+    </Compile>
+    <Compile Include="graphics\white.PNG">
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Name>white</Name>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.EffectImporter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.FBXImporter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.TextureImporter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.XImporter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\blankbm.PNG">
+      <Name>blankbm</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\garageshellbm.PNG">
+      <Name>garageshellbm</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\cratebm.png">
+      <Name>cratebm</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\rocker.bmp">
+      <Name>rocker</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\board_44.tga">
+      <Name>board_44</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_50.tga">
+      <Name>board_50</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_54.tga">
+      <Name>board_54</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\note.x">
+      <Name>note</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\board_01.tga">
+      <Name>board_01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_40.tga">
+      <Name>board_40</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_41.tga">
+      <Name>board_41</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_42.tga">
+      <Name>board_42</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_43.tga">
+      <Name>board_43</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_46.tga">
+      <Name>board_46</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_48.tga">
+      <Name>board_48</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_51.tga">
+      <Name>board_51</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_52.tga">
+      <Name>board_52</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_53.tga">
+      <Name>board_53</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_56.tga">
+      <Name>board_56</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_58.tga">
+      <Name>board_58</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\bassdrum01.x">
+      <Name>bassdrum01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\crashcymbal01.x">
+      <Name>crashcymbal01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\floortom01.x">
+      <Name>floortom01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\hihatcymbal01.x">
+      <Name>hihatcymbal01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\ridecymbal01.x">
+      <Name>ridecymbal01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\snaredrum01.x">
+      <Name>snaredrum01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\tomtoms01.x">
+      <Name>tomtoms01</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\bassdrum01.png">
+      <Name>bassdrum01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\crashcymbal01.png">
+      <Name>crashcymbal01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\hihatcymbal01.png">
+      <Name>hihatcymbal01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\ridecymbal01.png">
+      <Name>ridecymbal01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\floortom01.png">
+      <Name>floortom01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\snaredrum01.png">
+      <Name>snaredrum01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\tomtoms01.png">
+      <Name>tomtoms01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\barebulb.x">
+      <Name>barebulb</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\barebulb.png">
+      <Name>barebulb</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\glassshard01.tga">
+      <Name>glassshard01</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard02.tga">
+      <Name>glassshard02</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard03.tga">
+      <Name>glassshard03</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard04.tga">
+      <Name>glassshard04</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard05.tga">
+      <Name>glassshard05</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard06.tga">
+      <Name>glassshard06</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard07.tga">
+      <Name>glassshard07</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\glassshard08.tga">
+      <Name>glassshard08</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\triggerborderlit.PNG">
+      <Name>triggerborderlit</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\SPMFill.png">
+      <Name>SPMFill</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\SPMflash.png">
+      <Name>SPMflash</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\SPMRbg.png">
+      <Name>SPMRbg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRbgb.png">
+      <Name>SPMRbgb</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRbgs.png">
+      <Name>SPMRbgs</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRfg.png">
+      <Name>SPMRfg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum1.png">
+      <Name>SPMRnum1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum2.png">
+      <Name>SPMRnum2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum3.png">
+      <Name>SPMRnum3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum4.png">
+      <Name>SPMRnum4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum5.png">
+      <Name>SPMRnum5</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum6.png">
+      <Name>SPMRnum6</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRnum8.png">
+      <Name>SPMRnum8</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\SPMRslice.png">
+      <Name>SPMRslice</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\drumfill.png">
+      <Name>drumfill</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\spark.tga">
+      <Name>spark</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\flames.tga">
+      <Name>flames</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\SPMborder.tga">
+      <Name>SPMborder</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\concr.PNG">
+      <Name>concr</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\concrBM.PNG">
+      <Name>concrBM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\paper1.png">
+      <Name>paper1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\paper1.x">
+      <Name>paper1</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="fonts\manager.spritefont">
+      <Name>manager</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="fonts\bassist.spritefont">
+      <Name>bassist</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+    <Compile Include="fonts\drummer.spritefont">
+      <Name>drummer</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+    <Compile Include="fonts\guitarist.spritefont">
+      <Name>guitarist</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+    <Compile Include="fonts\singer.spritefont">
+      <Name>singer</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\paper2.png">
+      <Name>paper2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\paper3.png">
+      <Name>paper3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\paper4.png">
+      <Name>paper4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\arrow.png">
+      <Name>arrow</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\arrow.x">
+      <Name>arrow</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\keyboard_a.tga">
+      <Name>keyboard_a</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\keyboard_d.tga">
+      <Name>keyboard_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\keyboard_g.tga">
+      <Name>keyboard_g</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\rusty.png">
+      <Name>rusty</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\nail.x">
+      <Name>nail</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\gstand.x">
+      <Name>gstand</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\stratcont.x">
+      <Name>stratcont</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\stratcont.png">
+      <Name>stratcont</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\hairl.tga">
+      <Name>hairl</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\hairr.tga">
+      <Name>hairr</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\drumslogo.png">
+      <Name>drumslogo</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\guitarlogo.png">
+      <Name>guitarlogo</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\mphonelogo.png">
+      <Name>mphonelogo</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\flame.tga">
+      <Name>flame</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\continue.png">
+      <Name>continue</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\drumslogo_blur.tga">
+      <Name>drumslogo_blur</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\guitarlogo_blur.tga">
+      <Name>guitarlogo_blur</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\mphonelogo_blur.tga">
+      <Name>mphonelogo_blur</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\xplorerlogo.tga">
+      <Name>xplorerlogo</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\xplorerlogo_blur.tga">
+      <Name>xplorerlogo_blur</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\notes0.png">
+      <Name>notes0</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\notes1.png">
+      <Name>notes1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\notes2.png">
+      <Name>notes2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\notes3.png">
+      <Name>notes3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\notes4.png">
+      <Name>notes4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="charmodels\" />
+    <Folder Include="shaders\" />
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <VisualStudio>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v2.0\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
+</Project>
