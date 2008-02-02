@@ -70,12 +70,6 @@
     <Compile Include="Settings.cs">
       <Name>Settings</Name>
     </Compile>
-    <Compile Include="Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <Name>Settings.Designer</Name>
-    </Compile>
     <Compile Include="Song.cs">
       <Name>Song</Name>
     </Compile>
@@ -190,11 +184,6 @@
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>
-    <None Include="Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-      <Name>Settings</Name>
-    </None>
     <None Include="songdata\MetalocalypseTheme.gba">
       <Name>MetalocalypseTheme</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -207,9 +196,6 @@
       <Name>SongList</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="SongList.xml">
-      <Name>SongList</Name>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <NestedContentProject Include="Content.contentproj">

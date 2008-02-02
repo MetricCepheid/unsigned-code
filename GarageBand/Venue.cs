@@ -267,8 +267,7 @@ namespace GarageBand
 
         public void Reload(Game1 game,ContentManager content, GraphicsDeviceManager graphics, Effect e)
         {
-            if (Settings.Default.DevMode == true)
-                LoadWorld(Filename, game, content, graphics, guitarist.GetName(), bassist.GetName(), drummer.GetName(), vocalist.GetName(),e);
+            LoadWorld(Filename, game, content, graphics, guitarist.GetName(), bassist.GetName(), drummer.GetName(), vocalist.GetName(),e);
         }
 
         public void Update(GameTime gameTime, long songtime, Effect engine)
