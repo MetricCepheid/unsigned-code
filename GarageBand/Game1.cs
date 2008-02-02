@@ -1380,6 +1380,8 @@ namespace GarageBand
                         spritebatch.DrawString(DefaultFont,"EXIT",new Vector2(100,250),Color.Yellow);
                     else
                         spritebatch.DrawString(DefaultFont,"EXIT",new Vector2(100,250),Color.Gray);
+
+                    
                     spritebatch.End();
                 }
                 #endregion
@@ -1663,6 +1665,8 @@ namespace GarageBand
                                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                                 }
+                        
+                                    engine.Parameters["fullbright"].SetValue(true);
                         {//keyboard gui
                             {
                                 matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
@@ -1714,6 +1718,7 @@ namespace GarageBand
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                             }
                         }
+                                    
                         engine.Parameters["wAlpha"].SetValue(1);
                         for(int j=1;j<=4;j++)
                         {//instrument gui
@@ -1781,6 +1786,7 @@ namespace GarageBand
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                             }
                         }
+                        engine.Parameters["fullbright"].SetValue(false);
                         engine.Parameters["wAlpha"].SetValue(1.0f);
 
                         pass.End();
