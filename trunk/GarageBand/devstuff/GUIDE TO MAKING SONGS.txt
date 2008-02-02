@@ -1,0 +1,69 @@
+!!!Garage Band Song File Making Guide!!!
+
+There are 4 files that need to be made for a fully 
+functional song in Garage Band: the Band file, the
+Guitar File, the Drums File and the Bass File. Now,
+the easy thing is that all of them are actually
+ASCII text files!
+
+File 1: the Band File
+
+Each song has a visible name and an code name.
+The visible name is the song's actual title,
+e.g "Highway To Hell," whereas the code name is
+shorter and has nothing but alphabetic characters
+(letters). You want to name your Band File
+"[codename].gba" in your "songdata\" directory.
+
+Open up your Band File in Notepad, Visual Studio,
+or any text editor.
+
+The first line should be the song's visible name,
+e.g. "Highway to Hell"
+
+The second line should be the song's artist, e.g.
+"AC-DC"
+
+The third line should be length (for visual purposes
+only) in the format HH:MM:SS.  If you write a song
+that has more than 00 in the hour slot, you are
+officially a God.
+
+The fourth line is in the format "Bars:#" where # is
+the number of bars in the song.
+
+Following that should be # lines defining the location
+of each bar.  They have the format "[time]:[b]" where
+[time] is the time (in milliseconds) this bar is from
+the beginning of the song, and [b] is the number of
+beats in the measure this bar starts.
+
+After all the bars have been written, add in a number
+(in milliseconds) of how long tail measures should be
+(after the song stops). (no ':', just a single number)
+
+Finally, the cues section.  The next line should be
+"Cues:#"  The way Garageband ensures that all songs
+stay in time with the data is by breaking the audio
+files into chunks.  These chunks are named 
+"[codename]XX.wav" where XX is the chunk's index. Note
+that indices start at '01', not '00'!
+Now, in the Band File, the number following "Cues:"
+should be the number of audio files. Following this
+should be # number of lines.  Each line will have the
+format "[time]:[audioname]" where [time] is the time 
+in milliseconds from the start of the song that this
+audio chunk starts (the first one should be 0).  And
+[audioname] is the filename without path or extension
+
+The last line should be a number that denotes the length
+of the audio in its entirety in milliseconds.
+
+There should NOT BE a newline after this number!!!
+Please delete all lines following the last line.
+
+And that should be it! You should have a working
+Band File now!
+
+If any of these instructions are unclear, feel free
+to look at the example files!

@@ -570,7 +570,7 @@ namespace GarageBand
             diff[1] = D_EXPERT;
             diff[2] = D_EXPERT;
             diff[3] = D_EXPERT;
-            songname = "MetalocalypseTheme";
+            songname = "Highway2";
 
             
             GBVertexFormat[] arr = { new GBVertexFormat(new Vector3(-1f,0f, 1f),new Vector3(0f,1f,0f),new Vector2(0f,0f)),
@@ -649,7 +649,6 @@ namespace GarageBand
                 {
                     ThreadStart ThreadStarter = delegate
                     {
-                        loading |= S_CHOOSECONT;
                         rtNote = new RenderTarget2D[4];
                         rtNote[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
                         rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
@@ -729,7 +728,8 @@ namespace GarageBand
                         loading &= (byte)(~S_CHOOSECONT & 255);
                         loaded |= S_CHOOSECONT;
                     };
-
+                    
+                    loading |= S_CHOOSECONT;
                     Thread myThread = new Thread(ThreadStarter);
                     myThread.Start();
                 }
@@ -1803,6 +1803,7 @@ namespace GarageBand
                         spritebatch.Draw(hairr, new Rectangle(20 + (int)Window.ClientBounds.Width - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), 0, (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
                     }
 
+                    spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
 
                     //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
 
@@ -1937,8 +1938,6 @@ namespace GarageBand
                             //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
-                            spritebatch.DrawString(DefaultFont, "" + controllers[0].ThumbSticks.Right.X, new Vector2(0, 24), Color.Red);
-                            spritebatch.DrawString(DefaultFont, "" + boards[0].whammyage.Count, new Vector2(0, 48), Color.Red);
                         }
                     }
 
