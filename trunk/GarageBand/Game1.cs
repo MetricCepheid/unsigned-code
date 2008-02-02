@@ -1926,7 +1926,6 @@ namespace GarageBand
                         //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
                         //draw development info
-                        if (Settings.Default.DevMode)
                         {
                             //spritebatch.DrawString(DefaultFont, "" + ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond), new Vector2(0, 0), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
