@@ -267,8 +267,7 @@ namespace GarageBand
 
         public void Reload(Game1 game,ContentManager content, GraphicsDeviceManager graphics, Effect e)
         {
-            if (Settings.Default.DevMode == true)
-                LoadWorld(Filename, game, content, graphics, guitarist.GetName(), bassist.GetName(), drummer.GetName(), vocalist.GetName(),e);
+            LoadWorld(Filename, game, content, graphics, guitarist.GetName(), bassist.GetName(), drummer.GetName(), vocalist.GetName(),e);
         }
 
         public void Update(GameTime gameTime, long songtime, Effect engine)
@@ -770,32 +769,17 @@ namespace GarageBand
                 graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                 graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
 
-                graphics.GraphicsDevice.Vertices[0].SetSource(mdlBassist, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (mdlBassist.SizeInBytes / GBVertexFormat.SizeInBytes)/3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                bassist.Draw(gameTime, mMatWorld,graphics);
             }//Bassist
             {//Drummer
-                /*matIdentity = Matrix.Identity;
+                matIdentity = Matrix.Identity;
                 matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matScale = Matrix.CreateScale(SCALE * 16);
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(texDrummer);
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-
-                graphics.GraphicsDevice.Vertices[0].SetSource(mdlDrummer, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (mdlDrummer.SizeInBytes / GBVertexFormat.SizeInBytes)/3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;*/
+                drummer.Draw(gameTime, mMatWorld, graphics);
 
                 //BASS DRUM
                 matIdentity = Matrix.Identity;
@@ -1006,15 +990,7 @@ namespace GarageBand
                 engine.Parameters["diffuseTexture"].SetValue(texSinger);
                 engine.CommitChanges();
 
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-
-                graphics.GraphicsDevice.Vertices[0].SetSource(mdlSinger, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (mdlSinger.SizeInBytes / GBVertexFormat.SizeInBytes)/3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                vocalist.Draw(gameTime, mMatWorld, graphics);
             }//singer
             engine.Parameters["vertexAlpha"].SetValue(true);
             engine.Parameters["BumpMappingEnabled"].SetValue(true);

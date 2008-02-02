@@ -515,7 +515,7 @@ namespace GarageBand
                                     MICROPHONE_ICO_BLUR, MICROPHONE_ICO, GUITARX_ICO_BLUR, GUITARX_ICO;
         }
         private const byte S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_MAINMENU=2;
-        private byte screen = S_CHOOSECONT;
+        private byte screen = S_MAINMENU;
         String songname;
         byte[] diff;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
@@ -534,6 +534,8 @@ namespace GarageBand
         bool[] finals;
         Texture2D[] texNote;
         private RenderTarget2D[] rtNote;
+        int mmenu_select = 0, mmenu_ticker=0;
+        int counterer = 0;
 
         byte loaded = 0, loading = 0;
 #endregion
@@ -636,12 +638,17 @@ namespace GarageBand
         {
             if ((loaded & c) == 0 && (loading & c) == 0)
             {
+                #region MAINMENU
+                if ((c & S_MAINMENU) != 0)
+                {
+                    loaded |=  S_MAINMENU;
+                }
+                #endregion
                 #region CHOOSECONT
                 if ((c&S_CHOOSECONT)!=0)
                 {
                     ThreadStart ThreadStarter = delegate
                     {
-                        loading |= S_CHOOSECONT;
                         rtNote = new RenderTarget2D[4];
                         rtNote[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
                         rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
@@ -721,7 +728,8 @@ namespace GarageBand
                         loading &= (byte)(~S_CHOOSECONT & 255);
                         loaded |= S_CHOOSECONT;
                     };
-
+                    
+                    loading |= S_CHOOSECONT;
                     Thread myThread = new Thread(ThreadStarter);
                     myThread.Start();
                 }
@@ -941,6 +949,67 @@ namespace GarageBand
                 #region mainmenu
                 if (screen == S_MAINMENU)
                 {
+                    if (mmenu_ticker <= 0)
+                    {
+                        int collective = 0;
+                        bool green=false, red=false;
+                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                        for (int i = 0; i < 4; i++)
+                            if (conts[i].IsConnected)
+                            {
+                                if (conts[i].DPad.Down == ButtonState.Pressed)
+                                    collective--;
+                                if (conts[i].DPad.Up == ButtonState.Pressed)
+                                    collective++;
+                                if (conts[i].Buttons.A == ButtonState.Pressed)
+                                    green = true;
+                                if (conts[i].Buttons.B == ButtonState.Pressed)
+                                    red = true;
+                            }
+                        if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                            collective--;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                            collective++;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                            green = true;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            red = true;
+                        if (mmenu_select % 10 == 0)
+                        {
+                            mmenu_select -= 10 * collective;
+                            while (mmenu_select < 10)
+                                mmenu_select += 10;
+                            while (mmenu_select >= 50)
+                                mmenu_select -= 10;
+
+                            if (green)
+                                mmenu_select++;
+                        }
+                        else
+                        {
+                            if (mmenu_select > 20 && mmenu_select < 30)
+                            {
+                                mmenu_select -= collective;
+                                while (mmenu_select < 21)
+                                    mmenu_select += 1;
+                                while (mmenu_select > 24)
+                                    mmenu_select -= 1;
+
+                                if (green && mmenu_select == 21)
+                                    screen = S_CHOOSECONT;
+                            }
+                            if (mmenu_select == 41)
+                                this.Exit();
+
+                                
+                            if (red)
+                                mmenu_select = mmenu_select / 10 * 10;
+                        }
+                        if (collective != 0 || green || red)
+                            mmenu_ticker = 200;
+                    }
+                    else
+                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                 }
                 #endregion
                 #region songscreen
@@ -1097,18 +1166,22 @@ namespace GarageBand
 
 
                 GetContGUIData();
-                if(texNote[0]==null)
-                    for (int i = 0; i < 4; i++)
-                    {
-                        ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                        graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                        spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                        spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
-                        spritebatch.End();
-                        graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                        texNote[i] = rtNote[i].GetTexture();
-                    }
+                if (counterer > 10)
+                {
+                    if (texNote[0] == null)
+                        for (int i = 0; i < 4; i++)
+                        {
+                            graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                            spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                            spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
+                            spritebatch.End();
+                            graphics.GraphicsDevice.SetRenderTarget(0, null);
+                            texNote[i] = rtNote[i].GetTexture();
+                        }
+                }
+                else
+                    counterer++;
                 for (int i = 0; i < 4; i++)
                     finals[i] = false;
                 leader = 0;
@@ -1270,6 +1343,46 @@ namespace GarageBand
                 #region mainmenu
                 if (screen == S_MAINMENU)
                 {
+                    graphics.GraphicsDevice.Clear(Color.Black);
+                    spritebatch.Begin();
+                    if(mmenu_select>=10 && mmenu_select <20)
+                        spritebatch.DrawString(DefaultFont,"SINGLE PLAYER",new Vector2(100,100),Color.Red);
+                    else
+                        spritebatch.DrawString(DefaultFont,"SINGLE PLAYER",new Vector2(100,100),Color.DarkRed);
+                    if(mmenu_select>=20 && mmenu_select <30)
+                        spritebatch.DrawString(DefaultFont,"MULTIPLAYER",new Vector2(100,150),Color.Yellow);
+                    else
+                        spritebatch.DrawString(DefaultFont,"MULTIPLAYER",new Vector2(100,150),Color.Gray);
+                    if (mmenu_select > 20 && mmenu_select < 30)
+                    {
+                        if(mmenu_select==21)
+                            spritebatch.DrawString(DefaultFont,"QUICKPLAY",new Vector2(400,110),Color.Yellow);
+                        else
+                            spritebatch.DrawString(DefaultFont,"QUICKPLAY",new Vector2(400,110),Color.Gray);
+                        if(mmenu_select==22)
+                            spritebatch.DrawString(DefaultFont,"BAND WORLD TOUR",new Vector2(400,160),Color.Red);
+                        else
+                            spritebatch.DrawString(DefaultFont,"BAND WORLD TOUR",new Vector2(400,160),Color.DarkRed);
+                        if(mmenu_select==23)
+                            spritebatch.DrawString(DefaultFont,"TUG OF WAR",new Vector2(400,210),Color.Red);
+                        else
+                            spritebatch.DrawString(DefaultFont,"TUG OF WAR",new Vector2(400,210),Color.DarkRed);
+                        if(mmenu_select==24)
+                            spritebatch.DrawString(DefaultFont,"SCORE BATTLE",new Vector2(400,260),Color.Red);
+                        else
+                            spritebatch.DrawString(DefaultFont,"SCORE BATTLE",new Vector2(400,260),Color.DarkRed);
+                    }
+                    if(mmenu_select>=30 && mmenu_select <40)
+                        spritebatch.DrawString(DefaultFont,"OPTIONS",new Vector2(100,200),Color.Red);
+                    else
+                        spritebatch.DrawString(DefaultFont,"OPTIONS",new Vector2(100,200),Color.DarkRed);
+                    if(mmenu_select>=40 && mmenu_select <50)
+                        spritebatch.DrawString(DefaultFont,"EXIT",new Vector2(100,250),Color.Yellow);
+                    else
+                        spritebatch.DrawString(DefaultFont,"EXIT",new Vector2(100,250),Color.Gray);
+
+                    
+                    spritebatch.End();
                 }
                 #endregion
                 #region songscreen
@@ -1300,36 +1413,35 @@ namespace GarageBand
 
                     Random r = new Random();
 
-                    bool[] plo = new bool[16];
-                    plo[0] = true;
-                    plo[1] = true;
-                    plo[2] = true;
-                    Vector3[] plp = new Vector3[16];
-                    plp[0] = new Vector3(128, 128, 0);
-                    plp[1] = new Vector3(0, 256, -120);;
-                    plp[2] = new Vector3(-128, 128, 0);
-                    float[] pln = new float[16];
-                    pln[0] = r.Next(64)+96;
-                    pln[1] = 2048;
-                    pln[2] = r.Next(64)+96;
-                    float[] plf = new float[16];
-                    plf[0] = r.Next(128) + 256;
-                    plf[1] = 2049;
-                    plf[2] = r.Next(128) + 256;
-                    Vector3[] pld = new Vector3[16];
-                    pld[0] = new Vector3(.9f+(float)(r.NextDouble()/10), .5f+(float)(r.NextDouble()/10), .2f+(float)(r.NextDouble()/10));
-                    pld[1] = new Vector3(.8f, .8f, .8f);
-                    pld[2] = new Vector3(.9f+(float)(r.NextDouble()/10), .5f+(float)(r.NextDouble()/10), .2f+(float)(r.NextDouble()/10));
-                    Vector3[] pls = new Vector3[16];
-                    pls[0] = new Vector3(0.2f, 0.1f, 0.0f);
-                    pls[1] = new Vector3(0.1f, 0.1f, 0.1f);
-                    pls[2] = new Vector3(0.2f, 0.1f, 0.0f);
+                    int linum = 0;
+                        bool[] plo = new bool[16];
+                        Vector3[] plp = new Vector3[16];
+                        float[] pln = new float[16];
+                        float[] plf = new float[16];
+                        Vector3[] pld = new Vector3[16];
+                        Vector3[] pls = new Vector3[16];
+                    for (int i = 0; i < contguis.Length; i++)
+                    {
+                        if (contguis[i].status == 2)
+                        {
+                            plo[linum] = true;
+                            plp[linum] = new Vector3(-192+(contguis[i].loc*80), 192,-100);
+                            pln[linum] = r.Next(64);
+                            plf[linum] = r.Next(64) + 64;
+                            pld[linum] = new Vector3(.9f + (float)(r.NextDouble() / 10), .5f + (float)(r.NextDouble() / 10), .2f + (float)(r.NextDouble() / 10));
+                            pls[linum] = new Vector3(0.2f, 0.1f, 0.0f);
+                            linum++;
+                        }
+                    }
                     engine.Parameters["pLightOn"].SetValue(plo);
                     engine.Parameters["pLightPos"].SetValue(plp);
                     engine.Parameters["pLightDiffuse"].SetValue(pld);
                     engine.Parameters["pLightSpecular"].SetValue(pls);
                     engine.Parameters["pLightNear"].SetValue(pln);
                     engine.Parameters["pLightFar"].SetValue(plf);
+                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    engine.Parameters["dLightDir"].SetValue(new Vector3(0, 1, 1));
                     float vmul = 2f, hmul = 2f;
 
                     engine.CurrentTechnique = engine.Techniques["maintechnique"];
@@ -1418,6 +1530,7 @@ namespace GarageBand
                                 engine.Parameters["diffuseTexture"].SetValue(arrowTex);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc-1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                engine.Parameters["specularColor"].SetValue(charNameSelected[(int)(contguis[i].loc-1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
                                 engine.Parameters["SpecularEnabled"].SetValue(true);
                                 engine.Parameters["shininess"].SetValue(4f);
                                 engine.Parameters["vertexAlpha"].SetValue(false);
@@ -1552,6 +1665,8 @@ namespace GarageBand
                                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                                 }
+                        
+                                    engine.Parameters["fullbright"].SetValue(true);
                         {//keyboard gui
                             {
                                 matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
@@ -1603,6 +1718,7 @@ namespace GarageBand
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                             }
                         }
+                                    
                         engine.Parameters["wAlpha"].SetValue(1);
                         for(int j=1;j<=4;j++)
                         {//instrument gui
@@ -1670,6 +1786,7 @@ namespace GarageBand
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                             }
                         }
+                        engine.Parameters["fullbright"].SetValue(false);
                         engine.Parameters["wAlpha"].SetValue(1.0f);
 
                         pass.End();
@@ -1686,6 +1803,7 @@ namespace GarageBand
                         spritebatch.Draw(hairr, new Rectangle(20 + (int)Window.ClientBounds.Width - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), 0, (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
                     }
 
+                    spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
 
                     //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
 
@@ -1815,14 +1933,11 @@ namespace GarageBand
                         //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
                         //draw development info
-                        if (Settings.Default.DevMode)
                         {
                             //spritebatch.DrawString(DefaultFont, "" + ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond), new Vector2(0, 0), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
-                            spritebatch.DrawString(DefaultFont, "" + controllers[0].ThumbSticks.Right.X, new Vector2(0, 24), Color.Red);
-                            spritebatch.DrawString(DefaultFont, "" + boards[0].whammyage.Count, new Vector2(0, 48), Color.Red);
                         }
                     }
 
