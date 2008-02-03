@@ -166,6 +166,7 @@ namespace GarageBand
         public static byte[] bits = { 1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, 1 << 6, 1 << 7 };
         public const byte GUITAR_B = 1, BASS_B = 2, DRUMS_B = 4, VOCALS_B = 8;
         public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
+        public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
         public static Color[] FretColors = { Color.Green, Color.Red, Color.Yellow, Color.Blue, Color.Orange };
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
         private bool started = false;
@@ -514,7 +515,7 @@ namespace GarageBand
                                     GUITAR_ICO_BLUR, GUITAR_ICO, DRUMS_ICO_BLUR, DRUMS_ICO,
                                     MICROPHONE_ICO_BLUR, MICROPHONE_ICO, GUITARX_ICO_BLUR, GUITARX_ICO;
         }
-        private const byte S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_MAINMENU=2;
+        private const byte S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_CHOOSEDIFF=16, S_MAINMENU=2, S_RESULTS=32;
         private byte screen = S_MAINMENU;
         String songname;
         byte[] diff;
@@ -528,6 +529,7 @@ namespace GarageBand
         int[] charNameSelected;
         ContGUIData[] contguis;
         float idleTime;
+        int songoffset=0, songselected=0;
         Texture2D hairr, hairl, flameTex, texContinue;
         Vector3[][] flames;
         int leader;
@@ -536,6 +538,8 @@ namespace GarageBand
         private RenderTarget2D[] rtNote;
         int mmenu_select = 0, mmenu_ticker=0;
         int counterer = 0;
+        String[][] cSongNames, vSongNames;
+        String[] rockerNames;
 
         byte loaded = 0, loading = 0;
 #endregion
@@ -566,12 +570,6 @@ namespace GarageBand
             contCapabilities = new GamePadCapabilities[4];
 
             diff = new byte[4];
-            diff[0] = D_EXPERT;
-            diff[1] = D_EXPERT;
-            diff[2] = D_EXPERT;
-            diff[3] = D_EXPERT;
-            songname = "Highway2";
-
             
             GBVertexFormat[] arr = { new GBVertexFormat(new Vector3(-1f,0f, 1f),new Vector3(0f,1f,0f),new Vector2(0f,0f)),
                                      new GBVertexFormat(new Vector3(-1f,0f,-1f),new Vector3(0f,1f,0f),new Vector2(0f,1f)),
@@ -587,7 +585,7 @@ namespace GarageBand
 
         private void InitXNAApp()
         {
-            Window.Title = "Garage Band";
+            Window.Title = "Unsigned";
 
             graphics.PreferredBackBufferWidth = 800;
             graphics.PreferredBackBufferHeight = 600;
@@ -625,13 +623,49 @@ namespace GarageBand
         
         protected override void LoadContent()
         {
-                sfBassist = content.Load<SpriteFont>("fonts\\bassist");
-                sfGuitarist = content.Load<SpriteFont>("fonts\\guitarist");
-                sfDrummer = content.Load<SpriteFont>("fonts\\drummer");
-                sfSinger = content.Load<SpriteFont>("fonts\\singer");
-                sfManager = content.Load<SpriteFont>("fonts\\manager");
-                texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
-                DefaultFont = content.Load<SpriteFont>("BasicFont");
+            sfBassist = content.Load<SpriteFont>("fonts\\bassist");
+            sfGuitarist = content.Load<SpriteFont>("fonts\\guitarist");
+            sfDrummer = content.Load<SpriteFont>("fonts\\drummer");
+            sfSinger = content.Load<SpriteFont>("fonts\\singer");
+            sfManager = content.Load<SpriteFont>("fonts\\manager");
+            texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
+            DefaultFont = content.Load<SpriteFont>("BasicFont");
+            System.IO.StreamReader sr = new System.IO.StreamReader("SongList.gbl");
+            String str = sr.ReadLine();
+            str = str.Trim();
+            int numSets = Int32.Parse(str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1));
+            cSongNames = new String[numSets][];
+            vSongNames = new String[numSets][];
+            for (int i = 0; i < numSets; i++)
+            {
+                int j=0;
+                String setname="";
+                while(true)
+                {
+                    str = sr.ReadLine().Trim();
+                    if(str.Length>=3 && str.Substring(0,3).Equals("Set"))
+                        j = Int32.Parse(str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1));
+                    if(str.Length>=4 && str.Substring(0,4).Equals("Name"))
+                        setname = str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1);
+                    if (str.Length >= 8 && str.Substring(0, 8).Equals("NumSongs"))
+                    {
+                        int numsongs = Int32.Parse(str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1));
+                        cSongNames[j] = new String[Int32.Parse(str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1))];
+                        vSongNames[j] = new String[cSongNames[j].Length+1];
+                        vSongNames[j][0] = setname;
+                        for (int k = 0; k < numsongs; k++)
+                        {
+                            str = sr.ReadLine().Trim();
+                            cSongNames[j][k] = str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1);
+                            System.IO.StreamReader tmp = new System.IO.StreamReader("songdata\\"+cSongNames[j][k] + ".gba");
+                            vSongNames[j][k + 1] = tmp.ReadLine();
+                            tmp.Close();
+                        }
+                        break;
+                    }
+                }
+                sr.Close();
+            }
         }
 
         private void LoadContent(byte c)
@@ -642,6 +676,24 @@ namespace GarageBand
                 if ((c & S_MAINMENU) != 0)
                 {
                     loaded |=  S_MAINMENU;
+                }
+                #endregion
+                    #region RESULTS
+                if ((c & S_RESULTS) != 0)
+                {
+                    loaded |=  S_RESULTS;
+                }
+                #endregion
+                #region SONGMENU
+                else if ((c & S_CHOOSESONG) != 0)
+                {
+                    loaded |=  S_CHOOSESONG;
+                }
+                #endregion
+                #region DIFFMENU
+                else if ((c & S_CHOOSEDIFF) != 0)
+                {
+                    loaded |=  S_CHOOSEDIFF;
                 }
                 #endregion
                 #region CHOOSECONT
@@ -982,7 +1034,7 @@ namespace GarageBand
                             while (mmenu_select >= 50)
                                 mmenu_select -= 10;
 
-                            if (green)
+                            if (green && (mmenu_select == 20 || mmenu_select==40))
                                 mmenu_select++;
                         }
                         else
@@ -1012,276 +1064,419 @@ namespace GarageBand
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                 }
                 #endregion
+                #region diffscreen
+                else if (screen == S_CHOOSEDIFF)
+                {
+                    if (mmenu_ticker <= 0)
+                    {
+                        bool green = false, red = false;
+                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                        for (int i = 0; i < 4; i++)
+                            if (conts[i].IsConnected)
+                            {
+                                if (conts[i].Buttons.A == ButtonState.Pressed)
+                                    green = true;
+                                if (conts[i].Buttons.B == ButtonState.Pressed)
+                                    red = true;
+                            }
+                        for(int i=0;i<4;i++)
+                        if(instruments[i])
+                        {
+                            if (contInput[i] >= 4)
+                            {
+                                if (Keyboard.GetState().IsKeyDown(Keys.Down) && diff[i] < 3)
+                                { diff[i]++; mmenu_ticker = 200; }
+                                else if (Keyboard.GetState().IsKeyDown(Keys.Up) && diff[i] > 0)
+                                { diff[i]--; mmenu_ticker = 200; }
+                            }
+                            else
+                            {
+                                GamePadState gps = GamePad.GetState((PlayerIndex)contInput[i]);
+                                GamePadCapabilities gpc = GamePad.GetCapabilities((PlayerIndex)contInput[i]);
+                                bool up=false, down = false;
+                                if (gps.DPad.Down == ButtonState.Pressed)
+                                    down = true;
+                                if (gps.DPad.Up == ButtonState.Pressed)
+                                    up = true;
+                                if (gpc.GamePadType == GamePadType.DrumKit)
+                                {
+                                    if (gps.Buttons.X == ButtonState.Pressed)
+                                        down = true;
+                                    if (gps.Buttons.Y == ButtonState.Pressed)
+                                        up = true;
+                                }
+                                if (up && diff[i] > 0)
+                                    diff[i]--;
+                                if (down && diff[i] < 3)
+                                    diff[i]++;
+                                if (up || down)
+                                    mmenu_ticker = 200;
+                            }
+                        }
+                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                            green = true;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            red = true;
+                        
+                        if (green)
+                        {
+                            screen = S_INGAME;
+                            for (int i = 0; i < 4; i++)
+                                if (diff[i] == 0)
+                                    diff[i] = D_EASY;
+                                else if (diff[i] == 1)
+                                    diff[i] = D_MEDIUM;
+                                else if (diff[i] == 2)
+                                    diff[i] = D_HARD;
+                                else if (diff[i] == 3)
+                                    diff[i] = D_EXPERT;
+                            InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, "garage");
+                        }
+                        if (red)
+                        { screen = S_CHOOSESONG; mmenu_ticker = 200; }
+                    }
+                    else
+                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+                }
+                #endregion
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
+                    int numsongs = 0;
+                    for (int i = 0; i < cSongNames.Length; i++)
+                        numsongs += cSongNames[i].Length;
+
+                    if (mmenu_ticker <= 0)
+                    {
+                        int collective = 0;
+                        bool green = false, red = false;
+                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                        for (int i = 0; i < 4; i++)
+                            if (conts[i].IsConnected)
+                            {
+                                if (conts[i].DPad.Down == ButtonState.Pressed)
+                                    collective--;
+                                if (conts[i].DPad.Up == ButtonState.Pressed)
+                                    collective++;
+                                if (conts[i].Buttons.A == ButtonState.Pressed)
+                                    green = true;
+                                if (conts[i].Buttons.B == ButtonState.Pressed)
+                                    red = true;
+                            }
+                        if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                            collective--;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                            collective++;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                            green = true;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            red = true;
+
+                        if (collective > 0 && songselected > 0)
+                            songselected--;
+                        else if (collective < 0 && songselected < numsongs - 1)
+                            songselected++;
+                        if (green)
+                        {
+                            int i = 0;
+                            for (int k = 0; k < cSongNames.Length; k++)
+                                for (int j = 0; j < cSongNames[k].Length; j++)
+                                {
+                                    if (i == songselected)
+                                        songname = cSongNames[k][j];
+                                    i++;
+                                }
+                            for (int k = 0; k < 4; k++)
+                                diff[k] = D_EASY;
+                            screen = S_CHOOSEDIFF;
+                            mmenu_ticker = 200;
+                        }
+                        if (red)
+                        {screen = S_CHOOSECONT; mmenu_ticker = 200; }
+                        if (collective != 0)
+                            mmenu_ticker = 200;
+                    }
+                    else
+                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                 }
                 #endregion
                 #region contchoosescreen
                 else if (screen == S_CHOOSECONT)
                 {
-
                     if (Keyboard.GetState().GetPressedKeys().Length <= 0)
                         idleTime += gameTime.ElapsedGameTime.Milliseconds / 1000f;
                     else
                         idleTime = 0;
 
                     //charNameSelected[i] < charNames[i < 3 ? i : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f)
-                    for (int i = 0; i < 8; i++)
+                    if (mmenu_ticker <= 0)
                     {
-                        if (arrowTimer[i] <= 0)
+                        for (int i = 0; i < 8; i++)
                         {
-                            if (i % 2 == 0)
-                                if (charNameSelected[i / 2] <= 0)
-                                {
-                                    arrowRot[i] = 0;
-                                    arrowTimer[i] = 5000;
-                                    continue;
-                                }
-                            if (i % 2 == 1)
-                                if (charNameSelected[i / 2] >= charNames[(i / 2) < 3 ? (i / 2) : 0].Length - 1)
-                                {
-                                    arrowRot[i] = 0;
-                                    arrowTimer[i] = 5000;
-                                    continue;
-                                }
-                            if (arrowRot[i] < Math.PI * 2)
+                            if (arrowTimer[i] <= 0)
                             {
-                                arrowRot[i] += gameTime.ElapsedGameTime.Milliseconds / 100f;
-                                if (arrowRot[i] > Math.PI * 2)
-                                {
-                                    arrowRot[i] = 0;
-                                    arrowTimer[i] = 1000 + (float)(r.NextDouble() * 3000);
-                                }
-                            }
-                        }
-                        else
-                            arrowTimer[i] -= gameTime.ElapsedGameTime.Milliseconds;
-                    }
-
-                   /* if ((kblev > 0.5 && !finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                    {
-                        if (Math.Abs(kbld) < 0.01 && kblev > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
-                            kbld = -1;
-                        if (Math.Abs(kbld) < 0.01 && kblev < 3 && Keyboard.GetState().IsKeyDown(Keys.Right))
-                            kbld = 1;
-                    }
-                    else if ((kblev > 0.5 && !chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                    {
-                        if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] < charNames[kblev == 1 ? 0 : kblev < 3 ? (int)(kblev + 0.5) : 0].Length - 1 && Keyboard.GetState().IsKeyDown(Keys.Right))
-                            charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]++;
-                        if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
-                            charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]--;
-                    }
-                    kblev += kbld * (gameTime.ElapsedGameTime.Milliseconds / 500f);
-                    if (kbld > 0)
-                        if (kblev >= kblevp + 1)
-                        {
-                            kblev = kblevp + 1;
-                            kblevp = kblev;
-                            kbld = 0;
-                        }
-                    if (kbld < 0)
-                        if (kblev <= kblevp - 1)
-                        {
-                            kblev = kblevp - 1;
-                            kblevp = kblev;
-                            kbld = 0;
-                        }
-                    Vector3[] nfo = { new Vector3(-140, 180, -120), new Vector3(-140, 190, -110), new Vector3(-96, 128, -110), new Vector3(32, 128, -110), new Vector3(96, 128, -110) };
-                    if (kblev == (int)kblev)
-                        kbinfo = new Vector4(nfo[(int)kblev + (kblev == 0 ? 0 : 1)], kblev <= 0 ? (float)Math.PI / 2 : 0);
-                    else if (kblev < 1)
-                    {
-                        if (kblev < 0.2)
-                            kbinfo = new Vector4((nfo[0] * ((0.2f - kblev) / 0.2f)) + (nfo[1] * (kblev % 1 / 0.2f)), (1 - kblev) * (float)(Math.PI / 2));
-                        else
-                            kbinfo = new Vector4((nfo[1] * ((1f - kblev) / 0.8f)) + (nfo[2] * ((kblev - 0.2f) / 0.8f)), (1 - kblev) * (float)(Math.PI / 2));
-                    }
-                    else
-                    {
-                        if (kbld > 0)
-                            kbinfo = new Vector4((nfo[(int)kblevp + 1] * (1 - (kblev % 1))) + (nfo[(int)(kblevp + kbld) + 1] * (kblev % 1)), 0);
-                        else
-                            kbinfo = new Vector4((nfo[(int)kblevp + 1] * (kblev % 1)) + (nfo[(int)(kblevp + kbld) + 1] * (1 - (kblev % 1))), 0);
-                    }*/
-                    for (int k = 0; k < 4; k++)
-                        for (int i = 0; i < flames[k].Length; i++)
-                            if (flames[k][i].Z > 0)
-                            {
-                                flames[k][i].Z -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                                flames[k][i].Y += (k + 1) * 1.5f * gameTime.ElapsedGameTime.Milliseconds / 100f;
-                                flames[k][i].X += (float)(r.NextDouble() - 0.5) * gameTime.ElapsedGameTime.Milliseconds / 50f;
-                            }
-                    if(gameTime.ElapsedGameTime.Milliseconds<1000/30f)
-                    for (int j = 0; j < 5; j++)
-                        if (contguis[j].status==2)
-                            for (int k = 0; k < 4; k++)
-                                for (int i = 0; i < flames[k].Length; i++)
-                                    if (flames[k][i].Z <= 0)
+                                if (i % 2 == 0)
+                                    if (charNameSelected[i / 2] <= 0)
                                     {
-                                        flames[k][i] = new Vector3((-96 + ((int)(contguis[j].loc-1) * 64)) + (-24 + (float)(r.NextDouble() * 48)), 180 + (-24 + (float)(r.NextDouble() * 48)), 1);
-                                        break;
+                                        arrowRot[i] = 0;
+                                        arrowTimer[i] = 5000;
+                                        continue;
                                     }
-                    /*if (Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.Enter))
-                        if ((int)kblev == kblev && kblev > 0)
-                            if (wait <= 0)
-                            {
-                                if(kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)] && chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                if (i % 2 == 1)
+                                    if (charNameSelected[i / 2] >= charNames[(i / 2) < 3 ? (i / 2) : 0].Length - 1)
+                                    {
+                                        arrowRot[i] = 0;
+                                        arrowTimer[i] = 5000;
+                                        continue;
+                                    }
+                                if (arrowRot[i] < Math.PI * 2)
                                 {
-                                    screen = S_INGAME;
-                                    contInput = new byte[4];
-                                    contInput[kblev == 1 ? 0 : (int)(kblev + 0.5)] = 4;
-                                    InitForSong(chosen[0], chosen[1], chosen[2], chosen[3], diff, "garage");
-                                }
-                                else if (!finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
-                                {
-                                    finalized[kblev == 1 ? 0 : (int)kblev] = true;
-                                    wait = 30;
-                                }
-                                else if ((kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                                {
-                                    chosen[kblev == 1 ? 0 : (int)kblev] = true;
-                                    leader = kblev == 1 ? 0 : (int)kblev;
-                                    wait = 30;
+                                    arrowRot[i] += gameTime.ElapsedGameTime.Milliseconds / 100f;
+                                    if (arrowRot[i] > Math.PI * 2)
+                                    {
+                                        arrowRot[i] = 0;
+                                        arrowTimer[i] = 1000 + (float)(r.NextDouble() * 3000);
+                                    }
                                 }
                             }
-                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                        if ((int)kblev == kblev && kblev > 0)
-                            if (wait <= 0)
-                            {
-                                if (chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                            else
+                                arrowTimer[i] -= gameTime.ElapsedGameTime.Milliseconds;
+                        }
+
+                        /* if ((kblev > 0.5 && !finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                         {
+                             if (Math.Abs(kbld) < 0.01 && kblev > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
+                                 kbld = -1;
+                             if (Math.Abs(kbld) < 0.01 && kblev < 3 && Keyboard.GetState().IsKeyDown(Keys.Right))
+                                 kbld = 1;
+                         }
+                         else if ((kblev > 0.5 && !chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                         {
+                             if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] < charNames[kblev == 1 ? 0 : kblev < 3 ? (int)(kblev + 0.5) : 0].Length - 1 && Keyboard.GetState().IsKeyDown(Keys.Right))
+                                 charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]++;
+                             if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
+                                 charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]--;
+                         }
+                         kblev += kbld * (gameTime.ElapsedGameTime.Milliseconds / 500f);
+                         if (kbld > 0)
+                             if (kblev >= kblevp + 1)
+                             {
+                                 kblev = kblevp + 1;
+                                 kblevp = kblev;
+                                 kbld = 0;
+                             }
+                         if (kbld < 0)
+                             if (kblev <= kblevp - 1)
+                             {
+                                 kblev = kblevp - 1;
+                                 kblevp = kblev;
+                                 kbld = 0;
+                             }
+                         Vector3[] nfo = { new Vector3(-140, 180, -120), new Vector3(-140, 190, -110), new Vector3(-96, 128, -110), new Vector3(32, 128, -110), new Vector3(96, 128, -110) };
+                         if (kblev == (int)kblev)
+                             kbinfo = new Vector4(nfo[(int)kblev + (kblev == 0 ? 0 : 1)], kblev <= 0 ? (float)Math.PI / 2 : 0);
+                         else if (kblev < 1)
+                         {
+                             if (kblev < 0.2)
+                                 kbinfo = new Vector4((nfo[0] * ((0.2f - kblev) / 0.2f)) + (nfo[1] * (kblev % 1 / 0.2f)), (1 - kblev) * (float)(Math.PI / 2));
+                             else
+                                 kbinfo = new Vector4((nfo[1] * ((1f - kblev) / 0.8f)) + (nfo[2] * ((kblev - 0.2f) / 0.8f)), (1 - kblev) * (float)(Math.PI / 2));
+                         }
+                         else
+                         {
+                             if (kbld > 0)
+                                 kbinfo = new Vector4((nfo[(int)kblevp + 1] * (1 - (kblev % 1))) + (nfo[(int)(kblevp + kbld) + 1] * (kblev % 1)), 0);
+                             else
+                                 kbinfo = new Vector4((nfo[(int)kblevp + 1] * (kblev % 1)) + (nfo[(int)(kblevp + kbld) + 1] * (1 - (kblev % 1))), 0);
+                         }*/
+                        for (int k = 0; k < 4; k++)
+                            for (int i = 0; i < flames[k].Length; i++)
+                                if (flames[k][i].Z > 0)
                                 {
-                                    chosen[kblev == 1 ? 0 : (int)kblev] = false;
-                                    wait = 30;
+                                    flames[k][i].Z -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                                    flames[k][i].Y += (k + 1) * 1.5f * gameTime.ElapsedGameTime.Milliseconds / 100f;
+                                    flames[k][i].X += (float)(r.NextDouble() - 0.5) * gameTime.ElapsedGameTime.Milliseconds / 50f;
                                 }
-                                else if (finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                        if (gameTime.ElapsedGameTime.Milliseconds < 1000 / 30f)
+                            for (int j = 0; j < 5; j++)
+                                if (contguis[j].status == 2)
+                                    for (int k = 0; k < 4; k++)
+                                        for (int i = 0; i < flames[k].Length; i++)
+                                            if (flames[k][i].Z <= 0)
+                                            {
+                                                flames[k][i] = new Vector3((-96 + ((int)(contguis[j].loc - 1) * 64)) + (-24 + (float)(r.NextDouble() * 48)), 180 + (-24 + (float)(r.NextDouble() * 48)), 1);
+                                                break;
+                                            }
+                        /*if (Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.Enter))
+                            if ((int)kblev == kblev && kblev > 0)
+                                if (wait <= 0)
                                 {
-                                    finalized[kblev == 1 ? 0 : (int)kblev] = false;
+                                    if(kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)] && chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                    {
+                                        screen = S_INGAME;
+                                        contInput = new byte[4];
+                                        contInput[kblev == 1 ? 0 : (int)(kblev + 0.5)] = 4;
+                                        InitForSong(chosen[0], chosen[1], chosen[2], chosen[3], diff, "garage");
+                                    }
+                                    else if (!finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                    {
+                                        finalized[kblev == 1 ? 0 : (int)kblev] = true;
+                                        wait = 30;
+                                    }
+                                    else if ((kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                                    {
+                                        chosen[kblev == 1 ? 0 : (int)kblev] = true;
+                                        leader = kblev == 1 ? 0 : (int)kblev;
+                                        wait = 30;
+                                    }
                                 }
-                            }
+                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            if ((int)kblev == kblev && kblev > 0)
+                                if (wait <= 0)
+                                {
+                                    if (chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                    {
+                                        chosen[kblev == 1 ? 0 : (int)kblev] = false;
+                                        wait = 30;
+                                    }
+                                    else if (finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                    {
+                                        finalized[kblev == 1 ? 0 : (int)kblev] = false;
+                                    }
+                                }
 
-                    if (wait > 0)
-                        wait--;*/
+                        if (wait > 0)
+                            wait--;*/
 
 
-                GetContGUIData();
-                if (counterer > 10)
-                {
-                    if (texNote[0] == null)
+                        GetContGUIData();
+                        if (counterer > 10)
+                        {
+                            if (texNote[0] == null)
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
+                                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                    spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                    spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
+                                    spritebatch.End();
+                                    graphics.GraphicsDevice.SetRenderTarget(0, null);
+                                    texNote[i] = rtNote[i].GetTexture();
+                                }
+                        }
+                        else
+                            counterer++;
                         for (int i = 0; i < 4; i++)
+                            finals[i] = false;
+                        leader = 0;
+                        for (int i = 0; i < 5; i++)
                         {
-                            graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                            spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                            spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
-                            spritebatch.End();
-                            graphics.GraphicsDevice.SetRenderTarget(0, null);
-                            texNote[i] = rtNote[i].GetTexture();
+                            if (contguis[i].nextLoc > 0)
+                                finals[contguis[i].nextLoc - 1] = true;
+                            if (contguis[i].GetLeaderVal() * ((contguis[i].status == 2) ? 1 : 0) > contguis[leader].GetLeaderVal() * ((contguis[leader].status == 2) ? 1 : 0))
+                                leader = i;
                         }
-                }
-                else
-                    counterer++;
-                for (int i = 0; i < 4; i++)
-                    finals[i] = false;
-                leader = 0;
-                for (int i = 0; i < 5; i++)
-                {
-                    if (contguis[i].nextLoc > 0)
-                        finals[contguis[i].nextLoc - 1] = true;
-                    if (contguis[i].GetLeaderVal()*((contguis[i].status==2)?1:0) > contguis[leader].GetLeaderVal()*((contguis[leader].status==2)?1:0))
-                        leader = i;
-                }
+                        for (int i = 0; i < 5; i++)
+                        {
+                            ContGUIData.RETURN_VALUE ret = contguis[i].Update(gameTime, finals);
+                            if (ret == ContGUIData.RETURN_VALUE.NOTHING) ;
+                            else if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
+                            {
+                                if (leader == i)
+                                {
+                                    screen = S_CHOOSESONG;
+                                    contInput = new byte[4];
+                                    rockerNames = new String[4];
+                                    for (int k = 0; k < 4; k++)
+                                    { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
+                                    for (int k = 0; k < 5; k++)
+                                        if (contguis[k].status == 2)
+                                        {
+                                            rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
+                                            instruments[(int)contguis[k].loc - 1] = true;
+                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
+                                        }
+                                    mmenu_ticker = 200;
+                                }
+                                idleTime = 0;
+                            }
+                            else
+                            {
+                                idleTime = 0;
+                                if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
+                                {
+                                    if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    charNameSelected[(int)contguis[i].loc - 1]++;
+                                }
+                                if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
+                                {
+                                    if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    charNameSelected[(int)contguis[i].loc - 1]--;
+                                }
+                                ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
+                                graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
+                                if (contguis[i].status == 1)
+                                    spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
+                                spritebatch.End();
+                                graphics.GraphicsDevice.SetRenderTarget(0, ort);
+                                texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
+                            }
+                        }
 
-                for (int i = 0; i < 5; i++)
-                {
-                    ContGUIData.RETURN_VALUE ret = contguis[i].Update(gameTime, finals);
-                    if (ret == ContGUIData.RETURN_VALUE.NOTHING) ;
-                    else if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
+                        for (int i = 0; i < 5; i++)
+                            if (contguis[i].index >= 0)
+                                if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && GamePad.GetState((PlayerIndex)contguis[i].index).IsButtonDown(Buttons.B))) && contguis[i].status == 0)
+                                { screen = S_MAINMENU; mmenu_ticker = 200; }
+                        /*for (int i = 0; i < 4; i++)
+                        contInput[i] = 100;
+
+                    for (byte i = 0; i < 4; i++)
                     {
-                        if (leader == i)
+                        if (contCapabilities[i].GamePadType == GamePadType.Guitar)
                         {
-                            screen = S_INGAME;
-                            contInput = new byte[4];
-                            for (int k = 0; k < 4; k++)
-                                contInput[k] = 255;
-                            for (int k = 0; k < 5; k++)
-                                if(contguis[k].status==2)
-                                    contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index>=0?(int)contguis[k].index:4);
-                            InitForSong(contInput[0]<100, contInput[1]<100, contInput[2]<100, contInput[3]<100, diff, "garage");
+                            if (contInput[0] >=100)
+                                contInput[0] = i;
+                            else if (contInput[3] >=100)
+                                contInput[3] = i;
                         }
+                        else if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
+                        {
+                            if (contInput[2] >= 100)
+                                contInput[2] = i;
+                        }
+                        else if (contCapabilities[i].GamePadType == GamePadType.GamePad)
+                        {
+                            if (contInput[1] >= 100)
+                                contInput[1] = i;
+                        }
+                    }
+
+                    bool noone = true;
+                    for (int i = 0; i < 4; i++)
+                        if (contInput[i] < 100)
+                            noone = false;
+                    if (noone)
+                        contInput[2] = 4;*/
                     }
                     else
-                    {
-
-                        if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
-                        {
-                            if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
-                                charNameSelected[(int)contguis[i].loc - 1]++;
-                            else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
-                                charNameSelected[(int)contguis[i].loc - 1]++;
-                            else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
-                                charNameSelected[(int)contguis[i].loc - 1]--;
-                            else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
-                                charNameSelected[(int)contguis[i].loc - 1]--;
-                            charNameSelected[(int)contguis[i].loc - 1]++;
-                        }
-                        if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
-                        {
-                            if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
-                                charNameSelected[(int)contguis[i].loc - 1]--;
-                            else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
-                                charNameSelected[(int)contguis[i].loc - 1]--;
-                            else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
-                                charNameSelected[(int)contguis[i].loc - 1]++;
-                            else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
-                                charNameSelected[(int)contguis[i].loc - 1]++;
-                            charNameSelected[(int)contguis[i].loc - 1]--;
-                        }
-                        ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                        graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                        spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                        spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
-                        if (contguis[i].status == 1)
-                            spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
-                        spritebatch.End();
-                        graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                        texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
-                    }
-                }
-
-
-                    /*for (int i = 0; i < 4; i++)
-                    contInput[i] = 100;
-
-                for (byte i = 0; i < 4; i++)
-                {
-                    if (contCapabilities[i].GamePadType == GamePadType.Guitar)
-                    {
-                        if (contInput[0] >=100)
-                            contInput[0] = i;
-                        else if (contInput[3] >=100)
-                            contInput[3] = i;
-                    }
-                    else if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
-                    {
-                        if (contInput[2] >= 100)
-                            contInput[2] = i;
-                    }
-                    else if (contCapabilities[i].GamePadType == GamePadType.GamePad)
-                    {
-                        if (contInput[1] >= 100)
-                            contInput[1] = i;
-                    }
-                }
-
-                bool noone = true;
-                for (int i = 0; i < 4; i++)
-                    if (contInput[i] < 100)
-                        noone = false;
-                if (noone)
-                    contInput[2] = 4;*/
+                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                 }
                 #endregion
                 #region ingame
@@ -1298,6 +1493,9 @@ namespace GarageBand
                     UpdateGibs(gameTime);
 
                     long currenttime = DateTime.Now.Ticks - SongStartTime;
+
+                    if (song.IsOver(currenttime))
+                        screen = S_RESULTS;
 
                     venue.Update(gameTime, currenttime, engine);
                     matView = venue.GetViewMatrix();
@@ -1316,9 +1514,30 @@ namespace GarageBand
                         audioSoundBank.PlayCue("starching");
                     }
                     if (instruments[0] && contInput[0] < 4)
-                        boards[0].Whammy(controllers[0].ThumbSticks.Right.X,currenttime/(TicksPerSecond/1000));
+                        boards[0].Whammy(controllers[0].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
                     if (instruments[3] && contInput[3] < 4)
-                        boards[3].Whammy(controllers[3].ThumbSticks.Right.X,currenttime/(TicksPerSecond/1000));
+                        boards[3].Whammy(controllers[3].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
+                }
+                #endregion
+                #region results
+                else if (screen == S_RESULTS)
+                {
+                    bool green=false, red=false;
+                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                        for (int i = 0; i < 4; i++)
+                            if (conts[i].IsConnected)
+                            {
+                                if (conts[i].Buttons.A == ButtonState.Pressed)
+                                    green = true;
+                                if (conts[i].Buttons.B == ButtonState.Pressed)
+                                    red = true;
+                            }
+                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                            green = true;
+                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            red = true;
+                        if (green)
+                        { screen = S_MAINMENU; mmenu_ticker = 200; }
                 }
                 #endregion
                 else
@@ -1385,9 +1604,47 @@ namespace GarageBand
                     spritebatch.End();
                 }
                 #endregion
+                #region diffscreen
+                else if (screen == S_CHOOSEDIFF)
+                {
+                    graphics.GraphicsDevice.Clear(Color.Black);
+                    spritebatch.Begin();
+
+                    spritebatch.DrawString(DefaultFont, "Choose Difficulty", new Vector2(10, 10), Color.Green);
+
+                    for(int i=0;i<4;i++)
+                    if (instruments[i])
+                    {
+                        spritebatch.DrawString(DefaultFont, rockerNames[i], new Vector2(i * 150 + 100, 100), Color.Yellow);
+                        spritebatch.DrawString(DefaultFont, DifficultyStr[diff[i]], new Vector2(i * 150 + 100, 200), Color.White);
+                    }
+
+                    spritebatch.End();
+                }
+                #endregion
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
+                    graphics.GraphicsDevice.Clear(Color.Black);
+                    spritebatch.Begin();
+                    spritebatch.DrawString(DefaultFont, "Choose Song", new Vector2(10, 10), Color.Green);
+                    int i = 0, ii=0;
+                    for (int j = 0; j < vSongNames.Length; j++)
+                    {
+                        for (int k = 0; k < vSongNames[j].Length; k++)
+                        {
+                            if(i>=songoffset)
+                                spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(100 + (k == 0 ? 0 : 50), ii * 40 + 100), k==0?Color.Yellow:i==songselected?Color.White:Color.Gray);
+                            if(k!=0)
+                                i++;
+                            ii++;
+                            if (ii >= 12+songoffset)
+                                break;
+                        }
+                        if (ii >= 12+songoffset)
+                            break;
+                    }
+                    spritebatch.End();
                 }
                 #endregion
                 #region contchoosescreen
@@ -1944,6 +2201,15 @@ namespace GarageBand
                     spritebatch.End();
                 }
                 #endregion
+                #region results
+                if (screen == S_RESULTS)
+                {
+                    graphics.GraphicsDevice.Clear(Color.Black);
+                    spritebatch.Begin();
+                    spritebatch.DrawString(DefaultFont, "Song Passed", new Vector2(10, 10), Color.Green);
+                    spritebatch.End();
+                }
+                #endregion
             }
 
             base.Draw(gameTime);
@@ -2110,6 +2376,19 @@ namespace GarageBand
             }
             else if (guitarist && !bassist && percussionist && !vocalist)
             {
+                song = new Song(4, 2, songname);
+                boards[0] = new Board(GUITAR, 0f, song, difficulty[0]);
+                boards[0].xOffset = -.8f;
+                boards[2] = new Board(DRUMS, 0f, song, difficulty[2]);
+                boards[2].xOffset = .8f;
+                Board.curveHeight = 0.03f;
+                Board.height = -2.0f;
+                Board.length = 3f;
+                Board.width = 0.6f;
+                Board.rotate = .5f;
+                Board.zeroZ = 2.8f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;
             }
             else if (!guitarist && bassist && !percussionist && vocalist)
             {
@@ -2632,7 +2911,6 @@ namespace GarageBand
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-
                 if (!SP)
                 {
                     engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);

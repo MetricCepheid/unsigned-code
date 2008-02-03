@@ -16,12 +16,18 @@ namespace GarageBand
         public bool burning;//for held notes
 
         public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, };
-    };
+    }
+
+    struct Results
+    {
+        public int hitNotes, missedNotes;
+        public int hitSPPH, missedSPPH;
+    }
 
     class Board
     {
         private int type;
-        private float xOffset;
+        public float xOffset;
 
         public static float width, length, curveHeight, rotate, height, zeroZ, sFade, eFade;
         public static Texture2D[][] boardTexPlain;
@@ -61,6 +67,7 @@ namespace GarageBand
         public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
         public LinkedList<Vector2> whammyage;
         float waveoffset=0;
+        Results myResults;
 
         private NoteSet[] notes;
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
@@ -557,6 +564,7 @@ namespace GarageBand
                         reff.Hurt(ind);
                         multiplier = 1;
                         notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
+                        myResults.missedNotes++;
                     }
                 }
                 else
@@ -577,10 +585,11 @@ namespace GarageBand
                             SPGood = false;
                             
                         }
+                        myResults.missedNotes++;
                         //reff.Hurt(2);
                     }
                     else
-                    { multiplier += 0.1f; reff.Help(2); }
+                    { multiplier += 0.1f; reff.Help(2); myResults.hitNotes++; }
                 }
                 index++;
             }
@@ -593,6 +602,7 @@ namespace GarageBand
                         reff.Hurt(ind);
                         multiplier = 1;
                         notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
+                        myResults.missedNotes++;
                     }
                 }
                 else
@@ -613,14 +623,15 @@ namespace GarageBand
                             SPGood = false;
                             
                         }
+                        myResults.missedNotes++;
                         //reff.Hurt(2);
                     }
                     else
-                    { multiplier += 0.1f; reff.Help(2); }
+                    { multiplier += 0.1f; reff.Help(2); myResults.hitNotes++; }
                 }
                 index++;
             }
-            if (index<notes.Length && notes[index].burning)
+            if ((GetBoardType()==Game1.GUITARIST || GetBoardType()==Game1.BASSIST) && index<notes.Length && notes[index].burning)
             {
                 LinkedListNode<Vector2> temp = whammyage.First;
                 while (temp!=null)
@@ -636,6 +647,7 @@ namespace GarageBand
                 else
                 {
                     notes[index].burning = false;
+                    index++;
                 }
             }
             for (int i = 0; i < 5; i++)
@@ -741,9 +753,11 @@ namespace GarageBand
                     if (notes[index].length > 0)
                     {
                         notes[index].burning = true;
+                        myResults.hitNotes++;
                         return notes[index].type;
                     }
                     //else
+                    myResults.hitNotes++;
                     index++;
                     return notes[index - 1].type;
                 }
@@ -785,6 +799,7 @@ namespace GarageBand
             }
             else if ((notes[index].time - currenttime) < 100)
             {
+                
                 int scre = 0;
                 byte ret = 0;
                 for (int i = 0; i < 5; i++)
@@ -965,6 +980,11 @@ namespace GarageBand
             int num = Game1.AddBits((byte)(note & 31));
             float dt = gt.ElapsedGameTime.Milliseconds / 1000f;
             score += (int)(num * 100 * dt);
+        }
+
+        public Results getResults()
+        {
+            return myResults;
         }
     }
 }

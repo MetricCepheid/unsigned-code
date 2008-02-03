@@ -18,7 +18,7 @@ namespace GarageBand
         private int TimeH, TimeM, TimeS;
 
         private String[] cues;
-        private int[] cuetimes;
+        private int[] cuetimes;//last value is song length
         private int cueindex;
 
         public Song(int bpm, float mps, String FileName)
@@ -138,6 +138,13 @@ namespace GarageBand
                     asb.GetCue(cues[cueindex]).Stop(AudioStopOptions.Immediate);
                 }
             }
+        }
+
+        public bool IsOver(long currenttime)
+        {
+            if (currenttime/(Game1.TicksPerSecond/1000) > cuetimes[cuetimes.Length - 1])
+                return true;
+            return false;
         }
 
         public int[] GetCamTimes()
