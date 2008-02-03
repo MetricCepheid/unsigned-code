@@ -114,18 +114,6 @@
       <Name>Wave Bank</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="characters\DrAwesome.ggc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="characters\Kakorz.gdc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="characters\Skaskrar.gvc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="characters\Wuv.ggc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="meshes\char.bmp">
       <Importer>TextureImporter</Importer>
       <Processor>SpriteTextureProcessor</Processor>
@@ -138,16 +126,10 @@
     <None Include="songdata\Highway.gba">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="songdata\Highway.gbd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="songdata\Highway.gbg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\Highway2.gba">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\Highway2.gbd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\Highway2.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="songdata\test.gbg">
@@ -202,6 +184,9 @@
       <Project>{abdf3c7e-2e41-4848-87bf-207cfe71172f}</Project>
       <Visible>False</Visible>
     </NestedContentProject>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="characters\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
