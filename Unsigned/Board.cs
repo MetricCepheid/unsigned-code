@@ -589,7 +589,7 @@ namespace GarageBand
                         //reff.Hurt(2);
                     }
                     else
-                    { multiplier += 0.1f; reff.Help(2); myResults.hitNotes++; }
+                    { multiplier = Math.Min(multiplier+0.1f,4); reff.Help(2); myResults.hitNotes++; }
                 }
                 index++;
             }
@@ -627,7 +627,7 @@ namespace GarageBand
                         //reff.Hurt(2);
                     }
                     else
-                    { multiplier += 0.1f; reff.Help(2); myResults.hitNotes++; }
+                    { multiplier = Math.Min(multiplier+0.1f,4); reff.Help(2); myResults.hitNotes++; }
                 }
                 index++;
             }
@@ -843,6 +843,10 @@ namespace GarageBand
 
         public int GetMultiplierFraction()
         {
+            if (multiplier >= 4 && GetBoardType() != Game1.BASSIST)
+                return 10;
+            else if (multiplier >= 6)
+                return 10;
             return (int)((multiplier % 1) * 10);
         }
 
