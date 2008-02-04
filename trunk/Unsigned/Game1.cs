@@ -587,8 +587,8 @@ namespace GarageBand
         {
             Window.Title = "Unsigned";
 
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
+            graphics.PreferredBackBufferWidth = 640;
+            graphics.PreferredBackBufferHeight = 480;
             //graphics.ToggleFullScreen();
 
             engine = new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
@@ -611,7 +611,7 @@ namespace GarageBand
         {
             matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                               (float)Window.ClientBounds.Width / (float)Window.ClientBounds.Height,
-                              1, 700.0f);
+                              2, 750.0f);
         }
 
         void SetProjMatrix2()
@@ -2085,15 +2085,15 @@ namespace GarageBand
                             graphics.GraphicsDevice.SetRenderTarget(0, rtPie[i]);
                             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
                             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                            /*if (boards[i].GetMultiplier() >= 4 * (boards[i].IsSPActivated() ? 2 : 1))
-                                spritebatch.Draw(Board.SPMRbgb, new Rectangle(0, 0, rtPieS, rtPieS), Color.White);
+                            if (boards[i].GetMultiplier() >= 4 * (boards[i].IsSPActivated() ? 2 : 1))
+                                spritebatch.Draw(Board.SPMRbgb, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
                             else if (boards[i].GetMultiplier() >= 2)
-                                spritebatch.Draw(Board.SPMRbgs, new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * rtPieS / 4) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS), Color.White);
+                                spritebatch.Draw(Board.SPMRbgs, new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * rtPieS / 4) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS/3), Color.White);
                             if (boards[i].GetMultiplier() != 1)
-                                spritebatch.Draw(Board.SPMRnum[boards[i].GetMultiplier() - 1], new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * (rtPieS/4)) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS), Color.White);*/
+                                spritebatch.Draw(Board.SPMRnum[boards[i].GetMultiplier() - 1], new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * (rtPieS/4)) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS/3), Color.White);
                             spritebatch.Draw(Board.SPMRbg, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
                             for (int k = 0; k < boards[i].GetMultiplierFraction(); k++)
-                                spritebatch.Draw(Board.SPMRslice, new Vector2(rtPieS/2, rtPieS/6), new Rectangle(0, 0, rtPieS, rtPieS), Color.White, k * (float)(Math.PI / 5), new Vector2(128, 128), 1.2f, new SpriteEffects(), 0);
+                                spritebatch.Draw(Board.SPMRslice, new Vector2(rtPieS/2, rtPieS/6), new Rectangle(0, 0, rtPieS, rtPieS), Color.White, k * (float)(Math.PI / 5), new Vector2(128, 128),rtPieS/768f, new SpriteEffects(), 0);
                             spritebatch.Draw(Board.SPMRfg, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
                             spritebatch.End();
                         }
