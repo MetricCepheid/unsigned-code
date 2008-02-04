@@ -13,6 +13,11 @@ where you can choose to not download specific
 files.  In this way you can only download our
 parsed "copies" of your music.
 
+The XACT project and bank files are under open 
+license.  This means they are owned by no one, 
+and can be claimed by no one, but can be used 
+and modified freely.
+
 Enjoy Unsigned.
 
 http://www.mininova.org/tor/1142192
