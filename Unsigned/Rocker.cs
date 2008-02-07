@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
+using SkinnedModel;
 
 namespace GarageBand
 {
@@ -11,12 +12,12 @@ namespace GarageBand
     {
         public float Rot;
         private float[] anmRots;
-        private float[][] anmIdle;
         private Model model;
         private Matrix[] boneTransforms;
         private ContentManager content;
         private String FileName;
         private Texture2D tex;
+        AnimationPlayer animationPlayer;
 
         private enum RockerBoneData
         {
@@ -44,20 +45,26 @@ namespace GarageBand
             content = cont;
             FileName = filename;
             LoadModel(e);
+            Rot = 0;
         }
 
         protected void LoadModel(Effect e)
         {
             model = content.Load<Model>("meshes\\char");
-            // Allocate the transform matrix array.
+
+            SkinningData skinningData = model.Tag as SkinningData;
+
+            if (skinningData == null)
+                throw new InvalidOperationException
+                    ("This model does not contain a SkinningData tag.");
+
+            animationPlayer = new AnimationPlayer(skinningData);
+
             foreach (ModelMesh mesh in model.Meshes)
-                foreach (ModelMeshPart mp in mesh.MeshParts)
-                    mp.Effect = e;
-            //Matrix a = model.Bones["Joint" + ((int)RockerBoneData.LEFT_ELBOW + 1)].Transform;
-            //model.Bones["Joint" + ((int)RockerBoneData.LEFT_ELBOW + 1)].Transform *= Matrix.CreateRotationZ((float)Math.PI / 4);
+                foreach (ModelMeshPart mPart in mesh.MeshParts)
+                    mPart.Effect = e;
+
             tex = content.Load<Texture2D>("graphics\\rocker");
-            //rotate the model 90 degrees
-            //model.Root.Transform *= Matrix.CreateRotationY(MathHelper.ToRadians(90));
         }
 
         public void Draw(GameTime gameTime, Matrix world, GraphicsDeviceManager graphics)
@@ -65,27 +72,21 @@ namespace GarageBand
             boneTransforms = new Matrix[model.Bones.Count];
             model.CopyBoneTransformsTo(boneTransforms);
             
-            // Draw the model.
+            model.Meshes[0].Effects[0].Parameters["diffuseTexture"].SetValue(tex);
             foreach (ModelMesh mesh in model.Meshes)
             {
-                        foreach(ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                            Matrix val = Matrix.Identity;
-                            ModelBone cBone = mesh.ParentBone;
-                            while (cBone.Parent != null)
-                            {
-                                val = boneTransforms[cBone.Index] * val;
-                                cBone = cBone.Parent;
-                            }
-                            Effect engine = meshpart.Effect;
-                            engine.Parameters["world"].SetValue(val*world);
-                            engine.Parameters["diffuseTexture"].SetValue(tex);
-                            engine.CommitChanges();
+                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                {
+                    meshpart.Effect.Parameters["world"].SetValue(Matrix.CreateScale(0.1f)*Matrix.CreateRotationY(Rot)*world);
+                    //effect.Parameters["Bones"].SetValue(bones);
+                    //effect.Parameters["view"].SetValue(view);
+                    //effect.Parameters["vrojection"].SetValue(projection);v
+                            meshpart.Effect.CommitChanges();
                             graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                             graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                             graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
                             graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                        }
+                }
             }
 
             base.Draw(gameTime);
