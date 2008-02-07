@@ -1,0 +1,29 @@
+Here is just a personal to-do list
+that I add to pretty frequently.
+
+Keep in mind that I take things off
+this list far less often than I add them
+:P
+
+Make GUI better on:	Main Menu
+			Song Menu
+			Difficulty Menu
+			Load Screen
+
+Get characters rockin out (animated)
+
+Allow user character creation / customization
+
+Add various Instruments for CharCust^
+
+Fix HOPOs
+
+Add trigger wiggle to held notes
+
+Add Tiki Bar Venue
+
+Add fans!!!
+
+Groupie sex minigame ? (am i joking?)
+
+Vocals (we will probably see kareoke style until XNA supports USB mics)

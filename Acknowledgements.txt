@@ -1,0 +1,32 @@
+I wanted to put this file in the SVN
+to acknowledge those who have helped
+me in the production of this game:
+
+First and foremost: 
+The Microsoft XNA team for writing
+such a great API and distributing it
+for free.
+
+The DirectX (specifically 9) for
+laying the groundwork
+
+Ziggy of http://www.ziggyware.com
+
+The helpful folks at irc.efnet.pl
+#xna and http://creators.xna.com
+
+Specifically (but not only):
+Z_Man
+ShawnHargreeves
+ShawMishrak
+Conkerjoe
+mdx4ever
+w0rd-driv
+sckeLL
+Cryovat
+Krisc
+Mykre
+Xodus989
+Tiptup300
+
+And many others

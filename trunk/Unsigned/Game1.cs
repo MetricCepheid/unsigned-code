@@ -187,7 +187,7 @@ namespace GarageBand
         private ShatterGlass[] glass;
         private ShatterSpark[] sparks;
         private RenderTarget2D[] rtBar, rtPie;
-        private int rtPieS, rtBarS;
+        private int rtPieS;
 #endregion
 
 #region song
@@ -1379,64 +1379,66 @@ namespace GarageBand
                         for (int i = 0; i < 5; i++)
                         {
                             ContGUIData.RETURN_VALUE ret = contguis[i].Update(gameTime, finals);
-                            if (ret == ContGUIData.RETURN_VALUE.NOTHING) ;
-                            else if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
+                            if (ret != ContGUIData.RETURN_VALUE.NOTHING)
                             {
-                                if (leader == i)
+                                if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
                                 {
-                                    screen = S_CHOOSESONG;
-                                    contInput = new byte[4];
-                                    rockerNames = new String[4];
-                                    for (int k = 0; k < 4; k++)
-                                    { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
-                                    for (int k = 0; k < 5; k++)
-                                        if (contguis[k].status == 2)
-                                        {
-                                            rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
-                                            instruments[(int)contguis[k].loc - 1] = true;
-                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
-                                        }
-                                    mmenu_ticker = 200;
+                                    if (leader == i)
+                                    {
+                                        screen = S_CHOOSESONG;
+                                        contInput = new byte[4];
+                                        rockerNames = new String[4];
+                                        for (int k = 0; k < 4; k++)
+                                        { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
+                                        for (int k = 0; k < 5; k++)
+                                            if (contguis[k].status == 2)
+                                            {
+                                                rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
+                                                instruments[(int)contguis[k].loc - 1] = true;
+                                                contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
+                                            }
+                                        mmenu_ticker = 200;
+                                    }
+                                    idleTime = 0;
                                 }
-                                idleTime = 0;
-                            }
-                            else
-                            {
-                                idleTime = 0;
-                                if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
+                                else
                                 {
-                                    if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
+                                    idleTime = 0;
+                                    if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
+                                    {
+                                        if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
+                                            charNameSelected[(int)contguis[i].loc - 1]++;
+                                        else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
+                                            charNameSelected[(int)contguis[i].loc - 1]++;
+                                        else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
+                                            charNameSelected[(int)contguis[i].loc - 1]--;
+                                        else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
+                                            charNameSelected[(int)contguis[i].loc - 1]--;
                                         charNameSelected[(int)contguis[i].loc - 1]++;
-                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
-                                        charNameSelected[(int)contguis[i].loc - 1]++;
-                                    else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
+                                    }
+                                    if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
+                                    {
+                                        if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
+                                            charNameSelected[(int)contguis[i].loc - 1]--;
+                                        else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
+                                            charNameSelected[(int)contguis[i].loc - 1]--;
+                                        else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
+                                            charNameSelected[(int)contguis[i].loc - 1]++;
+                                        else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
+                                            charNameSelected[(int)contguis[i].loc - 1]++;
                                         charNameSelected[(int)contguis[i].loc - 1]--;
-                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
-                                        charNameSelected[(int)contguis[i].loc - 1]--;
-                                    charNameSelected[(int)contguis[i].loc - 1]++;
+                                    }
+                                    ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
+                                    graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
+                                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                    spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                    spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
+                                    if (contguis[i].status == 1)
+                                        spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
+                                    spritebatch.End();
+                                    graphics.GraphicsDevice.SetRenderTarget(0, ort);
+                                    texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
                                 }
-                                if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
-                                {
-                                    if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
-                                        charNameSelected[(int)contguis[i].loc - 1]--;
-                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
-                                        charNameSelected[(int)contguis[i].loc - 1]--;
-                                    else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
-                                        charNameSelected[(int)contguis[i].loc - 1]++;
-                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
-                                        charNameSelected[(int)contguis[i].loc - 1]++;
-                                    charNameSelected[(int)contguis[i].loc - 1]--;
-                                }
-                                ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                                graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
-                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                                spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
-                                if (contguis[i].status == 1)
-                                    spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
-                                spritebatch.End();
-                                graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                                texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
                             }
                         }
 
@@ -1522,7 +1524,7 @@ namespace GarageBand
                 #region results
                 else if (screen == S_RESULTS)
                 {
-                    bool green=false, red=false;
+                    bool green=false, red=false;//what should red be used for?
                         GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
                         for (int i = 0; i < 4; i++)
                             if (conts[i].IsConnected)

@@ -191,6 +191,12 @@
       <Visible>False</Visible>
     </NestedContentProject>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SkinnedModel\SkinnedModelWindows.csproj">
+      <Project>{0D41E29B-829F-4255-BCA5-64DC2677DA6D}</Project>
+      <Name>SkinnedModelWindows</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

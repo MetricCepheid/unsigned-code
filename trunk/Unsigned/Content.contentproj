@@ -159,11 +159,6 @@
       <Processor>TextureProcessor</Processor>
       <Name>scoreboard</Name>
     </Compile>
-    <Compile Include="meshes\char.x">
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Name>char</Name>
-    </Compile>
     <Compile Include="meshes\gibsonsg.x">
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
@@ -897,6 +892,19 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\char.fbx">
+      <Name>char</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>SkinnedModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SkinnedModelPipeline\SkinnedModelPipeline.csproj">
+      <Project>{007DFB20-8DAF-4088-BB0A-C5EB0282E679}</Project>
+      <Name>SkinnedModelPipeline</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="charmodels\" />
