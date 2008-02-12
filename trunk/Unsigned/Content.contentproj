@@ -907,8 +907,28 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="shaders\HFPS_Shader_XNA.fx">
+      <Name>HFPS_Shader_XNA</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="shaders\PP_Shader_XNA.fx">
+      <Name>PP_Shader_XNA</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\gradient.png">
+      <Name>gradient</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="charmodels\" />
-    <Folder Include="shaders\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

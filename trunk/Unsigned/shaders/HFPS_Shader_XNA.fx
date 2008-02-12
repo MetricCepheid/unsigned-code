@@ -12,10 +12,14 @@ date: 13.12.07
 /* *** *** *** **
    Variables
 ** *** *** *** */
+#define MaxBones 59
 
 bool fullbright;
 bool vertexAlpha=true;
 float wAlpha=1;
+
+bool skinned=false;
+float4x4 Bones[MaxBones];
 
 float4x4 view : View;
 float4x4 proj : Projection;
@@ -106,6 +110,8 @@ struct EngineVertexInput
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
     float alpha : FOG;
+    float4 BoneIndices : BLENDINDICES0;
+    float4 BoneWeights : BLENDWEIGHT0;
 };
 struct EngineVertexToPixel
 {
@@ -140,9 +146,9 @@ float3x3 ComputeTangentMatrix(float3 tangent, float3 normal)
 
 // transforms a position by
 // the WVP
-float4 TransformPosition(float3 pos)
+float4 TransformPosition(float4 pos)
 {
-	return mul(float4(pos,1), mul(mul(world,view),proj));
+	return mul(pos, mul(mul(world,view),proj));
 }
 
 // transforms the position by
@@ -160,13 +166,6 @@ float3 GetCameraPos()
 }
 
 
-/*void InsideLoop(int i, float3 normalVector, float3 viewVector, EngineVertexToPixel input)
-{
-  
-   
-}*/
-
-
 
 /* *** *** *** **
     Shaders
@@ -175,7 +174,27 @@ float3 GetCameraPos()
 EngineVertexToPixel EngineVertexShader(EngineVertexInput input)
 {
   EngineVertexToPixel output = (EngineVertexToPixel)0;
-  output.pos = TransformPosition(input.pos);
+  float4x4 rRot;
+
+  if(skinned)
+  {
+    float4x4 skinTransform = 0;
+
+    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
+    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
+    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
+    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
+
+    output.pos = mul(float4(input.pos,1), skinTransform);
+    
+    rRot = skinTransform*wRot;
+  }
+  else
+  {
+    rRot = wRot;
+    output.pos = float4(input.pos,1);
+  }
+  output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
   float3x3 worldToTangentSpace = ComputeTangentMatrix(input.tangent, input.normal);
   
@@ -192,13 +211,13 @@ EngineVertexToPixel EngineVertexShader(EngineVertexInput input)
   }
   else
   {
-    output.viewVec = mul(worldEyePos - worldVertPos,wRot);
+    output.viewVec = mul(worldEyePos - worldVertPos,rRot);
     output.tangentMatrix = float3x3(1,0,0,0,1,0,0,0,1);
     output.alpha = 1.0f;
-    output.normal=mul(input.normal,wRot);
+    output.normal=mul(input.normal,rRot);
   }
 
-  for(int i=4;i<16;i++)
+  /*for(int i=4;i<16;i++)
   {
     float dist = sqrt( (float)pow(pLightPos[i].x-input.pos.x,2)+(float)pow(pLightPos[i].y-input.pos.y,2)+(float)pow(pLightPos[i].z-input.pos.z,2) );
     if(dist>pLightFar[i])
@@ -210,7 +229,7 @@ EngineVertexToPixel EngineVertexShader(EngineVertexInput input)
   	  fade = 1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i]));
     output.texCoord.z += fade;
     }
-  }
+  }*/
 
   return output;
 }
@@ -270,7 +289,7 @@ if(!fullbright)
   }
 
   // Point Lights
-  [unroll] for (int i=0;i<4;i++)
+  for (int i=0;i<4 && pLightOn[i];i++)
   {
    if(pLightOn[i])
    {
@@ -294,8 +313,6 @@ if(!fullbright)
 		}
 	}
    }
-   else
-	break;
   }
 }
   else

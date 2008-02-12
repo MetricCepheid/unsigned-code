@@ -122,10 +122,13 @@ namespace GarageBand
         AudioEngine audioEngine;
         SoundBank audioSoundBank;
         WaveBank audioWaveBank;
-        private Effect engine;
+        private Effect engine, ppEngine;
         private Matrix matView;
         private Matrix matProj;
+        private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal, boardsTarget;
 
+        private Texture2D gradient;
+        public static bool HALF_RENDER = false;
 #endregion
 
 #region rockstars
@@ -158,6 +161,40 @@ namespace GarageBand
         public static int GUITAR = 0, BASS = 3, DRUMS = 2, VOCALS = 1,
                                 GUITARIST = 0, BASSIST = 3, PERCUSSIONIST = 2, VOCALIST = 1;
 
+#endregion
+
+#region specialeffects
+        Texture2D lastframe;
+        private enum FRAME_EFFECT
+        {
+            CONSTANT = 0, //this is normal
+            SLOW = 1,     //framerate 1/2
+            VERYSLOW = 2, //framerate 1/4
+            DEATHLY = 3,  //1 fps :O
+        };
+        private FRAME_EFFECT currentFE;
+        private int countFE;
+        private enum FRAME_EFFECT_STYLE
+        {//for FRAME_EFFECT.CONSTANT, use BLINK
+            BLINK = 0, //no fades
+            CREST = 1, //fade, flash
+            XFADE = 2, //Full fade
+        }
+        private FRAME_EFFECT_STYLE currentFES;
+        private float countFES=1;
+        const int DESATURATE = 1, //desaturate
+                         HUE_SHIFT = 2,  //hue-shift
+                         REDUCE = 4,     //reduce to 8-bit color
+                         BLUR = 8,       //gaussian blur
+                         GRAIN_DOT = 16, //dot grain
+                         GRAIN_XHSH = 32;//crosshash grain
+        private int postProcessEffects;//bitwise-or together ^
+        //following are used ONLY IF ppe is enabled
+        private float desaturate_value;//0-1 (0=B&W,1=full color)
+        private float hue_shift;//0-1 (0&1=no difference)
+        private float blur_strength;//strength of blur
+        private float blur_passes;//number of passes to the blur
+        private float grain_strength;//how strong the grain is (0=invisible,1=full-static)
 #endregion
 
 #region misc
@@ -541,6 +578,7 @@ namespace GarageBand
         String[][] cSongNames, vSongNames;
         String[] rockerNames;
 
+
         byte loaded = 0, loading = 0;
 #endregion
 
@@ -548,6 +586,8 @@ namespace GarageBand
         {
             graphics = new GraphicsDeviceManager(this);
             content = new ContentManager(Services);
+            
+            //content.RootDirectory = "content\\";
         }
 
         protected override void Initialize()
@@ -587,11 +627,12 @@ namespace GarageBand
         {
             Window.Title = "Unsigned";
 
-            graphics.PreferredBackBufferWidth = 640;
-            graphics.PreferredBackBufferHeight = 480;
+            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 600;
             //graphics.ToggleFullScreen();
 
-            engine = new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
+            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
+            ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
             engine.Parameters["ambientColor"].SetValue(new Vector4(1.0f,1.0f,1.0f,1.0f));
             float[] pLightFar = new float[16];
             for (int i = 0; i < 16; i++)
@@ -599,7 +640,7 @@ namespace GarageBand
             engine.Parameters["pLightFar"].SetValue(pLightFar);
             
 
-            SetProjMatrix();
+            SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             graphics.SynchronizeWithVerticalRetrace = true;
 
@@ -607,18 +648,11 @@ namespace GarageBand
             spritebatch = new SpriteBatch(graphics.GraphicsDevice);
         }
 
-        void SetProjMatrix()
+        void SetProjMatrix(int w, int h)
         {
             matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
-                              (float)Window.ClientBounds.Width / (float)Window.ClientBounds.Height,
-                              2, 750.0f);
-        }
-
-        void SetProjMatrix2()
-        {
-            matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI/2f,
-                              1f,
-                              0.005f, 1000.0f);
+                              w / (float)h,
+                              2f, 750.0f);
         }
         
         protected override void LoadContent()
@@ -630,6 +664,7 @@ namespace GarageBand
             sfManager = content.Load<SpriteFont>("fonts\\manager");
             texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             DefaultFont = content.Load<SpriteFont>("BasicFont");
+            gradient = content.Load<Texture2D>("graphics\\gradient");
             System.IO.StreamReader sr = new System.IO.StreamReader("SongList.gbl");
             String str = sr.ReadLine();
             str = str.Trim();
@@ -802,7 +837,20 @@ namespace GarageBand
                         rtPie[1] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
                         rtPie[2] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
                         rtPie[3] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                        
+
+                        if (HALF_RENDER)
+                        {
+                            screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
+                            screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
+                        }
+                        else
+                        {
+                            screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                            screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                        }
+                        screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                        boardsTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+
                         Board.InitModel(graphics,content,engine);
                         texRockstarRed = content.Load<Texture2D>("graphics\\red");
                         texRockstarRing = content.Load<Texture2D>("graphics\\ring");
@@ -987,6 +1035,7 @@ namespace GarageBand
                 this.Exit();
 
             windowheight = Window.ClientBounds.Height;
+            windowwidth = Window.ClientBounds.Width;
 
             Random r = new Random();
             GetGamepadStates(false);
@@ -1710,7 +1759,7 @@ namespace GarageBand
                     foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                     {
                         pass.Begin();
-                        SetProjMatrix();
+                        SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
                         engine.Parameters["fullbright"].SetValue(false);
 
                         if (idleTime < 29.5)
@@ -2117,7 +2166,15 @@ namespace GarageBand
 
                     vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
                     graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                    //graphics.GraphicsDevice.
+                    if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                    {
+                        if (countFES < 1)
+                            graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
+                        else
+                            graphics.GraphicsDevice.SetRenderTarget(0, screenTargetPre);
+                    }
+                    else
+                        graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
 
                     engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                     engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -2125,14 +2182,16 @@ namespace GarageBand
                     engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
                     engine.CurrentTechnique = engine.Techniques["maintechnique"];
+                    matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                              screenTarget.Width / (float)screenTarget.Height,
+                              25, 1000);
+                    graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 1)));
                     engine.Begin();
                     foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                     {
                         pass.Begin();
                         engine.Parameters["BumpMappingEnabled"].SetValue(false);
                         engine.Parameters["SpecularEnabled"].SetValue(false);
-                        if (screen == S_INGAME)
-                        {
 
                             engine.Parameters["fullbright"].SetValue(false);
                             matView = venue.GetViewMatrix();
@@ -2141,8 +2200,22 @@ namespace GarageBand
                             engine.Parameters["proj"].SetValue(matProj);
                             engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
                             venue.Render(graphics, engine, matProj, vd, gameTime);
+                        pass.End();
+                    }
+                    engine.End();
+                    graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget);
+                    matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                              boardsTarget.Width / (float)boardsTarget.Height,
+                              0.1f, 100.0f);
+                    graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+                    engine.Begin();
+                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+                    {
+                        pass.Begin();
 
                             engine.Parameters["view"].SetValue(Matrix.Identity);
+                            engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
+                            engine.Parameters["proj"].SetValue(matProj);
 
                             //get board measure world lengths
                             Vector2[] lenvals = song.GetZVals((int)(DateTime.Now.Ticks - SongStartTime));
@@ -2175,12 +2248,62 @@ namespace GarageBand
 
                             //draw the non-world gibs (glass shards sparks)
                             DrawGibs();
-                        }
                         pass.End();
                     }
                     engine.End();
 
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                    if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                    {
+                        graphics.GraphicsDevice.SetRenderTarget(0, screenTargetFinal);
+                        graphics.GraphicsDevice.Clear(Color.Black);
+
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
+                        if (countFES < 1)
+                        {
+                            spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                            spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), new Color(new Vector4(1, 1, 1, ((countFES)))));
+                        }
+                        else
+                        {
+                            lastframe = screenTargetPre.GetTexture();
+                            spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                            countFES--;
+                        }
+                        //spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                        spritebatch.End();
+                        countFES += gameTime.ElapsedGameTime.Milliseconds / 500f;
+
+                        graphics.GraphicsDevice.SetRenderTarget(0, null);
+                        graphics.GraphicsDevice.Clear(Color.Black);
+
+
+                        ppEngine.Parameters["gradientTex"].SetValue(gradient);
+
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                        ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
+
+                        //ppEngine.Begin();
+                        //ppEngine.CurrentTechnique.Passes[0].Begin();
+                        ppEngine.Parameters["dotGrainOn"].SetValue(true);
+                        ppEngine.Parameters["ValueShift"].SetValue(0.5f);
+                        ppEngine.Parameters["grainStrength"].SetValue(.25f);
+                        float time = (float)(DateTime.Now.Ticks / 1000 % 90) + 10;
+                        ppEngine.Parameters["time"].SetValue(time);
+                        ppEngine.CommitChanges();
+                        spritebatch.Draw(screenTargetFinal.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                    }
+                    else
+                    {
+                        graphics.GraphicsDevice.SetRenderTarget(0, null);
+                        graphics.GraphicsDevice.Clear(Color.Black);
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                        spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                    }
+                    //ppEngine.CurrentTechnique.Passes[0].End();
+                    //ppEngine.End();
+                    //spritebatch.End();
+
+                    spritebatch.Draw(boardsTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                     if (screen == S_INGAME)
                     {
                         //draw score/stars

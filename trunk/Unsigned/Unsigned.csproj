@@ -120,7 +120,10 @@
       <Name>char</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="shaders\HFPS_Shader_XNA.fxc">
+    <None Include="songdata\CrazyTrain.gba">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\CrazyTrain.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="songdata\Highway.gba">
@@ -196,6 +199,9 @@
       <Project>{0D41E29B-829F-4255-BCA5-64DC2677DA6D}</Project>
       <Name>SkinnedModelWindows</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="shaders\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
