@@ -38,7 +38,6 @@ namespace GarageBand
             RIGHT_THUMB_ROOT = 51, RIGHT_THUMB_MIDDLE = 52, RIGHT_THUMB_TIP = 53
         };
                                      
-
         public Rocker(String filename, Game1 game, ContentManager cont, Effect e) : base(game)
         {
             anmRots = new float[66];
@@ -65,29 +64,38 @@ namespace GarageBand
                     mPart.Effect = e;
 
             tex = content.Load<Texture2D>("graphics\\rocker");
+
+            AnimationClip clip = skinningData.AnimationClips["Animation"];
+
+            animationPlayer.StartClip(clip);
         }
 
         public void Draw(GameTime gameTime, Matrix world, GraphicsDeviceManager graphics)
         {
-            boneTransforms = new Matrix[model.Bones.Count];
-            model.CopyBoneTransformsTo(boneTransforms);
+            animationPlayer.Update(gameTime.ElapsedGameTime, true, Matrix.Identity);
+            Matrix[] bones = animationPlayer.GetSkinTransforms();
+            
             
             model.Meshes[0].Effects[0].Parameters["diffuseTexture"].SetValue(tex);
+            model.Meshes[0].Effects[0].Parameters["diffuseColor"].SetValue(new Vector4(1, 1, 1, 1));
+            model.Meshes[0].Effects[0].Parameters["vertexAlpha"].SetValue(false);
+            model.Meshes[0].Effects[0].Parameters["skinned"].SetValue(true);
+            model.Meshes[0].Effects[0].Parameters["BumpMappingEnabled"].SetValue(false);
             foreach (ModelMesh mesh in model.Meshes)
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
                     meshpart.Effect.Parameters["world"].SetValue(Matrix.CreateScale(0.1f)*Matrix.CreateRotationY(Rot)*world);
-                    //effect.Parameters["Bones"].SetValue(bones);
-                    //effect.Parameters["view"].SetValue(view);
-                    //effect.Parameters["vrojection"].SetValue(projection);v
-                            meshpart.Effect.CommitChanges();
-                            graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                            graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                    meshpart.Effect.Parameters["Bones"].SetValue(bones);
+                    meshpart.Effect.CommitChanges();
+                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
                 }
             }
+            model.Meshes[0].Effects[0].Parameters["skinned"].SetValue(false);
+            model.Meshes[0].Effects[0].Parameters["vertexAlpha"].SetValue(true);
 
             base.Draw(gameTime);
         }

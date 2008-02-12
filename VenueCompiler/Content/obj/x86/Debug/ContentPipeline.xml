@@ -5,10 +5,10 @@
     <Settings>
       <TargetPlatform>Windows</TargetPlatform>
       <BuildConfiguration>Debug</BuildConfiguration>
-      <RootDirectory>C:\GarageBand\thesvnversion\trunk\VenueCompiler\Content\</RootDirectory>
-      <LoggerRootDirectory>C:\GarageBand\thesvnversion\trunk\VenueCompiler\</LoggerRootDirectory>
-      <IntermediateDirectory>C:\GarageBand\thesvnversion\trunk\VenueCompiler\Content\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>C:\GarageBand\thesvnversion\trunk\VenueCompiler\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>C:\Unsigned\trunk\VenueCompiler\Content\</RootDirectory>
+      <LoggerRootDirectory>C:\Unsigned\trunk\VenueCompiler\</LoggerRootDirectory>
+      <IntermediateDirectory>C:\Unsigned\trunk\VenueCompiler\Content\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>C:\Unsigned\trunk\VenueCompiler\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>

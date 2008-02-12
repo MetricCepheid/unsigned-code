@@ -780,6 +780,7 @@ namespace GarageBand
                 mMatWorld = matIdentity * matScale * matTransl;
 
                 drummer.Draw(gameTime, mMatWorld, graphics);
+                engine.Parameters["vertexAlpha"].SetValue(false);
 
                 //BASS DRUM
                 matIdentity = Matrix.Identity;
