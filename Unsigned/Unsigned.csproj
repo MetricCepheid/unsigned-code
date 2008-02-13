@@ -120,12 +120,6 @@
       <Name>char</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="songdata\CrazyTrain.gba">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\CrazyTrain.gbg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="songdata\Highway.gba">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -133,6 +127,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="songdata\Highway.gbg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway_to_Hell.gba">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway_to_Hell.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="songdata\MetalocalypseTheme.gbd">

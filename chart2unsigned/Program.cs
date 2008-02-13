@@ -253,7 +253,7 @@ namespace chart2unsigned
             //PROCESS
             Console.Out.Write("Processing.");
 
-            string timeS="";
+            string timeS="00:00:00";
             List<BarLine> barlines = new List<BarLine>();
             int currentBPM = 0;
             int currentTS = 0;
@@ -358,6 +358,11 @@ namespace chart2unsigned
                     fout.Write(";");
                     fout.WriteLine(newnotes[0][i][k].len);
                 }
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
             }
             fout.Close();
             Console.Out.WriteLine("GBG Written");
