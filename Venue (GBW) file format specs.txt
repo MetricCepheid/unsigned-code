@@ -1,0 +1,74 @@
+//File format specs for GBW venue format
+//C-Style
+
+//By Louis Ingenthron
+//2-14-08
+
+char[] header = "UnsdVnu" + (char)Version;
+
+ulong fileLen;
+
+uint nearClippingPlane;
+uint farClippingPlane;
+
+char 'T'; //textures
+
+char '{';
+
+uint numTexs;
+
+String[numTexs] textures;
+
+char '}';
+
+char 'G'; //geometry
+
+char '{';
+
+struct Vertex
+{
+	float X, Y, Z;
+	float U, V;
+};
+
+struct Polygon
+{
+	float normalX, normalY, normalZ;
+	float tangentX, tangentY, tangentZ;
+	uint textureIndex;
+	uint numVertices;
+	Vertex[numVertices] vertices;
+};
+
+uint numPolygons;
+
+Polygon[numPolygons] polys;
+
+char '}';
+
+char 'E'; //entities
+
+char '{';
+
+struct Camera
+{
+	uint cameraIndex;
+	uint cameraPart;
+	uint cameraType;//matches to Venue.CamBlendPos.TYPE_LEN
+	float x, y, z;
+	float dirx, diry, dirz;
+}
+
+char[3] type;
+
+switch(type)
+{
+case "cam": //camera data
+	uint cameraCount;
+	Camera[uint] cameras;
+}
+
+char '}';
+
+//finish up with some buffering whitespace
+char[] whitebuffer;

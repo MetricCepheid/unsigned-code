@@ -1,0 +1,52 @@
+Guide to Making Custom Venues
+
+**To make a custom venue, you must know how to use
+  Valve's Hammer Level Editor (SourceSDK)
+
+**Additional note, you must have a copy of Hammer!
+
+Some good tutorials and articles about Hammer are
+at: http://developer.valvesoftware.com/wiki/SDK_Docs
+
+A great beginner tutorial is at:
+http://developer.valvesoftware.com/wiki/Your_First_Map
+
+
+
+Okay, you are making your venue in Hammer, but making
+a venue is a bit different than making a HL2 map.
+
+For one thing, I didn't develop the Hammer editor, so
+I don't have the full technical specs, and can only do
+the best I can. As such, there are some odd things you
+have to do.
+
+
+
+IMPORTANT NOTES: (in order of importance)
+
+Any surface that will not be seen, USE THE NO_DRAW TEXTURE!!!
+I cannot stress this one enough!
+
+Any surface that is not Axis aligned (it is slanted in some
+way) you must go to the material editor, and check the box
+"Align to Face"
+
+Go ahead and use the default materials from HL2.  We will 
+replace these later in the guide outside of Hammer. Just
+remember what's what.
+
+
+
+List of Entities that are valid:
+
+[needs work]
+
+
+
+CompileData File
+
+Once you have the map, we will make a new txt file called
+"[mapname].txt" in the same directory as the list
+
+The first thing we will do is Material Replacement. As we
