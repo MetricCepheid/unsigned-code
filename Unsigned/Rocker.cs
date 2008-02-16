@@ -18,6 +18,7 @@ namespace GarageBand
         private String FileName;
         private Texture2D tex;
         AnimationPlayer animationPlayer;
+        private Vector3 position;
 
         private enum RockerBoneData
         {
@@ -70,7 +71,7 @@ namespace GarageBand
             animationPlayer.StartClip(clip);
         }
 
-        public void Draw(GameTime gameTime, Matrix world, GraphicsDeviceManager graphics)
+        public void Draw(GameTime gameTime, GraphicsDeviceManager graphics)
         {
             animationPlayer.Update(gameTime.ElapsedGameTime, true, Matrix.Identity);
             Matrix[] bones = animationPlayer.GetSkinTransforms();
@@ -85,7 +86,7 @@ namespace GarageBand
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
-                    meshpart.Effect.Parameters["world"].SetValue(Matrix.CreateScale(0.1f)*Matrix.CreateRotationY(Rot)*world);
+                    meshpart.Effect.Parameters["world"].SetValue(Matrix.CreateScale(Venue.SCALE)*Matrix.CreateRotationY(Rot)*Matrix.CreateTranslation(position));
                     meshpart.Effect.Parameters["Bones"].SetValue(bones);
                     meshpart.Effect.CommitChanges();
                     graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
@@ -103,6 +104,11 @@ namespace GarageBand
         public String GetName()
         {
             return FileName;
+        }
+
+        public Vector3 GetPosition()
+        {
+            return position;
         }
     }
 }

@@ -57,6 +57,7 @@
     <Compile Include="Board.cs">
       <Name>Board</Name>
     </Compile>
+    <Compile Include="Entity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs">
       <Name>Program</Name>
@@ -186,6 +187,9 @@
     <None Include="SongList.gbl">
       <Name>SongList</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="venues\tikibar.gbw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

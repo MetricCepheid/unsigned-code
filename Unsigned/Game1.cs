@@ -238,6 +238,7 @@ namespace GarageBand
 #region venue
 
         private Venue venue;
+        private string venueName = "tikibar";
 
 #endregion
 
@@ -1179,7 +1180,7 @@ namespace GarageBand
                                     diff[i] = D_HARD;
                                 else if (diff[i] == 3)
                                     diff[i] = D_EXPERT;
-                            InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, "garage");
+                            InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName);
                         }
                         if (red)
                         { screen = S_CHOOSESONG; mmenu_ticker = 200; }
@@ -2159,6 +2160,7 @@ namespace GarageBand
                         }
                     }
 
+                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                     graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                     graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
                     //graphics.PreferMultiSampling = true;
@@ -2182,10 +2184,8 @@ namespace GarageBand
                     engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
                     engine.CurrentTechnique = engine.Techniques["maintechnique"];
-                    matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
-                              screenTarget.Width / (float)screenTarget.Height,
-                              25, 1000);
-                    graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 1)));
+                    matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
+                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
                     engine.Begin();
                     foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                     {
