@@ -21,22 +21,30 @@ namespace GarageBand
         public float Shininess;
     }
 
-    public interface DynamicWorldObject
+    public struct VenueGeometry
     {
-        void Update(GameTime gameTime);
-        void Draw(Effect engine, GraphicsDeviceManager graphics, Vector3 CamPos);
-        Light GetLight();
+        public VertexBuffer vb;
+        public int texIndex;
     }
-
-    
 
     public struct CamBlendPos
     {
-        public Vector3 pos1, pos2;
-        public Vector3 focus1, focus2;
+        public Vector3[] pos;
+        public Vector3[] target;
+        public Vector3[] up;
+        public float[] marks;
+        public TYPE_LEN TYPE;
+        public enum TYPE_LEN
+        {
+            FLASH=0,    //F
+            SHORT=1,    //S
+            NORMAL=2,   //N
+            LENGTHY=3,  //L
+            EXTENDED=4, //E
+        }
     }
 
-    public struct Light
+    public struct LightData
     {
         public Vector3 Pos;
         public bool On;
@@ -45,235 +53,71 @@ namespace GarageBand
         public Vector3 Specular;
     }
 
+    public struct Material
+    {
+        public Texture2D tex, bm;
+        public Vector4 diffuse, specular;
+        public float shininess;
+        public Material(Texture2D t, Texture2D bm)
+        {
+            tex = t;
+            this.bm = bm;
+            diffuse = new Vector4(0.8f, 0.8f, 0.8f, 1);
+            specular = new Vector4(1f, 1f, 1f, 1f);
+            shininess = 24f;
+        }
+    }
+
     class Venue
     {
-        protected struct Swinger : DynamicWorldObject
-        {
-            private int model, texture;
-            private float swingAmt, rotSpd, ovalish;
-            private Vector3 loc;
-            private bool fullBright, emmissive;
-            private Vector3 relLightLoc;
-            private Matrix staticRot;
-            private float rotVal;
-            private bool glow;
-
-            public Swinger(int model,int tex, Vector3 loc)
-            {
-                this.model = model;
-                texture = tex;
-                this.loc = loc;
-                staticRot = Matrix.Identity;
-                swingAmt = 0;
-                rotSpd = 0;
-                ovalish = 1;
-                fullBright=false;
-                emmissive=false;
-                relLightLoc=Vector3.Zero;
-                rotVal = 0;
-                glow = false;
-            }
-            public Swinger(String model, String tex, Vector3 loc)
-            {
-                this.model = -1;
-                for (int i = 0; i < ModelArray.Length; i++)
-                {
-                    if (((String)(ModelArray[i].Tag)).Equals(model))
-                    {
-                        this.model = i;
-                        break;
-                    }
-                }
-                texture = -1;
-                for (int i = 0; i < StaticTexture.Length; i++)
-                {
-                    if (((String)StaticTexture[i].Tag).Equals(tex))
-                    {
-                        texture = i;
-                        break;
-                    }
-                }
-                this.loc = loc;
-                staticRot = Matrix.Identity;
-                swingAmt = 0;
-                rotSpd = 0;
-                ovalish = 1;
-                fullBright=false;
-                emmissive=false;
-                relLightLoc=Vector3.Zero;
-                rotVal = 0;
-                glow = false;
-            }
-
-            public void SetSwing(float amt, float rSpd, float oval)
-            {
-                swingAmt = amt;
-                rotSpd = rSpd;
-                ovalish = oval;
-            }
-
-            public void Update(GameTime gameTime)
-            {
-                rotVal += rotSpd * (gameTime.ElapsedGameTime.Milliseconds / 1000f);
-            }
-
-            public Light GetLight()
-            {
-                if (emmissive)
-                {
-                    Matrix matRot = Matrix.CreateRotationX(swingAmt) * Matrix.CreateRotationY(rotVal);
-                    Light l = new Light();
-                    l.On = true;
-                    l.Near = 128;
-                    l.Far = 512;
-                    l.Diffuse = new Vector3(1, 1, 0.9f);
-                    l.Specular = new Vector3(1, 1, 0.8f);
-                    l.Pos = relLightLoc;
-                    l.Pos = Vector3.Transform(l.Pos, matRot);
-                    l.Pos += loc;
-                    return l;
-                }
-                return new Light();
-            }
-
-            public void Draw(Effect engine, GraphicsDeviceManager graphics, Vector3 CamPos)
-            {
-                Matrix matIdentity = Matrix.Identity;
-                float xval = (float)Game1.dirdistTOhdist(rotVal * 180 / Math.PI,swingAmt);
-                float yval = (float)Game1.dirdistTOvdist(rotVal * 180 / Math.PI, swingAmt);
-                xval *= ovalish;
-                Matrix matRot = Matrix.CreateRotationX(xval) * Matrix.CreateRotationZ(yval);
-                Matrix matTransl = Matrix.CreateTranslation(loc);
-                Matrix matScale = Matrix.CreateScale(SCALE);
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                Matrix matWorld = matIdentity * matScale * matRot * matTransl;
-                if (fullBright)
-                    engine.Parameters["fullbright"].SetValue(true);
-                engine.Parameters["world"].SetValue(matWorld);
-                engine.Parameters["wRot"].SetValue(matRot);
-                engine.Parameters["diffuseTexture"].SetValue(StaticTexture[texture]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
-                engine.CommitChanges();
-
-                foreach (ModelMesh mesh in ModelArray[model].Meshes)
-                {
-                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                    {
-                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                    }
-                }
-
-                if (glow)
-                {
-                    Matrix matSubTransl = Matrix.CreateTranslation(relLightLoc);
-                    matRot = Matrix.CreateRotationZ(MathHelper.PiOver2);
-                    Matrix matRot2 = Matrix.CreateRotationX(xval) * Matrix.CreateRotationZ(yval);
-                    Vector3 diff =(Vector3.Transform(relLightLoc, matRot2) + loc)-CamPos;
-                    Matrix matOrbitB = Matrix.CreateRotationX((float)Math.Atan2(-diff.Y, Math.Sqrt(diff.X * diff.X + diff.Z * diff.Z))) * Matrix.CreateRotationY(-(float)Math.Atan2(diff.Z, diff.X));
-                    Matrix matOrbitA = Matrix.CreateTranslation(new Vector3(0, 0, 8));
-                    matTransl = Matrix.CreateTranslation(loc);
-                    matScale = Matrix.CreateScale(32);
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    matWorld = matIdentity * matScale * matRot * (matOrbitA*matOrbitB) * (matSubTransl * matRot2) * matTransl;
-                    engine.Parameters["fullbright"].SetValue(true);
-                    engine.Parameters["world"].SetValue(matWorld);
-                    engine.Parameters["wRot"].SetValue(matRot*matOrbitB);
-                    engine.Parameters["diffuseTexture"].SetValue(Game1.texGlow);
-                    engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = Game1.vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(Game1.square, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                engine.Parameters["fullbright"].SetValue(false);
-            }
-
-            internal void SetLightData(bool fb, bool em, Vector3 pos)
-            {
-                fullBright = fb;
-                emmissive = em;
-                relLightLoc = pos;
-                glow = true;
-            }
-        }
-
-        private VertexBuffer[] StaticWorld;
-        private static Texture2D[] StaticTexture;
-        private StaticWorldObject[] StaticWorldArray; 
-        private DynamicWorldObject[] DynamicWorldArray;
-        private static Model[] ModelArray;
+        public static VenueGeometry[] StaticGeom;
+        public static Material[] StaticTexture;
+        private int lastTexApplied;
+        private List<Entity> Entities;
+        public static Model[] Models;
         private CamBlendPos[] CamBlends;
         private Vector3 camPos, camUp, camFor;
+
+        private uint cNear, cFar;
+
+        #region DEBUG_VAR
         public static bool DEBUG_CAM_CONTROL = false;
         private Vector3 DEBUG_cp;
         private Vector2 DEBUG_rot;
+        #endregion
+
         private String Filename;
+
         public int camindex;
         private long camtime = -1;
         private float camblendvalue;
-        private static Random rand = null;
+        private static Random rand=new Random();
         private int[] camtimes;
-        private Model guitar;
-        private Model[] drumset;
+
+        private Model guitarM;
+        private Texture guitarT;
+        private Model bassM;
+        private Texture bassT;
+        private Model microphoneM;
+        private Texture microphoneT;
+        private Model[] drumsetM;
         private Texture[] drumsetT;
         private static int DS_BASSDRUM = 0, DS_CRASHCYMBAL = 1, DS_RIDECYMBAL = 2, DS_HIHATCYMBAL = 3, DS_FLOORTOM = 4, DS_TOMTOMS = 5, DS_SNARE = 6;
         private Rocker guitarist,bassist,drummer,vocalist;
-        private Light[] lights;
-
-        #region dynamicmodels
-
-        private VertexBuffer mdlGuitarist, mdlBassist, mdlDrummer, mdlSinger;
-        private Texture2D texGuitarist, texBassist, texDrummer, texSinger;
-
-        #endregion
-
-        //insongtypes
-        public static byte TYPE_NUM = 1, TYPE_NORMAL=0;
-        public static String[] TYPES_S = { "NORMAL" };
-
-        private Vector3[][] CharLocs;
-
-        private Vector3 locGuitarist, locBassist, locDrummer, locSinger;
 
         public static float SCALE = 1f;
 
         public Venue(String Filename, Game1 game, ContentManager content, GraphicsDeviceManager graphics, int[] camtimes, Effect e)
         {
             this.Filename = Filename;
-            LoadWorld("venues\\"+Filename,game,content,graphics,"Louis","Random","Random","Random",e);
-            LoadDynamicModels(content,graphics);
-            if (rand == null)
-                rand = new Random((int)DateTime.Now.Ticks);
+            LoadWorld("venues\\"+Filename,game,content,graphics,"Random","Random","Random","Random",e);
             this.camtimes = camtimes;
-            lights = new Light[4];
-            lights[0] = new Light();
-            lights[0].Far = 500f;
-            lights[0].Near = 256f;
-            lights[0].On = true;
-            lights[0].Pos = new Vector3(0, 150, 100);
-            DEBUG_rot = new Vector2(0, 0);
-        }
-
-        public void Reload(Game1 game,ContentManager content, GraphicsDeviceManager graphics, Effect e)
-        {
-            LoadWorld(Filename, game, content, graphics, guitarist.GetName(), bassist.GetName(), drummer.GetName(), vocalist.GetName(),e);
         }
 
         public void Update(GameTime gameTime, long songtime, Effect engine)
         {
             if (DEBUG_CAM_CONTROL)
-            {
+            {/*
                 KeyboardState kbs = Keyboard.GetState();
                 if (kbs.IsKeyDown(Keys.H))
                     DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
@@ -295,30 +139,28 @@ namespace GarageBand
                     DEBUG_rot.X+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
                 if(kbs.IsKeyDown(Keys.NumPad6))
                     DEBUG_rot.X-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-            }
+            */}
 
             if (camtime==-1)
-            {
+            {//sets the next camera view once the previous one is finished
+                //TODO: needs work for camtime len
                 camindex = rand.Next(CamBlends.Length);
                 camtime++;
             }
             else if (camtime < camtimes.Length - 1 && (songtime / (Game1.TicksPerSecond / 1000)) > camtimes[camtime + 1])
-            {
+            {//sets up camera movement interpolation
                 int k;
                 do { k = rand.Next(CamBlends.Length); }
                 while (k == camindex && CamBlends.Length>1);
                 camindex = k;
                 camtime++;
             }
-            if (camtime >= camtimes.Length-1)
+            if (camtime >= camtimes.Length-1)//sets flag for new camera
                 camblendvalue = -1;
-            else
+            else//interpolation math:
                 camblendvalue = ((songtime / (Game1.TicksPerSecond / 1000)) - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
-            locGuitarist = CharLocs[0][0];
-            locBassist = CharLocs[1][0];
-            locDrummer = CharLocs[2][0];
-            locSinger = CharLocs[3][0];
 
+            //Dynamic light init
             Vector3[] plPos = new Vector3[16];
             bool[] plOn = new bool[16];
             float[] plNear = new float[16];
@@ -326,19 +168,23 @@ namespace GarageBand
             Vector3[] plDif = new Vector3[16];
             Vector3[] plSpc = new Vector3[16];
             int pl = 0;
-            for (int i = 0; i < DynamicWorldArray.Length; i++)
-            {
-                DynamicWorldArray[i].Update(gameTime);
-                Light l = DynamicWorldArray[i].GetLight();
-                if (l.On)
+
+            for (int i = 0; i < Entities.Count; i++)
+            {//updates the entities, gets dynamic lighting info
+                Entities[i].Update(gameTime);
+                if (Entities[i] is LightEntity)
                 {
-                    plOn[pl] = l.On;
-                    plPos[pl] = l.Pos;
-                    plNear[pl] = l.Near;
-                    plFar[pl] = l.Far;
-                    plDif[pl] = l.Diffuse;
-                    plSpc[pl] = l.Specular;
-                    pl++;
+                    LightData l = (Entities[i] as LightEntity).GetLight();
+                    if (l.On)
+                    {
+                        plOn[pl] = l.On;
+                        plPos[pl] = l.Pos;
+                        plNear[pl] = l.Near;
+                        plFar[pl] = l.Far;
+                        plDif[pl] = l.Diffuse;
+                        plSpc[pl] = l.Specular;
+                        pl++;
+                    }
                 }
             }
 
@@ -365,58 +211,184 @@ namespace GarageBand
             }
             else
             {
-                Vector3 cp = new Vector3(0f, 0f, 0f), ct = new Vector3(0f, 1f, 0f), cu = new Vector3(0f, 1f, 0f);
+                Vector3 cp = new Vector3(0f, 0f, 0f), ct = new Vector3(0f, 0f, 0f), cu = new Vector3(0f, 1f, 0f);
                 if (CamBlends.Length < 1)
-                    return Matrix.CreateLookAt(cp, ct, cu);
+                    return Matrix.CreateLookAt(cp, ct, cu);//No cam blends... problem!
                 if (camblendvalue < 0)
-                {
+                {//not sure...default before/after song?
                     cp = new Vector3(0, 100, -200);
                     ct = new Vector3(0, 75, 0);
                 }
                 else
                 {
-                    cp = new Vector3((CamBlends[camindex].pos1.X * camblendvalue) + (CamBlends[camindex].pos2.X * (1 - camblendvalue)), (CamBlends[camindex].pos1.Y * camblendvalue) + (CamBlends[camindex].pos2.Y * (1 - camblendvalue)), (CamBlends[camindex].pos1.Z * camblendvalue) + (CamBlends[camindex].pos2.Z * (1 - camblendvalue)));
-                    ct = new Vector3((CamBlends[camindex].focus1.X * camblendvalue) + (CamBlends[camindex].focus2.X * (1 - camblendvalue)), (CamBlends[camindex].focus1.Y * camblendvalue) + (CamBlends[camindex].focus2.Y * (1 - camblendvalue)), (CamBlends[camindex].focus1.Z * camblendvalue) + (CamBlends[camindex].focus2.Z * (1 - camblendvalue)));
+                    int i=0;
+                    for (; i < CamBlends[camindex].marks.Length; i++)
+                        if (CamBlends[camindex].marks[i] <= camblendvalue)
+                            break;
+                    cp = new Vector3((CamBlends[camindex].pos[i].X * camblendvalue) + (CamBlends[camindex].pos[i+1].X * (1 - camblendvalue)), (CamBlends[camindex].pos[i].Y * camblendvalue) + (CamBlends[camindex].pos[i+1].Y * (1 - camblendvalue)), (CamBlends[camindex].pos[i].Z * camblendvalue) + (CamBlends[camindex].pos[i+1].Z * (1 - camblendvalue)));
+                    ct = new Vector3((CamBlends[camindex].target[i].X * camblendvalue) + (CamBlends[camindex].target[i+1].X * (1 - camblendvalue)), (CamBlends[camindex].target[i].Y * camblendvalue) + (CamBlends[camindex].target[i+1].Y * (1 - camblendvalue)), (CamBlends[camindex].target[i].Z * camblendvalue) + (CamBlends[camindex].target[i+1].Z * (1 - camblendvalue)));
+                    cu = new Vector3((CamBlends[camindex].up[i].X * camblendvalue) + (CamBlends[camindex].up[i+1].X * (1 - camblendvalue)), (CamBlends[camindex].up[i].Y * camblendvalue) + (CamBlends[camindex].up[i+1].Y * (1 - camblendvalue)), (CamBlends[camindex].up[i].Z * camblendvalue) + (CamBlends[camindex].up[i+1].Z * (1 - camblendvalue)));
                 }
-                cu = new Vector3(0f, 1f, 0f);
+                
                 camPos = cp;
                 camUp = cu;
                 camFor = ct;
-                //cp = new Vector3(0f, 400f, 99f);
-                //ct = new Vector3(0f, 180f, 100f);
                 return Matrix.CreateLookAt(cp, ct, cu);
             }
         }
 
+        public Matrix GetProjMatrix(float aspect)
+        {
+            return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2,aspect,
+                                                       cNear, cFar);
+        }
+
         private void LoadWorld(String Filename, Game1 game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
         {
-            guitar = content.Load<Model>("meshes\\gibsonsg");
+            
             guitarist = new Rocker("rockers\\"+g,game,content,e);
             bassist = new Rocker("rockers\\"+b,game,content,e);
             drummer = new Rocker("rockers\\"+d,game,content,e);
             vocalist = new Rocker("rockers\\"+v,game,content,e);
-            drumset = new Model[7];
+
+            //TODO: fix for customized content
+            guitarM = content.Load<Model>("meshes\\gibsonsg");
+            drumsetM = new Model[7];
             drumsetT = new Texture2D[7];
-            drumset[DS_BASSDRUM] = content.Load<Model>("meshes\\bassdrum01");
+            drumsetM[DS_BASSDRUM] = content.Load<Model>("meshes\\bassdrum01");
             drumsetT[DS_BASSDRUM] = content.Load<Texture2D>("graphics\\bassdrum01");
-            drumset[DS_CRASHCYMBAL] = content.Load<Model>("meshes\\crashcymbal01");
+            drumsetM[DS_CRASHCYMBAL] = content.Load<Model>("meshes\\crashcymbal01");
             drumsetT[DS_CRASHCYMBAL] = content.Load<Texture2D>("graphics\\crashcymbal01");
-            drumset[DS_FLOORTOM] = content.Load<Model>("meshes\\floortom01");
+            drumsetM[DS_FLOORTOM] = content.Load<Model>("meshes\\floortom01");
             drumsetT[DS_FLOORTOM] = content.Load<Texture2D>("graphics\\floortom01");
-            drumset[DS_HIHATCYMBAL] = content.Load<Model>("meshes\\hihatcymbal01");
+            drumsetM[DS_HIHATCYMBAL] = content.Load<Model>("meshes\\hihatcymbal01");
             drumsetT[DS_HIHATCYMBAL] = content.Load<Texture2D>("graphics\\hihatcymbal01");
-            drumset[DS_RIDECYMBAL] = content.Load<Model>("meshes\\ridecymbal01");
+            drumsetM[DS_RIDECYMBAL] = content.Load<Model>("meshes\\ridecymbal01");
             drumsetT[DS_RIDECYMBAL] = content.Load<Texture2D>("graphics\\ridecymbal01");
-            drumset[DS_SNARE] = content.Load<Model>("meshes\\snaredrum01");
+            drumsetM[DS_SNARE] = content.Load<Model>("meshes\\snaredrum01");
             drumsetT[DS_SNARE] = content.Load<Texture2D>("graphics\\snaredrum01");
-            drumset[DS_TOMTOMS] = content.Load<Model>("meshes\\tomtoms01");
+            drumsetM[DS_TOMTOMS] = content.Load<Model>("meshes\\tomtoms01");
             drumsetT[DS_TOMTOMS] = content.Load<Texture2D>("graphics\\tomtoms01");
 
-            if (!System.IO.File.Exists(Filename))
-                return;
-            System.IO.StreamReader reader = new System.IO.StreamReader(Filename);
-            String z;
-            do { z = reader.ReadLine(); }
+            System.IO.BinaryReader fin = new System.IO.BinaryReader(System.IO.File.Open(Filename,System.IO.FileMode.Open));
+
+            char[] header = fin.ReadChars(8);
+
+            ulong filesize = fin.ReadUInt64();
+
+            cNear = fin.ReadUInt32();
+            cFar = fin.ReadUInt32();
+
+            fin.ReadChars(2);// T{
+
+            StaticTexture = new Material[fin.ReadUInt32()];
+
+            for (int i = 0; i < StaticTexture.Length; i++)
+            {
+                String n = fin.ReadString();
+                Texture2D a = content.Load<Texture2D>("graphics\\"+n+"Tex");
+                Texture2D c = content.Load<Texture2D>("graphics\\"+n+"BM");
+                StaticTexture[i] = new Material(a, c);
+            }
+
+            fin.ReadChars(3);// }G{
+
+            StaticGeom = new VenueGeometry[fin.ReadUInt32()];
+
+            for ( int i = 0; i < StaticGeom.Length; i++)
+            {
+                StaticGeom[i] = new VenueGeometry();
+                Vector3 normal = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                Vector3 tangent = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                StaticGeom[i].texIndex = (int)fin.ReadUInt32();
+                GBVertexFormat[] buffer = new GBVertexFormat[fin.ReadUInt32()];
+                for (int k = 0; k < buffer.Length; k++)
+                    buffer[k] = new GBVertexFormat(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()), normal, new Vector2(fin.ReadSingle(), fin.ReadSingle()), tangent);
+                StaticGeom[i].vb = new VertexBuffer(graphics.GraphicsDevice, buffer.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
+                StaticGeom[i].vb.SetData<GBVertexFormat>(buffer);
+            }
+
+            fin.ReadChars(3);// }E{
+
+            uint numEs = fin.ReadUInt32();
+            Entities = new List<Entity>();
+
+            for (int i = 0; i < numEs; i++)
+            {
+                String type = fin.ReadString();
+                if (type.Equals("cam"))
+                {
+                    uint num = fin.ReadUInt32();
+                    Vector3[] pos = new Vector3[num], angle = new Vector3[num];
+                    uint[] index = new uint[num], part = new uint[num], tpe = new uint[num];
+                    uint numcams = 0;
+                    for (int j = 0; j < num; j++)
+                    {
+                        index[j] = fin.ReadUInt32();
+                        part[j] = fin.ReadUInt32();
+                        tpe[j] = fin.ReadUInt32();
+                        pos[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                        angle[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                        if (index[j] > numcams)
+                            numcams = index[j];
+                    }
+                    uint[] lens = new uint[numcams];
+                    uint[] amts = new uint[numcams];
+                    for (int j = 0; j < num; j++)
+                    {
+                        if (lens[index[j] - 1] < part[j])
+                            lens[index[j] - 1] = part[j];
+                        amts[index[j]-1]++;
+                    }
+                    CamBlends = new CamBlendPos[numcams];
+                    for (int k = 0; k < numcams; k++)
+                    {
+                        CamBlends[k].marks = new float[amts[k]];
+                        CamBlends[k].pos = new Vector3[amts[k]];
+                        CamBlends[k].target = new Vector3[amts[k]];
+                        CamBlends[k].up = new Vector3[amts[k]];
+                    }
+                    //fill it up
+                    for ( int k = 0; k < num; k++)
+                    {
+                        CamBlends[index[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[index[k]-1];
+                        CamBlends[index[k]-1].marks[amts[index[k]-1]-1] = part[k] / (float)lens[index[k]-1];
+                        CamBlends[index[k]-1].pos[amts[index[k]-1] - 1] = pos[k];
+                        CamBlends[index[k]-1].target[amts[index[k]-1] - 1] = angle[k];
+                        CamBlends[index[k]-1].up[amts[index[k]-1] - 1] = Vector3.Up;
+                        amts[index[k]-1]--;
+                    }
+                    //sort it
+                    for (int k = 0; k < CamBlends.Length; k++)
+                    {
+                        for (int m = 0; m < CamBlends[k].marks.Length; m++)
+                        {
+                            for(int n=m;n>0;n--)
+                            if(CamBlends[k].marks[n]<CamBlends[k].marks[n-1])
+                            {
+                                float tmp = CamBlends[k].marks[n];
+                                CamBlends[k].marks[n] = CamBlends[k].marks[n - 1];
+                                CamBlends[k].marks[n - 1] = tmp;
+                                Vector3 temp = CamBlends[k].pos[n];
+                                CamBlends[k].pos[n] = CamBlends[k].pos[n - 1];
+                                CamBlends[k].pos[n - 1] = temp;
+                                temp = CamBlends[k].target[n];
+                                CamBlends[k].target[n] = CamBlends[k].target[n - 1];
+                                CamBlends[k].target[n - 1] = temp;
+                                temp = CamBlends[k].up[n];
+                                CamBlends[k].up[n] = CamBlends[k].up[n - 1];
+                                CamBlends[k].up[n - 1] = temp;
+                            }
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+
+            fin.ReadChars(1);// }
+
+            /*OLD CODE FOLLOWS... pre-rewrite
             while (z.Length>=2 && z.Substring(0, 2).Equals("//"));
             StaticWorld = new VertexBuffer[Int32.Parse(z)];
 
@@ -597,7 +569,7 @@ namespace GarageBand
             do { z = reader.ReadLine(); }
             while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
             int numDO = Int32.Parse(z);
-            DynamicWorldArray = new DynamicWorldObject[numDO];
+            Entities = new Entity[numDO];
             for (int i = 0; i < numDO; i++)
             {
                 String a;
@@ -607,7 +579,7 @@ namespace GarageBand
                 String tp = a;
                 if (tp.Equals("Swinger"))
                 {
-                    Swinger obj;
+                    SwingingEntity obj;
                     do { a = reader.ReadLine(); }
                     while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
                     a = a.Trim();
@@ -625,7 +597,7 @@ namespace GarageBand
                     y = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
                     a = a.Substring(a.IndexOf(',') + 1).Trim();
                     zz = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    obj = new Swinger(mdl,tex, new Vector3(x, y, zz));
+                    obj = new SwingingEntity(mdl,tex, new Vector3(x, y, zz));
                     do { a = reader.ReadLine(); }
                     while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
                     a = a.Trim();
@@ -651,33 +623,38 @@ namespace GarageBand
                     a = a.Substring(a.IndexOf(',') + 1).Trim();
                     zz = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
                     obj.SetLightData(fb, em, new Vector3(x, y, zz));
-                    DynamicWorldArray[i] = obj;
+                    Entities[i] = obj;
                 }
-            }
+            }*/
         }
 
         public void Render(GraphicsDeviceManager graphics, Effect engine, Matrix matProj,
                            VertexDeclaration vd, GameTime gameTime)
         {
-
+            lastTexApplied=-1;
             Matrix matIdentity, matTransl, matScale, matRot, matOrbit, mMatWorld;
 
-            for (int i = 0; i < StaticWorldArray.Length; i++)
+            engine.Parameters["ambientColor"].SetValue(new Vector4(.5f, .5f, .5f, 1f));
+            engine.Parameters["fullbright"].SetValue(true);
+
+            for (int i = 0; i < StaticGeom.Length; i++)
             {
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(StaticWorldArray[i].x, StaticWorldArray[i].y, StaticWorldArray[i].z);
                 matScale = Matrix.CreateScale(SCALE);
-                matRot = Matrix.CreateRotationY((float)(StaticWorldArray[i].Orientation / 180f * Math.PI));
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matRot * matTransl;
-                if (StaticWorldArray[i].ModelType == 'c')
-                {
+                mMatWorld = matIdentity * matScale;
                     engine.Parameters["world"].SetValue(mMatWorld);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["shininess"].SetValue(StaticWorldArray[i].Shininess);
-                    engine.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticWorldArray[i].TextureIndex]);
-                    engine.Parameters["bumpTexture"].SetValue(StaticTexture[StaticWorldArray[i].BMIndex]);
+                    engine.Parameters["wRot"].SetValue(Matrix.Identity);
+                    engine.Parameters["shininess"].SetValue(StaticTexture[StaticGeom[i].texIndex].shininess);
+                    engine.Parameters["diffuseColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    engine.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    if (lastTexApplied != StaticGeom[i].texIndex)
+                    {
+                        engine.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].tex);
+                        engine.Parameters["bumpTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].bm);
+                        lastTexApplied = StaticGeom[i].texIndex;
+                    }
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -685,106 +662,36 @@ namespace GarageBand
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(StaticWorld[StaticWorldArray[i].ModelIndex], 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (StaticWorld[StaticWorldArray[i].ModelIndex].SizeInBytes/GBVertexFormat.SizeInBytes)/3);
+                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                    graphics.ApplyChanges();
+                    graphics.GraphicsDevice.Vertices[0].SetSource(StaticGeom[i].vb, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleFan, 0, (StaticGeom[i].vb.SizeInBytes/GBVertexFormat.SizeInBytes)-2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                else
-                {
-                    /*foreach (ModelMesh mesh in ModelArray[StaticWorldArray[i].ModelIndex].Meshes)
-                    {
-                        foreach (BasicEffect effect in mesh.Effects)
-                        {
-                            effect.EnableDefaultLighting();
-
-                            effect.View = mMatView;
-                            effect.Projection = mMatProj;
-                            effect.World = Matrix.CreateScale(10f)*mMatWorld;
-                        }
-                        mesh.Draw(SaveStateMode.SaveState);
-                    }*/
-                }
             }
-            for (int i = 0; i < DynamicWorldArray.Length; i++)
+            for (int i = 0; i < Entities.Count; i++)
             {
-                DynamicWorldArray[i].Draw(engine,graphics,camPos);
+                Entities[i].Draw(engine,graphics,camPos);
             }
             engine.Parameters["vertexAlpha"].SetValue(false);
             engine.Parameters["BumpMappingEnabled"].SetValue(false);
             //engine.Parameters["SpecularEnabled"].SetValue(false);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
             {//guitarist
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locGuitarist.X, locGuitarist.Y, locGuitarist.Z);
-                matScale = Matrix.CreateScale(SCALE*16);
 
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matTransl;
-
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(texGuitarist);
-                engine.CommitChanges();
-
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locGuitarist.X, locGuitarist.Y + 50, locGuitarist.Z-20);
-                matRot = Matrix.CreateRotationX(-(float)Math.PI / 2) * Matrix.CreateRotationZ(-(float)Math.PI / 8 * 5);
-                matScale = Matrix.CreateScale(SCALE * 4);
-
-                guitarist.Draw(gameTime, mMatWorld,graphics);
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matRot * matTransl;
-
-                /*foreach (ModelMesh mesh in guitar.Meshes)
-                {
-                    foreach (BasicEffect effect in mesh.Effects)
-                    {
-                        effect.EnableDefaultLighting();
-
-                        effect.View = mMatView;
-                        effect.Projection = mMatProj;
-                        effect.World = mMatWorld;
-                    }
-                    mesh.Draw(SaveStateMode.SaveState);
-                }*/
+                guitarist.Draw(gameTime, graphics);
                 
             }//guitarist
             {//Bassist
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locBassist.X, locBassist.Y, locBassist.Z);
-                matScale = Matrix.CreateScale(SCALE * 16);
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matTransl;
-
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(texBassist);
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-
-                bassist.Draw(gameTime, mMatWorld,graphics);
+                bassist.Draw(gameTime, graphics);
             }//Bassist
             {//Drummer
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
-                matScale = Matrix.CreateScale(SCALE * 16);
 
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matTransl;
-
-                drummer.Draw(gameTime, mMatWorld, graphics);
+                drummer.Draw(gameTime, graphics);
                 engine.Parameters["vertexAlpha"].SetValue(false);
 
                 //BASS DRUM
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
+                matTransl = Matrix.CreateTranslation(drummer.GetPosition());
                 matOrbit = Matrix.CreateTranslation(0,0,-50*SCALE)*Matrix.CreateRotationY(drummer.Rot);
                 matScale = Matrix.CreateScale(SCALE*128f);
 
@@ -800,7 +707,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_BASSDRUM].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_BASSDRUM].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -817,7 +724,6 @@ namespace GarageBand
                 //CRASH CYMBAL
                 matIdentity = Matrix.Identity;
                 matRot = Matrix.CreateRotationY(-(float)(Math.PI * 3.5 / 8));
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 0, -65 * SCALE) * Matrix.CreateRotationY(drummer.Rot-(float)(Math.PI/5.5));
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -830,7 +736,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_CRASHCYMBAL].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_CRASHCYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -845,7 +751,6 @@ namespace GarageBand
                 //FLOOR TOM
                 matIdentity = Matrix.Identity;
                 matRot = Matrix.CreateRotationY(-(float)(Math.PI * 3.5 / 8));
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 0, -40 * SCALE) * Matrix.CreateRotationY(drummer.Rot - (float)(Math.PI / 5.5));
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -858,7 +763,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_FLOORTOM].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_FLOORTOM].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -871,7 +776,6 @@ namespace GarageBand
                 }
                 //TOM TOMS
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 32 * SCALE, -50 * SCALE) * Matrix.CreateRotationY(drummer.Rot+0.04f);
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -884,7 +788,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_TOMTOMS].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_TOMTOMS].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -898,7 +802,6 @@ namespace GarageBand
                 //SNARE DRUM
                 matIdentity = Matrix.Identity;
                 matRot = Matrix.CreateRotationY(-(float)Math.PI / 2f);
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 0, -50 * SCALE) * Matrix.CreateRotationY(drummer.Rot + (float)(Math.PI / 5.5));
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -911,7 +814,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_SNARE].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_SNARE].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -925,7 +828,6 @@ namespace GarageBand
                 //RIDE CYMBAL
                 matIdentity = Matrix.Identity;
                 matRot = Matrix.CreateRotationY(-(float)Math.PI / 2.5f);
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 0, -65 * SCALE) * Matrix.CreateRotationY(drummer.Rot + (float)(Math.PI / 6.2));
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -938,7 +840,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_RIDECYMBAL].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_RIDECYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -952,7 +854,6 @@ namespace GarageBand
                 //HIHAT
                 matIdentity = Matrix.Identity;
                 matRot = Matrix.CreateRotationY(-(float)Math.PI / 2.3f);
-                matTransl = Matrix.CreateTranslation(locDrummer.X, locDrummer.Y, locDrummer.Z);
                 matOrbit = Matrix.CreateTranslation(0, 0, -40 * SCALE) * Matrix.CreateRotationY(drummer.Rot + (float)(Math.PI / 3.5));
                 matScale = Matrix.CreateScale(SCALE * 128);
 
@@ -965,7 +866,7 @@ namespace GarageBand
                 engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
-                foreach (ModelMesh mesh in drumset[DS_HIHATCYMBAL].Meshes)
+                foreach (ModelMesh mesh in drumsetM[DS_HIHATCYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
@@ -979,68 +880,12 @@ namespace GarageBand
 
             }//drummer
             {//singer
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(locSinger.X, locSinger.Y, locSinger.Z);
-                matScale = Matrix.CreateScale(SCALE * 16);
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                mMatWorld = matIdentity * matScale * matTransl;
-
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(texSinger);
-                engine.CommitChanges();
-
-                vocalist.Draw(gameTime, mMatWorld, graphics);
+                vocalist.Draw(gameTime, graphics);
             }//singer
             engine.Parameters["vertexAlpha"].SetValue(true);
             engine.Parameters["BumpMappingEnabled"].SetValue(true);
             engine.Parameters["SpecularEnabled"].SetValue(true);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
-        }
-
-        /*
-         * this should go the fuck away
-         */
-        public void LoadDynamicModels(ContentManager content, GraphicsDeviceManager graphics)
-        {
-            float[] xs = { -1f, -1f,  1f, -1f,  1f,  1f,     -1f, -1f,  1f, -1f,  1f,  1f,      1f,  1f,  1f,  1f,  1f,  1f,     -1f, -1f, -1f, -1f, -1f, -1f,     -1f, -1f,  1f, -1f,  1f,  1f,};
-            float[] ys = {  0f,  1f,  0f,  1f,  0f,  1f,      0f,  1f,  0f,  1f,  0f,  1f,      0f,  1f,  0f,  1f,  0f,  1f,      0f,  1f,  0f,  1f,  0f,  1f,      1f,  1f,  1f,  1f,  1f,  1f,};
-            float[] zs = {  1f,  1f,  1f,  1f,  1f,  1f,     -1f, -1f, -1f, -1f, -1f, -1f,     -1f, -1f,  1f, -1f,  1f,  1f,     -1f, -1f,  1f, -1f,  1f,  1f,     -1f,  1f, -1f,  1f, -1f,  1f,};
-            float[] us = {  0f,  0f,  1f,  0f,  1f,  1f,      0f,  0f,  1f,  0f,  1f,  1f,      0f,  0f,  1f,  0f,  1f,  1f,      0f,  0f,  1f,  0f,  1f,  1f,      0f,  0f,  1f,  0f,  1f,  1f,};
-            float[] vs = { .5f,  0f, .5f,  0f, .5f,  0f,     .5f,  0f, .5f,  0f, .5f,  0f,     .5f,  0f, .5f,  0f, .5f,  0f,     .5f,  0f, .5f,  0f, .5f,  0f,      1f, .5f,  1f, .5f,  1f, .5f,};
-            float[] ms = {  0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      1f,  1f,  1f,  1f,  1f,  1f,     -1f, -1f, -1f, -1f, -1f, -1f,      0f,  0f,  0f,  0f,  0f,  0f,};
-            float[] ns = {  0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      1f,  1f,  1f,  1f,  1f,  1f,};
-            float[] os = {  1f,  1f,  1f,  1f,  1f,  1f,     -1f, -1f, -1f, -1f, -1f, -1f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,};
-            float[] ps = {  0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,};
-            float[] qs = {  1f,  1f,  1f,  1f,  1f,  1f,      1f,  1f,  1f,  1f,  1f,  1f,      1f,  1f,  1f,  1f,  1f,  1f,      1f,  1f,  1f,  1f,  1f,  1f,      0f,  0f,  0f,  0f,  0f,  0f,};
-            float[] rs = {  0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,      1f,  1f,  1f,  1f,  1f,  1f,};
-
-            GBVertexFormat[] vmdlGuitarist    = new GBVertexFormat[30];
-            GBVertexFormat[] vmdlBassist = new GBVertexFormat[30];
-            GBVertexFormat[] vmdlDrummer = new GBVertexFormat[30];
-            GBVertexFormat[] vmdlSinger = new GBVertexFormat[30];
-            for (int i = 0; i < 30; i++)
-            {
-                vmdlGuitarist[i] = new GBVertexFormat(new Vector3(xs[i], ys[i] * 4, zs[i]),new Vector3(ms[i],ns[i],os[i]), new Vector2(us[i], vs[i]),new Vector3(ps[i],qs[i],rs[i]));
-                vmdlBassist[i]   = new GBVertexFormat(new Vector3(xs[i], ys[i] * 4, zs[i]),new Vector3(ms[i],ns[i],os[i]), new Vector2(us[i], vs[i]),new Vector3(ps[i],qs[i],rs[i]));
-                vmdlDrummer[i]   = new GBVertexFormat(new Vector3(xs[i], ys[i] * 4, zs[i]),new Vector3(ms[i],ns[i],os[i]), new Vector2(us[i], vs[i]),new Vector3(ps[i],qs[i],rs[i]));
-                vmdlSinger[i]    = new GBVertexFormat(new Vector3(xs[i], ys[i] * 4, zs[i]),new Vector3(ms[i],ns[i],os[i]), new Vector2(us[i], vs[i]),new Vector3(ps[i],qs[i],rs[i]));
-            }
-
-            mdlGuitarist = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * xs.Length, BufferUsage.WriteOnly);
-            mdlBassist   = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * xs.Length, BufferUsage.WriteOnly);
-            mdlDrummer   = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * xs.Length, BufferUsage.WriteOnly);
-            mdlSinger    = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * xs.Length, BufferUsage.WriteOnly);
-            mdlGuitarist.SetData<GBVertexFormat>(vmdlGuitarist);
-            mdlBassist.SetData<GBVertexFormat>(vmdlBassist);
-            mdlDrummer.SetData<GBVertexFormat>(vmdlDrummer);
-            mdlSinger.SetData<GBVertexFormat>(vmdlSinger); 
-
-            texGuitarist = content.Load<Texture2D>("graphics\\guitarist_tex"); 
-            texBassist = content.Load<Texture2D>("graphics\\bassist_tex");
-            texDrummer = content.Load<Texture2D>("graphics\\drummer_tex");
-            texSinger = content.Load<Texture2D>("graphics\\singer_tex");
         }
 
         internal Vector3 GetCamPos()
@@ -1059,4 +904,5 @@ namespace GarageBand
         }
     }
 }
+
 

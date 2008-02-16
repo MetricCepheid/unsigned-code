@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chart2unsigned", "chart2uns
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VenueCompiler", "VenueCompiler\VenueCompiler.vcproj", "{CBBB9062-2962-4758-958D-694B19E89706}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VenueCompiler", "VenueCompiler\VenueCompiler.csproj", "{230F9E77-9B22-44D4-A8E1-CF0C6690B577}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -115,20 +115,20 @@ Global
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Win32.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|x86.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Xbox 360.ActiveCfg = Release|x86
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Win32.ActiveCfg = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Win32.Build.0 = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|x86.ActiveCfg = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Debug|Xbox 360.ActiveCfg = Debug|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Any CPU.ActiveCfg = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Win32.ActiveCfg = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Win32.Build.0 = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|x86.ActiveCfg = Release|Win32
-		{CBBB9062-2962-4758-958D-694B19E89706}.Release|Xbox 360.ActiveCfg = Release|Win32
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Debug|Xbox 360.ActiveCfg = Debug|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Any CPU.Build.0 = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Win32.ActiveCfg = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|x86.ActiveCfg = Release|Any CPU
+		{230F9E77-9B22-44D4-A8E1-CF0C6690B577}.Release|Xbox 360.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
