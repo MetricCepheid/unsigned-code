@@ -110,5 +110,10 @@ namespace GarageBand
         {
             return position;
         }
+
+        public void SetPosition(Vector3 inn)
+        {
+            position = inn;
+        }
     }
 }

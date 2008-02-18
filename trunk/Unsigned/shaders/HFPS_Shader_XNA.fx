@@ -27,11 +27,11 @@ float4x4 world : World;
 float4x4 wRot : World;
 float4x4 viewInverse : ViewInverse;
 
-int numPSPLights = 3;
+int numPSPLights = 6;
 float3 pLightPos[16];
 bool   pLightOn[16];
-float3 pLightDiffuse[16];
-float3 pLightSpecular[16];
+float pLightPower[16];
+float3 pLightDir[16];
 float  pLightNear[16];
 float  pLightFar[16];
 
@@ -238,30 +238,6 @@ float4 EnginePixelShader(EngineVertexToPixel input) : COLOR
 {
   float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord.xy);
   
-  
-  // The following is decal code that is not yet 
-  // implemented as it causes other code to crash
-  // please ignore for the time being
-  /*float3 tanpos = mul(input.wPos,input.tangentMatrix);
-  [unroll] for(int i=0;i<8;i++)
-  {
-	if(decalActivated[i])
-	if(sqrt(pow(input.wPos.x-decalPos[i].x,2)+pow(input.wPos.y-decalPos[i].y,2)+pow(input.wPos.z-decalPos[i].z,2))<decalRadius[i])
-	{
-		float3 tPos = mul(decalPos[i],input.tangentMatrix);
-		float2 decalTexCoords = float2(tanpos.x-tPos.x,tanpos.y-tPos.y);
-		decalTexCoords /= decalRadius[i] * 2;
-		decalTexCoords.x += 0.5f;
-		decalTexCoords.y += 0.5f;
-		float4 diffuseDecal = tex2D(DecalTextureSampler,decalTexCoords);
-		float OldW = diffuseTex.w;
-		diffuseTex = (diffuseTex*(1-diffuseDecal.w))+(diffuseDecal*diffuseDecal.w);
-		diffuseTex.w = OldW;
-	}
-  }*/
-  
-  
-  
   float3 normalVector =normalize(input.normal);
   if(BumpMappingEnabled)
   {
@@ -269,61 +245,43 @@ float4 EnginePixelShader(EngineVertexToPixel input) : COLOR
 	normalVector = normalize(normalVector);
   }//else: normalVector=(0,0,1)
   
-  
   float4 ambientCol = ambientColor;//default values for the output
   float4 diffuseCol = diffuseColor*input.texCoord.z;
-  float4 specularCol = float4( 0, 0, 0, 0 );
 if(!fullbright)
 {
-  
   float3 viewVector = normalize(input.viewVec);
   
-  {// Directional Light
-  float3 dLightVector = normalize(mul(input.tangentMatrix, dLightDir));
+  /*{// Directional Light
+	float3 dLightVector = normalize(mul(input.tangentMatrix, dLightDir));
 	float bump = saturate(dot(normalVector, dLightVector));
 	float3 reflect = normalize(2 * bump * normalVector - dLightVector);
 	float spec = pow(saturate(dot(reflect, viewVector)), shininess);
 	diffuseCol = saturate(dot(normalVector, dLightVector))*diffuseColor*dLDiffuseColor;
 	if(SpecularEnabled)
-		specularCol = bump*spec*specularColor*dLSpecularColor;
-  }
+	specularCol = bump*spec*specularColor*dLSpecularColor;
+  }*/
 
   // Point Lights
-  for (int i=0;i<4 && pLightOn[i];i++)
+  for (int i=0;i<6 && pLightOn[i];i++)
   {
-   if(pLightOn[i])
-   {
-     float dist = sqrt( (float)pow(pLightPos[i].x-input.wPos.x,2)+(float)pow(pLightPos[i].y-input.wPos.y,2)+(float)pow(pLightPos[i].z-input.wPos.z,2) );
+     float dist = acos(dot(normalize(input.wPos-pLightPos[i]),normalize(pLightDir[i])));
 	if(dist <= pLightFar[i])
 	{
-		float fade=1.0f;
-		if(dist<=pLightNear[i])
-		  fade=1.0f;
-		else
-		  fade = 1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i]));
+		float fade = saturate(1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i])));
 		float3 pLightDir = pLightPos[i]-input.wPos;
 		float3 pLightVector = normalize(mul(input.tangentMatrix, pLightDir));
-		diffuseCol += saturate(dot(normalVector, pLightVector))*fade*diffuseColor*float4(pLightDiffuse[i].xyz,1);
-		if(SpecularEnabled)
-		{
-	          float bump = saturate(dot(normalVector, pLightVector));
-	          float3 reflect = normalize(2 * bump * normalVector - pLightVector);
-	          float spec = pow(saturate(dot(reflect, viewVector)), shininess);
-		  specularCol += fade*saturate(bump*spec*specularColor*float4(pLightSpecular[i].xyz,1));
-		}
+		diffuseCol += saturate(dot(normalVector, pLightVector))*fade*diffuseColor*float4(pLightPower[i],pLightPower[i],pLightPower[i],1);
 	}
-   }
   }
 }
   else
   {
 	ambientCol = float4(ambientColor.xyz,wAlpha*input.alpha);
 	diffuseCol = float4(diffuseColor.xyz,wAlpha*input.alpha);
-	specularCol = float4(0,0,0,0);
   }
   diffuseTex.w *= wAlpha*input.alpha;
 
-  return float4((diffuseTex * saturate(ambientColor + diffuseCol) + specularCol).xyz,diffuseTex.w*wAlpha*input.alpha);
+  return float4((diffuseTex * saturate(ambientColor + diffuseCol)).xyz,diffuseTex.w*wAlpha*input.alpha);
 }
 
 

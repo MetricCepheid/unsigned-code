@@ -139,6 +139,9 @@
     <None Include="songdata\MetalocalypseTheme.gbd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="songdata\MetalocalypseTheme.gbe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="songdata\test.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

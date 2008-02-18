@@ -1549,7 +1549,7 @@ namespace GarageBand
                     if (song.IsOver(currenttime))
                         screen = S_RESULTS;
 
-                    venue.Update(gameTime, currenttime, engine);
+                    venue.Update(gameTime, currenttime, engine, song);
                     matView = venue.GetViewMatrix();
                     audioEngine.Update();
 
@@ -1733,7 +1733,7 @@ namespace GarageBand
                     {
                         if (contguis[i].status == 2)
                         {
-                            plo[linum] = true;
+                            plo[linum] = false;
                             plp[linum] = new Vector3(-192+(contguis[i].loc*80), 192,-100);
                             pln[linum] = r.Next(64);
                             plf[linum] = r.Next(64) + 64;
@@ -1744,8 +1744,6 @@ namespace GarageBand
                     }
                     engine.Parameters["pLightOn"].SetValue(plo);
                     engine.Parameters["pLightPos"].SetValue(plp);
-                    engine.Parameters["pLightDiffuse"].SetValue(pld);
-                    engine.Parameters["pLightSpecular"].SetValue(pls);
                     engine.Parameters["pLightNear"].SetValue(pln);
                     engine.Parameters["pLightFar"].SetValue(plf);
                     engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
@@ -2551,7 +2549,7 @@ namespace GarageBand
             {
             }
 
-            this.venue = new Venue(venue + ".gbw", this, content, graphics, song.GetCamTimes(), engine);
+            this.venue = new Venue(venue + ".gbw", songname, this, content, graphics, engine);
         }
 
         public static double dirdistTOhdist(double dir, double dist)
