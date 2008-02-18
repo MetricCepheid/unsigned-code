@@ -130,19 +130,10 @@
     <None Include="songdata\Highway.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="songdata\Highway_to_Hell.gba">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\Highway_to_Hell.gbg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="songdata\MetalocalypseTheme.gbd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="songdata\MetalocalypseTheme.gbe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="songdata\test.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="venues\Garage.gbw">
