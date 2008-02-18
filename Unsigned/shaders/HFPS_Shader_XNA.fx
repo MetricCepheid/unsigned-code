@@ -1,11 +1,6 @@
 /*
 
-% HFPS Shader for XNA
-% Handles Directional light...
-
-keywords: texture dlight
-
-date: 13.12.07
+% Unsigned Shader for XNA
 
 */
 
@@ -32,6 +27,8 @@ float3 pLightPos[16];
 bool   pLightOn[16];
 float pLightPower[16];
 float3 pLightDir[16];
+float3 pLightDiffuse[16];
+float3 pLightSpecular[16];
 float  pLightNear[16];
 float  pLightFar[16];
 
@@ -296,5 +293,169 @@ technique maintechnique {
 	pass pass0 {
 		VertexShader = compile vs_3_0 EngineVertexShader();
 		PixelShader  = compile ps_3_0 EnginePixelShader();
+	}
+}
+
+
+EngineVertexToPixel MenuVertexShader(EngineVertexInput input)
+{
+  EngineVertexToPixel output = (EngineVertexToPixel)0;
+  float4x4 rRot;
+
+  if(skinned)
+  {
+    float4x4 skinTransform = 0;
+
+    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
+    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
+    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
+    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
+
+    output.pos = mul(float4(input.pos,1), skinTransform);
+    
+    rRot = skinTransform*wRot;
+  }
+  else
+  {
+    rRot = wRot;
+    output.pos = float4(input.pos,1);
+  }
+  output.pos = TransformPosition(output.pos);
+  output.texCoord = float3(input.texCoord.xy,0);
+  float3x3 worldToTangentSpace = ComputeTangentMatrix(input.tangent, input.normal);
+  
+  float3 worldEyePos = GetCameraPos();
+  float3 worldVertPos = GetWorldPos(input.pos);
+  
+  output.wPos = worldVertPos;//mul(input.pos,world);
+  if(vertexAlpha)
+  {
+    output.viewVec = mul(worldToTangentSpace, worldEyePos - worldVertPos);
+    output.tangentMatrix = worldToTangentSpace;
+    output.alpha = input.alpha;
+    output.normal=float3(0,0,1);
+  }
+  else
+  {
+    output.viewVec = mul(worldEyePos - worldVertPos,rRot);
+    output.tangentMatrix = float3x3(1,0,0,0,1,0,0,0,1);
+    output.alpha = 1.0f;
+    output.normal=mul(input.normal,rRot);
+  }
+
+  /*for(int i=4;i<16;i++)
+  {
+    float dist = sqrt( (float)pow(pLightPos[i].x-input.pos.x,2)+(float)pow(pLightPos[i].y-input.pos.y,2)+(float)pow(pLightPos[i].z-input.pos.z,2) );
+    if(dist>pLightFar[i])
+    {
+    float fade=0.0f;
+    if(dist<=pLightNear[i])
+  	  fade=1.0f;
+    else
+  	  fade = 1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i]));
+    output.texCoord.z += fade;
+    }
+  }*/
+
+  return output;
+}
+
+float4 MenuPixelShader(EngineVertexToPixel input) : COLOR
+{
+  float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord.xy);
+  
+  
+  // The following is decal code that is not yet 
+  // implemented as it causes other code to crash
+  // please ignore for the time being
+  /*float3 tanpos = mul(input.wPos,input.tangentMatrix);
+  [unroll] for(int i=0;i<8;i++)
+  {
+	if(decalActivated[i])
+	if(sqrt(pow(input.wPos.x-decalPos[i].x,2)+pow(input.wPos.y-decalPos[i].y,2)+pow(input.wPos.z-decalPos[i].z,2))<decalRadius[i])
+	{
+		float3 tPos = mul(decalPos[i],input.tangentMatrix);
+		float2 decalTexCoords = float2(tanpos.x-tPos.x,tanpos.y-tPos.y);
+		decalTexCoords /= decalRadius[i] * 2;
+		decalTexCoords.x += 0.5f;
+		decalTexCoords.y += 0.5f;
+		float4 diffuseDecal = tex2D(DecalTextureSampler,decalTexCoords);
+		float OldW = diffuseTex.w;
+		diffuseTex = (diffuseTex*(1-diffuseDecal.w))+(diffuseDecal*diffuseDecal.w);
+		diffuseTex.w = OldW;
+	}
+  }*/
+  
+  
+  
+  float3 normalVector =normalize(input.normal);
+  if(BumpMappingEnabled)
+  {
+	normalVector = (2.0 * tex2D(BumpTextureSampler, input.texCoord.xy).rgb) - 1.0;
+	normalVector = normalize(normalVector);
+  }//else: normalVector=(0,0,1)
+  
+  
+  float4 ambientCol = ambientColor;//default values for the output
+  float4 diffuseCol = diffuseColor*input.texCoord.z;
+  float4 specularCol = float4( 0, 0, 0, 0 );
+if(!fullbright)
+{
+  
+  float3 viewVector = normalize(input.viewVec);
+  
+  {// Directional Light
+  float3 dLightVector = normalize(mul(input.tangentMatrix, dLightDir));
+	float bump = saturate(dot(normalVector, dLightVector));
+	float3 reflect = normalize(2 * bump * normalVector - dLightVector);
+	float spec = pow(saturate(dot(reflect, viewVector)), shininess);
+	diffuseCol = saturate(dot(normalVector, dLightVector))*diffuseColor*dLDiffuseColor;
+	if(SpecularEnabled)
+		specularCol = bump*spec*specularColor*dLSpecularColor;
+  }
+
+  // Point Lights
+  for (int i=0;i<4 && pLightOn[i];i++)
+  {
+   if(pLightOn[i])
+   {
+     float dist = sqrt( (float)pow(pLightPos[i].x-input.wPos.x,2)+(float)pow(pLightPos[i].y-input.wPos.y,2)+(float)pow(pLightPos[i].z-input.wPos.z,2) );
+	if(dist <= pLightFar[i])
+	{
+		float fade=1.0f;
+		if(dist<=pLightNear[i])
+		  fade=1.0f;
+		else
+		  fade = 1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i]));
+		float3 pLightDir = pLightPos[i]-input.wPos;
+		float3 pLightVector = normalize(mul(input.tangentMatrix, pLightDir));
+		diffuseCol += saturate(dot(normalVector, pLightVector))*fade*diffuseColor*float4(pLightDiffuse[i].xyz,1);
+		if(SpecularEnabled)
+		{
+	          float bump = saturate(dot(normalVector, pLightVector));
+	          float3 reflect = normalize(2 * bump * normalVector - pLightVector);
+	          float spec = pow(saturate(dot(reflect, viewVector)), shininess);
+		  specularCol += fade*saturate(bump*spec*specularColor*float4(pLightSpecular[i].xyz,1));
+		}
+	}
+   }
+  }
+}
+  else
+  {
+	ambientCol = float4(ambientColor.xyz,wAlpha*input.alpha);
+	diffuseCol = float4(diffuseColor.xyz,wAlpha*input.alpha);
+	specularCol = float4(0,0,0,0);
+  }
+  diffuseTex.w *= wAlpha*input.alpha;
+
+  return float4((diffuseTex * saturate(ambientColor + diffuseCol) + specularCol).xyz,diffuseTex.w*wAlpha*input.alpha);
+}
+
+
+technique menutechnique {
+	pass pass0 {
+		VertexShader = compile vs_3_0 MenuVertexShader();
+		PixelShader  = compile ps_3_0 MenuPixelShader();
 	}
 }
