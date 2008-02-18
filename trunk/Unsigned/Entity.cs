@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
 #endregion
 
-namespace GarageBand
+namespace Unsigned
 {
     public abstract class Entity
     {

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using SkinnedModel;
 
-namespace GarageBand
+namespace Unsigned
 {
     class Rocker : DrawableGameComponent
     {
