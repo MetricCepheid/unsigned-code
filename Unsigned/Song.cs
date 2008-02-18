@@ -16,6 +16,7 @@ namespace GarageBand
         private int DefaultBPM = 4;
         private String SongName, ArtistName;
         private int TimeH, TimeM, TimeS;
+        private int currentBar = 0;
 
         private String[] cues;
         private int[] cuetimes;//last value is song length
@@ -138,6 +139,10 @@ namespace GarageBand
                     asb.GetCue(cues[cueindex]).Stop(AudioStopOptions.Immediate);
                 }
             }
+            if (currentBar<Bars.Length-1 && currenttime >= Bars[currentBar + 1].X)
+            {
+                currentBar++;
+            }
         }
 
         public bool IsOver(long currenttime)
@@ -160,6 +165,20 @@ namespace GarageBand
         public Vector2[] GetAllBars()
         {
             return Bars;
+        }
+
+        internal float GetMeasureProgress(int currenttime)
+        {
+            if(currentBar<Bars.Length)
+                return (currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X);
+            return 0f;
+        }
+
+        internal int GetBPMeasure(int currenttime)
+        {
+            if(currentBar<Bars.Length)
+                return (int)Bars[currentBar].Y;
+            return 1;
         }
     }
 }

@@ -68,6 +68,55 @@ namespace GarageBand
         }
     }
 
+    public struct LightTarget
+    {
+        public Vector3 dir;
+        public byte type; 
+        public float ct;
+    }
+
+    public struct DLight
+    {
+        public float on;
+        public uint index;
+        public Vector3 pos;
+        public float innerAngle, outerAngle;
+        public LIGHT_TYPE type;
+        public LightTarget[] targs;
+        public enum LIGHT_TYPE 
+        {
+            SWEEP=0,
+            NORMAL=1, 
+            STROBE=2,
+            SPOT=3,
+        };
+    }
+
+    public struct SEffect
+    {
+        public uint begin, end;
+        public EFFECT_TYPE type;
+        public int data;
+        public enum EFFECT_TYPE 
+        { 
+            LIGHTING_NORMAL = 0, 
+            LIGHTING_STROBE = 1, 
+            LIGHTING_SLOWSTROBE = 2, 
+            LIGHTING_BLACKOUT = 3, 
+            LIGHTING_CHASE_G = 4, 
+            LIGHTING_CHASE_B = 5, 
+            LIGHTING_CHASE_D = 6, 
+            LIGHTING_CHASE_V = 7, 
+            LIGHTING_SWEEP = 8, 
+            EFFECT_SMOKE = 9, 
+            EFFECT_FLARE = 10 
+        };
+        public static String[] EF_TP_STR = 
+        {
+            "nr", "sb", "ss", "bo", "cg", "cb", "cd", "cv", "sw", "sk", "fl",
+        };
+    }
+
     class Venue
     {
         public static VenueGeometry[] StaticGeom;
@@ -80,6 +129,10 @@ namespace GarageBand
 
         private uint cNear, cFar;
 
+        private float fast_strobe_on = 0f;
+
+        private SEffect[] effects;
+
         #region DEBUG_VAR
         public static bool DEBUG_CAM_CONTROL = false;
         private Vector3 DEBUG_cp;
@@ -87,6 +140,8 @@ namespace GarageBand
         #endregion
 
         private String Filename;
+
+        private DLight[] lights;
 
         public int camindex;
         private long camtime = -1;
@@ -107,14 +162,13 @@ namespace GarageBand
 
         public static float SCALE = 1f;
 
-        public Venue(String Filename, Game1 game, ContentManager content, GraphicsDeviceManager graphics, int[] camtimes, Effect e)
+        public Venue(String Filename, String Songname, Game1 game, ContentManager content, GraphicsDeviceManager graphics, Effect e)
         {
             this.Filename = Filename;
-            LoadWorld("venues\\"+Filename,game,content,graphics,"Random","Random","Random","Random",e);
-            this.camtimes = camtimes;
+            LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
         }
 
-        public void Update(GameTime gameTime, long songtime, Effect engine)
+        public void Update(GameTime gameTime, long songtime, Effect engine, Song song)
         {
             if (DEBUG_CAM_CONTROL)
             {/*
@@ -143,14 +197,48 @@ namespace GarageBand
 
             if (camtime==-1)
             {//sets the next camera view once the previous one is finished
-                //TODO: needs work for camtime len
-                camindex = rand.Next(CamBlends.Length);
+                int len = camtimes[1] - camtimes[0];
+                CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
+                if (len < 500)
+                    tlen = CamBlendPos.TYPE_LEN.FLASH;
+                else if (len < 2000)
+                    tlen = CamBlendPos.TYPE_LEN.SHORT;
+                else if (len < 5000)
+                    tlen = CamBlendPos.TYPE_LEN.NORMAL;
+                else if (len < 10000)
+                    tlen = CamBlendPos.TYPE_LEN.LENGTHY;
+                else if (len < 30000)
+                    tlen = CamBlendPos.TYPE_LEN.EXTENDED;
+                List<int> list = new List<int>();
+                for (int i = 0; i < CamBlends.Length; i++)
+                    if (CamBlends[i].TYPE == tlen)
+                        list.Add(i);
+                camindex = list[rand.Next(list.Count)];
                 camtime++;
             }
             else if (camtime < camtimes.Length - 1 && (songtime / (Game1.TicksPerSecond / 1000)) > camtimes[camtime + 1])
             {//sets up camera movement interpolation
                 int k;
-                do { k = rand.Next(CamBlends.Length); }
+                do 
+                {
+                    int len = camtimes[camtime+1] - camtimes[camtime];
+                    CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
+                    if (len < 1000)
+                        tlen = CamBlendPos.TYPE_LEN.FLASH;
+                    else if (len < 2000)
+                        tlen = CamBlendPos.TYPE_LEN.SHORT;
+                    else if (len < 6000)
+                        tlen = CamBlendPos.TYPE_LEN.NORMAL;
+                    else if (len < 12000)
+                        tlen = CamBlendPos.TYPE_LEN.LENGTHY;
+                    else
+                        tlen = CamBlendPos.TYPE_LEN.EXTENDED;
+                    List<int> list = new List<int>();
+                    for (int i = 0; i < CamBlends.Length; i++)
+                        if (CamBlends[i].TYPE == tlen)
+                            list.Add(i);
+                    k = list[rand.Next(list.Count)];
+                }
                 while (k == camindex && CamBlends.Length>1);
                 camindex = k;
                 camtime++;
@@ -172,30 +260,130 @@ namespace GarageBand
             for (int i = 0; i < Entities.Count; i++)
             {//updates the entities, gets dynamic lighting info
                 Entities[i].Update(gameTime);
-                if (Entities[i] is LightEntity)
+            }
+
+            int lt = 0;
+
+            float[] fars = new float[16], nears = new float[16];
+            float[] powers = new float[16];
+            bool[] ons = new bool[16];
+            Vector3[] poss = new Vector3[16], dirs = new Vector3[16];
+            int numLights=6;
+
+            for (int i = 0; i < effects.Length; i++)
+            {
+                if (effects[i].begin <= (songtime / (Game1.TicksPerSecond / 1000)) && effects[i].end > (songtime / (Game1.TicksPerSecond / 1000)))
                 {
-                    LightData l = (Entities[i] as LightEntity).GetLight();
-                    if (l.On)
+                    switch (effects[i].type)
                     {
-                        plOn[pl] = l.On;
-                        plPos[pl] = l.Pos;
-                        plNear[pl] = l.Near;
-                        plFar[pl] = l.Far;
-                        plDif[pl] = l.Diffuse;
-                        plSpc[pl] = l.Specular;
-                        pl++;
+                        case SEffect.EFFECT_TYPE.LIGHTING_NORMAL:
+                            for (int j = 0; j < lights.Length; j++)
+                            {
+                                if (lights[j].type == DLight.LIGHT_TYPE.NORMAL)
+                                {
+                                    ons[lt] = true;
+                                    fars[lt] = lights[j].outerAngle;
+                                    nears[lt] = lights[j].innerAngle;
+                                    powers[lt] = effects[i].data/100f;
+                                    poss[lt] = lights[j].pos;
+                                    dirs[lt] = lights[j].targs[0].dir;
+                                    lt++;
+                                    if (lt >= numLights)
+                                        break;
+                                }
+                            }
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_STROBE:
+                            for (int j = 0; j < lights.Length; j++)
+                            {
+                                if (lights[j].type == DLight.LIGHT_TYPE.STROBE)
+                                {
+                                    ons[lt] = true;
+                                    fars[lt] = lights[j].outerAngle;
+                                    nears[lt] = lights[j].innerAngle;
+                                    powers[lt] = fast_strobe_on;
+                                    poss[lt] = lights[j].pos;
+                                    dirs[lt] = lights[j].targs[0].dir;
+                                    lt++;
+                                    if (lt >= numLights)
+                                        break;
+                                }
+                            }
+                            fast_strobe_on -= 0.5f;
+                            if (fast_strobe_on < 0)
+                                fast_strobe_on = 1f;
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_SLOWSTROBE:
+                            for (int j = 0; j < lights.Length; j++)
+                            {
+                                if (lights[j].type == DLight.LIGHT_TYPE.STROBE)
+                                {
+                                    ons[lt] = true;
+                                    fars[lt] = lights[j].outerAngle;
+                                    nears[lt] = lights[j].innerAngle;
+                                    powers[lt] = GetStrobe(effects[i].data, song,(int)(songtime / (Game1.TicksPerSecond / 1000)));
+                                    poss[lt] = lights[j].pos;
+                                    dirs[lt] = lights[j].targs[0].dir;
+                                    lt++;
+                                    if (lt >= numLights)
+                                        break;
+                                }
+                            }
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_G:
+
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_B:
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_D:
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_V:
+                            break;
+                        case SEffect.EFFECT_TYPE.LIGHTING_SWEEP:
+                            for (int j = 0; j < lights.Length; j++)
+                            {
+                                if (lights[j].type == DLight.LIGHT_TYPE.SWEEP)
+                                {
+                                    ons[lt] = true;
+                                    fars[lt] = lights[j].outerAngle;
+                                    nears[lt] = lights[j].innerAngle;
+                                    powers[lt] = 1f;
+                                    poss[lt] = lights[j].pos;
+                                    float val = (((songtime / (Game1.TicksPerSecond / 1000)) - effects[i].begin) / (float)(effects[i].end - effects[i].begin));
+                                    dirs[lt] = (lights[j].targs[0].dir*(1-val))+(lights[j].targs[1].dir*val);
+                                    lt++;
+                                    if (lt >= numLights)
+                                        break;
+                                }
+                            }
+                            break;
+                        case SEffect.EFFECT_TYPE.EFFECT_SMOKE:
+                            break;
+                        case SEffect.EFFECT_TYPE.EFFECT_FLARE:
+                            break;
+                        default:
+                            break;
                     }
+                    if (lt >= numLights)
+                        break;                    
                 }
             }
 
-            engine.Parameters["pLightPos"].SetValue(plPos);
-            engine.Parameters["pLightOn"].SetValue(plOn);
-            engine.Parameters["pLightNear"].SetValue(plNear);
-            engine.Parameters["pLightFar"].SetValue(plFar);
-            engine.Parameters["pLightDiffuse"].SetValue(plDif);
-            engine.Parameters["pLightSpecular"].SetValue(plSpc);
-            engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-            engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+            engine.Parameters["pLightOn"].SetValue(ons);
+            engine.Parameters["pLightPos"].SetValue(poss);
+            engine.Parameters["pLightPower"].SetValue(powers);
+            engine.Parameters["pLightDir"].SetValue(dirs);
+            engine.Parameters["pLightNear"].SetValue(nears);
+            engine.Parameters["pLightFar"].SetValue(fars);
+            engine.CommitChanges();
+        }
+
+        private float GetStrobe(int spb, Song song, int currenttime)
+        {
+            float measure = song.GetMeasureProgress(currenttime);
+            int bpm = song.GetBPMeasure(currenttime);
+            float beat = (measure * bpm) % 1;
+            return ((beat * spb)) % 1;
         }
 
         public Matrix GetViewMatrix()
@@ -243,7 +431,7 @@ namespace GarageBand
                                                        cNear, cFar);
         }
 
-        private void LoadWorld(String Filename, Game1 game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
+        private void LoadWorld(String Filename, String Songname, Game1 game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
         {
             
             guitarist = new Rocker("rockers\\"+g,game,content,e);
@@ -278,6 +466,11 @@ namespace GarageBand
 
             cNear = fin.ReadUInt32();
             cFar = fin.ReadUInt32();
+
+            guitarist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            vocalist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            drummer.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            bassist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
 
             fin.ReadChars(2);// T{
 
@@ -351,7 +544,7 @@ namespace GarageBand
                     //fill it up
                     for ( int k = 0; k < num; k++)
                     {
-                        CamBlends[index[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[index[k]-1];
+                        CamBlends[index[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[k];
                         CamBlends[index[k]-1].marks[amts[index[k]-1]-1] = part[k] / (float)lens[index[k]-1];
                         CamBlends[index[k]-1].pos[amts[index[k]-1] - 1] = pos[k];
                         CamBlends[index[k]-1].target[amts[index[k]-1] - 1] = angle[k];
@@ -384,248 +577,56 @@ namespace GarageBand
                         }
                     }
                 }
+                if (type.Equals("lit"))
+                {
+                    int num = fin.ReadInt32();
+                    lights = new DLight[num];
+                    for (int j = 0; j < num; j++)
+                    {
+                        lights[j].on = 0f;
+                        lights[j].index = fin.ReadUInt32();
+                        lights[j].type = (DLight.LIGHT_TYPE)fin.ReadInt32();
+                        lights[j].innerAngle = fin.ReadSingle();
+                        lights[j].outerAngle = fin.ReadSingle();
+                        lights[j].pos = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                        lights[j].targs = new LightTarget[fin.ReadInt32()];
+                        for (int k = 0; k < lights[j].targs.Length; k++)
+                        {
+                            lights[j].targs[k].type = fin.ReadByte();
+                            lights[j].targs[k].ct = (fin.ReadChar()-61)/(26f);
+                            lights[j].targs[k].dir = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                        }
+                    }
+                }
             }
 
             fin.ReadChars(1);// }
+            fin.Close();
 
-            /*OLD CODE FOLLOWS... pre-rewrite
-            while (z.Length>=2 && z.Substring(0, 2).Equals("//"));
-            StaticWorld = new VertexBuffer[Int32.Parse(z)];
+            System.IO.StreamReader sr = new System.IO.StreamReader(Songname + ".gbe");
 
-            for(int c=0;c<StaticWorld.Length;c++)
+            String str = sr.ReadLine();
+            int nTransitions = Int32.Parse(str.Substring(str.IndexOf(':')+1));
+            camtimes = new int[nTransitions];
+            for (int i = 0; i < nTransitions; i++)
+                camtimes[i] = Int32.Parse(sr.ReadLine());
+            str = sr.ReadLine();
+            int nEffects = Int32.Parse(str.Substring(str.IndexOf(':')+1));
+            effects = new SEffect[nEffects];
+            for (int i = 0; i < nEffects; i++)
             {
-                GBVertexFormat[] buffer;
-                String a;
-                do{a = reader.ReadLine();}
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                buffer = new GBVertexFormat[Int32.Parse(a)*3];
-                String[] r = { reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine(), reader.ReadLine()};
-                for (int k = 0; k < 5; k++)
-                    r[k] = r[k].Trim();
-                for (int i = 0; i < buffer.Length; i++)
-                {
-                    buffer[i] = new GBVertexFormat(new Vector3((float)Double.Parse(r[0].Substring(0, r[0].IndexOf(','))),
-                                                               (float)Double.Parse(r[1].Substring(0, r[1].IndexOf(','))),
-                                                               (float)Double.Parse(r[2].Substring(0, r[2].IndexOf(',')))),
-                                                   new Vector3((float)Double.Parse(r[5].Substring(0, r[5].IndexOf(','))),
-                                                               (float)Double.Parse(r[6].Substring(0, r[6].IndexOf(','))),
-                                                               (float)Double.Parse(r[7].Substring(0, r[7].IndexOf(',')))),
-                                                   new Vector2((float)Double.Parse(r[3].Substring(0, r[3].IndexOf(','))),
-                                                               (float)Double.Parse(r[4].Substring(0, r[4].IndexOf(',')))),
-                                                   new Vector3((float)Double.Parse(r[8].Substring(0, r[8].IndexOf(','))),
-                                                               (float)Double.Parse(r[9].Substring(0, r[9].IndexOf(','))),
-                                                               (float)Double.Parse(r[10].Substring(0, r[10].IndexOf(',')))));
-                    for (int k = 0; k <= 10; k++)
-                        r[k] = r[k].Substring(r[k].IndexOf(',')+1).Trim();
-                }
-                StaticWorld[c] = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * buffer.Length, BufferUsage.WriteOnly);
-                StaticWorld[c].SetData<GBVertexFormat>(buffer);
+                str = sr.ReadLine();
+                effects[i] = new SEffect();
+                effects[i].begin = UInt32.Parse(str.Substring(0, str.IndexOf(':')));
+                String eftp = str.Substring(str.IndexOf(':') + 1, 2);
+                effects[i].end = UInt32.Parse(str.Substring(str.IndexOf(';')+1, (str.IndexOf('!'))-(str.IndexOf(';')+1)));
+                effects[i].data = Int32.Parse(str.Substring(str.IndexOf('!') + 1));
+                for (int k = 0; k < SEffect.EF_TP_STR.Length; k++)
+                    if (eftp.Equals(SEffect.EF_TP_STR[k]))
+                        effects[i].type = (SEffect.EFFECT_TYPE)k;
             }
 
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            ModelArray = new Model[Int32.Parse(z)];
-
-            for (int c = 0; c < ModelArray.Length; c++)
-            {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                ModelArray[c] = content.Load<Model>(a);
-                ModelArray[c].Tag = a.Substring(a.LastIndexOf('\\') + 1).Trim();
-            }
-
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            StaticWorldArray = new StaticWorldObject[Int32.Parse(z)];
-            for (int i = 0; i < StaticWorldArray.Length; i++)
-            {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                StaticWorldArray[i].ModelType = a.ToCharArray()[0];
-                StaticWorldArray[i].ModelIndex = Int32.Parse(a.Substring(1));
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                StaticWorldArray[i].x = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',')+1).Trim();
-                StaticWorldArray[i].y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                StaticWorldArray[i].z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                StaticWorldArray[i].Orientation = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                StaticWorldArray[i].Shininess = (float)Double.Parse(a);
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                StaticWorldArray[i].TextureIndex = Int32.Parse(a);
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                StaticWorldArray[i].BMIndex = Int32.Parse(a);
-                StaticWorldArray[i].Shininess = 2f;
-            }
-
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            StaticTexture = new Texture2D[Int32.Parse(z)];
-            for (int i = 0; i < StaticTexture.Length; i++)
-            {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                StaticTexture[i] = content.Load<Texture2D>(a);
-                StaticTexture[i].Tag = a.Substring(a.LastIndexOf('\\') + 1).Trim();
-            }
-
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            CamBlends = new CamBlendPos[Int32.Parse(z)];
-            for (int i = 0; i < CamBlends.Length; i++)
-            {
-                CamBlends[i].pos1 = new Vector3();
-                CamBlends[i].pos2 = new Vector3();
-                CamBlends[i].focus1 = new Vector3();
-                CamBlends[i].focus2 = new Vector3();
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CamBlends[i].pos2.X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].pos2.Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].pos2.Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus2.X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus2.Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus2.Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CamBlends[i].pos1.X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].pos1.Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].pos1.Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus1.X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus1.Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CamBlends[i].focus1.Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-            }
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            int num = Int32.Parse(z);
-            CharLocs = new Vector3[4][];
-            for (int i = 0; i < 4; i++)
-                CharLocs[i] = new Vector3[TYPE_NUM];
-            for (int i = 0; i < num; i++)
-            {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                int index = -1;
-                for (int k = 0; k < TYPE_NUM; k++)
-                    if (TYPES_S[k].Equals(a))
-                        index = k;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CharLocs[0][index].X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[0][index].Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[0][index].Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CharLocs[1][index].X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[1][index].Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[1][index].Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CharLocs[2][index].X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[2][index].Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[2][index].Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                CharLocs[3][index].X = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[3][index].Y = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-                a = a.Substring(a.IndexOf(',') + 1).Trim();
-                CharLocs[3][index].Z = Int32.Parse(a.Substring(0, a.IndexOf(',')));
-            }
-            do { z = reader.ReadLine(); }
-            while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-            int numDO = Int32.Parse(z);
-            Entities = new Entity[numDO];
-            for (int i = 0; i < numDO; i++)
-            {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                a = a.Trim();
-                String tp = a;
-                if (tp.Equals("Swinger"))
-                {
-                    SwingingEntity obj;
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    String mdl = a;
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    String tex = a;
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    float x, y, zz;
-                    x = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    y = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    zz = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    obj = new SwingingEntity(mdl,tex, new Vector3(x, y, zz));
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    x = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    y = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    zz = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    obj.SetSwing(x, y, zz);
-                    bool fb, em;
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    fb = Boolean.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    em = Boolean.Parse(a.Substring(0, a.IndexOf(',')));
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    a = a.Trim();
-                    x = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    y = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    a = a.Substring(a.IndexOf(',') + 1).Trim();
-                    zz = (float)Double.Parse(a.Substring(0, a.IndexOf(',')));
-                    obj.SetLightData(fb, em, new Vector3(x, y, zz));
-                    Entities[i] = obj;
-                }
-            }*/
+            sr.Close();
         }
 
         public void Render(GraphicsDeviceManager graphics, Effect engine, Matrix matProj,
@@ -634,8 +635,8 @@ namespace GarageBand
             lastTexApplied=-1;
             Matrix matIdentity, matTransl, matScale, matRot, matOrbit, mMatWorld;
 
-            engine.Parameters["ambientColor"].SetValue(new Vector4(.5f, .5f, .5f, 1f));
-            engine.Parameters["fullbright"].SetValue(true);
+            engine.Parameters["ambientColor"].SetValue(new Vector4(.2f, .2f, .2f, 1f));
+            engine.Parameters["fullbright"].SetValue(false);
 
             for (int i = 0; i < StaticGeom.Length; i++)
             {
@@ -648,7 +649,7 @@ namespace GarageBand
                     engine.Parameters["wRot"].SetValue(Matrix.Identity);
                     engine.Parameters["shininess"].SetValue(StaticTexture[StaticGeom[i].texIndex].shininess);
                     engine.Parameters["diffuseColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    //engine.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
                     if (lastTexApplied != StaticGeom[i].texIndex)
                     {
                         engine.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].tex);

@@ -14,8 +14,6 @@ namespace HFPS_LEVEL_COMPILER
 
     static class Program
     {
-
-
         private struct TempTempFiller
         {
             public Plane plane;
@@ -23,6 +21,46 @@ namespace HFPS_LEVEL_COMPILER
             public float UScale, VScale;
             public String tex;
             public Vector3[] threepoints;
+        }
+
+        private struct LightTarget
+        {
+            public Vector3 dir;
+            public byte type; 
+            public char ct;
+        }
+
+        private struct DLight
+        {
+            public Vector3 pos;
+            public float innerAngle, outerAngle;
+            public LIGHT_TYPE type;
+            public uint index;
+            public List<LightTarget> targs;
+            public enum LIGHT_TYPE 
+            {
+                SWEEP=0,
+                NORMAL=1, 
+                STROBE=2,
+                SPOT=3,
+            };
+            public static string[] TYPES = { "sweep", "normal", "strobe", "spot"};
+        }
+
+        private struct TempDLight
+        {
+            public int index;
+            public Vector3 pos;
+            public DLight.LIGHT_TYPE type;
+            public float innerAngle, outerAngle;
+        }
+
+        private struct TempTarget
+        {
+            public String dat;
+            public int val;
+            public char which;
+            public Vector3 spot;
         }
 
         private struct TempFiller
@@ -90,6 +128,12 @@ namespace HFPS_LEVEL_COMPILER
             TriggerOnce[] trigonces = new TriggerOnce[0];
             MovingGeometry[] movegeometrys = new MovingGeometry[0];
             List<TempCamera> cameras = new List<TempCamera>();
+            List<TempTarget> targetnodes = new List<TempTarget>();
+            List<TempDLight> dlights = new List<TempDLight>();
+            Vector3 guitarist = Vector3.Zero, 
+                    bassist = Vector3.Zero, 
+                    drummer = Vector3.Zero, 
+                    vocalist = Vector3.Zero;
 
             uint cNear=0, cFar=0;
 
@@ -432,6 +476,7 @@ namespace HFPS_LEVEL_COMPILER
                     Vector3 angles=Vector3.Zero;
                     Vector4 lightdata = Vector4.Zero;
                     Vector3[] boxpoints = new Vector3[0];
+                    float innercone=0, outercone=0;
                     float distance = 0;
                     float speed = 0;
                     float position = 0;//0-1 for doors etc
@@ -778,6 +823,14 @@ namespace HFPS_LEVEL_COMPILER
                             {
                                 name = val;
                             }
+                            else if (var.Equals("_cone"))
+                            {
+                                outercone = (float)Double.Parse(val);
+                            }
+                            else if (var.Equals("_inner_cone"))
+                            {
+                                innercone = (float)Double.Parse(val);
+                            }
                         }
 
                         str = fs.ReadLine().Trim();
@@ -825,8 +878,44 @@ namespace HFPS_LEVEL_COMPILER
                         for (int i = 0; i < TempCamera.TYPE_char.Length; i++)
                             if (tC == TempCamera.TYPE_char[i])
                                 nO.TYPE = (TempCamera.TYPE_LEN)i;
-
+                        
                         cameras.Add(nO);
+                    }
+                    else if (classname.Equals("light_spot"))
+                    {
+                        TempDLight nO = new TempDLight();
+                        nO.pos = pos;
+                        nO.innerAngle = innercone;
+                        nO.outerAngle = outercone;
+                        for (int i = 0; i < DLight.TYPES.Length; i++)
+                            if (name.Substring(0, name.IndexOf('_')).Equals(DLight.TYPES[i]))
+                                nO.type = (DLight.LIGHT_TYPE)i;
+                        nO.index = Int32.Parse(name.Substring(name.IndexOf('_')+1));
+
+                        dlights.Add(nO);
+                    }
+                    else if (classname.Equals("info_target"))
+                    {
+                        TempTarget nO = new TempTarget();
+                        nO.spot = pos;
+                        int one = name.IndexOf('_') + 1;
+                        int two = 1;// name.Length - 1;
+                        nO.val = Int32.Parse(name.Substring(one, two));
+                        nO.which = name.ToCharArray()[name.Length - 1];
+                        nO.dat = name.Substring(0, name.IndexOf('_'));
+
+                        targetnodes.Add(nO);
+                    }
+                    else if (classname.Equals("npc_combine_s"))
+                    {
+                        if (name.Equals("guitarist"))
+                            guitarist = pos*scale;
+                        else if (name.Equals("bassist"))
+                            bassist = pos*scale;
+                        else if (name.Equals("drummer"))
+                            drummer = pos*scale;
+                        else if (name.Equals("vocalist"))
+                            vocalist = pos*scale;
                     }
                 }
                 else if (mainStr.Equals("cameras"))
@@ -839,7 +928,6 @@ namespace HFPS_LEVEL_COMPILER
                             String substr = fs.ReadLine().Trim();// this should be "{"
                             while (!substr.Equals("}"))
                             {
-
                                 substr = fs.ReadLine().Trim();
                             }
                         }
@@ -851,7 +939,6 @@ namespace HFPS_LEVEL_COMPILER
                     String str = fs.ReadLine().Trim();// this should be "{"
                     while (!str.Equals("}"))
                     {
-
                         str = fs.ReadLine().Trim();
                     }
                 }
@@ -859,6 +946,36 @@ namespace HFPS_LEVEL_COMPILER
                     mainStr = fs.ReadLine().Trim();
             }
             fs.Close();
+
+            DLight[] fdlights = new DLight[dlights.Count];
+            for (int i = 0; i < fdlights.Length; i++)
+            {
+                fdlights[i] = new DLight();
+                fdlights[i].innerAngle = dlights[i].innerAngle;
+                fdlights[i].outerAngle = dlights[i].outerAngle;
+                fdlights[i].pos = dlights[i].pos;
+                fdlights[i].targs = new List<LightTarget>();
+                fdlights[i].type = dlights[i].type;
+                fdlights[i].index = (uint)dlights[i].index;
+            }
+
+            for (int i = 0; i < dlights.Count; i++)
+            {
+                for (int j = 0; j < targetnodes.Count; j++)
+                {
+                    String val1 = targetnodes[j].dat;
+                    String val2 = DLight.TYPES[(int)dlights[i].type];
+                    if (val1.Equals(val2))
+                    if(targetnodes[j].val==dlights[i].index)
+                    {
+                        LightTarget l = new LightTarget();
+                        l.ct = targetnodes[j].which;
+                        l.dir = Vector3.Normalize(targetnodes[j].spot-dlights[i].pos);
+                        l.type = (byte)(targetnodes[j].val);
+                        fdlights[i].targs.Add(l);
+                    }
+                }
+            }
 
             int CAMERA_SIB = 36;
 
@@ -877,14 +994,24 @@ namespace HFPS_LEVEL_COMPILER
                 nBytesG += NB_PER_PGV * (uint)(polygons[i].D3Points.Length);
             }
 
+            int NB_PER_LIGHT_TARG = 14;
+            int NB_PER_LIGHT = 28;
+
             ulong nBytesE = 3;//E{}
             nBytesE += 4;
             if (cameras.Count > 0)
                 nBytesE += 8 + (uint)(CAMERA_SIB * cameras.Count);
+            if (fdlights.Length > 0)
+            {
+                nBytesE += 8+(uint)(NB_PER_LIGHT * fdlights.Length);
+                for (int i = 0; i < fdlights.Length; i++)
+                    nBytesE += (uint)(NB_PER_LIGHT_TARG * fdlights[i].targs.Count);
+            }
 
             uint nBytesHeader = 8;//UnsdVnu(vrsn)
             nBytesHeader += 8;//filesize
             nBytesHeader += 4+4;//clipping
+            nBytesHeader += 12 * 4;//rocker positions
 
             ulong nBytesFile = nBytesHeader + nBytesT + nBytesG + nBytesE;
             uint nBytesEnd = 16 - (uint)(nBytesFile % 16);
@@ -896,6 +1023,18 @@ namespace HFPS_LEVEL_COMPILER
             fsw.Write(nBytesFile);
             fsw.Write((int)(cNear*scale));
             fsw.Write((int)(cFar*scale));
+            fsw.Write(guitarist.X);
+            fsw.Write(guitarist.Y);
+            fsw.Write(guitarist.Z);
+            fsw.Write(vocalist.X);
+            fsw.Write(vocalist.Y);
+            fsw.Write(vocalist.Z);
+            fsw.Write(drummer.X);
+            fsw.Write(drummer.Y);
+            fsw.Write(drummer.Z);
+            fsw.Write(bassist.X);
+            fsw.Write(bassist.Y);
+            fsw.Write(bassist.Z);
             fsw.Write('T');
             fsw.Write('{');
             fsw.Write((uint)texNew.Length);
@@ -937,6 +1076,8 @@ namespace HFPS_LEVEL_COMPILER
             int numEs = 0;
             if (cameras.Count > 0)
                 numEs++;
+            if (fdlights.Length > 0)
+                numEs++;
 
             fsw.Write(numEs);
 
@@ -955,6 +1096,31 @@ namespace HFPS_LEVEL_COMPILER
                     fsw.Write(cameras[i].dir.X);
                     fsw.Write(cameras[i].dir.Y);
                     fsw.Write(cameras[i].dir.Z);
+                }
+            }
+
+            if (fdlights.Length > 0)
+            {
+                fsw.Write("lit");
+                fsw.Write(fdlights.Length);
+                for (int i = 0; i < fdlights.Length; i++)
+                {
+                    fsw.Write(fdlights[i].index-1);
+                    fsw.Write((uint)fdlights[i].type);
+                    fsw.Write(fdlights[i].innerAngle/360f*(float)(Math.PI));
+                    fsw.Write(fdlights[i].outerAngle/360f*(float)(Math.PI));
+                    fsw.Write(fdlights[i].pos.X);
+                    fsw.Write(fdlights[i].pos.Y);
+                    fsw.Write(fdlights[i].pos.Z);
+                    fsw.Write(fdlights[i].targs.Count);
+                    for (int k = 0; k < fdlights[i].targs.Count; k++)
+                    {
+                        fsw.Write(fdlights[i].targs[k].type);
+                        fsw.Write(fdlights[i].targs[k].ct);
+                        fsw.Write(fdlights[i].targs[k].dir.X);
+                        fsw.Write(fdlights[i].targs[k].dir.Y);
+                        fsw.Write(fdlights[i].targs[k].dir.Z);
+                    }
                 }
             }
             /*
