@@ -258,7 +258,7 @@ namespace Unsigned
             int pl = 0;
 
             for (int i = 0; i < Entities.Count; i++)
-            {//updates the entities, gets dynamic lighting info
+            {//updates the entities
                 Entities[i].Update(gameTime);
             }
 

@@ -40,7 +40,14 @@ remember what's what.
 
 List of Entities that are valid:
 
-[needs work]
+
+
+
+
+
+How to use these entities:
+
+
 
 
 
@@ -50,3 +57,54 @@ Once you have the map, we will make a new txt file called
 "[mapname].txt" in the same directory as the list
 
 The first thing we will do is Material Replacement. As we
+work in Hammer, we use all kinds of temporary HL2 materials.
+Now we need to apply our own.  There is a list in the root
+directory that lists and describes the current textures.
+
+All material replacement information needs to be between 
+curly brackets. So start with:
+
+tex
+{
+
+}
+
+Now, inside tex, each texture in the venue will have a 3
+line chunk.  the first line is the Valve texture name
+(e.g. "WOOD/WOODWALL006A").  The next line is the Unsigned
+texture name (find in texList.txt).  And finally is a floating
+point value that scales the the all instances of the texure in
+the game.  "1" is the default.
+
+Next is the Map Scale:
+
+scale
+{
+	value
+}
+
+The scaling value will scale all of the map's geometry.  If
+the map in Hammer was built to the scale of HL2 characters,
+then a value of about 0.8 will suffice.
+
+Finally is the clipping bounds:
+
+clip
+{
+	near
+	far
+}
+
+The clipping bounds tell how much the camera should view.  The
+near is usually about 10-20, and the far is the maximum distance
+you can see. To find the maximum, go to the farthest corner of
+your venue, and find the distance to the opposite corner.  If you
+see blue triangles at far away points, this is indicative that
+the 'far' isnt far enough.  If edges are jagged and flicker, it
+is indicative that the near and far are too far seperated.
+
+
+
+GBW File
+
+Okay! You are ready to compile your venue!

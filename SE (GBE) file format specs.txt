@@ -1,0 +1,8 @@
+//File format specs for GBE Special Effects format
+//C#-Style
+
+//ASCII FORMAT
+
+//By Louis Ingenthron
+//2-23-08
+

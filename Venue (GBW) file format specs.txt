@@ -1,8 +1,10 @@
 //File format specs for GBW venue format
 //C-Style
 
+//BINARY FORMAT
+
 //By Louis Ingenthron
-//2-14-08
+//2-23-08
 
 char[] header = "UnsdVnu" + (char)Version;
 
@@ -62,13 +64,37 @@ struct Camera
 	float dirx, diry, dirz;
 }
 
-char[3] type;
-
-switch(type)
+struct SLightTarget
 {
-case "cam": //camera data
-	uint cameraCount;
-	Camera[uint] cameras;
+	byte type;//not used yet, reserved
+	char fade;//a-z, for moving light interpolation (sweeps, etc)
+	Vector3 direction;//direction for the light to point
+}
+
+struct SLight
+{
+	uint lightindex;//unique light index
+	uint type;//corresponds to Venue.DLight.LIGHT_TYPE
+	float innerAngle;//in revolutions (0-1)
+	float outerAngle;
+	Vector3 position;
+	uint numTargets;
+	SLightTarget[numTargets] targets;
+}
+
+while( ! '}' )
+{
+	char[3] type;
+
+	switch(type)
+	{
+	case "cam": //camera data
+		uint cameraCount;
+		Camera[cameraCount] cameras;
+	case "lit": //spotlight data
+		uint lightCount;
+		SLight[lightCount] sLights;
+	}
 }
 
 char '}';

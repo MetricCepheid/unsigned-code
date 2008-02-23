@@ -1,0 +1,8 @@
+//File format specs for GBD Drums format
+//C#-Style
+
+//ASCII FORMAT
+
+//By Louis Ingenthron
+//2-23-08
+

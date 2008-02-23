@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "4032"
-	"mapversion" "26"
+	"mapversion" "27"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -14,13 +14,13 @@ viewsettings
 	"bSnapToGrid" "1"
 	"bShowGrid" "1"
 	"bShowLogicalGrid" "0"
-	"nGridSpacing" "4"
+	"nGridSpacing" "1"
 	"bShow3DGrid" "0"
 }
 world
 {
 	"id" "1"
-	"mapversion" "26"
+	"mapversion" "27"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -5605,7 +5605,7 @@ entity
 	"fogMaxDensity" "1"
 	"fogStart" "2048"
 	"FOV" "90"
-	"targetname" "viewCamE10_0"
+	"targetname" "viewCamE10_1"
 	"origin" "-496 -168 136"
 	editor
 	{
@@ -5900,8 +5900,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[-293.115 -305.531 175.725]"
-		"look" "[-293.888 -306.161 175.635]"
+		"position" "[-263.497 94.7862 206.213]"
+		"look" "[-262.839 94.2563 205.677]"
 	}
 }
 cordon
