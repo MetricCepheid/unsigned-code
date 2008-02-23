@@ -27,9 +27,10 @@ namespace Unsigned
     class Board
     {
         private int type;
-        public float xOffset;
+        public int xOffset;
 
-        public static float width, length, curveHeight, rotate, height, zeroZ, sFade, eFade;
+        public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
+        public float yRotate=0;
         public static Texture2D[][] boardTexPlain;
         public Texture2D SPMeterTex, SPMRTex;
         public float multSlide=0;
@@ -71,9 +72,9 @@ namespace Unsigned
 
         private NoteSet[] notes;
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
-        private static string[] SETTINGS_EXT = { ".gbg", ".gbb", ".gbd", ".gbs", };
+        private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
 
-        public Board(int type, float xOffset, Song song, byte difficulty)
+        public Board(int type, int xOffset, Song song, byte difficulty)
         {
             this.type = type;
             this.xOffset = xOffset;
@@ -94,7 +95,7 @@ namespace Unsigned
             return type;
         }
 
-        public float GetXOffset()
+        public int GetXOffset()
         {
             return xOffset;
         }

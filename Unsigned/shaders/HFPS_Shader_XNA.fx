@@ -193,16 +193,15 @@ EngineVertexToPixel EngineVertexShader(EngineVertexInput input)
   }
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
-  float3x3 worldToTangentSpace = ComputeTangentMatrix(input.tangent, input.normal);
   
   float3 worldEyePos = GetCameraPos();
   float3 worldVertPos = GetWorldPos(input.pos);
   
-  output.wPos = worldVertPos;//mul(input.pos,world);
+  output.wPos = worldVertPos;
   if(vertexAlpha)
   {
-    output.viewVec = mul(worldToTangentSpace, worldEyePos - worldVertPos);
-    output.tangentMatrix = worldToTangentSpace;
+    output.tangentMatrix = ComputeTangentMatrix(input.tangent, input.normal);
+    output.viewVec = mul(output.tangentMatrix, worldEyePos - worldVertPos);
     output.alpha = input.alpha;
     output.normal=float3(0,0,1);
   }

@@ -123,26 +123,38 @@
     <Content Include="audio\Highway10.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="audio\Win\garageband.xgs">
-      <Name>garageband</Name>
+    <None Include="audio\Win\Sound Bank.xsb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="audio\Win\Sound Bank.xsb">
-      <Name>Sound Bank</Name>
+    </None>
+    <None Include="audio\Win\unsigned.xgs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="audio\Win\Wave Bank.xwb">
-      <Name>Wave Bank</Name>
+    </None>
+    <None Include="audio\Win\Wave Bank.xwb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <None Include="songdata\Highway.gba">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway.gbb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="songdata\Highway.gbd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="songdata\Highway.gbe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="songdata\Highway.gbg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway_to_Hell.gba">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway_to_Hell.gbe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Highway_to_Hell.gbg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="songdata\MetalocalypseTheme.gbd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

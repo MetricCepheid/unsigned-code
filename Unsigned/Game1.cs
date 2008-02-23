@@ -125,7 +125,8 @@ namespace Unsigned
         private Effect engine, ppEngine;
         private Matrix matView;
         private Matrix matProj;
-        private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal, boardsTarget;
+        private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
+        private RenderTarget2D[] boardsTarget;
 
         private Texture2D gradient;
         public static bool HALF_RENDER = false;
@@ -588,14 +589,14 @@ namespace Unsigned
             graphics = new GraphicsDeviceManager(this);
             content = new ContentManager(Services);
             
-            //content.RootDirectory = "content\\";
+            content.RootDirectory = "";
         }
 
         protected override void Initialize()
         {
             InitXNAApp();
-
-            audioEngine = new AudioEngine("audio\\Win\\garageband.xgs");
+            
+            audioEngine = new AudioEngine("audio\\Win\\unsigned.xgs");
             audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
             audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
 
@@ -621,6 +622,27 @@ namespace Unsigned
             square = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * 6, BufferUsage.WriteOnly);
             square.SetData<GBVertexFormat>(arr);
 
+            //TEST CODE, takes you right into the action!
+            /*songname = "Highway";
+            contInput = new byte[4];
+            rockerNames = new String[4];
+            for (int k = 0; k < 4; k++)
+            { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
+            instruments[0] = true;
+            instruments[2] = true;
+            //instruments[3] = true;
+            contInput[0] = 4;
+            rockerNames[0] = "default";
+            contInput[2] = 1;
+            rockerNames[2] = "default";
+            contInput[3] = 0;
+            rockerNames[3] = "default";
+            screen = S_INGAME;
+            for (int i = 0; i < 4; i++)
+                    diff[i] = D_EXPERT;
+            InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName);*/
+            //END TEST CODE
+
             base.Initialize();
         }
 
@@ -630,6 +652,8 @@ namespace Unsigned
 
             graphics.PreferredBackBufferWidth = 800;
             graphics.PreferredBackBufferHeight = 600;
+            windowwidth = 800;
+            windowheight = 600;
             //graphics.ToggleFullScreen();
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
@@ -714,7 +738,7 @@ namespace Unsigned
                     loaded |=  S_MAINMENU;
                 }
                 #endregion
-                    #region RESULTS
+                #region RESULTS
                 if ((c & S_RESULTS) != 0)
                 {
                     loaded |=  S_RESULTS;
@@ -849,8 +873,7 @@ namespace Unsigned
                             screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                             screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                         }
-                        screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
-                        boardsTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                        screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);                        
 
                         Board.InitModel(graphics,content,engine);
                         texRockstarRed = content.Load<Texture2D>("graphics\\red");
@@ -2203,15 +2226,20 @@ namespace Unsigned
                         pass.End();
                     }
                     engine.End();
-                    graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget);
-                    matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
-                              boardsTarget.Width / (float)boardsTarget.Height,
-                              0.1f, 100.0f);
-                    graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
-                    engine.Begin();
-                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+
+                    for (int i = 0; i < boards.Length; i++)
                     {
-                        pass.Begin();
+                        if (!instruments[i])
+                            continue;
+                        graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget[i]);
+                        matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                                  boardsTarget[i].Width / (float)boardsTarget[i].Height,
+                                  0.1f, 100.0f);
+                        graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+                        engine.Begin();
+                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+                        {
+                            pass.Begin();
 
                             engine.Parameters["view"].SetValue(Matrix.Identity);
                             engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
@@ -2234,23 +2262,18 @@ namespace Unsigned
                             engine.Parameters["fullbright"].SetValue(true);
 
                             //draw each boards
-                            for (int i = 0; i < boards.Length; i++)
-                            {
-                                if (boards[i] == null)
-                                    continue;
-                                DrawBoard(i, lenvals, fling, false);
-                                if (boards[i].IsSPActivated())
-                                    DrawBoard(i, lenvals, fling, true);
-                                DrawNotes(i, fling);
-                                DrawBoardDetail(i, fling);
-                                DrawWaves(i, fling);
-                            }
-
+                            DrawBoard(i, lenvals, fling, false);
+                            if (boards[i].IsSPActivated())
+                                DrawBoard(i, lenvals, fling, true);
+                            DrawNotes(i, fling);
+                            DrawBoardDetail(i, fling);
+                            DrawWaves(i, fling);
                             //draw the non-world gibs (glass shards sparks)
                             DrawGibs();
-                        pass.End();
+                            pass.End();
+                        }
+                        engine.End();
                     }
-                    engine.End();
 
                     if (currentFES == FRAME_EFFECT_STYLE.CREST)
                     {
@@ -2303,7 +2326,9 @@ namespace Unsigned
                     //ppEngine.End();
                     //spritebatch.End();
 
-                    spritebatch.Draw(boardsTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                    for(int i=0;i<4;i++)
+                        if(instruments[i])
+                            spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
                     if (screen == S_INGAME)
                     {
                         //draw score/stars
@@ -2338,8 +2363,6 @@ namespace Unsigned
             }
 
             base.Draw(gameTime);
-
-            
         }
 
         private void GetGamepadStates(bool hardWork)
@@ -2446,29 +2469,30 @@ namespace Unsigned
             rockMeterLevel[2] = 80;
             rockMeterLevel[3] = 80;
             boards = new Board[4];
+            boardsTarget = new RenderTarget2D[4];
             if (guitarist && bassist && percussionist && vocalist)
             {
-                song = new Song(4, 2,songname);
-                boards[0] = new Board(GUITAR, -.4f, song, difficulty[0]);
-                boards[3] = new Board(BASS, .4f, song, difficulty[3]);
-                boards[2] = new Board(PERCUSSIONIST, 0f, song, difficulty[2]);
-                Board.curveHeight = 0.00f;
-                Board.height = -1.0f;
-                Board.length = 1f;
-                Board.width = .25f;
-                Board.rotate = 0.1f;
             }
             else if (guitarist && bassist && percussionist && !vocalist)
             {
                 song = new Song(4, 2, songname);
-                boards[0] = new Board(GUITAR, -.6f, song, difficulty[0]);
-                boards[3] = new Board(BASS, .6f, song, difficulty[3]);
-                boards[2] = new Board(PERCUSSIONIST, 0f, song, difficulty[2]);
-                Board.curveHeight = 0.00f;
-                Board.height = -1.0f;
-                Board.length = 1f;
-                Board.width = .25f;
-                Board.rotate = 0.1f;
+                boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
+                boards[0].xOffset = -250;
+                boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
+                boards[2].xOffset = 0;
+                boards[3] = new Board(BASS, 0, song, difficulty[3]);
+                boards[3].xOffset = 250;
+                Board.height = -1.5f;
+                Board.length = 2.5f;
+                Board.width = 0.3f;
+                Board.rotate = .4f;
+                Board.zeroZ = 2.3f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;
+                Board.spShift = -0.01f;
+                boardsTarget[0] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                boardsTarget[2] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                boardsTarget[3] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (guitarist && bassist && !percussionist && vocalist)
             {
@@ -2482,13 +2506,22 @@ namespace Unsigned
             else if (guitarist && bassist && !percussionist && !vocalist)
             {
                 song = new Song(4, 2, songname);
-                boards[0] = new Board(GUITAR, -.2f, song, difficulty[0]);
-                boards[3] = new Board(BASS,  .2f, song, difficulty[3]);
-                Board.curveHeight = 0.05f;
+                boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
+                boards[0].xOffset = -175;
+                boards[0].yRotate = -0.15f;
+                boards[3] = new Board(BASS, 0, song, difficulty[3]);
+                boards[3].xOffset = 175;
+                boards[3].yRotate = 0.15f;
+                Board.curveHeight = 0.02f;
                 Board.height = -1.5f;
-                Board.length = 1f;
-                Board.width = 0.5f;
-                Board.rotate = 0.1f;
+                Board.length = 2.5f;
+                Board.width = 0.4f;
+                Board.rotate = .4f;
+                Board.zeroZ = 2.3f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;
+                boardsTarget[0] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                boardsTarget[3] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (!guitarist && !bassist && percussionist && vocalist)
             {
@@ -2498,22 +2531,43 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && percussionist && !vocalist)
             {
+                song = new Song(4, 2, songname);
+                boards[3] = new Board(BASS, 0, song, difficulty[3]);
+                boards[3].xOffset = -175;
+                boards[3].yRotate = -0.15f;
+                boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
+                boards[2].xOffset = 175;
+                boards[2].yRotate = 0.15f;
+                Board.curveHeight = 0.02f;
+                Board.height = -1.5f;
+                Board.length = 2.5f;
+                Board.width = 0.4f;
+                Board.rotate = .4f;
+                Board.zeroZ = 2.3f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;
+                boardsTarget[3] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                boardsTarget[2] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (guitarist && !bassist && percussionist && !vocalist)
             {
                 song = new Song(4, 2, songname);
-                boards[0] = new Board(GUITAR, 0f, song, difficulty[0]);
-                boards[0].xOffset = -.8f;
-                boards[2] = new Board(DRUMS, 0f, song, difficulty[2]);
-                boards[2].xOffset = .8f;
-                Board.curveHeight = 0.03f;
-                Board.height = -2.0f;
-                Board.length = 3f;
-                Board.width = 0.6f;
-                Board.rotate = .5f;
-                Board.zeroZ = 2.8f;
+                boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
+                boards[0].xOffset = -175;
+                boards[0].yRotate = -0.15f;
+                boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
+                boards[2].xOffset = 175;
+                boards[2].yRotate = 0.15f;
+                Board.curveHeight = 0.02f;
+                Board.height = -1.5f;
+                Board.length = 2.5f;
+                Board.width = 0.4f;
+                Board.rotate = .4f;
+                Board.zeroZ = 2.3f;
                 Board.sFade = 0.8f;
                 Board.eFade = 1.2f;
+                boardsTarget[0] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                boardsTarget[2] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (!guitarist && bassist && !percussionist && vocalist)
             {
@@ -2521,7 +2575,7 @@ namespace Unsigned
             else if (guitarist && !bassist && !percussionist && !vocalist)
             {
                 song = new Song(4, 2, songname);
-                boards[0] = new Board(GUITAR, 0f, song, difficulty[0]);
+                boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 Board.curveHeight = 0.03f;
                 Board.height = -2.0f;
                 Board.length = 3f;
@@ -2530,14 +2584,26 @@ namespace Unsigned
                 Board.zeroZ = 2.8f;
                 Board.sFade = 0.8f;
                 Board.eFade = 1.2f;
+                boardsTarget[0] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (!guitarist && bassist && !percussionist && !vocalist)
             {
+                song = new Song(4, 2, songname);
+                boards[3] = new Board(BASS, 0, song, difficulty[3]);
+                Board.curveHeight = 0.03f;
+                Board.height = -2.0f;
+                Board.length = 3f;
+                Board.width = 0.7f;
+                Board.rotate = .5f;
+                Board.zeroZ = 2.8f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;
+                boardsTarget[3] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (!guitarist && !bassist && percussionist && !vocalist)
             {
                 song = new Song(4, 2, songname);
-                boards[2] = new Board(DRUMS, 0f, song, difficulty[2]);
+                boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
                 Board.curveHeight = 0.03f;
                 Board.height = -1.6f;
                 Board.length = 3f;
@@ -2546,6 +2612,7 @@ namespace Unsigned
                 Board.zeroZ = 2.8f;
                 Board.sFade = 0.8f;
                 Board.eFade = 1.2f;
+                boardsTarget[2] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
             else if (!guitarist && !bassist && !percussionist && vocalist)
             {
@@ -3030,7 +3097,7 @@ namespace Unsigned
             //draw pre-song board
             if (lenvals[0].X > -Board.zeroZ)
             {
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height+(boards[i].GetBoardBump()*Board.BOARD_BUMP_COEF), 0f);
+                matTransl = Matrix.CreateTranslation(0f, Board.height+(boards[i].GetBoardBump()*Board.BOARD_BUMP_COEF), 0f);
                 matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((SongStartTime / (float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
 
@@ -3067,8 +3134,8 @@ namespace Unsigned
                 {
                     if (lenvals[k + 1].X >= Board.sFade)
                         break;
-                    matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
                     matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - lenvals[k + 1].X)));
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
@@ -3103,7 +3170,7 @@ namespace Unsigned
             float eTexY = (lenvals[k].X - Board.eFade) / (lenvals[k].X - lenvals[k + 1].X);
             if (lenvals[0].X <= Board.sFade && boards[i].GetBoardType() != VOCALIST)
             {
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                 matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - Board.sFade)));
 
@@ -3141,7 +3208,7 @@ namespace Unsigned
                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
             }
             {
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                 matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * Board.sFade) - Board.zeroZ) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (Board.sFade - Board.eFade)));
 
@@ -3250,7 +3317,7 @@ namespace Unsigned
                             tmpMdl[5].Alpha = hiA;
                             Matrix matIdentity, matTransl, matScale, matOrbit;
                             matIdentity = Matrix.Identity;
-                            matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height, 0f);
+                            matTransl = Matrix.CreateTranslation(0f, Board.height, 0f);
                             matOrbit = Matrix.CreateTranslation(((r / 4f * 2) - 1f) * lefty * Board.width * 0.8f, 0.11f, -(Board.length * (waves[p][q].Y / 1000f)) - Board.zeroZ) * fling;
                             matScale = Matrix.CreateScale(new Vector3(0.1f * Board.width, 0.01f, ((waves[p][q].Y / 1000f) - (waves[p][q + 1].Y / 1000f)) * Board.length));
 
@@ -3338,7 +3405,7 @@ namespace Unsigned
                         if (k == 1 || k == 2)
                         { matRot = Matrix.CreateRotationZ(0.03f * -Math.Sign(k - 2)); height = 0.03f; }
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(((k / 2f) - .75f) * Board.width, height, -(Board.length * notespos[p+1].Y) - Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3(Board.width/4f*((notespos[p].X*2+1)/3f), Board.curveHeight*0.1f, Board.length * (notespos[p+1].Y-notespos[p].Y)));
 
@@ -3361,7 +3428,7 @@ namespace Unsigned
                     if (notespos[p].X >= 1 && notespos[p].W<0.5)
                     {
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (notespos[p + 1].Y-0.1f)) - Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f, 0.3f));
 
@@ -3410,7 +3477,7 @@ namespace Unsigned
                 {
                     Matrix matIdentity, matTransl, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(notespos[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * notespos[p].Y) - Board.zeroZ) * fling;
                     if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(notespos[p].X) < 0.01f)
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
@@ -3650,7 +3717,7 @@ namespace Unsigned
                     else
                     {
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0f, 0f, -(0.04f) - Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
 
@@ -3668,7 +3735,7 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
 
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0f, 0f, (0.04f) - Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
 
@@ -3731,7 +3798,7 @@ namespace Unsigned
             {
                 Matrix matIdentity, matTransl, matScale, matOrbit;
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                 matOrbit = Matrix.CreateTranslation(0f, 0.09f, (0.25f) - Board.zeroZ) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width*1.1f, Board.curveHeight * 0.8f, Board.length * 0.05f));
 
@@ -3754,7 +3821,7 @@ namespace Unsigned
             {
                 Matrix matIdentity, matTransl, matScale, matOrbit;
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                 matOrbit = Matrix.CreateTranslation(0f, 0.1f, (0.2f) - Board.zeroZ) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width*0.9f, Board.curveHeight*0.8f, Board.length * 0.02f));
 
@@ -3776,8 +3843,8 @@ namespace Unsigned
             {
                 Matrix matIdentity, matTransl, matScale, matOrbit;
                 matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(-boards[i].GetXOffset(), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0.115f, (0.265f) - Board.zeroZ) * fling;
+                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                matOrbit = Matrix.CreateTranslation(0f, 0.110f, (0.265f) - Board.zeroZ - Board.spShift) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width * 0.325f, 0.02f, Board.length * 0.2f));
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
