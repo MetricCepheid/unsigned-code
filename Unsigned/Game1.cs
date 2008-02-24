@@ -128,6 +128,8 @@ namespace Unsigned
         private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
         private RenderTarget2D[] boardsTarget;
 
+        private int renderLevel = 10;
+
         private Texture2D gradient;
         public static bool HALF_RENDER = false;
 #endregion
@@ -600,6 +602,8 @@ namespace Unsigned
             audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
             audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
 
+            Configurate();
+
             setlist.Load("SongList.gbl");
 
             instruments = new bool[4];
@@ -623,17 +627,17 @@ namespace Unsigned
             square.SetData<GBVertexFormat>(arr);
 
             //TEST CODE, takes you right into the action!
-            /*songname = "Highway";
+            /*songname = "Highway_to_Hell";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
             { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
             instruments[0] = true;
-            instruments[2] = true;
+            //instruments[2] = true;
             //instruments[3] = true;
-            contInput[0] = 4;
+            contInput[0] = 0;
             rockerNames[0] = "default";
-            contInput[2] = 1;
+            contInput[2] = 4;
             rockerNames[2] = "default";
             contInput[3] = 0;
             rockerNames[3] = "default";
@@ -671,6 +675,23 @@ namespace Unsigned
 
 
             spritebatch = new SpriteBatch(graphics.GraphicsDevice);
+        }
+
+        private void Configurate()
+        {
+            System.IO.StreamReader fin = new System.IO.StreamReader("config.cfg");
+            do
+            {
+                String str = fin.ReadLine();
+                if (str.Length > 12 && str.Substring(0, 12).ToLower().Equals("3dbackground"))
+                {
+                    int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    if (val == 0)
+                        renderLevel = 0;
+                    else
+                        renderLevel = 10;
+                }
+            } while (!fin.EndOfStream);
         }
 
         void SetProjMatrix(int w, int h)
@@ -1561,7 +1582,7 @@ namespace Unsigned
                     //start song TEMPORARY CODE? probably not...
                     if (started == false)
                     {
-                        SongStartTime = DateTime.Now.Ticks + 50000000;
+                        SongStartTime = DateTime.Now.Ticks +50000000;
                         started = true;
                     }
 
@@ -1571,8 +1592,8 @@ namespace Unsigned
 
                     if (song.IsOver(currenttime))
                         screen = S_RESULTS;
-
-                    venue.Update(gameTime, currenttime, engine, song);
+                    if(renderLevel>0)
+                        venue.Update(gameTime, currenttime, engine, song);
                     matView = venue.GetViewMatrix();
                     audioEngine.Update();
 
@@ -2186,35 +2207,37 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                     graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                     graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
                     //graphics.PreferMultiSampling = true;
                     graphics.ApplyChanges();
-
-                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
-                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                    if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                    if (renderLevel > 0)
                     {
-                        if (countFES < 1)
-                            graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
+                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                        if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                        {
+                            if (countFES < 1)
+                                graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
+                            else
+                                graphics.GraphicsDevice.SetRenderTarget(0, screenTargetPre);
+                        }
                         else
-                            graphics.GraphicsDevice.SetRenderTarget(0, screenTargetPre);
-                    }
-                    else
-                        graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
+                            graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
 
-                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
-                    engine.CurrentTechnique = engine.Techniques["maintechnique"];
-                    matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
-                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                    engine.Begin();
-                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
-                    {
-                        pass.Begin();
-                        engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                        engine.Parameters["SpecularEnabled"].SetValue(false);
+                    
+                        engine.CurrentTechnique = engine.Techniques["maintechnique"];
+                        matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
+                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                        engine.Begin();
+                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+                        {
+                            pass.Begin();
+                            engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                            engine.Parameters["SpecularEnabled"].SetValue(false);
 
                             engine.Parameters["fullbright"].SetValue(false);
                             matView = venue.GetViewMatrix();
@@ -2223,9 +2246,10 @@ namespace Unsigned
                             engine.Parameters["proj"].SetValue(matProj);
                             engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
                             venue.Render(graphics, engine, matProj, vd, gameTime);
-                        pass.End();
+                            pass.End();
+                        }
+                        engine.End();
                     }
-                    engine.End();
 
                     for (int i = 0; i < boards.Length; i++)
                     {
@@ -2236,6 +2260,7 @@ namespace Unsigned
                                   boardsTarget[i].Width / (float)boardsTarget[i].Height,
                                   0.1f, 100.0f);
                         graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+                        engine.CurrentTechnique = engine.Techniques["boardTechnique"];
                         engine.Begin();
                         foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                         {
@@ -2275,52 +2300,61 @@ namespace Unsigned
                         engine.End();
                     }
 
-                    if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                    if (renderLevel > 0)
                     {
-                        graphics.GraphicsDevice.SetRenderTarget(0, screenTargetFinal);
-                        graphics.GraphicsDevice.Clear(Color.Black);
-
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
-                        if (countFES < 1)
+                        if (currentFES == FRAME_EFFECT_STYLE.CREST)
                         {
-                            spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                            spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), new Color(new Vector4(1, 1, 1, ((countFES)))));
+                            graphics.GraphicsDevice.SetRenderTarget(0, screenTargetFinal);
+                            graphics.GraphicsDevice.Clear(Color.Black);
+
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
+                            if (countFES < 1)
+                            {
+                                spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                                spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), new Color(new Vector4(1, 1, 1, ((countFES)))));
+                            }
+                            else
+                            {
+                                lastframe = screenTargetPre.GetTexture();
+                                spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                                countFES--;
+                            }
+                            //spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                            spritebatch.End();
+                            countFES += gameTime.ElapsedGameTime.Milliseconds / 500f;
+
+                            graphics.GraphicsDevice.SetRenderTarget(0, null);
+                            graphics.GraphicsDevice.Clear(Color.Black);
+
+
+                            ppEngine.Parameters["gradientTex"].SetValue(gradient);
+
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                            ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
+
+                            //ppEngine.Begin();
+                            //ppEngine.CurrentTechnique.Passes[0].Begin();
+                            ppEngine.Parameters["dotGrainOn"].SetValue(true);
+                            ppEngine.Parameters["ValueShift"].SetValue(0.5f);
+                            ppEngine.Parameters["grainStrength"].SetValue(.25f);
+                            float time = (float)(DateTime.Now.Ticks / 1000 % 90) + 10;
+                            ppEngine.Parameters["time"].SetValue(time);
+                            ppEngine.CommitChanges();
+                            spritebatch.Draw(screenTargetFinal.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                         }
                         else
                         {
-                            lastframe = screenTargetPre.GetTexture();
-                            spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                            countFES--;
+                            graphics.GraphicsDevice.SetRenderTarget(0, null);
+                            graphics.GraphicsDevice.Clear(Color.Black);
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                            spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                         }
-                        //spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                        spritebatch.End();
-                        countFES += gameTime.ElapsedGameTime.Milliseconds / 500f;
-
-                        graphics.GraphicsDevice.SetRenderTarget(0, null);
-                        graphics.GraphicsDevice.Clear(Color.Black);
-
-
-                        ppEngine.Parameters["gradientTex"].SetValue(gradient);
-
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-                        ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
-
-                        //ppEngine.Begin();
-                        //ppEngine.CurrentTechnique.Passes[0].Begin();
-                        ppEngine.Parameters["dotGrainOn"].SetValue(true);
-                        ppEngine.Parameters["ValueShift"].SetValue(0.5f);
-                        ppEngine.Parameters["grainStrength"].SetValue(.25f);
-                        float time = (float)(DateTime.Now.Ticks / 1000 % 90) + 10;
-                        ppEngine.Parameters["time"].SetValue(time);
-                        ppEngine.CommitChanges();
-                        spritebatch.Draw(screenTargetFinal.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                     }
                     else
                     {
                         graphics.GraphicsDevice.SetRenderTarget(0, null);
-                        graphics.GraphicsDevice.Clear(Color.Black);
                         spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-                        spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                        graphics.GraphicsDevice.Clear(Color.Black);
                     }
                     //ppEngine.CurrentTechnique.Passes[0].End();
                     //ppEngine.End();
@@ -2345,6 +2379,7 @@ namespace Unsigned
                             //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
                             //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
+                            //spritebatch.DrawString(DefaultFont, "" + controllers[contInput[0]].ThumbSticks.Right.Y, new Vector2(0, 48), Color.Red);
                         }
                     }
 
@@ -2904,6 +2939,8 @@ namespace Unsigned
                                 pressed |= bits[boards[i].IsLefty()?1:3];
                             if (controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                                 pressed |= bits[boards[i].IsLefty()?0:4];
+                            if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f)
+                                boards[i].ActivateStarPower();
                         }
                         else if (contInput[0] == 4)
                         {

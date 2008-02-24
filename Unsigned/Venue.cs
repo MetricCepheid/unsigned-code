@@ -207,7 +207,7 @@ namespace Unsigned
                     tlen = CamBlendPos.TYPE_LEN.NORMAL;
                 else if (len < 10000)
                     tlen = CamBlendPos.TYPE_LEN.LENGTHY;
-                else if (len < 30000)
+                else
                     tlen = CamBlendPos.TYPE_LEN.EXTENDED;
                 List<int> list = new List<int>();
                 for (int i = 0; i < CamBlends.Length; i++)

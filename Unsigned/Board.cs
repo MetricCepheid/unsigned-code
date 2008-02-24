@@ -560,7 +560,7 @@ namespace Unsigned
             {
                 if (GetBoardType() != Game1.PERCUSSIONIST)
                 {
-                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED)
+                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
                     {
                         reff.Hurt(ind);
                         multiplier = 1;
@@ -598,7 +598,7 @@ namespace Unsigned
             {
                 if (GetBoardType() != Game1.PERCUSSIONIST)
                 {
-                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED)
+                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
                     {
                         reff.Hurt(ind);
                         multiplier = 1;
@@ -701,7 +701,7 @@ namespace Unsigned
 
             if (SPActivated)
             {
-                StarPowerAmount -= gameTime.ElapsedGameTime.Milliseconds / 10000f;
+                StarPowerAmount -= gameTime.ElapsedGameTime.Milliseconds / 20000f;
                 if (StarPowerAmount < 0)
                 {
                     SPActivated = false;
@@ -712,6 +712,11 @@ namespace Unsigned
             if (DFIndex<DFEnd.Length && currenttime > DFEnd[DFIndex])
                 DFIndex++;
             lastPressed = pressed;
+
+            if (multiplier > 6 && type == Game1.BASS)
+                multiplier = 6;
+            else if (multiplier > 4 && type != Game1.BASS)
+                multiplier = 4;
         }
 
         public float GetBoardBump()//bass bump
@@ -990,6 +995,12 @@ namespace Unsigned
         public Results getResults()
         {
             return myResults;
+        }
+
+        public void ActivateStarPower()
+        {
+            if (StarPowerAmount>=0.5)
+                SPActivated = true;
         }
     }
 }
