@@ -563,7 +563,7 @@ float4 MenuPixelShadert(EnginePixelIn input) : COLOR
 }
 
 
-technique menutechniquet {
+technique menutechnique {
 	pass pass0 {
 		VertexShader = compile vs_2_0 MenuVertexShadert();
 		PixelShader  = compile ps_2_0 MenuPixelShadert();
