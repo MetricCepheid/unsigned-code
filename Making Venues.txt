@@ -62,7 +62,51 @@ The name is the most important part.  The name should start with
 this should be.  Valid letters are 'E'(Extended), 'L'(Long),
 'N'(Normal), 'S'(Short), and 'F'(Flash).  The next value will be
 the index of the camera.  You may have as many cameras as you want
-(and often, variety is good) as long as they start at
+(and often, variety is good) as long as they start at 1 and do not
+skip indices.  After this should be an underscore ('_') and the
+blend value.  The blend value tells the program what part of the
+blend it is.  If it is '0', it is the very beginning of the blend.
+The end is the highest number entered for that camera index. Since
+Unsigned only supports 2 cameras per index, 0=start and 1=end 
+should do just fine.
+Note: you need to have at least 2 of each type of blend (ELNSF)!
+
+
+Rockers
+
+Rockers are easy to add to your venue.  Simply place an 
+npc_combine_s, rotate it to look at the crowd, and change the name
+to one of the following: "guitarist" "bassist" "drummer" "vocalist"
+Please only one of each!
+
+
+Crowds
+
+This will be used to generate the crowd. Not yet implemented.
+
+
+Lights
+
+We use light_spot for lights because most venues have spot lights!
+When placing spot lights, it is best to put them near the back of
+the Venue, near, or hanging from the ceiling.  Their direction is
+irrelevant, as lights use info_targets to aim.  There are 3 types
+of lights: "normal", "strobe", "sweep" and "spot" (which is the 
+light that will follow rockers around).  Each light also has
+an index. Unlike cameras, each light type has it's own numbering.
+This means that for each type, you will start the index over at
+'1'.  So, for each light you will have, for the name, "[type]_[index]"
+(e.g. "sweep_4").  Please note the game can only render 6 lights
+at a time right now. Some good numbers for how many lights to
+place are: Sweep:4-6, Normal:1-2, Strobe:1-2.  Also, for the
+lights, the inner and outer angles are used in-game.
+Now for targets. For "normal" and "strobe "lights", you only need 
+one target.  When you make it, give it the same name as the 
+corresponding light_spot.  "spot" lights, do not need a target.
+"sweep" lights however, need multiple targets.  Right now, Unsigned
+only supports 2.  They are named the same as the light_spot, except
+with a letter at the end to indicate blend value. 'a' is the start,
+'z' is the end.  (e.g. "sweep_1a")
 
 
 CompileData File
@@ -121,4 +165,7 @@ is indicative that the near and far are too far seperated.
 
 GBW File
 
-Okay! You are ready to compile your venue!
+Okay! You are ready to compile your venue! All you need to do is
+drag the VMF file to the venuecompiler.exe icon.  A Black console
+screen should pop up, and dissappear fairly quickly and then you
+will notice a GBW venue file in the directory of the VMF!
