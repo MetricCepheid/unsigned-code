@@ -61,17 +61,7 @@ texture diffuseTexture : Diffuse
 >;
 sampler DiffuseTextureSampler = sampler_state
 {
-    Texture = <diffuseTexture>;
-    MinFilter = linear;
-    MagFilter = linear;
-    MipFilter = linear;
-    AddressU = mirror; 
-    AddressV = mirror;
-};
-texture decalTexture;
-sampler DecalTextureSampler = sampler_state
-{
-    Texture = <decalTexture>;
+    Texture = (diffuseTexture);
     MinFilter = linear;
     MagFilter = linear;
     MipFilter = linear;
@@ -121,6 +111,19 @@ struct EngineVertexToPixel
     float alpha : FOG;
 };
 
+struct BoardVertexInput
+{
+    float3 pos : POSITION;
+    float2 texCoord : TEXCOORD0;
+    float alpha : TEXCOORD1;
+};
+struct BoardVertexToPixel
+{
+    float4 pos : POSITION0;
+    float2 texCoord : TEXCOORD0;
+    float alpha : TEXCOORD1;
+};
+
 
 
 
@@ -162,7 +165,35 @@ float3 GetCameraPos()
 	return viewInverse[3].xyz;
 }
 
+BoardVertexToPixel BoardVertexShader(EngineVertexInput input)
+{
+  BoardVertexToPixel output = (BoardVertexToPixel)0;
+  output.pos = TransformPosition(float4(input.pos,1));
+  output.texCoord = float3(input.texCoord.xy,0);
+  if(vertexAlpha)
+	output.alpha = input.alpha;
+  else
+	output.alpha = 1;
 
+  return output;
+}
+
+float4 BoardPixelShader(BoardVertexToPixel input) : COLOR
+{
+  float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord);
+  return float4(diffuseTex.xyz*diffuseColor.xyz,diffuseTex.w*saturate(input.alpha)*wAlpha);
+}
+
+/* *** *** *** **
+   Techniques
+** *** *** *** */
+
+technique boardTechnique {
+	pass pass0 {
+		VertexShader = compile vs_2_0 BoardVertexShader();
+		PixelShader  = compile ps_2_0 BoardPixelShader();
+	}
+}
 
 /* *** *** *** **
     Shaders
@@ -458,3 +489,4 @@ technique menutechnique {
 		PixelShader  = compile ps_3_0 MenuPixelShader();
 	}
 }
+

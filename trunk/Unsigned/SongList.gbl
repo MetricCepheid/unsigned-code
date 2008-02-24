@@ -1,6 +1,7 @@
 NumSets(1)
 	Set(0)
 	Name(Quick Jams)
-		NumSongs(2)
+		NumSongs(3)
 			Song(MetalocalypseTheme)
 			Song(Highway)
+			Song(Highway_to_Hell)

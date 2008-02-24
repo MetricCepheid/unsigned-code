@@ -40,15 +40,29 @@ remember what's what.
 
 List of Entities that are valid:
 
-
-
+info_target
+light_spot
+npc_citizen
+npc_combine_s
+point_camera
 
 
 
 How to use these entities:
 
+Camera Interpolations
 
-
+In-game, the camera will fly around the venue, looking at the
+band. This is done utilizing the point_camera entity.  For every
+set of positions (we only support 2 per blend right now) there
+are multiple point_cameras. Each point_camera should be rotated
+to point where you want it to point.
+The name is the most important part.  The name should start with
+"viewCam"  The next letter tells the program how long of a blend
+this should be.  Valid letters are 'E'(Extended), 'L'(Long),
+'N'(Normal), 'S'(Short), and 'F'(Flash).  The next value will be
+the index of the camera.  You may have as many cameras as you want
+(and often, variety is good) as long as they start at
 
 
 CompileData File

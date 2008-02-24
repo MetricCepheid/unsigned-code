@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "4032"
-	"mapversion" "27"
+	"mapversion" "28"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -20,7 +20,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "27"
+	"mapversion" "28"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -5895,13 +5895,55 @@ entity
 		"logicalpos" "[0 -15268]"
 	}
 }
+entity
+{
+	"id" "3286"
+	"classname" "point_camera"
+	"angles" "15 105 0"
+	"fogColor" "0 0 0"
+	"fogEnd" "4096"
+	"fogMaxDensity" "0"
+	"fogStart" "2048"
+	"FOV" "90"
+	"spawnflags" "0"
+	"targetname" "viewCamE18_0"
+	"origin" "500 -496 219"
+	editor
+	{
+		"color" "220 30 220"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
+entity
+{
+	"id" "3298"
+	"classname" "point_camera"
+	"angles" "15 210 0"
+	"fogColor" "0 0 0"
+	"fogEnd" "4096"
+	"fogMaxDensity" "0"
+	"fogStart" "2048"
+	"FOV" "90"
+	"spawnflags" "0"
+	"targetname" "viewCamE18_1"
+	"origin" "495 486 211.121"
+	editor
+	{
+		"color" "220 30 220"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
 cameras
 {
 	"activecamera" "0"
 	camera
 	{
-		"position" "[-263.497 94.7862 206.213]"
-		"look" "[-262.839 94.2563 205.677]"
+		"position" "[574.129 535.308 256.999]"
+		"look" "[573.366 534.831 256.561]"
 	}
 }
 cordon
