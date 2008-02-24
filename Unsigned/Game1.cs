@@ -1585,7 +1585,6 @@ namespace Unsigned
                         SongStartTime = DateTime.Now.Ticks +50000000;
                         started = true;
                     }
-
                     UpdateGibs(gameTime);
 
                     long currenttime = DateTime.Now.Ticks - SongStartTime;

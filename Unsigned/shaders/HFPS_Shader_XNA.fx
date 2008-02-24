@@ -108,7 +108,14 @@ struct EngineVertexToPixel
     float3 viewVec : TEXCOORD2;
     float3x3 tangentMatrix : TEXCOORD3;
     float3 normal : COLOR0;
-    float alpha : FOG;
+    float alpha : TEXCOORD6;
+};
+struct EnginePixelIn
+{
+    float3 texCoord : TEXCOORD0;//3 is diffuse light val
+    float3 wPos : TEXCOORD1;
+    float3 normal : COLOR0;
+    float alpha : TEXCOORD6;
 };
 
 struct BoardVertexInput
@@ -482,7 +489,7 @@ if(!fullbright)
   return float4((diffuseTex * saturate(ambientColor + diffuseCol) + specularCol).xyz,diffuseTex.w*wAlpha*input.alpha);
 }
 
-/*EngineVertexToPixel MenuVertexShader20(EngineVertexInput input)
+EngineVertexToPixel MenuVertexShadert(EngineVertexInput input)
 {
   EngineVertexToPixel output = (EngineVertexToPixel)0;
   float4x4 rRot;
@@ -507,92 +514,61 @@ if(!fullbright)
   }
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
-  float3x3 worldToTangentSpace = ComputeTangentMatrix(input.tangent, input.normal);
   
   float3 worldEyePos = GetCameraPos();
   float3 worldVertPos = GetWorldPos(input.pos);
   
   output.wPos = worldVertPos;//mul(input.pos,world);
   if(vertexAlpha)
-  {
-    output.viewVec = mul(worldToTangentSpace, worldEyePos - worldVertPos);
-    output.tangentMatrix = worldToTangentSpace;
     output.alpha = input.alpha;
-    output.normal=float3(0,0,1);
-  }
   else
-  {
-    output.viewVec = mul(worldEyePos - worldVertPos,rRot);
-    output.tangentMatrix = float3x3(1,0,0,0,1,0,0,0,1);
     output.alpha = 1.0f;
-    output.normal=mul(input.normal,rRot);
-  }
+  output.viewVec = mul(worldEyePos - worldVertPos,rRot);
+  output.normal=mul(input.normal,rRot);
 
   return output;
 }
 
-float4 MenuPixelShader20(EngineVertexToPixel input) : COLOR
+float4 MenuPixelShadert(EnginePixelIn input) : COLOR
 {
-  float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord.xy);
+  float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord.xy); 
   
+  float3 normalVector =normalize(input.normal);
   
+  float4 diffuseCol = diffuseColor;
   
-  
-  float3 normalVector =float3(0,0,1);
-  
-  
-  float4 ambientCol = ambientColor;//default values for the output
-  float4 diffuseCol = diffuseColor*input.texCoord.z;
-if(!fullbright)
-{
-  
-  float3 viewVector = normalize(input.viewVec);
+  //float3 viewVector = normalize(input.viewVec);
   
   {// Directional Light
-  float3 dLightVector = normalize(mul(input.tangentMatrix, dLightDir));
-	float bump = saturate(dot(normalVector, dLightVector));
-	float3 reflect = normalize(2 * bump * normalVector - dLightVector);
-	float spec = pow(saturate(dot(reflect, viewVector)), shininess);
-	diffuseCol = saturate(dot(normalVector, dLightVector))*diffuseColor*dLDiffuseColor;
+	diffuseCol = saturate(dot(normalVector, dLightDir))*dLDiffuseColor;
   }
 
   // Point Lights
-  for (int i=0;i<1 && pLightOn[i];i++)
+  for (int i=0;i<3 && pLightOn[i];i++)
   {
-   if(pLightOn[i])
-   {
-     float dist = sqrt( (float)pow(pLightPos[i].x-input.wPos.x,2)+(float)pow(pLightPos[i].y-input.wPos.y,2)+(float)pow(pLightPos[i].z-input.wPos.z,2) );
-	if(dist <= pLightFar[i])
-	{
-		float fade=1.0f;
+     float dist = sqrt( (float)pow(pLightPos[i].x-input.wPos.x,2)+(float)pow(pLightPos[i].y-input.wPos.y,2) );
+	//if(dist <= pLightFar[i])
+	//{
+		/*float fade=1.0f;
 		if(dist<=pLightNear[i])
 		  fade=1.0f;
-		else
-		  fade = 1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i]));
-		float3 pLightDir = pLightPos[i]-input.wPos;
-		float3 pLightVector = normalize(mul(input.tangentMatrix, pLightDir));
-		diffuseCol += saturate(dot(normalVector, pLightVector))*fade*diffuseColor*float4(pLightDiffuse[i].xyz,1);
-	}
-   }
+		else*/
+		float fade = saturate(1.0f-((dist-pLightNear[i])/(pLightFar[i]-pLightNear[i])));
+		diffuseCol += saturate(dot(normalVector, saturate(pLightPos[i]-input.wPos)))*fade*diffuseColor*float4(pLightDiffuse[i].xyz,1);
+		//}
   }
-}
-  else
-  {
-	ambientCol = float4(ambientColor.xyz,wAlpha*input.alpha);
-	diffuseCol = float4(diffuseColor.xyz,wAlpha*input.alpha);
-  }
-  diffuseTex.w *= wAlpha*input.alpha;
+  //diffuseTex.w *= wAlpha*input.alpha;
 
-  return float4((diffuseTex * saturate(ambientColor + diffuseCol)).xyz,diffuseTex.w*wAlpha*input.alpha);
+  return float4((diffuseTex.xyz * saturate(ambientColor.xyz + diffuseCol.xyz)),diffuseTex.w*wAlpha);
 }
 
 
-technique menutechnique {
+technique menutechniquet {
 	pass pass0 {
-		VertexShader = compile vs_2_0 MenuVertexShader20();
-		PixelShader  = compile ps_2_0 MenuPixelShader20();
+		VertexShader = compile vs_2_0 MenuVertexShadert();
+		PixelShader  = compile ps_2_0 MenuPixelShadert();
 	}
-}*/
+}
 
 
 technique menutechnique {
