@@ -482,7 +482,7 @@ if(!fullbright)
   return float4((diffuseTex * saturate(ambientColor + diffuseCol) + specularCol).xyz,diffuseTex.w*wAlpha*input.alpha);
 }
 
-EngineVertexToPixel MenuVertexShader20(EngineVertexInput input)
+/*EngineVertexToPixel MenuVertexShader20(EngineVertexInput input)
 {
   EngineVertexToPixel output = (EngineVertexToPixel)0;
   float4x4 rRot;
@@ -548,13 +548,13 @@ if(!fullbright)
   
   float3 viewVector = normalize(input.viewVec);
   
-  /*{// Directional Light
+  {// Directional Light
   float3 dLightVector = normalize(mul(input.tangentMatrix, dLightDir));
 	float bump = saturate(dot(normalVector, dLightVector));
 	float3 reflect = normalize(2 * bump * normalVector - dLightVector);
 	float spec = pow(saturate(dot(reflect, viewVector)), shininess);
 	diffuseCol = saturate(dot(normalVector, dLightVector))*diffuseColor*dLDiffuseColor;
-  }*/
+  }
 
   // Point Lights
   for (int i=0;i<1 && pLightOn[i];i++)
@@ -592,7 +592,7 @@ technique menutechnique {
 		VertexShader = compile vs_2_0 MenuVertexShader20();
 		PixelShader  = compile ps_2_0 MenuPixelShader20();
 	}
-}
+}*/
 
 
 technique menutechnique {
