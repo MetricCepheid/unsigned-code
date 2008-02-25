@@ -162,6 +162,15 @@
     <None Include="songdata\Highway_to_Hell.gbg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="songdata\Master_of_Puppets.gba">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master_of_Puppets.gbe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master_of_Puppets.gbg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="songdata\MetalocalypseTheme.gbd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -172,6 +181,9 @@
       <Name>Garage</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="audio\Master of Puppets.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="audio\MetalocalypseTheme01.wav">
       <Name>MetalocalypseTheme01</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

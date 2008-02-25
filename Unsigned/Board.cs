@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace Unsigned
 {
-    struct NoteSet
+    class NoteSet : IComparable
     {
         public int time;
         public byte type;
@@ -16,6 +16,11 @@ namespace Unsigned
         public bool burning;//for held notes
 
         public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, };
+
+        public int CompareTo(object other)
+        {
+            return time.CompareTo(((NoteSet)other).time);
+        }
     }
 
     struct Results
@@ -417,6 +422,7 @@ namespace Unsigned
                 do { a = reader.ReadLine(); }
                 while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
                 char[] b = a.ToCharArray();
+                notes[i] = new NoteSet();
                 notes[i].type = 0;
                 for (int k = 0; k < 6; k++)
                     if (b[k] == 'O')
@@ -457,6 +463,25 @@ namespace Unsigned
             starPts[0] = 0;
             for (int i = 1; i <= 5; i++)
                 starPts[i] = Int32.Parse(reader.ReadLine());
+            int numrep = 0;
+            int curtm = 0;
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (notes[i].time < curtm)
+                    numrep++;
+                curtm = notes[i].time;
+            }
+            Console.WriteLine("Numerrors(old):" + numrep);
+            Array.Sort<NoteSet>(notes);
+            numrep = 0;
+            curtm = 0;
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (notes[i].time < curtm)
+                    numrep++;
+                curtm = notes[i].time;
+            }
+            Console.WriteLine("Numerrors(new):" + numrep);
         }
 
         public bool IsValidFrettage(byte note, byte pressed)
@@ -541,6 +566,7 @@ namespace Unsigned
             currenttime/=(int)Game1.TicksPerSecond/1000;
             if (GetBoardType()!=Game1.PERCUSSIONIST)
             if (index<notes.Length)
+            if (multiplier>1)
             if ((notes[index].type&NS_HOPO)!=0)
             if (Math.Abs(notes[index].time - currenttime) < 100)
             if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED)
@@ -566,6 +592,8 @@ namespace Unsigned
                         multiplier = 1;
                         notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
                         myResults.missedNotes++;
+                        if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            SPGood = false;
                     }
                 }
                 else
@@ -604,6 +632,8 @@ namespace Unsigned
                         multiplier = 1;
                         notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
                         myResults.missedNotes++;
+                        if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            SPGood = false;
                     }
                 }
                 else
@@ -694,6 +724,8 @@ namespace Unsigned
                 if (SPMFlash < 0)
                     SPMFVel = 4;
             }
+            else
+                SPMFlash = 0;
             if (GetMultiplier() >= 2 && multSlide < 1)
                 multSlide += gameTime.ElapsedGameTime.Milliseconds / 1000f;
             if (GetMultiplier() < 2 && multSlide > 0)
@@ -754,6 +786,10 @@ namespace Unsigned
                     if (notes[index].burning)
                     {
                         notes[index].burning = false;
+                        game.Hurt(ind);
+                        if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            SPGood = false;
+                        multiplier = 1;
                         return 0;
                     }
                     if (notes[index].length > 0)
@@ -769,7 +805,13 @@ namespace Unsigned
                 }
             }
             else if (currenttime > notes[index].time && currenttime < notes[index].time+notes[index].length)
-            { notes[index].burning = false; return 0; }
+            {
+                notes[index].burning = false; multiplier = 1; game.Hurt(ind);
+            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            SPGood = false; return 0; }
+            
+            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            SPGood = false;
             game.Hurt(ind);
             multiplier = 1;
             return 0;
