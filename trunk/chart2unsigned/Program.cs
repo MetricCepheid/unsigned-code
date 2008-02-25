@@ -329,9 +329,54 @@ namespace chart2unsigned
             //PROCESS
             Console.Out.Write("Processing.");
 
+            int lastBeat = 0;
+            for (int m = 0; m < notes.Length; m++)
+                for (int n = 0; n < notes[m].Length; n++)
+                    if(notes[m][n].Count>0)
+                        if (notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len > lastBeat)
+                            lastBeat = notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len;
+            if (bpmsigs[bpmsigs.Count - 1].time > lastBeat)
+                lastBeat = bpmsigs[bpmsigs.Count - 1].time;
+            if (timesigs[timesigs.Count - 1].time > lastBeat)
+                lastBeat = timesigs[timesigs.Count - 1].time;
+            
+
             string timeS=((int)(sLength/360))+":"+((int)((sLength/60)%60))+":"+((int)(sLength%60));
             List<BarLine> barlines = new List<BarLine>();
+            int[] beatTimes = new int[lastBeat / 192 + 8];
+            int cBPM=0, cTS = 0;
+            float currentTime = 0;
+            int currentBeat = 0;
             int currentBPM = 0;
+            for (int i = 0; i < beatTimes.Length; i++)
+            {
+                float add = 0;
+                for (int k = currentBeat; k < currentBeat + 192; k++)
+                {
+                    if (cBPM<bpmsigs.Count && bpmsigs[cBPM].time == k)
+                    { currentBPM = bpmsigs[cBPM].value; cBPM++; }
+
+                    add+=(60000f / currentBPM * 1000) / 192f;
+                }
+                beatTimes[currentBeat / 192] = (int)currentTime;
+                currentBeat += 192;
+                currentTime += add;
+            }
+            int currentTS = 0;
+            currentBeat = 0;
+            int countBeat = 0;
+            for (int i = 0; i < beatTimes.Length; i++)
+            {
+                if (cTS<timesigs.Count && timesigs[cTS].time <= currentBeat)
+                { currentTS = timesigs[cTS].value; cTS++; }
+                if (countBeat == 0)
+                    barlines.Add(new BarLine(beatTimes[currentBeat / 192], currentTS, currentBeat / 192));
+                countBeat++;
+                if (countBeat >= currentTS)
+                    countBeat = 0;
+                currentBeat += 192;
+            }
+            /*int currentBPM = 0;
             int currentTS = 0;
             int currentBeats = 0, currentTime = offset;
             {
@@ -357,6 +402,7 @@ namespace chart2unsigned
                                 currentBeats += numMAddp * currentTS;
                                 currentTime += (int)(60000f / currentBPM * currentTS * 1000) * numMAddp;
                             }
+
                             int firstMeasureLen = (int)((((bpmsigs[i].time/192f)-currentBeats)/currentTS) * (60000f / currentBPM * currentTS * 1000));
                             currentBPM = bpmsigs[i].value;
                             firstMeasureLen += (int)((1-(((bpmsigs[i].time/192f)-currentBeats)/currentTS)) * (60000f / currentBPM * currentTS * 1000));
@@ -379,31 +425,6 @@ namespace chart2unsigned
                                 currentBeats += numMAdd * currentTS;
                                 currentTime += (int)(60000f / currentBPM * currentTS * 1000) * numMAdd;
                             }
-                            
-                        /*}
-                        else
-                        {
-                            int numMAddA = ((bpmsigs[i].time / (768 / 4)) - currentBeats) / currentTS;
-                            for (int p = 0; p < numMAddA; p++)
-                            {
-                                barlines.Add(new BarLine(currentTime + (int)(p * (60000f / currentBPM * currentTS * 1000)), currentTS, currentBeats + (p * currentTS)));
-                                Console.Out.Write(".");
-                            }
-                            currentBeats += numMAddA * currentTS;
-                            currentTime += (int)(60000f / currentBPM * currentTS * 1000) * numMAddA;
-
-                            currentBPM = bpmsigs[i].value;
-                            k++;
-
-                            int numMAddB = ((Math.Min(bpmsigs[i + 1].time, timesigs[k].time) / (768 / 4)) - currentBeats) / currentTS;
-                            for (int p = 0; p < numMAddB; p++)
-                            {
-                                barlines.Add(new BarLine(currentTime + (int)(p * (60000f / currentBPM * currentTS * 1000)), currentTS, currentBeats + (p * currentTS)));
-                                Console.Out.Write(".");
-                            }
-                            currentBeats += numMAddB * currentTS;
-                            currentTime += (int)(60000f / currentBPM * currentTS * 1000) * numMAddB;
-                        }*/
                     }
                     else
                     {
@@ -458,8 +479,9 @@ namespace chart2unsigned
                     currentBeats += numMAdd * currentTS;
                     currentTime += (int)(60000f / currentBPM * currentTS * 1000 * numMAdd);
                 }
-            }
-            int remainingMLen = (int)(60000f / currentBPM * currentTS * 1000);
+            }*/
+
+            //int remainingMLen = (int)(60000f / currentBPM * currentTS * 1000);
             for (int m = 0; m < notes.Length; m++)
                 for (int n = 0; n < notes[m].Length; n++)
                     for (int i = 0; i < notes[m][n].Count - 1; )
@@ -472,7 +494,7 @@ namespace chart2unsigned
                         }
                         else
                             i++;
-            int rest = (int)(60000f / currentBPM * currentTS * 1000);
+            //int rest = (int)(60000f / currentBPM * currentTS * 1000);
             Note[][][] newnotes = new Note[notes.Length][][];
             for (int m = 0; m < notes.Length; m++)
             {
@@ -483,47 +505,20 @@ namespace chart2unsigned
                     int k = 0;
                     for (int i = 1; i < newnotes[m][n].Length; i++)
                         if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 96)
-                            if(!IsChord(newnotes[m][n][i].value))
+                            if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i].value&0x1F)!=(newnotes[m][n][i-1].value&0x1F))
                                 newnotes[m][n][i].value |= (1 << 5);
                     for (int i = 0; i < newnotes[m][n].Length; i++)
                     {
-                        
-                        while (k<barlines.Count && newnotes[m][n][i].time / (768 / 4) >= barlines[k].sBeat + barlines[k].beats)
-                            k++;
-                        int endtime = newnotes[m][n][i].len + newnotes[m][n][i].time;
-                        if (k < barlines.Count-1)
-                        {
-                            int t = barlines[k].time;
-                            float d = ((newnotes[m][n][i].time / (768f / 4)) - barlines[k].sBeat) / barlines[k].beats;
-                            t += (int)((barlines[k + 1].time - barlines[k].time) * d);
-                            newnotes[m][n][i].time = t;
-                        }
+                        float when = newnotes[m][n][i].time / 192f;
+                        if (when == (int)when)
+                            newnotes[m][n][i].time = beatTimes[(int)when];
                         else
-                        {
-                            int t = barlines[barlines.Count-1].time;
-                            float d = ((newnotes[m][n][i].time / (768f / 4)) - barlines[barlines.Count-1].sBeat) / barlines[barlines.Count-1].beats;
-                            t += (int)((remainingMLen) * d);
-                            newnotes[m][n][i].time = t;
-                        }
-                        if (newnotes[m][n][i].len > 0)
-                        {
-                            while (k < barlines.Count && endtime / (768 / 4) >= barlines[k].sBeat + barlines[k].beats)
-                                k++;
-                            if (k < barlines.Count - 1)
-                            {
-                                int t = barlines[k].time;
-                                float d = ((endtime / (768f / 4)) - barlines[k].sBeat) / barlines[k].beats;
-                                t += (int)((barlines[k + 1].time - barlines[k].time) * d);
-                                newnotes[m][n][i].len = t-newnotes[m][n][i].time;
-                            }
-                            else
-                            {
-                                int t = barlines[barlines.Count - 1].time;
-                                float d = ((endtime / (768f / 4)) - barlines[barlines.Count - 1].sBeat) / barlines[barlines.Count - 1].beats;
-                                t += (int)((remainingMLen) * d);
-                                newnotes[m][n][i].len = t-newnotes[m][n][i].time;
-                            }
-                        }
+                            newnotes[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        when += newnotes[m][n][i].len / 192f;
+                        if (when == (int)when)
+                            newnotes[m][n][i].len = beatTimes[(int)when]-newnotes[m][n][i].time;
+                        else
+                            newnotes[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))))-newnotes[m][n][i].time;
                     }
                     for (int i = 0; i < newnotes[m][n].Length - 1; i++)
                         if (newnotes[m][n][i].len > 0)
@@ -579,7 +574,7 @@ namespace chart2unsigned
             fout.WriteLine("Bars:" + barlines.Count);
             for (int i = 0; i < barlines.Count; i++)
                 fout.WriteLine(barlines[i].time + ":" + barlines[i].beats);
-            fout.WriteLine(rest);
+            fout.WriteLine(beatTimes[beatTimes.Length-1]-beatTimes[beatTimes.Length-2]);
             fout.WriteLine("Cues:1");
             fout.WriteLine("0:"+cName);
             fout.WriteLine("" + sLength);

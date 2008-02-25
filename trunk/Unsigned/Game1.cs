@@ -1609,9 +1609,9 @@ namespace Unsigned
                         audioSoundBank.PlayCue("starching");
                     }
                     if (instruments[0] && contInput[0] < 4)
-                        boards[0].Whammy(controllers[0].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
+                        boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
                     if (instruments[3] && contInput[3] < 4)
-                        boards[3].Whammy(controllers[3].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
+                        boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
                 }
                 #endregion
                 #region results
@@ -1632,7 +1632,7 @@ namespace Unsigned
                         if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
                             red = true;
                         if (green)
-                        { screen = S_MAINMENU; mmenu_ticker = 200; }
+                        { screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = false; mmenu_ticker = 200; mmenu_select = 0; }
                 }
                 #endregion
                 else
@@ -2767,19 +2767,19 @@ namespace Unsigned
         public void Hurt(int ind)
         {
             if (rockMeterLevel[ind] > 80)
-                rockMeterLevel[ind] -= 2f;
-            else if (rockMeterLevel[ind] > 20)
                 rockMeterLevel[ind] -= 1f;
-            else
+            else if (rockMeterLevel[ind] > 20)
                 rockMeterLevel[ind] -= 0.5f;
+            else
+                rockMeterLevel[ind] -= 0.25f;
         }
 
         public void Help(int ind)
         {
             if (rockMeterLevel[ind] > 80)
-                rockMeterLevel[ind] += .5f * (boards[ind].IsSPActivated()?4:1);
+                rockMeterLevel[ind] += .5f * (boards[ind].IsSPActivated()?10:1);
             else
-                rockMeterLevel[ind] += 1f * (boards[ind].IsSPActivated() ? 4 : 1);
+                rockMeterLevel[ind] += 1.5f * (boards[ind].IsSPActivated() ? 10 : 1);
         }
 
         private static Vector3[] shardmethlist = { new Vector3(-.5f,0f,0f),new Vector3(-.5f,1f,0f),new Vector3(-.5f,.5f,.5f),new Vector3(-.5f,.5f,-.5f),new Vector3(.5f,0f,0f),new Vector3(.5f,1f,0f),new Vector3(.5f,.5f,.5f),new Vector3(.5f,.5f,-.5f)};
@@ -3025,14 +3025,14 @@ namespace Unsigned
                         byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
-                            rockMeterLevel[0] += 0.5f;
+                            Help(0);
                             if ((e & bits[7]) != 0)
                                 AddSparks(e, 0);
                             else
                                 AddShards(e, 0);
                         }
                         else
-                            rockMeterLevel[0] -= 0.5f;
+                            Hurt(0);
                     }
                     if (controllers[contInput[0]].DPad.Up == ButtonState.Pressed && guitarStrum != 2)
                     {
@@ -3051,14 +3051,14 @@ namespace Unsigned
                         byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
-                            rockMeterLevel[0] += 0.5f;
+                            Help(0);
                             if ((e & bits[7]) != 0)
                                 AddSparks(e, 0);
                             else
                                 AddShards(e, 0);
                         }
                         else
-                            rockMeterLevel[0] -= 0.5f;
+                            Hurt(0);
                     }
                     if (controllers[contInput[0]].DPad.Up == ButtonState.Released &&
                        controllers[contInput[0]].DPad.Down == ButtonState.Released)
@@ -3084,14 +3084,14 @@ namespace Unsigned
                         byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
-                            rockMeterLevel[0] += 0.5f;
+                            Help(0);
                             if ((e & bits[7]) != 0)
                                 AddSparks(e, 0);
                             else
                                 AddShards(e, 0);
                         }
                         else
-                            rockMeterLevel[0] -= 0.5f;
+                            Hurt(0);
                     }
                     if (Keyboard.GetState().IsKeyDown(Keys.Up) && guitarStrum != 2)
                     {
@@ -3110,14 +3110,14 @@ namespace Unsigned
                         byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
-                            rockMeterLevel[0] += 0.5f;
+                            Help(0);
                             if ((e & bits[7]) != 0)
                                 AddSparks(e, 0);
                             else
                                 AddShards(e, 0);
                         }
                         else
-                            rockMeterLevel[0] -= 0.5f;
+                            Hurt(0);
                     }
                     if (!Keyboard.GetState().IsKeyDown(Keys.Up) &&
                         !Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -3461,12 +3461,14 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
 
-                    if (notespos[p].X >= 1 && notespos[p].W<0.5)
+                    if (notespos[p].W<0.5)
                     {
+
+
                         matIdentity = Matrix.Identity;
                         matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (notespos[p + 1].Y-0.1f)) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f, 0.3f));
+                        matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f*notespos[p].X, 0.3f));
 
                         float alpha;
                         if (notespos[p].Y < Board.sFade)
@@ -3626,15 +3628,15 @@ namespace Unsigned
                     engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
                     if (contInput[boards[i].GetBoardType()] < 4)
                     {
-                        if (p == 0 && controllers[i].Buttons.A == ButtonState.Pressed)
+                        if (p == 0 && controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
                         { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 1 && controllers[i].Buttons.B == ButtonState.Pressed)
+                        if (p == 1 && controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
                         { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 2 && controllers[i].Buttons.Y == ButtonState.Pressed)
+                        if (p == 2 && controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
                         { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 3 && controllers[i].Buttons.X == ButtonState.Pressed)
+                        if (p == 3 && controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
                         { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 4 && controllers[i].Buttons.LeftShoulder == ButtonState.Pressed)
+                        if (p == 4 && controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                         { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
                     }
                     else if (contInput[boards[i].GetBoardType()] == 4 && boards[i].IsLefty())
