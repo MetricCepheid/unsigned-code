@@ -491,8 +491,10 @@ namespace Unsigned
             for (int i = 0; i < 5; i++)
                 if ((note & Game1.bits[i]) != 0)
                     numNotes++;
-            if (numNotes > 1 && pressed == (note&(~Game1.bits[5])))
+            if (numNotes > 1 && pressed == (note & (~Game1.bits[5])))
                 return true;
+            else if (numNotes > 1)
+                return false;
             if ((note & pressed) != note)
                 return false;
             for (int i = 4; i >= 0; i--)
