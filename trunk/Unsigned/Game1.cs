@@ -1477,6 +1477,11 @@ namespace Unsigned
                             {
                                 if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
                                 {
+                                    int cgcount = 0;
+                                    for (int p = 0; p < contguis.Length; p++)
+                                        if (contguis[p].loc > 0.5)
+                                            cgcount++;
+                                    if(cgcount>0)
                                     if (leader == i)
                                     {
                                         screen = S_CHOOSESONG;
