@@ -2774,9 +2774,9 @@ namespace Unsigned
             if (rockMeterLevel[ind] > 80)
                 rockMeterLevel[ind] -= 1f;
             else if (rockMeterLevel[ind] > 20)
-                rockMeterLevel[ind] -= 0.5f;
+                rockMeterLevel[ind] -= 0.75f;
             else
-                rockMeterLevel[ind] -= 0.25f;
+                rockMeterLevel[ind] -= 0.5f;
         }
 
         public void Help(int ind)
