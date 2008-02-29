@@ -75,6 +75,10 @@ namespace Unsigned
         float waveoffset=0;
         Results myResults;
 
+        public WaveNode[][] waves;
+        public int wavesLen;
+        public int[] wavesSubLen;
+
         private NoteSet[] notes;
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
@@ -181,10 +185,10 @@ namespace Unsigned
             }
         }
 
-        public Vector4[] GetNotes(int currenttime, int viewdistance)
+        public Vector4[] GetNotes(long currenttime, long viewdistance)
         {
-            currenttime /= (int)Game1.TicksPerSecond / 1000;
-            viewdistance /= (int)Game1.TicksPerSecond / 1000;
+            currenttime /= (long)Game1.TicksPerSecond / 1000;
+            viewdistance /= (long)Game1.TicksPerSecond / 1000;
             int k;
             for (k = 0; k < notes.Length; k++)
                 if (notes[k].time > currenttime - (viewdistance / 4))
@@ -448,15 +452,8 @@ namespace Unsigned
                     if ((notes[i].type & Game1.bits[4]) != 0)
                         newType |= Game1.bits[4];
                     notes[i].type = newType;
-                    int bar = Int32.Parse(a.Substring(7, a.IndexOf(';') - 7));
-                    notes[i].time = (int)(bars[bar].X);
-                    String length = a.Substring(a.IndexOf(';') + 1).Trim();
-                    notes[i].time += (int)(((Int32.Parse(length.Substring(0, 1))-1) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    if (length.Length > 1)
-                    {
-                        String additional = length.Substring(1, 1);
-                        notes[i].time += (int)(((additional.Equals("+") ? 0.5f : (additional.Equals("e") ? 0.25f : (additional.Equals("a") ? 0.75f : (additional.Equals("t") ? 0.33f : (additional.Equals("l") ? 0.67f : 0.0f))))) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    }
+                    notes[i].time = Int32.Parse(a.Substring(7, a.IndexOf(';') - 7));
+                    notes[i].length = 0;
                 }
             }
             starPts = new int[6];
@@ -561,11 +558,11 @@ namespace Unsigned
             return fair;*/
         }
 
-        public void Update(GameTime gameTime, int currenttime,Game1 reff, int ind, byte pressed)
+        public void Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
         {
             waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
-            currenttime/=(int)Game1.TicksPerSecond/1000;
+            currenttime/=(long)Game1.TicksPerSecond/1000;
             if (GetBoardType()!=Game1.PERCUSSIONIST)
             if (index<notes.Length)
             if (multiplier>1)
@@ -762,9 +759,9 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Strum(byte pressed, int currenttime, Game1 game, int ind)
+        public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
         {
-            currenttime/=(int)Game1.TicksPerSecond/1000;
+            currenttime/=(long)Game1.TicksPerSecond/1000;
             if (index >= notes.Length)
                 return 0;
             if (Math.Abs(notes[index].time - currenttime) < 100)
@@ -819,7 +816,7 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Bang(byte pressed, int currenttime, Game1 game)
+        public byte Bang(byte pressed, long currenttime, Game1 game)
         {
             byte newPressed = 0;
             for (int i = 0; i < 5; i++)
@@ -829,7 +826,7 @@ namespace Unsigned
             }
             if (newPressed == 0)
                 return 0;
-            currenttime /= (int)Game1.TicksPerSecond / 1000;
+            currenttime /= (long)Game1.TicksPerSecond / 1000;
             if (index >= notes.Length)
                 return 0;
             if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= DFStart[DFIndex] && currenttime <= DFEnd[DFIndex])
@@ -910,19 +907,21 @@ namespace Unsigned
             return LeftySwitch;
         }
 
-        public WaveNode[][] getWaves(int currenttime, int viewdistance)
+        public bool getWaves(long currenttime, long viewdistance)
         {
-            currenttime/=(int)(Game1.TicksPerSecond/1000);
-            viewdistance/=(int)(Game1.TicksPerSecond/1000);
+            currenttime/=(long)(Game1.TicksPerSecond/1000);
+            viewdistance/=(long)(Game1.TicksPerSecond/1000);
             int count = 0;
             for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>currenttime; i++)
             {
                 if (notes[i].length > 0)
                     count++;
             }
-            WaveNode[][] ret = new WaveNode[count][];
+            if (wavesLen < count)
+            { waves = new WaveNode[count][]; wavesSubLen = new int[count]; }
+            wavesLen = count;
             if (count == 0)
-                return ret;
+                return false;
             count = 0;
             for (int i = index; i < notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>currenttime; i++)
             {
@@ -930,45 +929,50 @@ namespace Unsigned
                 {
                     if (notes[i].burning)
                     {
+                        
                         int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - currenttime)) - ((notes[i].time < currenttime) ? currenttime - notes[i].time : 0) - 50f) / 50f);
                         num += 2;
-                        ret[count] = new WaveNode[num];
-                        ret[count][0].X = 0f;
-                        ret[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
-                        ret[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                        if (wavesSubLen[count] < num)
+                        { waves[count] = new WaveNode[num];  }
+                        wavesSubLen[count] = num;
+                        waves[count][0].X = 0f;
+                        waves[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
                         float varyPower;
                         for (int n = 0; n < num - 1; n++)
                         {
-                            ret[count][n].Y = ((notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime)) + (50f * n);
-                            varyPower = GetWhammy(ret[count][n].Y,currenttime);
+                            waves[count][n].Y = ((notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime)) + (50f * n);
+                            varyPower = GetWhammy(waves[count][n].Y,currenttime);
                             if(varyPower<0.1)
-                                ret[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (ret[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
+                                waves[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (waves[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
                             else
-                                ret[count][n].X = (float)Math.Sin(waveoffset + (ret[count][n].Y / 100f)) * (varyPower);
-                            ret[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                                waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
+                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
                         }
 
-                        ret[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
-                        ret[count][num - 1].X = (float)Math.Sin(waveoffset + (ret[count][num - 1].Y / 100f));
-                        ret[count][num - 1].X = (float)Math.Sign(ret[count][num - 1].X) * 0.1f;
-                        ret[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                        waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
+                        waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
+                        waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
+                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
                         count++;
                     }
                     else
                     {
-                        ret[count] = new WaveNode[2];
-                        ret[count][0].X = 0.2f;
-                        ret[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
-                        ret[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
+                        if (wavesSubLen[count] < 2)
+                        { waves[count] = new WaveNode[2]; }
+                         wavesSubLen[count] = 2;
+                        waves[count][0].X = 0.2f;
+                        waves[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
 
-                        ret[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
-                        ret[count][1].X = 0.2f;
-                        ret[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
+                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
+                        waves[count][1].X = 0.2f;
+                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
                         count++;
                     }
                 }
             }
-            return ret;
+            return true;
         }
 
         public float[] GetPopups()

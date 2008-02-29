@@ -93,34 +93,36 @@ namespace chart2unsigned
             if (args.Length < 1)
                 throw new ArgumentException("Must pass a file to convert");
 
+
             
             //SETUP
 
             string name="", artist="", charter="";
             string cName;
-            int offset=0, resolution=0;
+            float offset = 0;
+            int resolution = 0;
             string player2="";
             float difficulty=0;
             float pStart=0, pEnd=0;
             string genre="";
             List<Pair> bpmsigs = new List<Pair>();
             List<Pair> timesigs = new List<Pair>();
-            List<Note>[][] notes = new List<Note>[2][];
-            List<SPPH>[][] SPs = new List<SPPH>[2][];
-            for (int i = 0; i < 2; i++)
+            List<Note>[][] notes = new List<Note>[4][];
+            List<SPPH>[][] SPs = new List<SPPH>[4][];
+            for (int i = 0; i < 4; i++)
             {
                 notes[i] = new List<Note>[4];
                 for (int k = 0; k < 4; k++)
                     notes[i][k] = new List<Note>();
             }
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 4; i++)
             {
                 SPs[i] = new List<SPPH>[4];
                 for (int k = 0; k < 4; k++)
                     SPs[i][k] = new List<SPPH>();
             }
-            List<Event>[][] events = new List<Event>[2][];
-            for (int i = 0; i < 2; i++)
+            List<Event>[][] events = new List<Event>[4][];
+            for (int i = 0; i < 4; i++)
             {
                 events[i] = new List<Event>[4];
                 for (int k = 0; k < 4; k++)
@@ -166,7 +168,8 @@ namespace chart2unsigned
                         }
                         else if (line.StartsWith("Offset"))
                         {
-                            offset = Int32.Parse(line.Substring(line.IndexOf("=") + 1).Trim());
+                            String temp = line.Substring(line.IndexOf("=") + 1).Trim();
+                            offset = float.Parse(temp,System.Globalization.CultureInfo.InvariantCulture);
                             Console.Out.WriteLine("Offset: " + offset);
                         }
                         else if (line.StartsWith("Resolution"))
@@ -180,16 +183,16 @@ namespace chart2unsigned
                         }
                         else if (line.StartsWith("Difficulty"))
                         {
-                            difficulty = (float)Double.Parse(line.Substring(line.IndexOf("=") + 1).Trim());
+                            difficulty = float.Parse(line.Substring(line.IndexOf("=") + 1).Trim(),System.Globalization.CultureInfo.InvariantCulture);
                             Console.Out.WriteLine("Difficulty: " + difficulty);
                         }
                         else if (line.StartsWith("PreviewStart"))
                         {
-                            pStart = (float)Double.Parse(line.Substring(line.IndexOf("=") + 1).Trim());
+                            pStart = float.Parse(line.Substring(line.IndexOf("=") + 1).Trim(),System.Globalization.CultureInfo.InvariantCulture);
                         }
                         else if (line.StartsWith("PreviewEnd"))
                         {
-                            pEnd = (float)Double.Parse(line.Substring(line.IndexOf("=") + 1).Trim());
+                            pEnd = float.Parse(line.Substring(line.IndexOf("=") + 1).Trim(),System.Globalization.CultureInfo.InvariantCulture);
                         }
                         else if (line.StartsWith("Genre"))
                         {
@@ -250,12 +253,14 @@ namespace chart2unsigned
                         dotcount = 0;
                     }
                 }
-                else if (track.Contains("Single") || track.Contains("Double"))
+                else if (track.Contains("Single") || track.Contains("Double") || track.Contains("Drums"))
                 {
                     int diff;
                     int inst;
                     if (track.Contains("Single"))
                         inst = 0;
+                    else if (track.Contains("Double"))
+                        inst = 3;
                     else
                         inst = 1;
                     if (track.Contains("Easy"))
@@ -502,7 +507,6 @@ namespace chart2unsigned
                 for (int n = 0; n < notes[m].Length; n++)
                 {
                     newnotes[m][n] = notes[m][n].ToArray();
-                    int k = 0;
                     for (int i = 1; i < newnotes[m][n].Length; i++)
                         if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 96)
                             if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i].value&0x1F)!=(newnotes[m][n][i-1].value&0x1F))
@@ -610,6 +614,74 @@ namespace chart2unsigned
             }
             fout.Close();
             Console.Out.WriteLine("GBG Written");
+            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb");
+            fout.WriteLine("SPPH:"+newSPs[3][3].Length);
+            for (int i = 0; i < newSPs[3][3].Length; i++)
+            {
+                fout.WriteLine("" + newSPs[3][3][i].start1 + ":" + newSPs[3][3][i].start2);
+                fout.WriteLine("" + newSPs[3][3][i].end1 + ":" + newSPs[3][3][i].end2);
+            }
+            for (int i = 3; i >= 0; i--)
+            {
+                fout.WriteLine(strDiff[i] + ":" + newnotes[3][i].Length);
+                for (int k = 0; k < newnotes[3][i].Length; k++)
+                {
+                    for (int l = 0; l < 6; l++)
+                        if ((newnotes[3][i][k].value & (1 << l)) != 0)
+                            fout.Write("O");
+                        else
+                            fout.Write("X");
+                    fout.Write(":");
+                    fout.Write(newnotes[3][i][k].time);
+                    fout.Write(";");
+                    fout.WriteLine(newnotes[3][i][k].len);
+                }
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+            }
+            fout.Close();
+            Console.Out.WriteLine("GBB Written");
+            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd");
+            fout.WriteLine("SPPH:"+newSPs[1][3].Length);
+            for (int i = 0; i < newSPs[1][3].Length; i++)
+            {
+                fout.WriteLine("" + newSPs[1][3][i].start1 + ":" + newSPs[1][3][i].start2);
+                fout.WriteLine("" + newSPs[1][3][i].end1 + ":" + newSPs[1][3][i].end2);
+            }
+            for (int i = 3; i >= 0; i--)
+            {
+                fout.WriteLine(strDiff[i] + ":" + newnotes[1][i].Length);
+                for (int k = 0; k < newnotes[1][i].Length; k++)
+                {
+                    for (int l = 1; l < 5; l++)
+                        if ((newnotes[1][i][k].value & (1 << l)) != 0)
+                            fout.Write("O");
+                        else
+                            fout.Write("X");
+                    if ((newnotes[1][i][k].value & (1 << 0)) != 0)
+                            fout.Write("O");
+                        else
+                            fout.Write("X");
+                    if ((newnotes[1][i][k].value & (1 << 5)) != 0)
+                            fout.Write("O");
+                        else
+                            fout.Write("X");
+                    fout.Write(":");
+                    fout.Write(newnotes[1][i][k].time);
+                    fout.Write(";");
+                    fout.WriteLine(newnotes[1][i][k].len);
+                }
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+                fout.WriteLine("0");
+            }
+            fout.Close();
+            Console.Out.WriteLine("GBD Written");
             fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbe");
             fout.WriteLine("TRANSITIONS:2");
             fout.WriteLine("0");

@@ -1601,7 +1601,7 @@ namespace Unsigned
                     matView = venue.GetViewMatrix();
                     audioEngine.Update();
 
-                    song.Update((int)currenttime, audioSoundBank);
+                    song.Update((long)currenttime, audioSoundBank);
 
                     ProcessInput(gameTime);
 
@@ -2275,7 +2275,7 @@ namespace Unsigned
                             engine.Parameters["proj"].SetValue(matProj);
 
                             //get board measure world lengths
-                            Vector2[] lenvals = song.GetZVals((int)(DateTime.Now.Ticks - SongStartTime));
+                            Vector2[] lenvals = song.GetZVals((DateTime.Now.Ticks - SongStartTime));
 
                             //determine fling (song start board comes up)
                             Matrix fling;
@@ -2931,7 +2931,7 @@ namespace Unsigned
                     if (i == 0 || i==3)
                     {
                         byte pressed = 0;
-                        if (contInput[0] < 4)
+                        if (contInput[i] < 4)
                         {
                             if (controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
                                 pressed |= bits[boards[i].IsLefty()?4:0];
@@ -2946,7 +2946,7 @@ namespace Unsigned
                             if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f)
                                 boards[i].ActivateStarPower();
                         }
-                        else if (contInput[0] == 4)
+                        else if (contInput[i] == 4)
                         {
                             if (Keyboard.GetState().IsKeyDown(Keys.G))
                                 pressed |= bits[boards[i].IsLefty()?0:4];
@@ -2959,7 +2959,7 @@ namespace Unsigned
                             if (Keyboard.GetState().IsKeyDown(Keys.A))
                                 pressed |= bits[boards[i].IsLefty()?4:0];
                         }
-                        boards[i].Update(gameTime,(int)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
+                        boards[i].Update(gameTime,(long)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
                     }
                     else if (i == 2)
                     {
@@ -2992,7 +2992,7 @@ namespace Unsigned
                         }
                         if (pressed != 0)
                         {
-                            byte e = boards[2].Bang(pressed, (int)(DateTime.Now.Ticks - SongStartTime), this);
+                            byte e = boards[2].Bang(pressed, (long)(DateTime.Now.Ticks - SongStartTime), this);
                             if (e > 0)
                             {
                                 //rockMeterLevel[2] += 0.5f * (boards[2].IsSPActivated()?5:1);
@@ -3002,10 +3002,10 @@ namespace Unsigned
                                     AddShards(e, 2);
                             }
                         }
-                        boards[i].Update(gameTime, (int)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
+                        boards[i].Update(gameTime, (long)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
                     }
                     else
-                        boards[i].Update(gameTime,(int)(DateTime.Now.Ticks - SongStartTime), this, i, 0);
+                        boards[i].Update(gameTime,(long)(DateTime.Now.Ticks - SongStartTime), this, i, 0);
                 }
 
             if (instruments[0])
@@ -3027,7 +3027,7 @@ namespace Unsigned
                         if (controllers[contInput[0]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
 
-                        byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3053,7 +3053,7 @@ namespace Unsigned
                             pressed |= 8;
                         if (controllers[contInput[0]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
-                        byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3086,7 +3086,7 @@ namespace Unsigned
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[0].IsLefty()?4:0];
 
-                        byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3112,7 +3112,7 @@ namespace Unsigned
                             pressed |= bits[boards[0].IsLefty()?3:1];
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[0].IsLefty()?4:0];
-                        byte e = boards[0].Strum(pressed, (int)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3127,6 +3127,127 @@ namespace Unsigned
                     if (!Keyboard.GetState().IsKeyDown(Keys.Up) &&
                         !Keyboard.GetState().IsKeyDown(Keys.Down))
                         guitarStrum = 0;
+                }
+            }
+            if (instruments[3])
+            {
+                if(contInput[3]<4)
+                {
+                    if (controllers[contInput[3]].DPad.Down == ButtonState.Pressed && bassStrum != 1)
+                    {
+                        bassStrum = 1;
+                        byte pressed = 0;
+                        if (controllers[contInput[3]].Buttons.A == ButtonState.Pressed)
+                            pressed |= 1;
+                        if (controllers[contInput[3]].Buttons.B == ButtonState.Pressed)
+                            pressed |= 2;
+                        if (controllers[contInput[3]].Buttons.Y == ButtonState.Pressed)
+                            pressed |= 4;
+                        if (controllers[contInput[3]].Buttons.X == ButtonState.Pressed)
+                            pressed |= 8;
+                        if (controllers[contInput[3]].Buttons.LeftShoulder == ButtonState.Pressed)
+                            pressed |= 16;
+
+                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        if (e > 0)
+                        {
+                            Help(3);
+                            if ((e & bits[7]) != 0)
+                                AddSparks(e, 3);
+                            else
+                                AddShards(e, 3);
+                        }
+                        else
+                            Hurt(3);
+                    }
+                    if (controllers[contInput[3]].DPad.Up == ButtonState.Pressed && bassStrum != 2)
+                    {
+                        bassStrum = 2;
+                        byte pressed = 0;
+                        if (controllers[contInput[3]].Buttons.A == ButtonState.Pressed)
+                            pressed |= 1;
+                        if (controllers[contInput[3]].Buttons.B == ButtonState.Pressed)
+                            pressed |= 2;
+                        if (controllers[contInput[3]].Buttons.Y == ButtonState.Pressed)
+                            pressed |= 4;
+                        if (controllers[contInput[3]].Buttons.X == ButtonState.Pressed)
+                            pressed |= 8;
+                        if (controllers[contInput[3]].Buttons.LeftShoulder == ButtonState.Pressed)
+                            pressed |= 16;
+                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        if (e > 0)
+                        {
+                            Help(3);
+                            if ((e & bits[7]) != 0)
+                                AddSparks(e, 3);
+                            else
+                                AddShards(e, 3);
+                        }
+                        else
+                            Hurt(3);
+                    }
+                    if (controllers[contInput[3]].DPad.Up == ButtonState.Released &&
+                       controllers[contInput[3]].DPad.Down == ButtonState.Released)
+                        bassStrum = 0;
+                }
+                else if (contInput[3] == 4)
+                {
+                    if (Keyboard.GetState().IsKeyDown(Keys.Down) && bassStrum != 1)
+                    {
+                        bassStrum = 1;
+                        byte pressed = 0;
+                        if (Keyboard.GetState().IsKeyDown(Keys.G))
+                            pressed |= bits[boards[3].IsLefty()?0:4];
+                        if (Keyboard.GetState().IsKeyDown(Keys.F))
+                            pressed |= bits[boards[3].IsLefty()?1:3];
+                        if (Keyboard.GetState().IsKeyDown(Keys.D))
+                            pressed |= bits[2];
+                        if (Keyboard.GetState().IsKeyDown(Keys.S))
+                            pressed |= bits[boards[3].IsLefty()?3:1];
+                        if (Keyboard.GetState().IsKeyDown(Keys.A))
+                            pressed |= bits[boards[3].IsLefty()?4:0];
+
+                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        if (e > 0)
+                        {
+                            Help(3);
+                            if ((e & bits[7]) != 0)
+                                AddSparks(e, 3);
+                            else
+                                AddShards(e, 3);
+                        }
+                        else
+                            Hurt(3);
+                    }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Up) && bassStrum != 2)
+                    {
+                        bassStrum = 2;
+                        byte pressed = 0;
+                        if (Keyboard.GetState().IsKeyDown(Keys.G))
+                            pressed |= bits[boards[3].IsLefty()?0:4];
+                        if (Keyboard.GetState().IsKeyDown(Keys.F))
+                            pressed |= bits[boards[3].IsLefty()?1:3];
+                        if (Keyboard.GetState().IsKeyDown(Keys.D))
+                            pressed |= bits[2];
+                        if (Keyboard.GetState().IsKeyDown(Keys.S))
+                            pressed |= bits[boards[3].IsLefty()?3:1];
+                        if (Keyboard.GetState().IsKeyDown(Keys.A))
+                            pressed |= bits[boards[3].IsLefty()?4:0];
+                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        if (e > 0)
+                        {
+                            Help(3);
+                            if ((e & bits[7]) != 0)
+                                AddSparks(e, 3);
+                            else
+                                AddShards(e, 3);
+                        }
+                        else
+                            Hurt(3);
+                    }
+                    if (!Keyboard.GetState().IsKeyDown(Keys.Up) &&
+                        !Keyboard.GetState().IsKeyDown(Keys.Down))
+                        bassStrum = 0;
                 }
             }
         }
@@ -3315,7 +3436,8 @@ namespace Unsigned
             if (boards[i].IsLefty())
                 lefty = -1;
             GBVertexFormat[] tmpMdl = new GBVertexFormat[6];
-            WaveNode[][] waves = boards[i].getWaves((int)(DateTime.Now.Ticks - SongStartTime), 3 * (int)TicksPerSecond);
+            if (!boards[i].getWaves((long)(DateTime.Now.Ticks - SongStartTime), 3 * (long)TicksPerSecond))
+                return;
             tmpMdl[0] = new GBVertexFormat(new Vector3(0, 0f, 0f), new Vector3(0,1,0), new Vector2(0f, 1f));
             tmpMdl[1] = new GBVertexFormat(new Vector3(0, 0f, 1f), new Vector3(0,1,0), new Vector2(0f, 0f));
             tmpMdl[2] = new GBVertexFormat(new Vector3(1, 0f, 0f), new Vector3(0,1,0), new Vector2(1f, 1f));
@@ -3323,33 +3445,33 @@ namespace Unsigned
             tmpMdl[4] = new GBVertexFormat(new Vector3(1, 0f, 0f), new Vector3(0,1,0), new Vector2(1f, 1f));
             tmpMdl[5] = new GBVertexFormat(new Vector3(1, 0f, 1f), new Vector3(0,1,0), new Vector2(1f, 0f));
             float w = 0.5f;
-            for (int p = 0; p < waves.Length; p++)
+            for (int p = 0; p < boards[i].wavesLen; p++)
             {
                 for (int r = 0; r < 5; r++)
                 {
-                    if ((waves[p][0].Z & bits[r]) > 0)
+                    if ((boards[i].waves[p][0].Z & bits[r]) > 0)
                     {
-                        for (int q = 0; q < waves[p].Length - 1; q++)
+                        for (int q = 0; q < boards[i].wavesSubLen[p] - 1; q++)
                         {
                             float loA, hiA;
-                            if (waves[p][q].Y / 1000f < Board.sFade)
+                            if (boards[i].waves[p][q].Y / 1000f < Board.sFade)
                                 loA = 1;
-                            else if (waves[p][q].Y / 1000f < Board.eFade)
-                                loA = 1 - (((waves[p][q].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
+                            else if (boards[i].waves[p][q].Y / 1000f < Board.eFade)
+                                loA = 1 - (((boards[i].waves[p][q].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
                             else
                                 loA = 0;
-                            if (waves[p][q + 1].Y / 1000f < Board.sFade)
+                            if (boards[i].waves[p][q + 1].Y / 1000f < Board.sFade)
                                 hiA = 1;
-                            else if (waves[p][q + 1].Y / 1000f < Board.eFade)
-                                hiA = 1 - (((waves[p][q + 1].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
+                            else if (boards[i].waves[p][q + 1].Y / 1000f < Board.eFade)
+                                hiA = 1 - (((boards[i].waves[p][q + 1].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
                             else
                                 hiA = 0;
-                            tmpMdl[0].Position.X = waves[p][q].X;
-                            tmpMdl[1].Position.X = waves[p][q + 1].X;
-                            tmpMdl[3].Position.X = waves[p][q + 1].X;
-                            tmpMdl[2].Position.X = waves[p][q].X + w;
-                            tmpMdl[4].Position.X = waves[p][q].X + w;
-                            tmpMdl[5].Position.X = waves[p][q + 1].X + w;
+                            tmpMdl[0].Position.X = boards[i].waves[p][q].X;
+                            tmpMdl[1].Position.X = boards[i].waves[p][q + 1].X;
+                            tmpMdl[3].Position.X = boards[i].waves[p][q + 1].X;
+                            tmpMdl[2].Position.X = boards[i].waves[p][q].X + w;
+                            tmpMdl[4].Position.X = boards[i].waves[p][q].X + w;
+                            tmpMdl[5].Position.X = boards[i].waves[p][q + 1].X + w;
                             tmpMdl[0].Alpha = loA;
                             tmpMdl[1].Alpha = hiA;
                             tmpMdl[2].Alpha = loA;
@@ -3359,18 +3481,18 @@ namespace Unsigned
                             Matrix matIdentity, matTransl, matScale, matOrbit;
                             matIdentity = Matrix.Identity;
                             matTransl = Matrix.CreateTranslation(0f, Board.height, 0f);
-                            matOrbit = Matrix.CreateTranslation(((r / 4f * 2) - 1f) * lefty * Board.width * 0.8f, 0.11f, -(Board.length * (waves[p][q].Y / 1000f)) - Board.zeroZ) * fling;
-                            matScale = Matrix.CreateScale(new Vector3(0.1f * Board.width, 0.01f, ((waves[p][q].Y / 1000f) - (waves[p][q + 1].Y / 1000f)) * Board.length));
+                            matOrbit = Matrix.CreateTranslation(((r / 4f * 2) - 1f) * lefty * Board.width * 0.8f, 0.11f, -(Board.length * (boards[i].waves[p][q].Y / 1000f)) - Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3(0.1f * Board.width, 0.01f, ((boards[i].waves[p][q].Y / 1000f) - (boards[i].waves[p][q + 1].Y / 1000f)) * Board.length));
 
                             // identity, scale, rotate, orbit(translate & rotate), translate
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                            if (q >= waves[p].Length - 2)
+                            if (q >= boards[i].wavesSubLen[p] - 2)
                                 engine.Parameters["diffuseTexture"].SetValue(texLineEnd);
                             else
                                 engine.Parameters["diffuseTexture"].SetValue(texLine);
                             engine.Parameters["diffuseColor"].SetValue(FretColorsV4[r]);
-                            if(((byte)(waves[p][q].Z)&128)!=0)
+                            if(((byte)(boards[i].waves[p][q].Z)&128)!=0)
                                 engine.Parameters["diffuseColor"].SetValue(new Vector4(.5f,.5f,.5f,1.0f));
                             engine.CommitChanges();
 
@@ -3388,12 +3510,12 @@ namespace Unsigned
                             graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (vb.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
 
-                            tmpMdl[0].Position.X = -waves[p][q].X;
-                            tmpMdl[1].Position.X = -waves[p][q + 1].X;
-                            tmpMdl[3].Position.X = -waves[p][q + 1].X;
-                            tmpMdl[2].Position.X = -waves[p][q].X + w;
-                            tmpMdl[4].Position.X = -waves[p][q].X + w;
-                            tmpMdl[5].Position.X = -waves[p][q + 1].X + w;
+                            tmpMdl[0].Position.X = -boards[i].waves[p][q].X;
+                            tmpMdl[1].Position.X = -boards[i].waves[p][q + 1].X;
+                            tmpMdl[3].Position.X = -boards[i].waves[p][q + 1].X;
+                            tmpMdl[2].Position.X = -boards[i].waves[p][q].X + w;
+                            tmpMdl[4].Position.X = -boards[i].waves[p][q].X + w;
+                            tmpMdl[5].Position.X = -boards[i].waves[p][q + 1].X + w;
 
                             vb = new VertexBuffer(graphics.GraphicsDevice, tmpMdl.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
                             vb.SetData<GBVertexFormat>(tmpMdl);
@@ -3423,7 +3545,7 @@ namespace Unsigned
             int lefty = 1;
             if (boards[i].IsLefty() && boards[i].GetBoardType()!=PERCUSSIONIST)
                 lefty = -1;
-            Vector4[] notespos = boards[i].GetNotes((int)(DateTime.Now.Ticks - SongStartTime), (int)(Board.eFade * TicksPerSecond));
+            Vector4[] notespos = boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
             for (int p = 0; p < notespos.Length; p++)
             {
                 if (boards[i].GetBoardType() == PERCUSSIONIST && notespos[p].Z > 1.5)
