@@ -93,9 +93,9 @@ namespace Unsigned
             }
         }
 
-        public Vector2[] GetZVals(int currenttime)
+        public Vector2[] GetZVals(long currenttime)
         {
-            currenttime /= (int)(Game1.TicksPerSecond / 1000);
+            currenttime /= (long)(Game1.TicksPerSecond / 1000);
             int k;
             for (k = 0; k < Bars.Length; k++)
                 if (Bars[k].X > currenttime)
@@ -116,9 +116,9 @@ namespace Unsigned
             return ret;
         }
 
-        public void Update(int currenttime, SoundBank asb)
+        public void Update(long currenttime, SoundBank asb)
         {
-            currenttime /= (int)(Game1.TicksPerSecond / 1000);
+            currenttime /= (long)(Game1.TicksPerSecond / 1000);
             while(true)
             {
                 if (currenttime > cuetimes[cueindex] + 2000)
@@ -167,14 +167,14 @@ namespace Unsigned
             return Bars;
         }
 
-        internal float GetMeasureProgress(int currenttime)
+        internal float GetMeasureProgress(long currenttime)
         {
             if(currentBar<Bars.Length)
                 return (currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X);
             return 0f;
         }
 
-        internal int GetBPMeasure(int currenttime)
+        internal int GetBPMeasure(long currenttime)
         {
             if(currentBar<Bars.Length)
                 return (int)Bars[currentBar].Y;

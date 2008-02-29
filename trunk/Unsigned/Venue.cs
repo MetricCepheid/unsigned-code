@@ -321,7 +321,7 @@ namespace Unsigned
                                     ons[lt] = true;
                                     fars[lt] = lights[j].outerAngle;
                                     nears[lt] = lights[j].innerAngle;
-                                    powers[lt] = GetStrobe(effects[i].data, song,(int)(songtime / (Game1.TicksPerSecond / 1000)));
+                                    powers[lt] = GetStrobe(effects[i].data, song,(long)(songtime / (Game1.TicksPerSecond / 1000)));
                                     poss[lt] = lights[j].pos;
                                     dirs[lt] = lights[j].targs[0].dir;
                                     lt++;
@@ -378,7 +378,7 @@ namespace Unsigned
             engine.CommitChanges();
         }
 
-        private float GetStrobe(int spb, Song song, int currenttime)
+        private float GetStrobe(int spb, Song song, long currenttime)
         {
             float measure = song.GetMeasureProgress(currenttime);
             int bpm = song.GetBPMeasure(currenttime);
