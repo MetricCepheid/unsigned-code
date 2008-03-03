@@ -339,146 +339,112 @@ namespace Unsigned
         private void LoadNotes(String filename, byte diff, Song song)
         {
             Vector2[] bars = song.GetAllBars();
-            System.IO.StreamReader reader = new System.IO.StreamReader("songdata\\" + filename);
-            String z;
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + filename));
 
-            z = reader.ReadLine();
-            int numSPP = Int32.Parse(z.Substring(5).Trim());
+            byte version = reader.ReadByte();
+
+            int numSPP = reader.ReadInt32();
             SPStart = new int[numSPP];
             SPEnd = new int[numSPP];
             for (int i = 0; i < numSPP; i++)
             {
-                z = reader.ReadLine();
-                int bar = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-                SPStart[i] = (int)(bars[bar].X);
-                String length = z.Substring(z.IndexOf(':') + 1).Trim();
-                SPStart[i] += (int)(((Int32.Parse(length.Substring(0, 1)) - 1) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                if (length.Length > 1)
-                {
-                    String additional = length.Substring(1, 1);
-                    SPStart[i] += (int)(((additional.Equals("+") ? 0.5f : (additional.Equals("e") ? 0.25f : (additional.Equals("a") ? 0.75f : 0.0f))) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                }
-                z = reader.ReadLine();
-                bar = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-                SPEnd[i] = (int)(bars[bar].X);
-                length = z.Substring(z.IndexOf(':') + 1).Trim();
-                SPEnd[i] += (int)(((Int32.Parse(length.Substring(0, 1)) - 1) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                if (length.Length > 1)
-                {
-                    String additional = length.Substring(1, 1);
-                    SPStart[i] += (int)(((additional.Equals("+") ? 0.5f : (additional.Equals("e") ? 0.25f : (additional.Equals("a") ? 0.75f : 0.0f))) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                }
-
+                SPStart[i] = reader.ReadInt32();
+                SPEnd[i] = reader.ReadInt32() - SPStart[i];
             }
 
             if (GetBoardType()==Game1.PERCUSSIONIST)
             {
-                z = reader.ReadLine();
-                int numDFP = Int32.Parse(z.Substring(5).Trim());
+                int numDFP = reader.ReadInt32();
                 DFStart = new int[numDFP];
                 DFEnd = new int[numDFP];
                 dfA = new float[numDFP];
                 DFHitGreen = new bool[numDFP];
                 for (int i = 0; i < numDFP; i++)
                 {
-                    z = reader.ReadLine();
-                    int bar = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-                    DFStart[i] = (int)(bars[bar].X);
-                    String length = z.Substring(z.IndexOf(':') + 1).Trim();
-                    DFStart[i] += (int)(((Int32.Parse(length.Substring(0, 1)) - 1) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    if (length.Length > 1)
-                    {
-                        String additional = length.Substring(1, 1);
-                        DFStart[i] += (int)(((additional.Equals("+") ? 0.5f : (additional.Equals("e") ? 0.25f : (additional.Equals("a") ? 0.75f : 0.0f))) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    }
-                    z = reader.ReadLine();
-                    bar = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-                    DFEnd[i] = (int)(bars[bar].X);
-                    length = z.Substring(z.IndexOf(':') + 1).Trim();
-                    DFEnd[i] += (int)(((Int32.Parse(length.Substring(0, 1)) - 1) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    if (length.Length > 1)
-                    {
-                        String additional = length.Substring(1, 1);
-                        DFStart[i] += (int)(((additional.Equals("+") ? 0.5f : (additional.Equals("e") ? 0.25f : (additional.Equals("a") ? 0.75f : 0.0f))) / bars[bar].Y) * (bars[bar + 1].X - bars[bar].X));
-                    }
+                    DFStart[i] = reader.ReadInt32();
+                    DFEnd[i] = reader.ReadInt32();
                     dfA[i] = 0;
                     DFHitGreen[i] = false;
                 }
             }
-
-            while (true)
-            { 
-                z = reader.ReadLine();
-                if (diff == Game1.D_EXPERT && z.Length>=6 && z.Substring(0, 6).Equals("EXPERT"))
-                    break;
-                if (diff == Game1.D_MEDIUM && z.Length >= 6 && z.Substring(0, 6).Equals("MEDIUM"))
-                    break;
-                if (diff == Game1.D_EASY && z.Length >= 4 && z.Substring(0, 6).Equals("EASY"))
-                    break;
-                if (diff == Game1.D_HARD && z.Length >= 4 && z.Substring(0, 6).Equals("HARD"))
-                    break;
-            }
-
-            notes = new NoteSet[Int32.Parse(z.Substring(z.IndexOf(':')+1))];
-            for (int i = 0; i < notes.Length; i++)
+            for(int dfrep = 3; dfrep>=0; dfrep--)
             {
-                String a;
-                do { a = reader.ReadLine(); }
-                while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                char[] b = a.ToCharArray();
-                notes[i] = new NoteSet();
-                notes[i].type = 0;
-                for (int k = 0; k < 6; k++)
-                    if (b[k] == 'O')
-                        notes[i].type |= Game1.bits[k];
-                if (!filename.Substring(filename.LastIndexOf('.') + 1).Equals("gbd"))
+                bool skip = true;
+                int difr = reader.ReadInt32();
+                if (diff == Game1.D_EXPERT && difr==3)
+                    skip = false;
+                if (diff == Game1.D_MEDIUM && difr==2)
+                    skip = false;
+                if (diff == Game1.D_EASY && difr==1)
+                    skip = false;
+                if (diff == Game1.D_HARD && difr==0)
+                    skip = false;
+
+                if (skip)
                 {
-                    notes[i].time = Int32.Parse(a.Substring(7, a.IndexOf(';') - 7));
-                    notes[i].length = Int32.Parse(a.Substring(a.IndexOf(';') + 1));
-                    notes[i].visible = new NoteSet.VIS_STATE[1];
+                    int notesn = reader.ReadInt32();
+                    for (int i = 0; i < notesn; i++)
+                    {
+                        reader.ReadByte();
+                        if (difr!=2)
+                        {
+                            reader.ReadInt32();
+                            reader.ReadInt32();
+                        }
+                        else
+                        {
+                            reader.ReadInt32();
+                        }
+                    }
+                    for (int i = 1; i <= 5; i++)
+                        reader.ReadInt32();
                 }
                 else
                 {
-                    notes[i].visible = new NoteSet.VIS_STATE[5];
-                    byte newType = 0;
-                    if ((notes[i].type & Game1.bits[0])!=0)
-                        newType |= Game1.bits[1];
-                    if ((notes[i].type & Game1.bits[1]) != 0)
-                        newType |= Game1.bits[2];
-                    if ((notes[i].type & Game1.bits[2]) != 0)
-                        newType |= Game1.bits[3];
-                    if ((notes[i].type & Game1.bits[3]) != 0)
-                        newType |= Game1.bits[0];
-                    if ((notes[i].type & Game1.bits[4]) != 0)
-                        newType |= Game1.bits[4];
-                    notes[i].type = newType;
-                    notes[i].time = Int32.Parse(a.Substring(7, a.IndexOf(';') - 7));
-                    notes[i].length = 0;
+                    notes = new NoteSet[reader.ReadInt32()];
+                    for (int i = 0; i < notes.Length; i++)
+                    {
+                        notes[i] = new NoteSet();
+                        notes[i].type = reader.ReadByte();
+                        if (GetBoardType()!=2)
+                        {
+                            notes[i].time = reader.ReadInt32();
+                            notes[i].length = reader.ReadInt32();
+                            notes[i].visible = new NoteSet.VIS_STATE[1];
+                        }
+                        else
+                        {
+                            notes[i].visible = new NoteSet.VIS_STATE[5];
+                            notes[i].time = reader.ReadInt32();
+                            notes[i].length = 0;
+                        }
+                    }
+                    starPts = new int[6];
+                    starPts[0] = 0;
+                    for (int i = 1; i <= 5; i++)
+                        starPts[i] = reader.ReadInt32();
+                    int numrep = 0;
+                    int curtm = 0;
+                    for (int i = 0; i < notes.Length; i++)
+                    {
+                        if (notes[i].time < curtm)
+                            numrep++;
+                        curtm = notes[i].time;
+                    }
+                    Console.WriteLine("Numerrors(old):" + numrep);
+                    Array.Sort<NoteSet>(notes);
+                    numrep = 0;
+                    curtm = 0;
+                    for (int i = 0; i < notes.Length; i++)
+                    {
+                        if (notes[i].time < curtm)
+                            numrep++;
+                        curtm = notes[i].time;
+                    }
+                    Console.WriteLine("Numerrors(new):" + numrep);
+                    break;
                 }
             }
-            starPts = new int[6];
-            starPts[0] = 0;
-            for (int i = 1; i <= 5; i++)
-                starPts[i] = Int32.Parse(reader.ReadLine());
-            int numrep = 0;
-            int curtm = 0;
-            for (int i = 0; i < notes.Length; i++)
-            {
-                if (notes[i].time < curtm)
-                    numrep++;
-                curtm = notes[i].time;
-            }
-            Console.WriteLine("Numerrors(old):" + numrep);
-            Array.Sort<NoteSet>(notes);
-            numrep = 0;
-            curtm = 0;
-            for (int i = 0; i < notes.Length; i++)
-            {
-                if (notes[i].time < curtm)
-                    numrep++;
-                curtm = notes[i].time;
-            }
-            Console.WriteLine("Numerrors(new):" + numrep);
         }
 
         public bool IsValidFrettage(byte note, byte pressed)

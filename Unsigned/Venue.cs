@@ -603,24 +603,21 @@ namespace Unsigned
             fin.ReadChars(1);// }
             fin.Close();
 
-            System.IO.StreamReader sr = new System.IO.StreamReader(Songname + ".gbe");
+            System.IO.BinaryReader sr = new System.IO.BinaryReader(System.IO.File.OpenRead(Songname + ".gbe"));
 
-            String str = sr.ReadLine();
-            int nTransitions = Int32.Parse(str.Substring(str.IndexOf(':')+1));
+            int nTransitions = sr.ReadInt32();
             camtimes = new int[nTransitions];
             for (int i = 0; i < nTransitions; i++)
-                camtimes[i] = Int32.Parse(sr.ReadLine());
-            str = sr.ReadLine();
-            int nEffects = Int32.Parse(str.Substring(str.IndexOf(':')+1));
+                camtimes[i] = sr.ReadInt32();
+            int nEffects = sr.ReadInt32();
             effects = new SEffect[nEffects];
             for (int i = 0; i < nEffects; i++)
             {
-                str = sr.ReadLine();
                 effects[i] = new SEffect();
-                effects[i].begin = UInt32.Parse(str.Substring(0, str.IndexOf(':')));
-                String eftp = str.Substring(str.IndexOf(':') + 1, 2);
-                effects[i].end = UInt32.Parse(str.Substring(str.IndexOf(';')+1, (str.IndexOf('!'))-(str.IndexOf(';')+1)));
-                effects[i].data = Int32.Parse(str.Substring(str.IndexOf('!') + 1));
+                effects[i].begin = sr.ReadUInt32();
+                String eftp = ""+sr.ReadChar()+sr.ReadChar();
+                effects[i].end = sr.ReadUInt32();
+                effects[i].data = sr.ReadInt32();
                 for (int k = 0; k < SEffect.EF_TP_STR.Length; k++)
                     if (eftp.Equals(SEffect.EF_TP_STR[k]))
                         effects[i].type = (SEffect.EFFECT_TYPE)k;

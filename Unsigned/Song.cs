@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
+using IrrKlang;
 
 namespace Unsigned
 {
@@ -17,18 +17,28 @@ namespace Unsigned
         private String SongName, ArtistName;
         private int TimeH, TimeM, TimeS;
         private int currentBar = 0;
+        bool playing = false;
+        String[] charters;
 
-        private String[] cues;
-        private int[] cuetimes;//last value is song length
-        private int cueindex;
+#if ! XBOX
 
-        public Song(int bpm, float mps, String FileName)
+        
+        //OggPlayManager manager;
+        ISoundEngine sEngine;
+        ISoundSource song;
+        ISound sound;
+#else
+
+        
+
+#endif
+
+        public Song(int bpm, float mps, String FileName, IntPtr game)
         {
             this.bpm = bpm;
             this.mps = mps;
             this.FileName = FileName;
-            LoadSong(FileName);
-            cueindex = 0;
+            LoadSong(FileName, game);
         }
 
         public int GetBPM()
@@ -41,56 +51,39 @@ namespace Unsigned
             return mps;
         }
 
-        private void LoadSong(String fn)
+        private void LoadSong(String fn, IntPtr game)
         {
             if (!System.IO.File.Exists("songdata\\"+fn+".gba"))
                 return;
-            System.IO.StreamReader reader = new System.IO.StreamReader("songdata\\" + fn + ".gba");
-            String z;
-            SongName = reader.ReadLine();
-            ArtistName = reader.ReadLine();
-            z = reader.ReadLine();
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gba"));
+            byte version = reader.ReadByte();
+            SongName = reader.ReadString();
+            ArtistName = reader.ReadString();
+            String z = reader.ReadString();
             TimeH = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             z = z.Substring(z.IndexOf(':') + 1);
             TimeM = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             TimeS = Int32.Parse(z.Substring(z.IndexOf(':')+1));
-            while (!reader.EndOfStream)
+            charters = new String[6];
+            for (int i = 0; i < 6; i++)
+                charters[i] = reader.ReadString();
+            Bars = new Vector2[reader.ReadInt32()];
+
+            String a;
+            for (int c = 0; c < Bars.Length; c++)
             {
-                do { z = reader.ReadLine(); }
-                while (z.Length >= 2 && z.Substring(0, 2).Equals("//"));
-                if (z.Substring(0, 4).Equals("Bars"))
-                {
-                    Bars = new Vector2[Int32.Parse(z.Substring(5))];
-
-                    String a;
-                    for (int c = 0; c < Bars.Length; c++)
-                    {
-                        do { a = reader.ReadLine(); }
-                        while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                        Bars[c] = new Vector2(Int32.Parse(a.Substring(0, a.IndexOf(':'))), Int32.Parse(a.Substring(a.IndexOf(':') + 1)));
-                    }
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    endLength = Int32.Parse(a);
-                }
-                else if (z.Substring(0, 4).Equals("Cues"))
-                {
-                    cues = new String[Int32.Parse(z.Substring(5))];
-                    cuetimes = new int[Int32.Parse(z.Substring(5))+1];
-
-                    String a;
-                    for (int c = 0; c < cues.Length; c++)
-                    {
-                        do { a = reader.ReadLine(); }
-                        while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                        cuetimes[c] = Int32.Parse(a.Substring(0, a.IndexOf(':')));
-                        cues[c] = a.Substring(a.IndexOf(':')+1);
-                    }
-                    do { a = reader.ReadLine(); }
-                    while (a.Length >= 2 && a.Substring(0, 2).Equals("//"));
-                    cuetimes[cuetimes.Length-1] = Int32.Parse(a);
-                }
+                Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
             }
+            endLength = reader.ReadInt32();
+#if ! XBOX
+
+            sEngine = new ISoundEngine();
+            song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.Streaming, true);
+            sound = sEngine.Play2D(song, false, true, true);
+            /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
+            manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
+            manager.StopOggFile(0);*/
+#endif
         }
 
         public Vector2[] GetZVals(long currenttime)
@@ -116,28 +109,21 @@ namespace Unsigned
             return ret;
         }
 
-        public void Update(long currenttime, SoundBank asb)
+        public void Update(long currenttime)
         {
             currenttime /= (long)(Game1.TicksPerSecond / 1000);
-            while(true)
+            if (currenttime >= 0 && !playing)
             {
-                if (currenttime > cuetimes[cueindex] + 2000)
-                    cueindex++;
-                else
-                    break;
-            }
-            if (cueindex < cues.Length && currenttime > cuetimes[cueindex])
-            {
+#if ! XBOX
+
+                sound.Paused = false; ;
+                //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
+                playing = true;
+#else
+
                 asb.PlayCue(cues[cueindex]);
-                cueindex++;
-            }
-            if (cueindex<cues.Length && currenttime-2000 > cuetimes[cueindex])
-            {
-                if (!asb.GetCue(cues[cueindex]).IsPreparing && !asb.GetCue(cues[cueindex]).IsPrepared)
-                {
-                    asb.GetCue(cues[cueindex]).Play();
-                    asb.GetCue(cues[cueindex]).Stop(AudioStopOptions.Immediate);
-                }
+
+#endif
             }
             if (currentBar<Bars.Length-1 && currenttime >= Bars[currentBar + 1].X)
             {
@@ -147,14 +133,9 @@ namespace Unsigned
 
         public bool IsOver(long currenttime)
         {
-            if (currenttime/(Game1.TicksPerSecond/1000) > cuetimes[cuetimes.Length - 1])
+            if (currenttime/Game1.TicksPerSecond > ((TimeH*360)+(TimeM*60)+(TimeS)))
                 return true;
             return false;
-        }
-
-        public int[] GetCamTimes()
-        {
-            return cuetimes;
         }
 
         public String GetFilename()
