@@ -1,8 +1,47 @@
 //File format specs for GBD Drums format
 //C#-Style
 
-//ASCII FORMAT
+//BINARY FORMAT
 
 //By Louis Ingenthron
-//2-23-08
+//3-03-08
 
+byte version;
+
+int numOverdrivePhrases
+
+struct OverdrivePhrase
+{
+	int time;
+	int len;
+}
+
+OverdrivePhrase[] spph;
+
+
+int numDrumFills
+
+struct DrumFill
+{
+	int time;
+	int len;
+}
+
+DrumFill[] df;
+
+struct Note
+{
+	byte value;//1-5=colors, 6=HOPO
+	int time;//in MS from beginning of song
+	int len;
+}
+
+Struct DifficultySet
+{
+	int diff;//3=Expert, 0=Easy
+	int numNotes;
+	Note[] notes;
+	int[5] starScoreLevels;
+}
+
+DifficultySet[4] notes;

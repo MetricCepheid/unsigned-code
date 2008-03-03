@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace chart2unsigned
 {
@@ -16,7 +17,7 @@ namespace chart2unsigned
         }
     }
 
-    public struct Note
+    public struct Note : IComparable
     {
         public byte value;
         public int time, len;
@@ -25,6 +26,10 @@ namespace chart2unsigned
             value = v;
             time = t;
             len = l;
+        }
+        public int CompareTo(object o)
+        {
+            return time.CompareTo(((Note)o).time);
         }
     }
 
@@ -79,6 +84,7 @@ namespace chart2unsigned
             beats = b;
             sBeat = s;
             eigthtimes = new int[beats * 2];
+            
         }
     }
 
@@ -90,12 +96,22 @@ namespace chart2unsigned
         [STAThread]
         static void Main(string[] args)
         {
+
             if (args.Length < 1)
                 throw new ArgumentException("Must pass a file to convert");
 
+            string thisPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            thisPath = thisPath.Substring(0, thisPath.LastIndexOf('\\') + 1);
 
+            for (int i = 0; i < args.Length; i++)
+                Console.WriteLine(args[i]);
+
+            byte VERSION = 8;
             
             //SETUP
+
+            string cSync = "", cEffects = "", cGuitar = "", 
+                   cBass = "", cDrums = "", cVocals = "";
 
             string name="", artist="", charter="";
             string cName;
@@ -109,6 +125,13 @@ namespace chart2unsigned
             List<Pair> timesigs = new List<Pair>();
             List<Note>[][] notes = new List<Note>[4][];
             List<SPPH>[][] SPs = new List<SPPH>[4][];
+            int[][][] starLevels = new int[4][][];
+            for (int i = 0; i < 4; i++)
+            {
+                starLevels[i] = new int[4][];
+                for (int k = 0; k < 4; k++)
+                    starLevels[i][k] = new int[5];
+            }
             for (int i = 0; i < 4; i++)
             {
                 notes[i] = new List<Note>[4];
@@ -165,6 +188,7 @@ namespace chart2unsigned
                         {
                             charter = line.Substring(line.IndexOf("\"") + 1);
                             charter = charter.Substring(0, charter.IndexOf("\""));
+                            Console.Out.WriteLine("Charter: " + charter);
                         }
                         else if (line.StartsWith("Offset"))
                         {
@@ -262,7 +286,7 @@ namespace chart2unsigned
                     else if (track.Contains("Double"))
                         inst = 3;
                     else
-                        inst = 1;
+                        inst = 2;
                     if (track.Contains("Easy"))
                         diff = 0;
                     else if (track.Contains("Medium"))
@@ -327,9 +351,94 @@ namespace chart2unsigned
             Console.Out.WriteLine(".Done");
 
             fin.Close();
+            fin = new System.IO.StreamReader(thisPath+"config.cfg");
+            while (!fin.EndOfStream)
+            {
+                String str = fin.ReadLine().Trim();
+                if (str.Length > 6 && str.Substring(0, 6).Equals("syncer"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who synced this chart? ");
+                        cSync = Console.ReadLine().Trim();
+                    }
+                    else
+                        cSync = sy;
+                }
+                else if (str.Length > 8 && str.Substring(0, 8).Equals("effecter"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who wrote the effects for this chart? ");
+                        cEffects = Console.ReadLine().Trim();
+                    }
+                    else
+                        cEffects = sy;
+                }
+                else if (str.Length > 8 && str.Substring(0, 8).Equals("guitarer"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who wrote the guitar part of this chart? ");
+                        cGuitar = Console.ReadLine().Trim();
+                    }
+                    else
+                        cGuitar = sy;
+                }
+                else if (str.Length > 6 && str.Substring(0, 6).Equals("basser"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who wrote the bass part of this chart? ");
+                        cBass = Console.ReadLine().Trim();
+                    }
+                    else
+                        cBass = sy;
+                }
+                else if (str.Length > 7 && str.Substring(0, 7).Equals("drummer"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who wrote the drum part of this chart? ");
+                        cDrums = Console.ReadLine().Trim();
+                    }
+                    else
+                        cDrums = sy;
+                }
+                else if (str.Length > 7 && str.Substring(0, 7).Equals("vocaler"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("ask"))
+                    {
+                        Console.Write("Who wrote the vocal part of this chart? ");
+                        cVocals = Console.ReadLine().Trim();
+                    }
+                    else
+                        cVocals = sy;
+                }
+            }
 
-            Console.Write("Song Length in seconds:");
-            int sLength = Int32.Parse(Console.ReadLine())*1000;
+            fin.Close();
+
+
+            Console.WriteLine("Song Length:");
+            Console.WriteLine("Format hh:mm:ss (leading digits optional)");
+            String timeTemp = Console.ReadLine();
+            int sLength=0;
+            if (!timeTemp.Contains(":"))
+                sLength = Int32.Parse(timeTemp) * 1;
+            else if (timeTemp.IndexOf(':') == timeTemp.LastIndexOf(':'))
+                sLength = (Int32.Parse(timeTemp.Substring(0,timeTemp.IndexOf(':'))) * 60)+
+                          (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':')+1)) * 1);
+            else
+                sLength = (Int32.Parse(timeTemp.Substring(0,timeTemp.IndexOf(':'))) * 360)+
+                          (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':')+1,timeTemp.LastIndexOf(':')-(timeTemp.IndexOf(':')+1))) * 60)+
+                          (Int32.Parse(timeTemp.Substring(timeTemp.LastIndexOf(':')+1)) * 1);
 
             //PROCESS
             Console.Out.Write("Processing.");
@@ -344,9 +453,28 @@ namespace chart2unsigned
                 lastBeat = bpmsigs[bpmsigs.Count - 1].time;
             if (timesigs[timesigs.Count - 1].time > lastBeat)
                 lastBeat = timesigs[timesigs.Count - 1].time;
-            
 
-            string timeS=((int)(sLength/360))+":"+((int)((sLength/60)%60))+":"+((int)(sLength%60));
+
+            string timeS = "";
+            if (((int)(sLength / 3600)) <= 0)
+                timeS += "00" + ":";
+            else if(((int)(sLength / 3600))<10)
+                timeS += "0" + ((int)(sLength / 3600)) + ":";
+            else
+                timeS += ((int)(sLength / 3600)) + ":";
+            if (((int)((sLength / 60) % 60)) <= 0)
+                timeS += "00" + ":";
+            else if(((int)((sLength / 60) % 60))<10)
+                timeS += "0" + ((int)((sLength / 60) % 60)) + ":";
+            else
+                timeS += ((int)((sLength / 60) % 60)) + ":";
+            if (((int)(sLength % 60)) <= 0)
+                timeS += "00";
+            else if(((int)(sLength % 60))<10)
+                timeS += "0" + ((int)(sLength % 60));
+            else
+                timeS += ((int)(sLength % 60));
+            
             List<BarLine> barlines = new List<BarLine>();
             int[] beatTimes = new int[lastBeat / 192 + 8];
             int cBPM=0, cTS = 0;
@@ -489,6 +617,7 @@ namespace chart2unsigned
             //int remainingMLen = (int)(60000f / currentBPM * currentTS * 1000);
             for (int m = 0; m < notes.Length; m++)
                 for (int n = 0; n < notes[m].Length; n++)
+                {
                     for (int i = 0; i < notes[m][n].Count - 1; )
                         if (notes[m][n][i].time == notes[m][n][i + 1].time)
                         {
@@ -499,6 +628,7 @@ namespace chart2unsigned
                         }
                         else
                             i++;
+                }
             //int rest = (int)(60000f / currentBPM * currentTS * 1000);
             Note[][][] newnotes = new Note[notes.Length][][];
             for (int m = 0; m < notes.Length; m++)
@@ -507,6 +637,7 @@ namespace chart2unsigned
                 for (int n = 0; n < notes[m].Length; n++)
                 {
                     newnotes[m][n] = notes[m][n].ToArray();
+                    Array.Sort<Note>(newnotes[m][n]);
                     for (int i = 1; i < newnotes[m][n].Length; i++)
                         if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 96)
                             if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i].value&0x1F)!=(newnotes[m][n][i-1].value&0x1F))
@@ -538,6 +669,28 @@ namespace chart2unsigned
                 for (int n = 0; n < SPs[m].Length; n++)
                 {
                     newSPs[m][n] = SPs[m][n].ToArray();
+                    for (int i = 0; i < newSPs[m][n].Length; i++)
+                    {
+                        float when = newSPs[m][n][i].time / 192f;
+                        if (when == (int)when)
+                            newSPs[m][n][i].time = beatTimes[(int)when];
+                        else
+                            newSPs[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        when += newSPs[m][n][i].len / 192f;
+                        if (when == (int)when)
+                            newSPs[m][n][i].len = beatTimes[(int)when];
+                        else
+                            newSPs[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                    }
+                    Console.Out.Write(".");
+                }
+            }
+            /*for (int m = 0; m < SPs.Length; m++)
+            {
+                newSPs[m] = new SPPH[SPs[m].Length][];
+                for (int n = 0; n < SPs[m].Length; n++)
+                {
+                    newSPs[m][n] = SPs[m][n].ToArray();
                     int k = 0;
                     for (int i = 0; i < newSPs[m][n].Length; i++)
                     {
@@ -564,133 +717,112 @@ namespace chart2unsigned
                     }
                     Console.Out.Write(".");
                 }
-            }
+            }*/
             Console.Out.WriteLine(".Done");
 
             //OUTPUT
             string[] strDiff = { "EASY", "MEDIUM", "HARD", "EXPERT", };
 
-            System.IO.StreamWriter fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gba");
+            System.IO.BinaryWriter fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gba"));
             Console.Out.WriteLine("Writing...");
-            fout.WriteLine(name);
-            fout.WriteLine(artist);
-            fout.WriteLine(timeS);
-            fout.WriteLine("Bars:" + barlines.Count);
+            fout.Write(VERSION);
+            fout.Write(name);
+            fout.Write(artist);
+            fout.Write(timeS);
+            fout.Write(cSync);
+            fout.Write(cEffects);
+            fout.Write(cGuitar);
+            fout.Write(cVocals);
+            fout.Write(cDrums);
+            fout.Write(cBass);
+            fout.Write(barlines.Count);
             for (int i = 0; i < barlines.Count; i++)
-                fout.WriteLine(barlines[i].time + ":" + barlines[i].beats);
-            fout.WriteLine(beatTimes[beatTimes.Length-1]-beatTimes[beatTimes.Length-2]);
-            fout.WriteLine("Cues:1");
-            fout.WriteLine("0:"+cName);
-            fout.WriteLine("" + sLength);
+            { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
+            fout.Write(beatTimes[beatTimes.Length-1]-beatTimes[beatTimes.Length-2]);
             fout.Close();
             Console.Out.WriteLine("GBA written");
-            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbg");
-            fout.WriteLine("SPPH:"+newSPs[0][3].Length);
+            fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbg"));
+            fout.Write(VERSION);
+            fout.Write(newSPs[0][3].Length);
             for (int i = 0; i < newSPs[0][3].Length; i++)
             {
-                fout.WriteLine("" + newSPs[0][3][i].start1 + ":" + newSPs[0][3][i].start2);
-                fout.WriteLine("" + newSPs[0][3][i].end1 + ":" + newSPs[0][3][i].end2);
+                fout.Write(newSPs[0][3][i].time);
+                fout.Write(newSPs[0][3][i].len);
             }
             for (int i = 3; i >= 0; i--)
             {
-                fout.WriteLine(strDiff[i] + ":" + newnotes[0][i].Length);
+                fout.Write(i);
+                fout.Write(newnotes[0][i].Length);
                 for (int k = 0; k < newnotes[0][i].Length; k++)
                 {
-                    for (int l = 0; l < 6; l++)
-                        if ((newnotes[0][i][k].value & (1 << l)) != 0)
-                            fout.Write("O");
-                        else
-                            fout.Write("X");
-                    fout.Write(":");
+                    fout.Write(newnotes[0][i][k].value);
                     fout.Write(newnotes[0][i][k].time);
-                    fout.Write(";");
-                    fout.WriteLine(newnotes[0][i][k].len);
+                    fout.Write(newnotes[0][i][k].len);
                 }
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
+                for (int k = 0; k < 5; k++)
+                    fout.Write(starLevels[0][i][k]);
             }
             fout.Close();
             Console.Out.WriteLine("GBG Written");
-            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb");
-            fout.WriteLine("SPPH:"+newSPs[3][3].Length);
+            fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb"));
+            fout.Write(VERSION);
+            fout.Write(newSPs[3][3].Length);
             for (int i = 0; i < newSPs[3][3].Length; i++)
             {
-                fout.WriteLine("" + newSPs[3][3][i].start1 + ":" + newSPs[3][3][i].start2);
-                fout.WriteLine("" + newSPs[3][3][i].end1 + ":" + newSPs[3][3][i].end2);
+                fout.Write(newSPs[3][3][i].time);
+                fout.Write(newSPs[3][3][i].len);
             }
             for (int i = 3; i >= 0; i--)
             {
-                fout.WriteLine(strDiff[i] + ":" + newnotes[3][i].Length);
+                fout.Write(i);
+                fout.Write(newnotes[3][i].Length);
                 for (int k = 0; k < newnotes[3][i].Length; k++)
                 {
-                    for (int l = 0; l < 6; l++)
-                        if ((newnotes[3][i][k].value & (1 << l)) != 0)
-                            fout.Write("O");
-                        else
-                            fout.Write("X");
-                    fout.Write(":");
+                    fout.Write(newnotes[3][i][k].value);
                     fout.Write(newnotes[3][i][k].time);
-                    fout.Write(";");
-                    fout.WriteLine(newnotes[3][i][k].len);
+                    fout.Write(newnotes[3][i][k].len);
                 }
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
+                for (int k = 0; k < 5; k++)
+                    fout.Write(starLevels[3][i][k]);
             }
             fout.Close();
             Console.Out.WriteLine("GBB Written");
-            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd");
-            fout.WriteLine("SPPH:"+newSPs[1][3].Length);
-            for (int i = 0; i < newSPs[1][3].Length; i++)
+            fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd"));
+            fout.Write(VERSION);
+            fout.Write(newSPs[2][3].Length);
+            for (int i = 0; i < newSPs[2][3].Length; i++)
             {
-                fout.WriteLine("" + newSPs[1][3][i].start1 + ":" + newSPs[1][3][i].start2);
-                fout.WriteLine("" + newSPs[1][3][i].end1 + ":" + newSPs[1][3][i].end2);
+                fout.Write(newSPs[2][3][i].time);
+                fout.Write(newSPs[2][3][i].len);
             }
+            fout.Write(0);
             for (int i = 3; i >= 0; i--)
             {
-                fout.WriteLine(strDiff[i] + ":" + newnotes[1][i].Length);
-                for (int k = 0; k < newnotes[1][i].Length; k++)
+                fout.Write(i);
+                fout.Write(newnotes[2][i].Length);
+                for (int k = 0; k < newnotes[2][i].Length; k++)
                 {
-                    for (int l = 1; l < 5; l++)
-                        if ((newnotes[1][i][k].value & (1 << l)) != 0)
-                            fout.Write("O");
-                        else
-                            fout.Write("X");
-                    if ((newnotes[1][i][k].value & (1 << 0)) != 0)
-                            fout.Write("O");
-                        else
-                            fout.Write("X");
-                    if ((newnotes[1][i][k].value & (1 << 5)) != 0)
-                            fout.Write("O");
-                        else
-                            fout.Write("X");
-                    fout.Write(":");
-                    fout.Write(newnotes[1][i][k].time);
-                    fout.Write(";");
-                    fout.WriteLine(newnotes[1][i][k].len);
+                    fout.Write(newnotes[2][i][k].value);
+                    fout.Write(newnotes[2][i][k].time);
                 }
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
-                fout.WriteLine("0");
+                for (int k = 0; k < 5; k++)
+                    fout.Write(starLevels[2][i][k]);
             }
             fout.Close();
             Console.Out.WriteLine("GBD Written");
-            fout = new System.IO.StreamWriter(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbe");
-            fout.WriteLine("TRANSITIONS:2");
-            fout.WriteLine("0");
-            fout.WriteLine(""+sLength);
-            fout.WriteLine("EFFECTS:1");
-            fout.WriteLine("00000:nr;" + sLength + "!100");
+            fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbe"));
+            fout.Write(2);
+            fout.Write(0);
+            fout.Write(sLength);
+            fout.Write(1);
+            fout.Write(0);
+            fout.Write('n');
+            fout.Write('r');
+            fout.Write(sLength);
+            fout.Write(100);
             fout.Close();
             Console.Out.WriteLine("GBE Written");
-            Console.Out.WriteLine("...Done");
+            Console.Out.WriteLine("...Done!");
         }
 
         private static bool IsChord(byte p)

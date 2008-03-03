@@ -598,9 +598,9 @@ namespace Unsigned
         {
             InitXNAApp();
             
-            audioEngine = new AudioEngine("audio\\Win\\unsigned.xgs");
-            audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
-            audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
+            //audioEngine = new AudioEngine("audio\\Win\\unsigned.xgs");
+            //audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
+            //audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
 
             Configurate();
 
@@ -738,8 +738,9 @@ namespace Unsigned
                         {
                             str = sr.ReadLine().Trim();
                             cSongNames[j][k] = str.Substring(str.IndexOf('(') + 1, str.IndexOf(')') - str.IndexOf('(') - 1);
-                            System.IO.StreamReader tmp = new System.IO.StreamReader("songdata\\"+cSongNames[j][k] + ".gba");
-                            vSongNames[j][k + 1] = tmp.ReadLine();
+                            System.IO.BinaryReader tmp = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\"+cSongNames[j][k] + ".gba"));
+                            tmp.ReadByte();
+                            vSongNames[j][k + 1] = tmp.ReadString();
                             tmp.Close();
                         }
                         break;
@@ -1599,9 +1600,9 @@ namespace Unsigned
                     if(renderLevel>0)
                         venue.Update(gameTime, currenttime, engine, song);
                     matView = venue.GetViewMatrix();
-                    audioEngine.Update();
+                    //audioEngine.Update();
 
-                    song.Update((long)currenttime, audioSoundBank);
+                    song.Update((long)currenttime);
 
                     ProcessInput(gameTime);
 
@@ -1611,7 +1612,7 @@ namespace Unsigned
                     if (GetRockstarAmount() > lastStar && lastStar <= 5)
                     {
                         lastStar++;
-                        audioSoundBank.PlayCue("starching");
+                        //audioSoundBank.PlayCue("starching");
                     }
                     if (instruments[0] && contInput[0] < 4)
                         boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
@@ -2514,7 +2515,7 @@ namespace Unsigned
             }
             else if (guitarist && bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -250;
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
@@ -2522,12 +2523,12 @@ namespace Unsigned
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
                 boards[3].xOffset = 250;
                 Board.height = -1.5f;
-                Board.length = 2.5f;
+                Board.length = 2.0f;
                 Board.width = 0.3f;
                 Board.rotate = .4f;
                 Board.zeroZ = 2.3f;
-                Board.sFade = 0.8f;
-                Board.eFade = 1.2f;
+                Board.sFade = 1.8f;
+                Board.eFade = 2.3f;
                 Board.spShift = -0.01f;
                 boardsTarget[0] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                 boardsTarget[2] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
@@ -2544,7 +2545,7 @@ namespace Unsigned
             }
             else if (guitarist && bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -175;
                 boards[0].yRotate = -0.15f;
@@ -2570,7 +2571,7 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
                 boards[3].xOffset = -175;
                 boards[3].yRotate = -0.15f;
@@ -2590,7 +2591,7 @@ namespace Unsigned
             }
             else if (guitarist && !bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -175;
                 boards[0].yRotate = -0.15f;
@@ -2613,7 +2614,7 @@ namespace Unsigned
             }
             else if (guitarist && !bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 Board.curveHeight = 0.03f;
                 Board.height = -2.0f;
@@ -2627,7 +2628,7 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
                 Board.curveHeight = 0.03f;
                 Board.height = -2.0f;
@@ -2641,7 +2642,7 @@ namespace Unsigned
             }
             else if (!guitarist && !bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname);
+                song = new Song(4, 2, songname,this.Window.Handle);
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
                 Board.curveHeight = 0.03f;
                 Board.height = -1.6f;
@@ -3647,7 +3648,7 @@ namespace Unsigned
                     if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(notespos[p].X) < 0.01f)
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
                     else
-                        matScale = Matrix.CreateScale(new Vector3(0.125f * Board.width, 0.10f, 0.1f)) * ((notespos[p].Z > 0) ? Matrix.CreateScale(new Vector3(0.8f * Board.width, 1f, 1f)) : Matrix.Identity);
+                        matScale = Matrix.CreateScale(new Vector3(((notespos[p].Z > 0)?0.5f:1.0f) * 0.125f * Board.width, 0.10f, 0.0333f*Board.length));
 
                     float alpha;
                     if (notespos[p].Y < Board.sFade)

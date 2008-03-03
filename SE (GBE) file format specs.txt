@@ -1,8 +1,23 @@
 //File format specs for GBE Special Effects format
 //C#-Style
 
-//ASCII FORMAT
+//BINARY FORMAT
 
 //By Louis Ingenthron
-//2-23-08
+//3-02-08
 
+int numTransitions
+
+int[] transitions
+
+int numLightEffects
+
+struct LightEffects
+{
+	int time;
+	char[2] type;
+	int length;
+	int parameter;
+}
+
+LightEffects[] leffects;

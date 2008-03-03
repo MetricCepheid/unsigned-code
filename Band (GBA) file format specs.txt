@@ -1,55 +1,29 @@
 //File format specs for GBA Band format
 //C#-Style
 
-//ASCII FORMAT
+//BINARY FORMAT
 
 //By Louis Ingenthron
-//2-23-08
+//3-02-08
 
-String songTitle;
+byte Version
 
-char '\n';
+String name, artist, formatedTime;
 
-String artist;
-
-char '\n';
-
-//must be:
-//HH:MM:SS
-String length;
-
-char '\n';
-
-String "Bars:"
-
-int numBars;
-
-char '\n';
+//charters
+String syncer, effecter, guitarer,
+       vocaler, drummer, basser;
 
 struct BarLine
 {
-	int time;//in milliseconds from start of song
-	char ':';
-	int beats;//# of beats in upcoming measure
-	char '\n';
+	int time;
+	int numBeats;	
 }
 
-BarLine bars[numBars];
+int barLinesCount;
 
-int tailLength;//how long (in ms) measures after the end of the song should be
+BarLine[] barLines
 
-String "Cues:";
+int trailingMLen;
 
-int numCues;
-
-struct Cue
-{
-	int time;//in milliseconds from start of song
-	char ':';
-	String audioName;
-	char '\n';
-}
-
-Cue cues[numCues];
-
-int endOfSong;//in milliseconds from start of song
+//EOF
