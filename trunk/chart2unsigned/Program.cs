@@ -115,6 +115,7 @@ namespace chart2unsigned
 
             string name="", artist="", charter="";
             string cName;
+            bool drumLayout=false;//true = bycolor
             float offset = 0;
             int resolution = 0;
             string player2="";
@@ -421,6 +422,14 @@ namespace chart2unsigned
                     else
                         cVocals = sy;
                 }
+                else if (str.Length > 6 && str.Substring(0, 6).Equals("layout"))
+                {
+                    String sy = str.Substring(str.IndexOf('=')+1).Trim();
+                    if (sy.Equals("color"))
+                        drumLayout = true;
+                    else
+                        drumLayout = false;
+                }
             }
 
             fin.Close();
@@ -443,18 +452,6 @@ namespace chart2unsigned
             //PROCESS
             Console.Out.Write("Processing.");
 
-            int lastBeat = 0;
-            for (int m = 0; m < notes.Length; m++)
-                for (int n = 0; n < notes[m].Length; n++)
-                    if(notes[m][n].Count>0)
-                        if (notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len > lastBeat)
-                            lastBeat = notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len;
-            if (bpmsigs[bpmsigs.Count - 1].time > lastBeat)
-                lastBeat = bpmsigs[bpmsigs.Count - 1].time;
-            if (timesigs[timesigs.Count - 1].time > lastBeat)
-                lastBeat = timesigs[timesigs.Count - 1].time;
-
-
             string timeS = "";
             if (((int)(sLength / 3600)) <= 0)
                 timeS += "00" + ":";
@@ -474,6 +471,22 @@ namespace chart2unsigned
                 timeS += "0" + ((int)(sLength % 60));
             else
                 timeS += ((int)(sLength % 60));
+
+            sLength *= 1000;
+
+            int lastBeat = 0;
+            for (int m = 0; m < notes.Length; m++)
+                for (int n = 0; n < notes[m].Length; n++)
+                    if(notes[m][n].Count>0)
+                        if (notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len > lastBeat)
+                            lastBeat = notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len;
+            if (bpmsigs[bpmsigs.Count - 1].time > lastBeat)
+                lastBeat = bpmsigs[bpmsigs.Count - 1].time;
+            if (timesigs[timesigs.Count - 1].time > lastBeat)
+                lastBeat = timesigs[timesigs.Count - 1].time;
+
+
+            
             
             List<BarLine> barlines = new List<BarLine>();
             int[] beatTimes = new int[lastBeat / 192 + 8];
@@ -629,6 +642,7 @@ namespace chart2unsigned
                         else
                             i++;
                 }
+            
             //int rest = (int)(60000f / currentBPM * currentTS * 1000);
             Note[][][] newnotes = new Note[notes.Length][][];
             for (int m = 0; m < notes.Length; m++)
@@ -637,6 +651,22 @@ namespace chart2unsigned
                 for (int n = 0; n < notes[m].Length; n++)
                 {
                     newnotes[m][n] = notes[m][n].ToArray();
+                    if(m==2 && !drumLayout)
+                        for (int i = 0; i < newnotes[m][n].Length; i++)
+                        {
+                            byte newVal = 0;
+                            if ((newnotes[m][n][i].value & 1) != 0)
+                                newVal |= 16;
+                            if ((newnotes[m][n][i].value & 2) != 0)
+                                newVal |= 2;
+                            if ((newnotes[m][n][i].value & 4) != 0)
+                                newVal |= 4;
+                            if ((newnotes[m][n][i].value & 8) != 0)
+                                newVal |= 8;
+                            if ((newnotes[m][n][i].value & 16) != 0)
+                                newVal |= 1;
+                            newnotes[m][n][i].value = newVal;
+                        }
                     Array.Sort<Note>(newnotes[m][n]);
                     for (int i = 1; i < newnotes[m][n].Length; i++)
                         if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 96)
