@@ -131,7 +131,7 @@ namespace chart2unsigned
             {
                 starLevels[i] = new int[4][];
                 for (int k = 0; k < 4; k++)
-                    starLevels[i][k] = new int[5];
+                    starLevels[i][k] = new int[6];
             }
             for (int i = 0; i < 4; i++)
             {
@@ -336,7 +336,8 @@ namespace chart2unsigned
                             int value = Int32.Parse(line.Substring(0, line.IndexOf(' ')).Trim());
                             line = line.Substring(line.IndexOf(' ') + 1).Trim();
                             int len = Int32.Parse(line);
-                            SPs[inst][diff].Add(new SPPH((byte)value, time, len));
+                            if(value==2)
+                                SPs[inst][diff].Add(new SPPH((byte)value, time, len));
                         }
 
                         line = fin.ReadLine().Trim();
@@ -651,6 +652,7 @@ namespace chart2unsigned
                 for (int n = 0; n < notes[m].Length; n++)
                 {
                     newnotes[m][n] = notes[m][n].ToArray();
+                    Array.Sort<Note>(newnotes[m][n]);
                     if(m==2 && !drumLayout)
                         for (int i = 0; i < newnotes[m][n].Length; i++)
                         {
@@ -667,9 +669,9 @@ namespace chart2unsigned
                                 newVal |= 1;
                             newnotes[m][n][i].value = newVal;
                         }
-                    Array.Sort<Note>(newnotes[m][n]);
+                    
                     for (int i = 1; i < newnotes[m][n].Length; i++)
-                        if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 96)
+                        if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 100)
                             if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i].value&0x1F)!=(newnotes[m][n][i-1].value&0x1F))
                                 newnotes[m][n][i].value |= (1 << 5);
                     for (int i = 0; i < newnotes[m][n].Length; i++)
@@ -678,12 +680,12 @@ namespace chart2unsigned
                         if (when == (int)when)
                             newnotes[m][n][i].time = beatTimes[(int)when];
                         else
-                            newnotes[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                            newnotes[m][n][i].time = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                         when += newnotes[m][n][i].len / 192f;
                         if (when == (int)when)
                             newnotes[m][n][i].len = beatTimes[(int)when]-newnotes[m][n][i].time;
                         else
-                            newnotes[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))))-newnotes[m][n][i].time;
+                            newnotes[m][n][i].len = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))))-newnotes[m][n][i].time;
                     }
                     for (int i = 0; i < newnotes[m][n].Length - 1; i++)
                         if (newnotes[m][n][i].len > 0)
@@ -748,6 +750,45 @@ namespace chart2unsigned
                     Console.Out.Write(".");
                 }
             }*/
+            for(int m=0;m<4;m++)
+                for (int n = 0; n < 4; n++)
+                {
+                    int maxscore = 0;
+                    for (int i = 0; i < newnotes[m][n].Length; i++)
+                    {
+                        maxscore += 100 * CountNotes(newnotes[m][n][i].value);
+
+                        maxscore += (int)(newnotes[m][n][i].len * CountNotes(newnotes[m][n][i].value) * 0.1f);
+
+                    }
+                    switch (m)
+                    {
+                        case 0:
+                            starLevels[m][n][0] = (int)(0.21f * maxscore);
+                            starLevels[m][n][1] = (int)(0.46f * maxscore);
+                            starLevels[m][n][2] = (int)(0.77f * maxscore);
+                            starLevels[m][n][3] = (int)(1.85f * maxscore);
+                            starLevels[m][n][4] = (int)(3.08f * maxscore);
+                            starLevels[m][n][5] = (int)(4.68f * maxscore);
+                            break;
+                        case 2:
+                            starLevels[m][n][0] = (int)(0.21f * maxscore);
+                            starLevels[m][n][1] = (int)(0.46f * maxscore);
+                            starLevels[m][n][2] = (int)(0.77f * maxscore);
+                            starLevels[m][n][3] = (int)(1.85f * maxscore);
+                            starLevels[m][n][4] = (int)(3.08f * maxscore);
+                            starLevels[m][n][5] = (int)(4.44f * maxscore);
+                            break;
+                        case 3:
+                            starLevels[m][n][0] = (int)(0.32f * maxscore);
+                            starLevels[m][n][1] = (int)(0.69f * maxscore);
+                            starLevels[m][n][2] = (int)(1.16f * maxscore);
+                            starLevels[m][n][3] = (int)(2.78f * maxscore);
+                            starLevels[m][n][4] = (int)(4.62f * maxscore);
+                            starLevels[m][n][5] = (int)(7.02f * maxscore);
+                            break;
+                    }
+                }
             Console.Out.WriteLine(".Done");
 
             //OUTPUT
@@ -773,12 +814,13 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBA written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbg"));
             fout.Write(VERSION);
-            fout.Write(newSPs[0][3].Length);
+            fout.Write(0);
+            /*fout.Write(newSPs[0][3].Length);
             for (int i = 0; i < newSPs[0][3].Length; i++)
             {
                 fout.Write(newSPs[0][3][i].time);
-                fout.Write(newSPs[0][3][i].len);
-            }
+                fout.Write(newSPs[0][3][i].len-newSPs[0][3][i].time);
+            }*/
             for (int i = 3; i >= 0; i--)
             {
                 fout.Write(i);
@@ -796,12 +838,13 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBG Written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb"));
             fout.Write(VERSION);
-            fout.Write(newSPs[3][3].Length);
+            fout.Write(0);
+            /*fout.Write(newSPs[3][3].Length);
             for (int i = 0; i < newSPs[3][3].Length; i++)
             {
                 fout.Write(newSPs[3][3][i].time);
                 fout.Write(newSPs[3][3][i].len);
-            }
+            }*/
             for (int i = 3; i >= 0; i--)
             {
                 fout.Write(i);
@@ -819,12 +862,13 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBB Written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd"));
             fout.Write(VERSION);
-            fout.Write(newSPs[2][3].Length);
+            fout.Write(0);
+            /*fout.Write(newSPs[2][3].Length);
             for (int i = 0; i < newSPs[2][3].Length; i++)
             {
                 fout.Write(newSPs[2][3][i].time);
                 fout.Write(newSPs[2][3][i].len);
-            }
+            }*/
             fout.Write(0);
             for (int i = 3; i >= 0; i--)
             {
@@ -862,6 +906,15 @@ namespace chart2unsigned
                 if ((p & (1 << i)) != 0)
                     count++;
             return count > 1;
+        }
+
+        private static int CountNotes(byte p)
+        {
+            int count=0;
+            for (int i = 0; i < 5; i++)
+                if ((p & (1 << i)) != 0)
+                    count++;
+            return count;
         }
     }
 }

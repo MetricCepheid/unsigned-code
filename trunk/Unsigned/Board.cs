@@ -349,7 +349,7 @@ namespace Unsigned
             for (int i = 0; i < numSPP; i++)
             {
                 SPStart[i] = reader.ReadInt32();
-                SPEnd[i] = reader.ReadInt32() - SPStart[i];
+                SPEnd[i] = reader.ReadInt32() + SPStart[i];
             }
 
             if (GetBoardType()==Game1.PERCUSSIONIST)
@@ -386,7 +386,7 @@ namespace Unsigned
                     for (int i = 0; i < notesn; i++)
                     {
                         reader.ReadByte();
-                        if (difr!=2)
+                        if (difr!=Game1.DRUMS)
                         {
                             reader.ReadInt32();
                             reader.ReadInt32();
@@ -406,7 +406,7 @@ namespace Unsigned
                     {
                         notes[i] = new NoteSet();
                         notes[i].type = reader.ReadByte();
-                        if (GetBoardType()!=2)
+                        if (GetBoardType()!=Game1.DRUMS)
                         {
                             notes[i].time = reader.ReadInt32();
                             notes[i].length = reader.ReadInt32();
