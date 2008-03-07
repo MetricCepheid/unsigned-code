@@ -672,7 +672,7 @@ namespace chart2unsigned
                     
                     for (int i = 1; i < newnotes[m][n].Length; i++)
                         if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 100)
-                            if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i].value&0x1F)!=(newnotes[m][n][i-1].value&0x1F))
+                            if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i-1].value&0x1F&newnotes[m][n][i].value)==0)
                                 newnotes[m][n][i].value |= (1 << 5);
                     for (int i = 0; i < newnotes[m][n].Length; i++)
                     {
@@ -814,13 +814,12 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBA written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbg"));
             fout.Write(VERSION);
-            fout.Write(0);
-            /*fout.Write(newSPs[0][3].Length);
+            fout.Write(newSPs[0][3].Length);
             for (int i = 0; i < newSPs[0][3].Length; i++)
             {
                 fout.Write(newSPs[0][3][i].time);
                 fout.Write(newSPs[0][3][i].len-newSPs[0][3][i].time);
-            }*/
+            }
             for (int i = 3; i >= 0; i--)
             {
                 fout.Write(i);
@@ -838,13 +837,12 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBG Written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb"));
             fout.Write(VERSION);
-            fout.Write(0);
-            /*fout.Write(newSPs[3][3].Length);
+            fout.Write(newSPs[3][3].Length);
             for (int i = 0; i < newSPs[3][3].Length; i++)
             {
                 fout.Write(newSPs[3][3][i].time);
                 fout.Write(newSPs[3][3][i].len);
-            }*/
+            }
             for (int i = 3; i >= 0; i--)
             {
                 fout.Write(i);
@@ -862,13 +860,12 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBB Written");
             fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd"));
             fout.Write(VERSION);
-            fout.Write(0);
-            /*fout.Write(newSPs[2][3].Length);
+            fout.Write(newSPs[2][3].Length);
             for (int i = 0; i < newSPs[2][3].Length; i++)
             {
                 fout.Write(newSPs[2][3][i].time);
                 fout.Write(newSPs[2][3][i].len);
-            }*/
+            }
             fout.Write(0);
             for (int i = 3; i >= 0; i--)
             {

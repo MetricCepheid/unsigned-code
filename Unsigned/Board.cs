@@ -15,7 +15,7 @@ namespace Unsigned
         public VIS_STATE[] visible;//0=visible,1=greyedout,2=invisible,3=invisibleButAvailable(HOPO)
         public bool burning;//for held notes
 
-        public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, };
+        public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, OVERDONE=4/*drums*/, };
 
         public int CompareTo(object other)
         {
@@ -26,6 +26,7 @@ namespace Unsigned
     struct Results
     {
         public int hitNotes, missedNotes;
+        public int totalNotes, totalSPPH;//temp
         public int hitSPPH, missedSPPH;
     }
 
@@ -43,8 +44,8 @@ namespace Unsigned
         public static Texture2D SPMRbg, SPMRslice, SPMRfg, SPMRbgb, SPMRbgs;
         public static Texture2D[] SPMRnum;
         public float SPMFlash=0, SPMFVel=0;
-        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 6, 8, };
-        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, -1, 5, -1, 6, };
+        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
+        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 6, 6, -1, 7, };
         public static GBVertexFormat[] arrBoard;
         public static VertexBuffer mdlBoard, mdlSPM;
         public static VertexBuffer mdlTrigger, mdlTriggerBorder;
@@ -75,6 +76,8 @@ namespace Unsigned
         float waveoffset=0;
         Results myResults;
 
+        public Vector4[] OutNotes;
+        public int notesLen;
         public WaveNode[][] waves;
         public int wavesLen;
         public int[] wavesSubLen;
@@ -97,6 +100,7 @@ namespace Unsigned
             popupSpeed = new float[5];
             if (type == 0 || type == 3)
                 whammyage = new LinkedList<Vector2>();
+            OutNotes = new Vector4[0];
         }
 
         public int GetBoardType()
@@ -185,7 +189,7 @@ namespace Unsigned
             }
         }
 
-        public Vector4[] GetNotes(long currenttime, long viewdistance)
+        public void GetNotes(long currenttime, long viewdistance)
         {
             currenttime /= (long)Game1.TicksPerSecond / 1000;
             viewdistance /= (long)Game1.TicksPerSecond / 1000;
@@ -240,7 +244,9 @@ namespace Unsigned
             if (fill)
                { count+=2; fill = false; }
 
-            Vector4[] ret = new Vector4[count];
+            if(OutNotes.Length < count)
+                OutNotes = new Vector4[count];
+            notesLen = count;
             int indx = 0;
             int plus = 0;
             for (int i = k; i < notes.Length && notes[i].time < currenttime + viewdistance; i++)
@@ -255,27 +261,27 @@ namespace Unsigned
                         continue;
                     if ((notes[i].type & NS_GREEN) != 0)
                     {
-                            ret[indx] = new Vector4(-1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx] = new Vector4(-1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
                         indx++;
                     }
                     if ((notes[i].type & NS_RED) != 0)
                     {
-                        ret[indx] = new Vector4(-0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx] = new Vector4(-0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
                         indx++;
                     }
                     if ((notes[i].type & NS_YELLOW) != 0)
                     {
-                        ret[indx] = new Vector4(0f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx] = new Vector4(0f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
                         indx++;
                     }
                     if ((notes[i].type & NS_BLUE) != 0)
                     {
-                        ret[indx] = new Vector4(0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx] = new Vector4(0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
                         indx++;
                     }
                     if ((notes[i].type & NS_ORANGE) != 0)
                     {
-                        ret[indx] = new Vector4(1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx] = new Vector4(1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
                         indx++;
                     }
                 }
@@ -289,35 +295,35 @@ namespace Unsigned
                     {
                         if (fill)
                         {
-                            ret[indx] = new Vector4(dfA[DFIndex + plus], DFStart[DFIndex + plus], 1, (DFHitGreen[DFIndex + plus] ? 1 : 0));
-                            ret[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
+                            OutNotes[indx] = new Vector4(dfA[DFIndex + plus], DFStart[DFIndex + plus], 1, (DFHitGreen[DFIndex + plus] ? 1 : 0));
+                            OutNotes[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
                             indx+=2;
                             fill = false;
                             plus++;
                         }
                         if ((notes[i].type & NS_GREEN) != 0 && notes[i].visible[0] == 0)
                         {
-                            ret[indx] = new Vector4(1f, notes[i].time, 0, sp);
+                            OutNotes[indx] = new Vector4(1f, notes[i].time, 0, sp);
                             indx++;
                         }
                         if ((notes[i].type & NS_RED) != 0 && notes[i].visible[1] == 0)
                         {
-                            ret[indx] = new Vector4(-1f, notes[i].time, 0, sp);
+                            OutNotes[indx] = new Vector4(-1f, notes[i].time, 0, sp);
                             indx++;
                         }
                         if ((notes[i].type & NS_YELLOW) != 0 && notes[i].visible[2] == 0)
                         {
-                            ret[indx] = new Vector4(-1 / 3f, notes[i].time, 0, sp);
+                            OutNotes[indx] = new Vector4(-1 / 3f, notes[i].time, 0, sp);
                             indx++;
                         }
                         if ((notes[i].type & NS_BLUE) != 0 && notes[i].visible[3] == 0)
                         {
-                            ret[indx] = new Vector4(1 / 3f, notes[i].time, 0, sp);
+                            OutNotes[indx] = new Vector4(1 / 3f, notes[i].time, 0, sp);
                             indx++;
                         }
                         if ((notes[i].type & NS_ORANGE) != 0 && notes[i].visible[4] == 0)
                         {
-                            ret[indx] = new Vector4(0f, notes[i].time, 0, sp);
+                            OutNotes[indx] = new Vector4(0f, notes[i].time, 0, sp);
                             indx++;
                         }
                     }
@@ -325,15 +331,14 @@ namespace Unsigned
             }
             if (fill)
             {
-                ret[indx] = new Vector4(dfA[DFIndex+plus], DFStart[DFIndex + plus], 1, 0);
-                ret[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
+                OutNotes[indx] = new Vector4(dfA[DFIndex+plus], DFStart[DFIndex + plus], 1, 0);
+                OutNotes[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
                 indx += 2;
                 fill = false;
                 plus++;
             }
-            for (int i = 0; i < ret.Length; i++)
-                ret[i].Y = (ret[i].Y - currenttime) / 1000f;
-            return ret;
+            for (int i = 0; i < notesLen; i++)
+                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / 1000f;
         }
 
         private void LoadNotes(String filename, byte diff, Song song)
@@ -344,6 +349,7 @@ namespace Unsigned
             byte version = reader.ReadByte();
 
             int numSPP = reader.ReadInt32();
+            myResults.totalSPPH = numSPP;
             SPStart = new int[numSPP];
             SPEnd = new int[numSPP];
             for (int i = 0; i < numSPP; i++)
@@ -373,11 +379,11 @@ namespace Unsigned
                 int difr = reader.ReadInt32();
                 if (diff == Game1.D_EXPERT && difr==3)
                     skip = false;
-                if (diff == Game1.D_MEDIUM && difr==2)
+                if (diff == Game1.D_HARD && difr==2)
                     skip = false;
-                if (diff == Game1.D_EASY && difr==1)
+                if (diff == Game1.D_MEDIUM && difr==1)
                     skip = false;
-                if (diff == Game1.D_HARD && difr==0)
+                if (diff == Game1.D_EASY && difr==0)
                     skip = false;
 
                 if (skip)
@@ -386,7 +392,7 @@ namespace Unsigned
                     for (int i = 0; i < notesn; i++)
                     {
                         reader.ReadByte();
-                        if (difr!=Game1.DRUMS)
+                        if (GetBoardType()!=Game1.DRUMS)
                         {
                             reader.ReadInt32();
                             reader.ReadInt32();
@@ -402,6 +408,7 @@ namespace Unsigned
                 else
                 {
                     notes = new NoteSet[reader.ReadInt32()];
+                    myResults.totalNotes = notes.Length;
                     for (int i = 0; i < notes.Length; i++)
                     {
                         notes[i] = new NoteSet();
@@ -431,17 +438,6 @@ namespace Unsigned
                             numrep++;
                         curtm = notes[i].time;
                     }
-                    Console.WriteLine("Numerrors(old):" + numrep);
-                    Array.Sort<NoteSet>(notes);
-                    numrep = 0;
-                    curtm = 0;
-                    for (int i = 0; i < notes.Length; i++)
-                    {
-                        if (notes[i].time < curtm)
-                            numrep++;
-                        curtm = notes[i].time;
-                    }
-                    Console.WriteLine("Numerrors(new):" + numrep);
                     break;
                 }
             }
@@ -605,10 +601,14 @@ namespace Unsigned
                 {
                     bool shouldhurt = false;
                     for (int i = 0; i < 5; i++)
-                        if ((notes[index].type & Game1.bits[i]) != 0 && notes[index].visible[i] == 0)
+                        if ((notes[index].type & Game1.bits[i]) != 0 && notes[index].visible[i] == NoteSet.VIS_STATE.VISIBLE)
                         {
                             shouldhurt = true;
                             notes[index].visible[i] = NoteSet.VIS_STATE.GREYED_OUT;
+                        }
+                        else if ((notes[index].type & Game1.bits[i]) == 0 && notes[index].visible[i] == NoteSet.VIS_STATE.OVERDONE)
+                        {
+                            shouldhurt = true;
                         }
                     if (shouldhurt)
                     {
@@ -617,13 +617,21 @@ namespace Unsigned
                         if (SPIndex<SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time<SPEnd[SPIndex])
                         {
                             SPGood = false;
-                            
                         }
                         myResults.missedNotes++;
                         //reff.Hurt(2);
                     }
                     else
-                    { multiplier = Math.Min(multiplier+0.1f,4); reff.Help(2); myResults.hitNotes++; }
+                    { 
+                        multiplier = Math.Min(multiplier+0.1f,4); 
+                        reff.Help(2); 
+                        myResults.hitNotes++; 
+                        int scre=0;
+                        for (int i = 0; i < 5; i++)
+                            if ((notes[index].type & Game1.bits[i]) != 0)
+                                scre++;
+                        score += scre * (int)multiplier * 100;
+                    }
                 }
                 index++;
             }
@@ -812,19 +820,19 @@ namespace Unsigned
             }
             else if ((notes[index].time - currenttime) < 100)
             {
-                
                 int scre = 0;
                 byte ret = 0;
                 for (int i = 0; i < 5; i++)
                     if ((notes[index].type & Game1.bits[i]) != 0 && (newPressed & Game1.bits[i]) != 0 && notes[index].visible[i]==0)
                     {
                         ret |= Game1.bits[i];
-                        scre++;
                         notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                         popupSpeed[drumsToGuitar[i]] += 100f;
                     }
-                scre *= 100 * (int)(multiplier);
-                score += scre;
+                    else if ((notes[index].type & Game1.bits[i]) == 0 && (newPressed & Game1.bits[i]) != 0)
+                    {
+                        notes[index].visible[i] = NoteSet.VIS_STATE.OVERDONE;
+                    }
                 return ret;
             }
             game.Hurt(2);
