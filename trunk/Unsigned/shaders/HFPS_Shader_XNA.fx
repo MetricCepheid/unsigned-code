@@ -454,8 +454,6 @@ if(!fullbright)
   // Point Lights
   for (int i=0;i<4 && pLightOn[i];i++)
   {
-   if(pLightOn[i])
-   {
      float dist = sqrt( (float)pow(pLightPos[i].x-input.wPos.x,2)+(float)pow(pLightPos[i].y-input.wPos.y,2)+(float)pow(pLightPos[i].z-input.wPos.z,2) );
 	if(dist <= pLightFar[i])
 	{
@@ -476,7 +474,6 @@ if(!fullbright)
 		}
 	}
    }
-  }
 }
   else
   {
@@ -562,15 +559,6 @@ float4 MenuPixelShadert(EnginePixelIn input) : COLOR
   return float4((diffuseTex.xyz * saturate(ambientColor.xyz + diffuseCol.xyz)),diffuseTex.w*wAlpha);
 }
 
-
-technique menutechnique {
-	pass pass0 {
-		VertexShader = compile vs_2_0 MenuVertexShadert();
-		PixelShader  = compile ps_2_0 MenuPixelShadert();
-	}
-}
-
-
 technique menutechnique {
 	pass pass0 {
 		VertexShader = compile vs_3_0 MenuVertexShader();
@@ -578,3 +566,9 @@ technique menutechnique {
 	}
 }
 
+technique menutechnique {
+	pass pass0 {
+		VertexShader = compile vs_2_0 MenuVertexShadert();
+		PixelShader  = compile ps_2_0 MenuPixelShadert();
+	}
+}

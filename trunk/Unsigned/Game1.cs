@@ -509,7 +509,7 @@ namespace Unsigned
                         else if (status == 0)
                             nextLoc = 0;
                     }
-                    else if (green)
+                    else if (green && loc>0)
                     {
                         wait = 30;
                         if (status == 2)
@@ -581,7 +581,14 @@ namespace Unsigned
         int counterer = 0;
         String[][] cSongNames, vSongNames;
         String[] rockerNames;
-
+        Results[] totalresults;
+        RenderTarget2D SongListRT;
+        Texture2D SongListTex;
+        Texture2D SongListBG, SongHiLi, songchoosetop;
+        int SONGLIST_WAVEQUALITY=100;
+        GBVertexFormat[] songlistGeom;
+        VertexBuffer songlistVB;
+        float SONGLIST_WAVE_SPEED=5, slCurrentWave, slWaveLength=50f, slWaveStrength=2, SONGLIST_LENGTH=170, SONGLIST_WIDTH=1;
 
         byte loaded = 0, loading = 0;
 #endregion
@@ -625,6 +632,7 @@ namespace Unsigned
                                      new GBVertexFormat(new Vector3( 1f,0f,-1f),new Vector3(0f,1f,0f),new Vector2(1f,1f))};
             square = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * 6, BufferUsage.WriteOnly);
             square.SetData<GBVertexFormat>(arr);
+            totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
             /*songname = "Highway_to_Hell";
@@ -746,8 +754,8 @@ namespace Unsigned
                         break;
                     }
                 }
-                sr.Close();
             }
+                sr.Close();
         }
 
         private void LoadContent(byte c)
@@ -769,7 +777,23 @@ namespace Unsigned
                 #region SONGMENU
                 else if ((c & S_CHOOSESONG) != 0)
                 {
-                    loaded |=  S_CHOOSESONG;
+                    loading |= S_CHOOSESONG;
+                    ThreadStart ThreadStarter = delegate
+                    {
+                        if (SongListRT == null)
+                        {
+                            SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
+                        }
+                        SongListBG = content.Load<Texture2D>("graphics\\songlist");
+                        SongHiLi = content.Load<Texture2D>("graphics\\songhili");
+                        songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
+                        GC.Collect();
+                        loading &= (byte)(~S_CHOOSESONG & 255);
+                        loaded |=  S_CHOOSESONG;
+                    };
+                    
+                    Thread myThread = new Thread(ThreadStarter);
+                    myThread.Start();
                 }
                 #endregion
                 #region DIFFMENU
@@ -781,6 +805,7 @@ namespace Unsigned
                 #region CHOOSECONT
                 if ((c&S_CHOOSECONT)!=0)
                 {
+                    loading |= S_CHOOSECONT;
                     ThreadStart ThreadStarter = delegate
                     {
                         rtNote = new RenderTarget2D[4];
@@ -862,8 +887,6 @@ namespace Unsigned
                         loading &= (byte)(~S_CHOOSECONT & 255);
                         loaded |= S_CHOOSECONT;
                     };
-                    
-                    loading |= S_CHOOSECONT;
                     Thread myThread = new Thread(ThreadStarter);
                     myThread.Start();
                 }
@@ -1001,8 +1024,6 @@ namespace Unsigned
                    (c&(S_CHOOSECONT))==0)
                 {
                     rtNote = null;
-                    concrTex = null;
-                    concrBM = null;
                     nPadMdl = null;
                     arrowMdl = null;
                     nailMdl = null;
@@ -1237,6 +1258,7 @@ namespace Unsigned
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
+                    bool chgd = SongListTex==null;
                     int numsongs = 0;
                     for (int i = 0; i < cSongNames.Length; i++)
                         numsongs += cSongNames[i].Length;
@@ -1268,9 +1290,10 @@ namespace Unsigned
                             red = true;
 
                         if (collective > 0 && songselected > 0)
-                            songselected--;
+                        { songselected--; chgd = true; }
                         else if (collective < 0 && songselected < numsongs - 1)
-                            songselected++;
+                        { songselected++; chgd = true; }
+                        songoffset = -(Math.Max(3, Math.Min(numsongs - 3, songselected))-3);
                         if (green)
                         {
                             int i = 0;
@@ -1293,6 +1316,39 @@ namespace Unsigned
                     }
                     else
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+                    if (chgd)
+                    {
+                        int i = 0, ii=0;
+                        graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                        graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                        spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
+                        for (int j = 0; j < vSongNames.Length; j++)
+                        {
+                            for (int k = 0; k < vSongNames[j].Length; k++)
+                            {
+                                if (i == songselected && k!=0)
+                                    spritebatch.Draw(SongHiLi, new Rectangle(20, (ii + songoffset) * 40 + 58, SongListRT.Width - 40, 40), Color.White);
+                                if (i >= songoffset && ii + songoffset >= 0)
+                                {
+                                    spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                                    //if(k!=0)
+                                        //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                                }
+                                if(k!=0)
+                                    i++;
+                                ii++;
+                                if (ii + songoffset >9)
+                                    break;
+                            }
+                                if (ii + songoffset > 9)
+                                    break;
+                        }
+                        spritebatch.End();
+                        graphics.GraphicsDevice.SetRenderTarget(0, null);
+                        SongListTex = SongListRT.GetTexture();
+                    }
                 }
                 #endregion
                 #region contchoosescreen
@@ -1623,6 +1679,25 @@ namespace Unsigned
                 #region results
                 else if (screen == S_RESULTS)
                 {
+                    if (totalresults.Length == 0)
+                    {
+                        totalresults = new Results[5];
+                        for (int i = 0; i < 4; i++)
+                            if (instruments[i])
+                                totalresults[i] = boards[i].getResults();
+                        totalresults[4] = new Results();
+                        for (int i = 0; i < 4; i++)
+                            if(instruments[i])
+                            {
+                                totalresults[4].hitNotes += totalresults[i].hitNotes;
+                                totalresults[4].hitSPPH += totalresults[i].hitSPPH;
+                                totalresults[4].missedNotes += totalresults[i].missedNotes;
+                                totalresults[4].missedSPPH += totalresults[i].missedSPPH;
+                                totalresults[4].totalNotes += totalresults[i].totalNotes;
+                                totalresults[4].totalSPPH += totalresults[i].totalSPPH;
+                            }
+                    }
+
                     bool green=false, red=false;//what should red be used for?
                         GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
                         for (int i = 0; i < 4; i++)
@@ -1638,7 +1713,7 @@ namespace Unsigned
                         if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
                             red = true;
                         if (green)
-                        { screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = false; mmenu_ticker = 200; mmenu_select = 0; }
+                        { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = false; mmenu_ticker = 200; mmenu_select = 0; }
                 }
                 #endregion
                 else
@@ -1726,25 +1801,144 @@ namespace Unsigned
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
-                    graphics.GraphicsDevice.Clear(Color.Black);
-                    spritebatch.Begin();
-                    spritebatch.DrawString(DefaultFont, "Choose Song", new Vector2(10, 10), Color.Green);
-                    int i = 0, ii=0;
-                    for (int j = 0; j < vSongNames.Length; j++)
+                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                    //graphics.PreferMultiSampling = true;
+                    graphics.ApplyChanges();
+
+                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                    //graphics.GraphicsDevice.
+
+                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+                    engine.Parameters["diffuseColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+
+                        bool[] plo = new bool[16];
+                        Vector3[] plp = new Vector3[16];
+                        float[] pln = new float[16];
+                        float[] plf = new float[16];
+                        Vector3[] pld = new Vector3[16];
+                        Vector3[] pls = new Vector3[16];
+                    engine.Parameters["pLightOn"].SetValue(plo);
+                    engine.Parameters["pLightPos"].SetValue(plp);
+                    engine.Parameters["pLightNear"].SetValue(pln);
+                    engine.Parameters["pLightFar"].SetValue(plf);
+                    engine.Parameters["pLightDiffuse"].SetValue(pld);
+                    engine.Parameters["pLightSpecular"].SetValue(pls);
+                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0, 3, 1)));
+
+                    engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                    engine.CommitChanges();
+
+                    engine.Begin();
+                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                     {
-                        for (int k = 0; k < vSongNames[j].Length; k++)
+                        pass.Begin();
+                        SetProjMatrix(Window.ClientBounds.Width, Window.ClientBounds.Height);
+                        engine.Parameters["fullbright"].SetValue(false);
+
+                        matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
+                        //render the background graphics
+                        engine.Parameters["view"].SetValue(matView);
+                        engine.Parameters["proj"].SetValue(matProj);
+                        engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+
+                        Matrix matRot, matScale, matTranslate;
+
+                        
                         {
-                            if(i>=songoffset)
-                                spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(100 + (k == 0 ? 0 : 50), ii * 40 + 100), k==0?Color.Yellow:i==songselected?Color.White:Color.Gray);
-                            if(k!=0)
-                                i++;
-                            ii++;
-                            if (ii >= 12+songoffset)
-                                break;
+                            matTranslate = Matrix.CreateTranslation(-32, 120, -128);
+                            matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                            matScale = Matrix.CreateScale(256, 192, 128);
+
+                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                            engine.Parameters["wRot"].SetValue(matRot);
+                            engine.Parameters["diffuseTexture"].SetValue(concrTex);
+                            engine.Parameters["bumpTexture"].SetValue(concrBM);
+                            engine.Parameters["shininess"].SetValue(0.25f);
+                            engine.Parameters["SpecularEnabled"].SetValue(false);
+                            engine.Parameters["vertexAlpha"].SetValue(true);
+                            engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                            engine.CommitChanges();
+
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         }
-                        if (ii >= 12+songoffset)
-                            break;
+
+                        if(SongListTex!=null)
+                        {//list
+                            slCurrentWave += (gameTime.ElapsedGameTime.Milliseconds / 1000f) * SONGLIST_WAVE_SPEED;
+                            //if (slCurrentWave > Math.PI*2)
+                            //    slCurrentWave-=(float)(Math.PI*2);
+                            if (songlistGeom == null || songlistGeom.Length < (SONGLIST_WAVEQUALITY-1) * 6)
+                                songlistGeom = new GBVertexFormat[(SONGLIST_WAVEQUALITY-1) * 6];
+                            float waveLast = 0, wave = 0;
+                            Vector3 normal = new Vector3(0, 0, 1), lastNormal = new Vector3(0, 0, 1);
+                            for (int i = 0; i < SONGLIST_WAVEQUALITY-1; i++)
+                            {
+                                waveLast = wave;
+                                wave = (float)Math.Sin((-slCurrentWave + (i / (float)SONGLIST_WAVEQUALITY * slWaveLength))/(Math.PI*2));
+                                if (i <= SONGLIST_WAVEQUALITY / 10)
+                                {
+                                    wave *= (float)Math.Pow(i / (float)(SONGLIST_WAVEQUALITY / 10), 0.5f);
+                                }
+                                lastNormal = normal;
+                                float hi = 192 - (i / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH), lo=192 - ((i+1) / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH);
+                                float inh = -100 + (waveLast * slWaveStrength), inl = -100 + (wave * slWaveStrength);
+                                normal = new Vector3(0, (inl - inh)*1.5f, hi-lo);
+                                normal.Normalize();
+                                songlistGeom[(i * 6)] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
+                                songlistGeom[(i * 6)+1] = new GBVertexFormat(new Vector3(-64, lo, inl), normal, new Vector2(0, (i+1) / (float)SONGLIST_WAVEQUALITY));
+                                songlistGeom[(i * 6)+2] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i+1) / (float)SONGLIST_WAVEQUALITY));
+                                songlistGeom[(i * 6)+3] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
+                                songlistGeom[(i * 6)+4] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i+1) / (float)SONGLIST_WAVEQUALITY));
+                                songlistGeom[(i * 6)+5] = new GBVertexFormat(new Vector3(64, hi, inh), lastNormal, new Vector2(1, i / (float)SONGLIST_WAVEQUALITY));
+                            }
+
+                            songlistVB = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * (SONGLIST_WAVEQUALITY - 1) * 6, BufferUsage.WriteOnly);
+
+                            songlistVB.SetData<GBVertexFormat>(songlistGeom);
+
+                            matRot = Matrix.CreateRotationY((float)Math.PI / -12);
+                            matTranslate = Matrix.CreateTranslation(-10, 20, 0);
+                            matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH, 1, 1));
+                            engine.Parameters["world"].SetValue(matScale*matRot*matTranslate);
+                            engine.Parameters["wRot"].SetValue(matRot);
+                            engine.Parameters["diffuseTexture"].SetValue(SongListTex);
+                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                            engine.Parameters["shininess"].SetValue(0.25f);
+                            engine.Parameters["SpecularEnabled"].SetValue(false);
+                            engine.Parameters["vertexAlpha"].SetValue(false);
+                            engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                            engine.CommitChanges();
+
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(songlistVB, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (SONGLIST_WAVEQUALITY-1)*2);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+
+                        engine.Parameters["fullbright"].SetValue(false);
+                        engine.Parameters["wAlpha"].SetValue(1.0f);
+
+                        pass.End();
                     }
+                    engine.End();
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                    spritebatch.Draw(songchoosetop, new Rectangle(0, 0, windowwidth, (int)((windowheight / 768f) * 256)), Color.White);
                     spritebatch.End();
                 }
                 #endregion
@@ -1780,12 +1974,12 @@ namespace Unsigned
                         Vector3[] pls = new Vector3[16];
                     for (int i = 0; i < contguis.Length; i++)
                     {
-                        if (contguis[i].status == 2)
+                        if (contguis[i].status >= 2)
                         {
                             plo[linum] = true;
                             plp[linum] = new Vector3(-192+(contguis[i].loc*80), 192,-100);
                             pln[linum] = r.Next(64);
-                            plf[linum] = r.Next(64) + 64;
+                            plf[linum] = r.Next(64)+65;
                             pld[linum] = new Vector3(.9f + (float)(r.NextDouble() / 10), .5f + (float)(r.NextDouble() / 10), .2f + (float)(r.NextDouble() / 10));
                             pls[linum] = new Vector3(0.2f, 0.1f, 0.0f);
                             linum++;
@@ -2276,7 +2470,7 @@ namespace Unsigned
                             engine.Parameters["proj"].SetValue(matProj);
 
                             //get board measure world lengths
-                            Vector2[] lenvals = song.GetZVals((DateTime.Now.Ticks - SongStartTime));
+                            song.GetZVals((DateTime.Now.Ticks - SongStartTime));
 
                             //determine fling (song start board comes up)
                             Matrix fling;
@@ -2292,9 +2486,9 @@ namespace Unsigned
                             engine.Parameters["fullbright"].SetValue(true);
 
                             //draw each boards
-                            DrawBoard(i, lenvals, fling, false);
+                            DrawBoard(i, song.zVals, fling, false);
                             if (boards[i].IsSPActivated())
-                                DrawBoard(i, lenvals, fling, true);
+                                DrawBoard(i, song.zVals, fling, true);
                             DrawNotes(i, fling);
                             DrawBoardDetail(i, fling);
                             DrawWaves(i, fling);
@@ -2397,6 +2591,25 @@ namespace Unsigned
                     graphics.GraphicsDevice.Clear(Color.Black);
                     spritebatch.Begin();
                     spritebatch.DrawString(DefaultFont, "Song Passed", new Vector2(10, 10), Color.Green);
+                    if (totalresults.Length != 0)
+                        for (int i = 0; i < 5; i++)
+                        {
+                            if (i < 4 && instruments[i])
+                                spritebatch.DrawString(DefaultFont, 
+                                                       instrumentNames[i]+" - Notes:"+totalresults[i].hitNotes+"/"+
+                                                        totalresults[i].missedNotes+"?"+totalresults[i].totalNotes+
+                                                        ", SPPH:"+totalresults[i].hitSPPH+"/"+totalresults[i].missedSPPH+
+                                                        "?"+totalresults[i].totalSPPH,
+                                                       new Vector2(10, 30+20*i), Color.Green);
+                            else if(i==4)
+                                spritebatch.DrawString(DefaultFont, 
+                                                       "Total - Notes:"+totalresults[i].hitNotes+"/"+
+                                                        totalresults[i].missedNotes+"?"+totalresults[i].totalNotes+
+                                                        ", SPPH:"+totalresults[i].hitSPPH+"/"+totalresults[i].missedSPPH+
+                                                        "?"+totalresults[i].totalSPPH,
+                                                       new Vector2(10, 30+20*i), Color.Green);
+
+                        }
                     spritebatch.End();
                 }
                 #endregion
@@ -2782,10 +2995,20 @@ namespace Unsigned
 
         public void Help(int ind)
         {
-            if (rockMeterLevel[ind] > 80)
-                rockMeterLevel[ind] += .5f * (boards[ind].IsSPActivated()?10:1);
+            if (boards[ind].IsSPActivated())
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] += .8f * (boards[ind].IsSPActivated() ? 10 : 1);
+                else
+                    rockMeterLevel[ind] += 2.0f * (boards[ind].IsSPActivated() ? 10 : 1);
+            }
             else
-                rockMeterLevel[ind] += 1.5f * (boards[ind].IsSPActivated() ? 10 : 1);
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] += .5f * (boards[ind].IsSPActivated() ? 10 : 1);
+                else
+                    rockMeterLevel[ind] += 1.2f * (boards[ind].IsSPActivated() ? 10 : 1);
+            }
         }
 
         private static Vector3[] shardmethlist = { new Vector3(-.5f,0f,0f),new Vector3(-.5f,1f,0f),new Vector3(-.5f,.5f,.5f),new Vector3(-.5f,.5f,-.5f),new Vector3(.5f,0f,0f),new Vector3(.5f,1f,0f),new Vector3(.5f,.5f,.5f),new Vector3(.5f,.5f,-.5f)};
@@ -3546,14 +3769,14 @@ namespace Unsigned
             int lefty = 1;
             if (boards[i].IsLefty() && boards[i].GetBoardType()!=PERCUSSIONIST)
                 lefty = -1;
-            Vector4[] notespos = boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
-            for (int p = 0; p < notespos.Length; p++)
+            boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
+            for (int p = 0; p < boards[i].notesLen; p++)
             {
-                if (boards[i].GetBoardType() == PERCUSSIONIST && notespos[p].Z > 1.5)
+                if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
                 {
 
                 }
-                else if (boards[i].GetBoardType() == PERCUSSIONIST && notespos[p].Z > 0.5)
+                else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5)
                 {
                     engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 0));
                     engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3570,8 +3793,8 @@ namespace Unsigned
                         { matRot = Matrix.CreateRotationZ(0.03f * -Math.Sign(k - 2)); height = 0.03f; }
                         matIdentity = Matrix.Identity;
                         matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(((k / 2f) - .75f) * Board.width, height, -(Board.length * notespos[p+1].Y) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width/4f*((notespos[p].X*2+1)/3f), Board.curveHeight*0.1f, Board.length * (notespos[p+1].Y-notespos[p].Y)));
+                        matOrbit = Matrix.CreateTranslation(((k / 2f) - .75f) * Board.width, height, -(Board.length * boards[i].OutNotes[p+1].Y) - Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3(Board.width/4f*((boards[i].OutNotes[p].X*2+1)/3f), Board.curveHeight*0.1f, Board.length * (boards[i].OutNotes[p+1].Y-boards[i].OutNotes[p].Y)));
 
                         engine.Parameters["wAlpha"].SetValue(1);
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matRot * matOrbit * matTransl);
@@ -3589,20 +3812,20 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
 
-                    if (notespos[p].W<0.5)
+                    if (boards[i].OutNotes[p].W<0.5)
                     {
 
 
                         matIdentity = Matrix.Identity;
                         matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (notespos[p + 1].Y-0.1f)) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f*notespos[p].X, 0.3f));
+                        matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (boards[i].OutNotes[p + 1].Y-0.1f)) - Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f*boards[i].OutNotes[p].X, 0.3f));
 
                         float alpha;
-                        if (notespos[p].Y < Board.sFade)
+                        if (boards[i].OutNotes[p].Y < Board.sFade)
                             alpha = 1;
-                        else if (notespos[p].Y < Board.eFade)
-                            alpha = 1 - ((notespos[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
+                        else if (boards[i].OutNotes[p].Y < Board.eFade)
+                            alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
                         else
                             alpha = 0;
 
@@ -3644,17 +3867,17 @@ namespace Unsigned
                     Matrix matIdentity, matTransl, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
                     matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(notespos[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * notespos[p].Y) - Board.zeroZ) * fling;
-                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(notespos[p].X) < 0.01f)
+                    matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
+                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
                     else
-                        matScale = Matrix.CreateScale(new Vector3(((notespos[p].Z > 0)?0.5f:1.0f) * 0.125f * Board.width, 0.10f, 0.0333f*Board.length));
+                        matScale = Matrix.CreateScale(new Vector3(((boards[i].OutNotes[p].Z > 0)?0.5f:1.0f) * 0.125f * Board.width, 0.10f, 0.0333f*Board.length));
 
                     float alpha;
-                    if (notespos[p].Y < Board.sFade)
+                    if (boards[i].OutNotes[p].Y < Board.sFade)
                         alpha = 1;
-                    else if (notespos[p].Y < Board.eFade)
-                        alpha = 1 - ((notespos[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
+                    else if (boards[i].OutNotes[p].Y < Board.eFade)
+                        alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
                     else
                         alpha = 0;
 
@@ -3666,31 +3889,31 @@ namespace Unsigned
 
                     if (boards[i].GetBoardType() != PERCUSSIONIST)
                     {
-                        if (Math.Abs(notespos[p].X - (-1)) < 0.01)
+                        if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                        else if (Math.Abs(notespos[p].X - (-0.5)) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X - (-0.5)) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                        else if (Math.Abs(notespos[p].X) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                        else if (Math.Abs(notespos[p].X) - (0.5) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X) - (0.5) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
                         else
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[4]);
                     }
                     else
                     {
-                        if (Math.Abs(notespos[p].X - (-1)) < 0.01)
+                        if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                        else if (Math.Abs(notespos[p].X - (-1 / 3f)) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X - (-1 / 3f)) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                        else if (Math.Abs(notespos[p].X) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
-                        else if (Math.Abs(notespos[p].X) - (1 / 3f) < 0.01)
+                        else if (Math.Abs(boards[i].OutNotes[p].X) - (1 / 3f) < 0.01)
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
                         else
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
                     }
-                    if (notespos[p].W > 0.5)
+                    if (boards[i].OutNotes[p].W > 0.5)
                         engine.Parameters["diffuseTexture"].SetValue(texWhite);
                     engine.CommitChanges();
 
@@ -3699,7 +3922,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(notespos[p].X) < 0.01f)
+                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
                     {
                         graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
                         graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
@@ -4076,13 +4299,13 @@ namespace Unsigned
                                     spritebatch.Draw(texRockMeterGuitarLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
                                     break;
                                 case 1:
-                                    spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
                                     break;
                                 case 2:
                                     spritebatch.Draw(texRockMeterDrumLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
                                     break;
                                 case 3:
-                                    spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
                                     break;
                             }
                             tnum--;

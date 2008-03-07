@@ -118,6 +118,21 @@
     <None Include="songdata\dontholdback.gbg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="songdata\Master of Puppets.gba">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master of Puppets.gbb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master of Puppets.gbd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master of Puppets.gbe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="songdata\Master of Puppets.gbg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="songdata\Master_of_Puppets.gba">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

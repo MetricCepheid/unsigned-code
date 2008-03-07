@@ -19,6 +19,7 @@ namespace Unsigned
         private int currentBar = 0;
         bool playing = false;
         String[] charters;
+        public Vector2[] zVals = new Vector2[12];
 
 #if ! XBOX
 
@@ -86,7 +87,7 @@ namespace Unsigned
 #endif
         }
 
-        public Vector2[] GetZVals(long currenttime)
+        public void GetZVals(long currenttime)
         {
             currenttime /= (long)(Game1.TicksPerSecond / 1000);
             int k;
@@ -96,17 +97,15 @@ namespace Unsigned
             k -= 3;
             if (k < 0)
                 k = 0;
-            Vector2[] ret = new Vector2[12];
             for (int i = 0; i < 12; i++)
             {
                 if (i + k >= Bars.Length)
-                    ret[i] = new Vector2(((i + k) - (Bars.Length - 1)) * endLength + Bars[Bars.Length - 1].X, DefaultBPM);
+                    zVals[i] = new Vector2(((i + k) - (Bars.Length - 1)) * endLength + Bars[Bars.Length - 1].X, DefaultBPM);
                 else
-                    ret[i] = Bars[i + k];
+                    zVals[i] = Bars[i + k];
             }
             for (int i = 0; i < 12; i++)
-                ret[i].X = ((ret[i].X)-currenttime)/1000f;
-            return ret;
+                zVals[i].X = ((zVals[i].X)-currenttime)/1000f;
         }
 
         public void Update(long currenttime)
