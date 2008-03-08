@@ -1091,6 +1091,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="graphics\keyboard_v.tga">
+      <Name>keyboard_v</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="charmodels\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

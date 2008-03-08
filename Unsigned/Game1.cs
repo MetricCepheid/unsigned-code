@@ -468,6 +468,12 @@ namespace Unsigned
                         wait = 30;
                         if (loc == 1)
                             nextLoc = 0;
+                        //else if (loc == 2 && !filled[0])
+                        //    nextLoc = 1;
+                        //else if (loc == 2)
+                        //    nextLoc = 0;
+                        //else if (loc == 3 && !filled[1])
+                        //    nextLoc = 2;
                         else if (loc == 3 && !filled[0])
                             nextLoc = 1;
                         else if (loc == 3)
@@ -484,14 +490,22 @@ namespace Unsigned
                         wait = 30;
                         if (loc == 0 && !filled[0])
                             nextLoc = 1;
+                        //else if (loc == 0 && !filled[1])
+                        //    nextLoc = 2;
                         else if (loc == 0 && !filled[2])
                             nextLoc = 3;
                         else if (loc == 0 && !filled[3])
                             nextLoc = 4;
+                        //else if (loc == 1 && !filled[1])
+                        //    nextLoc = 2;
                         else if (loc == 1 && !filled[2])
                             nextLoc = 3;
                         else if (loc == 1 && !filled[3])
                             nextLoc = 4;
+                        //else if (loc == 2 && !filled[2])
+                        //    nextLoc = 3;
+                        //else if (loc == 2 && !filled[3])
+                        //    nextLoc = 4;
                         else if (loc == 3 && !filled[3])
                             nextLoc = 4;
                     }
@@ -552,7 +566,7 @@ namespace Unsigned
             public enum RETURN_VALUE { NOTHING = 0, UPDATE_NOTE = 1, NEXT_SCREEN = 2, INCREMENT_NAME=3, DECREMENT_NAME=4 };
 
             public static ContGUIData INVALID = new ContGUIData((CONT_TYPE) (-1), (PlayerIndex) (-2));
-            public static Texture2D KB_ICO_BLUR, KB_ICO_GUITAR, KB_ICO_DRUM,
+            public static Texture2D KB_ICO_BLUR, KB_ICO_GUITAR, KB_ICO_DRUM, KB_ICO_VOCAL,
                                     GUITAR_ICO_BLUR, GUITAR_ICO, DRUMS_ICO_BLUR, DRUMS_ICO,
                                     MICROPHONE_ICO_BLUR, MICROPHONE_ICO, GUITARX_ICO_BLUR, GUITARX_ICO;
         }
@@ -871,6 +885,7 @@ namespace Unsigned
                         ContGUIData.KB_ICO_DRUM = content.Load<Texture2D>("graphics\\keyboard_d");
                         ContGUIData.KB_ICO_BLUR = content.Load<Texture2D>("graphics\\keyboard_a");
                         ContGUIData.KB_ICO_GUITAR = content.Load<Texture2D>("graphics\\keyboard_g");
+                        ContGUIData.KB_ICO_VOCAL = content.Load<Texture2D>("graphics\\keyboard_v");
                         ContGUIData.GUITAR_ICO = content.Load<Texture2D>("graphics\\guitarlogo");
                         ContGUIData.GUITAR_ICO_BLUR = content.Load<Texture2D>("graphics\\guitarlogo_blur");
                         ContGUIData.GUITARX_ICO = content.Load<Texture2D>("graphics\\xplorerlogo");
@@ -1996,7 +2011,13 @@ namespace Unsigned
                     engine.Parameters["dLightDir"].SetValue(new Vector3(0, 1, 1));
                     float vmul = 2f, hmul = 2f;
 
-                    engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                    Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
+                    if (SM.Major >= 3)
+                        engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                    else if (SM.Major >= 2)
+                        engine.CurrentTechnique = engine.Techniques["menutechniquet"];
+                    else
+                        Exit();
                     engine.CommitChanges();
 
                     engine.Begin();
@@ -2227,7 +2248,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["wAlpha"].SetValue(1);
@@ -2252,7 +2273,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0);
                                 engine.Parameters["wAlpha"].SetValue(contguis[0].loc - (int)contguis[0].loc);
@@ -2409,6 +2430,13 @@ namespace Unsigned
                     vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
                     //graphics.PreferMultiSampling = true;
                     graphics.ApplyChanges();
+                    Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
+                    if (SM.Major >= 3)
+                        engine.CurrentTechnique = engine.Techniques["maintechnique"];
+                    else if (SM.Major >= 2)
+                        renderLevel = 0;
+                    else
+                        Exit();
                     if (renderLevel > 0)
                     {
                         graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -2427,7 +2455,7 @@ namespace Unsigned
                         engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
                         engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
-                    
+                        
                         engine.CurrentTechnique = engine.Techniques["maintechnique"];
                         matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
                         graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -2824,6 +2852,10 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && !percussionist && vocalist)
             {
+                song = new Song(4, 2, songname,this.Window.Handle);
+                boards[1] = new Board(VOCALS, 0, song, difficulty[1]);
+                Board.vocalheight = 100;
+                Board.vocaly = 450;
             }
             else if (guitarist && !bassist && !percussionist && !vocalist)
             {
@@ -3478,57 +3510,22 @@ namespace Unsigned
 
         private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP)
         {
-            Matrix matTransl, matScale, matOrbit;
-            VertexBuffer vb;
-            //draw pre-song board
-            if (lenvals[0].X > -Board.zeroZ)
+            if (i != 1)
             {
-                matTransl = Matrix.CreateTranslation(0f, Board.height+(boards[i].GetBoardBump()*Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((SongStartTime / (float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-                if (!SP)
+                Matrix matTransl, matScale, matOrbit;
+                VertexBuffer vb;
+                //draw pre-song board
+                if (lenvals[0].X > -Board.zeroZ)
                 {
-                    engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
-                    engine.Parameters["wAlpha"].SetValue(1.0f);
-                }
-                else
-                {
-                    engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
-                    engine.Parameters["wAlpha"].SetValue(0.5f);
-                }
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
-                
-            }
-            //Draw song board
-            int k;
-            for (k = 0; k < 11; k++)
-            {
-                if (boards[i].GetBoardType() != VOCALIST)
-                {
-                    if (lenvals[k + 1].X >= Board.sFade)
-                        break;
                     matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(0, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - lenvals[k + 1].X)));
+                    matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((SongStartTime / (float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
                     if (!SP)
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
                         engine.Parameters["wAlpha"].SetValue(1.0f);
                     }
                     else
@@ -3546,105 +3543,143 @@ namespace Unsigned
                     graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+
                 }
-            }
-            //draw tail
-            float[] old = new float[Board.arrBoard.Length];
-            for (int r = 0; r < Board.arrBoard.Length; r++)
-                old[r] = Board.arrBoard[r].TexCoord.Y;
-            float sTexY = (lenvals[k].X - Board.sFade) / (lenvals[k].X - lenvals[k + 1].X);
-            float eTexY = (lenvals[k].X - Board.eFade) / (lenvals[k].X - lenvals[k + 1].X);
-            if (lenvals[0].X <= Board.sFade && boards[i].GetBoardType() != VOCALIST)
-            {
-                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - Board.sFade)));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-
-                for (int r = 0; r < Board.arrBoard.Length; r++)
+                //Draw song board
+                int k;
+                for (k = 0; k < 11; k++)
                 {
-                    if (old[r] >= 1)
-                        Board.arrBoard[r].TexCoord.Y = sTexY;
-                }
-
-                if (!SP)
-                {
-                    engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
-                    engine.Parameters["wAlpha"].SetValue(1.0f);
-                }
-                else
-                {
-                    engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
-                    engine.Parameters["wAlpha"].SetValue(0.5f);
-                }
-                engine.CommitChanges();
-
-                vb = new VertexBuffer(graphics.GraphicsDevice, Board.arrBoard.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
-                vb.SetData<GBVertexFormat>(Board.arrBoard);
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha; 
-                graphics.GraphicsDevice.Vertices[0].SetSource(vb, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (vb.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-            }
-            {
-                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * Board.sFade) - Board.zeroZ) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (Board.sFade - Board.eFade)));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-                for (int r = 0; r < Board.arrBoard.Length; r++)
-                {
-                    if (old[r] >= 1)
+                    if (boards[i].GetBoardType() != VOCALIST)
                     {
-                        Board.arrBoard[r].TexCoord.Y = eTexY;
-                        Board.arrBoard[r].Alpha = 0f;
+                        if (lenvals[k + 1].X >= Board.sFade)
+                            break;
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - lenvals[k + 1].X)));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+                        if (!SP)
+                        {
+                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                            engine.Parameters["wAlpha"].SetValue(1.0f);
+                        }
+                        else
+                        {
+                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                            engine.Parameters["wAlpha"].SetValue(0.5f);
+                        }
+                        engine.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
-                    if (old[r] <= 0)
-                        Board.arrBoard[r].TexCoord.Y = sTexY;
                 }
-
-                if (lenvals[0].X > Board.eFade)
-                {
-                    if(!SP)
-                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
-                    else
-                        engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
-                }
-                else
-                {
-                    if(!SP)
-                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
-                    else
-                        engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
-                }
-                if (SP)
-                    engine.Parameters["wAlpha"].SetValue(0.5f);
-                engine.CommitChanges();
-
-                vb = new VertexBuffer(graphics.GraphicsDevice, Board.arrBoard.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
-                vb.SetData<GBVertexFormat>(Board.arrBoard);
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                graphics.GraphicsDevice.Vertices[0].SetSource(vb, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (vb.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
+                //draw tail
+                float[] old = new float[Board.arrBoard.Length];
                 for (int r = 0; r < Board.arrBoard.Length; r++)
+                    old[r] = Board.arrBoard[r].TexCoord.Y;
+                float sTexY = (lenvals[k].X - Board.sFade) / (lenvals[k].X - lenvals[k + 1].X);
+                float eTexY = (lenvals[k].X - Board.eFade) / (lenvals[k].X - lenvals[k + 1].X);
+                if (lenvals[0].X <= Board.sFade && boards[i].GetBoardType() != VOCALIST)
                 {
-                    Board.arrBoard[r].TexCoord.Y = old[r];
-                    Board.arrBoard[r].Alpha = 1f;
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - Board.sFade)));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+
+                    for (int r = 0; r < Board.arrBoard.Length; r++)
+                    {
+                        if (old[r] >= 1)
+                            Board.arrBoard[r].TexCoord.Y = sTexY;
+                    }
+
+                    if (!SP)
+                    {
+                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                        engine.Parameters["wAlpha"].SetValue(1.0f);
+                    }
+                    else
+                    {
+                        engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                        engine.Parameters["wAlpha"].SetValue(0.5f);
+                    }
+                    engine.CommitChanges();
+
+                    vb = new VertexBuffer(graphics.GraphicsDevice, Board.arrBoard.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
+                    vb.SetData<GBVertexFormat>(Board.arrBoard);
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(vb, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (vb.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+                {
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * Board.sFade) - Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (Board.sFade - Board.eFade)));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+                    for (int r = 0; r < Board.arrBoard.Length; r++)
+                    {
+                        if (old[r] >= 1)
+                        {
+                            Board.arrBoard[r].TexCoord.Y = eTexY;
+                            Board.arrBoard[r].Alpha = 0f;
+                        }
+                        if (old[r] <= 0)
+                            Board.arrBoard[r].TexCoord.Y = sTexY;
+                    }
+
+                    if (lenvals[0].X > Board.eFade)
+                    {
+                        if (!SP)
+                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
+                        else
+                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                    }
+                    else
+                    {
+                        if (!SP)
+                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                        else
+                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                    }
+                    if (SP)
+                        engine.Parameters["wAlpha"].SetValue(0.5f);
+                    engine.CommitChanges();
+
+                    vb = new VertexBuffer(graphics.GraphicsDevice, Board.arrBoard.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
+                    vb.SetData<GBVertexFormat>(Board.arrBoard);
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(vb, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (vb.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+                    for (int r = 0; r < Board.arrBoard.Length; r++)
+                    {
+                        Board.arrBoard[r].TexCoord.Y = old[r];
+                        Board.arrBoard[r].Alpha = 1f;
+                    }
                 }
             }
         }
@@ -3764,62 +3799,116 @@ namespace Unsigned
 
         private void DrawNotes(int i, Matrix fling)
         {
-            engine.Parameters["fullbright"].SetValue(true);
-            engine.Parameters["vertexAlpha"].SetValue(false);
-            int lefty = 1;
-            if (boards[i].IsLefty() && boards[i].GetBoardType()!=PERCUSSIONIST)
-                lefty = -1;
-            boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
-            for (int p = 0; p < boards[i].notesLen; p++)
+            if (i != 1)
             {
-                if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
+                engine.Parameters["fullbright"].SetValue(true);
+                engine.Parameters["vertexAlpha"].SetValue(false);
+                int lefty = 1;
+                if (boards[i].IsLefty() && boards[i].GetBoardType() != PERCUSSIONIST)
+                    lefty = -1;
+                boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
+                for (int p = 0; p < boards[i].notesLen; p++)
                 {
-
-                }
-                else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5)
-                {
-                    engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 0));
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                    engine.Parameters["fullbright"].SetValue(true);
-                    Matrix matIdentity, matTransl, matRot, matScale, matOrbit;
-                    for (int k = 0; k < 4; k++)
+                    if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
                     {
-                        float height=0;
-                        matRot = Matrix.Identity;
-                        if (k == 0 || k == 3)
-                        { matRot = Matrix.CreateRotationZ(0.07f * -Math.Sign(k - 2)); height = 0.01f; }
-                        if (k == 1 || k == 2)
-                        { matRot = Matrix.CreateRotationZ(0.03f * -Math.Sign(k - 2)); height = 0.03f; }
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(((k / 2f) - .75f) * Board.width, height, -(Board.length * boards[i].OutNotes[p+1].Y) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width/4f*((boards[i].OutNotes[p].X*2+1)/3f), Board.curveHeight*0.1f, Board.length * (boards[i].OutNotes[p+1].Y-boards[i].OutNotes[p].Y)));
 
-                        engine.Parameters["wAlpha"].SetValue(1);
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matRot * matOrbit * matTransl);
-                        engine.Parameters["diffuseTexture"].SetValue(Board.drumfillTex);
-                        engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[k]]);
-                        engine.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
-
-                    if (boards[i].OutNotes[p].W<0.5)
+                    else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5)
                     {
+                        engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 0));
+                        engine.Parameters["SpecularEnabled"].SetValue(false);
+                        engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                        engine.Parameters["fullbright"].SetValue(true);
+                        Matrix matIdentity, matTransl, matRot, matScale, matOrbit;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            float height = 0;
+                            matRot = Matrix.Identity;
+                            if (k == 0 || k == 3)
+                            { matRot = Matrix.CreateRotationZ(0.07f * -Math.Sign(k - 2)); height = 0.01f; }
+                            if (k == 1 || k == 2)
+                            { matRot = Matrix.CreateRotationZ(0.03f * -Math.Sign(k - 2)); height = 0.03f; }
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(((k / 2f) - .75f) * Board.width, height, -(Board.length * boards[i].OutNotes[p + 1].Y) - Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3(Board.width / 4f * ((boards[i].OutNotes[p].X * 2 + 1) / 3f), Board.curveHeight * 0.1f, Board.length * (boards[i].OutNotes[p + 1].Y - boards[i].OutNotes[p].Y)));
+
+                            engine.Parameters["wAlpha"].SetValue(1);
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matRot * matOrbit * matTransl);
+                            engine.Parameters["diffuseTexture"].SetValue(Board.drumfillTex);
+                            engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[k]]);
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+
+                        if (boards[i].OutNotes[p].W < 0.5)
+                        {
 
 
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (boards[i].OutNotes[p + 1].Y - 0.1f)) - Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f * boards[i].OutNotes[p].X, 0.3f));
+
+                            float alpha;
+                            if (boards[i].OutNotes[p].Y < Board.sFade)
+                                alpha = 1;
+                            else if (boards[i].OutNotes[p].Y < Board.eFade)
+                                alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
+                            else
+                                alpha = 0;
+
+
+                            engine.Parameters["wAlpha"].SetValue(alpha);
+
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
+                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+
+                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
+                        engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                        engine.Parameters["SpecularEnabled"].SetValue(true);
+                        engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                    }
+                    else
+                    {
+                        Matrix matIdentity, matTransl, matScale, matOrbit;
                         matIdentity = Matrix.Identity;
                         matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (boards[i].OutNotes[p + 1].Y-0.1f)) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f*boards[i].OutNotes[p].X, 0.3f));
+                        matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
+                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
+                        else
+                            matScale = Matrix.CreateScale(new Vector3(((boards[i].OutNotes[p].Z > 0) ? 0.5f : 1.0f) * 0.125f * Board.width, 0.10f, 0.0333f * Board.length));
 
                         float alpha;
                         if (boards[i].OutNotes[p].Y < Board.sFade)
@@ -3835,8 +3924,34 @@ namespace Unsigned
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                        engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                        if (boards[i].GetBoardType() != PERCUSSIONIST)
+                        {
+                            if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
+                            else if (Math.Abs(boards[i].OutNotes[p].X - (-0.5)) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
+                            else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
+                            else if (Math.Abs(boards[i].OutNotes[p].X) - (0.5) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
+                            else
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[4]);
+                        }
+                        else
+                        {
+                            if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
+                            else if (Math.Abs(boards[i].OutNotes[p].X - (-1 / 3f)) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
+                            else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                            else if (Math.Abs(boards[i].OutNotes[p].X) - (1 / 3f) < 0.01)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
+                            else
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
+                        }
+                        if (boards[i].OutNotes[p].W > 0.5)
+                            engine.Parameters["diffuseTexture"].SetValue(texWhite);
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -3844,194 +3959,119 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                         graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                         graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
                         {
-                            foreach (ModelMeshPart part in mesh.MeshParts)
-                            {
-                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                            }
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                         }
+                        else
+                            foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+
+                                    //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.CommitChanges();
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
-
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
-                    engine.Parameters["SpecularEnabled"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
                 }
-                else
-                {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
-                    matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
-                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
-                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
-                    else
-                        matScale = Matrix.CreateScale(new Vector3(((boards[i].OutNotes[p].Z > 0)?0.5f:1.0f) * 0.125f * Board.width, 0.10f, 0.0333f*Board.length));
-
-                    float alpha;
-                    if (boards[i].OutNotes[p].Y < Board.sFade)
-                        alpha = 1;
-                    else if (boards[i].OutNotes[p].Y < Board.eFade)
-                        alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
-                    else
-                        alpha = 0;
-
-
-                    engine.Parameters["wAlpha"].SetValue(alpha);
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                    if (boards[i].GetBoardType() != PERCUSSIONIST)
-                    {
-                        if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                        else if (Math.Abs(boards[i].OutNotes[p].X - (-0.5)) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                        else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                        else if (Math.Abs(boards[i].OutNotes[p].X) - (0.5) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
-                        else
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[4]);
-                    }
-                    else
-                    {
-                        if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                        else if (Math.Abs(boards[i].OutNotes[p].X - (-1 / 3f)) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                        else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
-                        else if (Math.Abs(boards[i].OutNotes[p].X) - (1 / 3f) < 0.01)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
-                        else
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                    }
-                    if (boards[i].OutNotes[p].W > 0.5)
-                        engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
-                    {
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                    }
-                    else
-                        foreach (ModelMesh mesh in Board.mdlNote.Meshes)
-                        {
-                            foreach (ModelMeshPart part in mesh.MeshParts)
-                            {
-
-                                //engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.CommitChanges();
-                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                            }
-                        }
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
+                engine.Parameters["wAlpha"].SetValue(1.0f);
+                engine.Parameters["fullbright"].SetValue(false);
+                engine.Parameters["vertexAlpha"].SetValue(true);
             }
-            engine.Parameters["wAlpha"].SetValue(1.0f);
-            engine.Parameters["fullbright"].SetValue(false);
-            engine.Parameters["vertexAlpha"].SetValue(true);
         }
 
         private void DrawBoardDetail(int i, Matrix fling)
         {
-            engine.Parameters["fullbright"].SetValue(true);
-            int lefty = 1;
-            if (boards[i].IsLefty())
-                lefty = -1;
-
-            if (boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS)
+            if (i != 1)
             {
-                Matrix matIdentity, matTransl, matScale, matOrbit;
-
-                bool[] glow = new bool[5];
-                for (int p = 0; p < 5; p++)
-                {
-                    float rise = -.01f;
-
-                    matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((boards[i].GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                    engine.Parameters["proj"].SetValue(matProj);
-
-                    engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
-                    if (contInput[boards[i].GetBoardType()] < 4)
-                    {
-                        if (p == 0 && controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 1 && controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 2 && controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 3 && controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                        if (p == 4 && controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
-                    }
-                    else if (contInput[boards[i].GetBoardType()] == 4 && boards[i].IsLefty())
-                    {
-                        if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.G))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
-                        if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.F))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
-                        if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
-                        if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.S))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
-                        if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.A))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
-                    }
-                    else if (contInput[boards[i].GetBoardType()] == 4 && !boards[i].IsLefty())
-                    {
-                        if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.G))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
-                        if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.F))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
-                        if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
-                        if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.S))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
-                        if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.A))
-                        { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
-                    }
-
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
                 engine.Parameters["fullbright"].SetValue(true);
-                float[] pop = boards[i].GetPopups();
-                for (int p = 0; p < 5; p++)
+                int lefty = 1;
+                if (boards[i].IsLefty())
+                    lefty = -1;
+
+                if (boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS)
                 {
+                    Matrix matIdentity, matTransl, matScale, matOrbit;
+
+                    bool[] glow = new bool[5];
+                    for (int p = 0; p < 5; p++)
+                    {
+                        float rise = -.01f;
+
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((boards[i].GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                        engine.Parameters["proj"].SetValue(matProj);
+
+                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
+                        if (contInput[boards[i].GetBoardType()] < 4)
+                        {
+                            if (p == 0 && controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            if (p == 1 && controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            if (p == 2 && controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            if (p == 3 && controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            if (p == 4 && controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                        }
+                        else if (contInput[boards[i].GetBoardType()] == 4 && boards[i].IsLefty())
+                        {
+                            if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.G))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                            if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.F))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.S))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.A))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                        }
+                        else if (contInput[boards[i].GetBoardType()] == 4 && !boards[i].IsLefty())
+                        {
+                            if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.G))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                            if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.F))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.S))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.A))
+                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                        }
+
+                        engine.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }
+                    engine.Parameters["fullbright"].SetValue(true);
+                    float[] pop = boards[i].GetPopups();
+                    for (int p = 0; p < 5; p++)
+                    {
 
                         matIdentity = Matrix.Identity;
                         matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
@@ -4057,201 +4097,203 @@ namespace Unsigned
                         graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                         //graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                engine.Parameters["fullbright"].SetValue(false);
-                engine.Parameters["wAlpha"].SetValue(1);
-            }
-            else if (boards[i].GetBoardType() == PERCUSSIONIST)
-            {
-
-
-                bool[] glow = new bool[5];
-                float[] pop = boards[i].GetPopups();
-                for (int k = 0; k < 5; k++)
-                    glow[k] = pop[k] > 0;
-                for (int p = 0; p < 5; p++)
-                {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
-                    float rise = -.01f;
-                    if (p < 4)
-                    {
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation((-.75f + (p * .5f)) * (Board.width), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((boards[i].GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 0.05f, .05f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
                     }
-                    else
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
-                    if (glow[p] && p < 4)
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
-
-                    engine.CommitChanges();
-
-                    if (p < 4)
-                    {
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
-                    else
-                    {
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, 0f, -(0.04f) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        engine.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, 0f, (0.04f) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        engine.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
+                    engine.Parameters["fullbright"].SetValue(false);
+                    engine.Parameters["wAlpha"].SetValue(1);
 
                 }
-                int[] gloworder = { 0, 4, 1, 3, 2 };
-                engine.Parameters["fullbright"].SetValue(true);
-                for (int p = 0; p < 4; p++)
+                else if (boards[i].GetBoardType() == PERCUSSIONIST)
                 {
-                    if (glow[p])
+
+
+                    bool[] glow = new bool[5];
+                    float[] pop = boards[i].GetPopups();
+                    for (int k = 0; k < 5; k++)
+                        glow[k] = pop[k] > 0;
+                    for (int p = 0; p < 5; p++)
                     {
                         Matrix matIdentity, matTransl, matScale, matOrbit;
+                        float rise = -.01f;
+                        if (p < 4)
+                        {
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation((-.75f + (p * .5f)) * (Board.width), Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((boards[i].GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 0.05f, .05f));
 
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation((-0.75f + (p * .5f)) * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (gloworder[p] * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                        if (boards[i].GetBoardType() != PERCUSSIONIST)
-                            engine.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
+                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
+                        }
                         else
-                            engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
-                        engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
+                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                        if (glow[p] && p < 4)
+                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
 
-                        engine.Parameters["diffuseTexture"].SetValue(texGlow);
                         engine.CommitChanges();
 
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
-                }
+                        if (p < 4)
+                        {
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+                        else
+                        {
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0f, 0f, -(0.04f) - Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
 
-                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0f, 0f, (0.04f) - Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
+
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+
+                    }
+                    int[] gloworder = { 0, 4, 1, 3, 2 };
+                    engine.Parameters["fullbright"].SetValue(true);
+                    for (int p = 0; p < 4; p++)
+                    {
+                        if (glow[p])
+                        {
+                            Matrix matIdentity, matTransl, matScale, matOrbit;
+
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation((-0.75f + (p * .5f)) * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (gloworder[p] * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
+
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                            if (boards[i].GetBoardType() != PERCUSSIONIST)
+                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
+                            else
+                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
+                            engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
+
+                            engine.Parameters["diffuseTexture"].SetValue(texGlow);
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+                    }
+
+                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                    engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                    engine.Parameters["fullbright"].SetValue(false);
+                }
+                engine.Parameters["fullbright"].SetValue(true);
+                {
+                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    matIdentity = Matrix.Identity;
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, 0.09f, (0.25f) - Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width * 1.1f, Board.curveHeight * 0.8f, Board.length * 0.05f));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                    engine.Parameters["diffuseTexture"].SetValue(Board.SPMFlashTex);
+                    engine.Parameters["wAlpha"].SetValue(boards[i].SPMFlash);
+                    engine.CommitChanges();
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+                engine.Parameters["wAlpha"].SetValue(1.0f);
+                {
+                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    matIdentity = Matrix.Identity;
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, 0.1f, (0.2f) - Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width * 0.9f, Board.curveHeight * 0.8f, Board.length * 0.02f));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                    engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMeterTex);
+                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                    engine.CommitChanges();
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlSPM, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+                {
+                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    matIdentity = Matrix.Identity;
+                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, 0.110f, (0.265f) - Board.zeroZ - Board.spShift) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(Board.width * 0.325f, 0.02f, Board.length * 0.2f));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                    engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMRTex);
+                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                    engine.CommitChanges();
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
                 engine.Parameters["fullbright"].SetValue(false);
             }
-            engine.Parameters["fullbright"].SetValue(true);
-            {
-                Matrix matIdentity, matTransl, matScale, matOrbit;
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0.09f, (0.25f) - Board.zeroZ) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width*1.1f, Board.curveHeight * 0.8f, Board.length * 0.05f));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                engine.Parameters["diffuseTexture"].SetValue(Board.SPMFlashTex);
-                engine.Parameters["wAlpha"].SetValue(boards[i].SPMFlash);
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-            }
-            engine.Parameters["wAlpha"].SetValue(1.0f);
-            {
-                Matrix matIdentity, matTransl, matScale, matOrbit;
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0.1f, (0.2f) - Board.zeroZ) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width*0.9f, Board.curveHeight*0.8f, Board.length * 0.02f));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMeterTex);
-                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlSPM, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-            }
-            {
-                Matrix matIdentity, matTransl, matScale, matOrbit;
-                matIdentity = Matrix.Identity;
-                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                matOrbit = Matrix.CreateTranslation(0f, 0.110f, (0.265f) - Board.zeroZ - Board.spShift) * fling;
-                matScale = Matrix.CreateScale(new Vector3(Board.width * 0.325f, 0.02f, Board.length * 0.2f));
-
-                // identity, scale, rotate, orbit(translate & rotate), translate
-                engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMRTex);
-                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                engine.CommitChanges();
-
-                // 5: draw object - select vertex type, primitive type, # of primitives
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
-                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-            }
-            engine.Parameters["fullbright"].SetValue(false);
         }
 
         private void DrawRockMeter()
