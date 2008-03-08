@@ -566,7 +566,7 @@ technique menutechnique {
 	}
 }
 
-technique menutechnique {
+technique menutechniquet {
 	pass pass0 {
 		VertexShader = compile vs_2_0 MenuVertexShadert();
 		PixelShader  = compile ps_2_0 MenuPixelShadert();
