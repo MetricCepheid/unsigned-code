@@ -8,6 +8,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
+#if !XBOX
+//using Microsoft.DirectX.
+#endif
 #endregion
 
 
@@ -684,11 +687,6 @@ namespace Unsigned
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
-            engine.Parameters["ambientColor"].SetValue(new Vector4(1.0f,1.0f,1.0f,1.0f));
-            float[] pLightFar = new float[16];
-            for (int i = 0; i < 16; i++)
-                pLightFar[i] = 10f;
-            engine.Parameters["pLightFar"].SetValue(pLightFar);
             
 
             SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
@@ -701,19 +699,40 @@ namespace Unsigned
 
         private void Configurate()
         {
-            System.IO.StreamReader fin = new System.IO.StreamReader("config.cfg");
-            do
+            System.IO.StreamReader fin;
+            try
             {
-                String str = fin.ReadLine();
-                if (str.Length > 12 && str.Substring(0, 12).ToLower().Equals("3dbackground"))
+                fin = new System.IO.StreamReader("config.cfg");
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
+                Exit();
+                return;
+            }
+            try
+            {
+                do
                 {
-                    int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
-                    if (val == 0)
-                        renderLevel = 0;
-                    else
-                        renderLevel = 10;
-                }
-            } while (!fin.EndOfStream);
+                    String str = fin.ReadLine();
+                    if (str.Length > 12 && str.Substring(0, 12).ToLower().Equals("3dbackground"))
+                    {
+                        int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        if (val == 0)
+                            renderLevel = 0;
+                        else
+                            renderLevel = 10;
+                    }
+                } while (!fin.EndOfStream);
+            }
+            catch (FormatException e)
+            {
+                System.Windows.Forms.MessageBox.Show("config.cfg number was not a number!");
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show("config.cfg general error");
+            }
         }
 
         void SetProjMatrix(int w, int h)
@@ -1816,20 +1835,22 @@ namespace Unsigned
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
-                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
-                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
-                    //graphics.PreferMultiSampling = true;
-                    graphics.ApplyChanges();
+                    try
+                    {
+                        graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                        graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                        graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                        //graphics.PreferMultiSampling = true;
+                        graphics.ApplyChanges();
 
-                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
-                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                    //graphics.GraphicsDevice.
+                        vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                        //graphics.GraphicsDevice.
 
-                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+                        engine.Parameters["diffuseColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
                         bool[] plo = new bool[16];
                         Vector3[] plp = new Vector3[16];
@@ -1837,298 +1858,267 @@ namespace Unsigned
                         float[] plf = new float[16];
                         Vector3[] pld = new Vector3[16];
                         Vector3[] pls = new Vector3[16];
-                    engine.Parameters["pLightOn"].SetValue(plo);
-                    engine.Parameters["pLightPos"].SetValue(plp);
-                    engine.Parameters["pLightNear"].SetValue(pln);
-                    engine.Parameters["pLightFar"].SetValue(plf);
-                    engine.Parameters["pLightDiffuse"].SetValue(pld);
-                    engine.Parameters["pLightSpecular"].SetValue(pls);
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                    engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0, 3, 1)));
+                        engine.Parameters["pLightOn"].SetValue(plo);
+                        engine.Parameters["pLightPos"].SetValue(plp);
+                        engine.Parameters["pLightNear"].SetValue(pln);
+                        engine.Parameters["pLightFar"].SetValue(plf);
+                        engine.Parameters["pLightDiffuse"].SetValue(pld);
+                        engine.Parameters["pLightSpecular"].SetValue(pls);
+                        engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+                        engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                        engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0, 3, 1)));
 
-                    engine.CurrentTechnique = engine.Techniques["menutechnique"];
-                    engine.CommitChanges();
+                        engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                        engine.CommitChanges();
 
-                    engine.Begin();
-                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
-                    {
-                        pass.Begin();
-                        SetProjMatrix(Window.ClientBounds.Width, Window.ClientBounds.Height);
-                        engine.Parameters["fullbright"].SetValue(false);
-
-                        matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
-                        //render the background graphics
-                        engine.Parameters["view"].SetValue(matView);
-                        engine.Parameters["proj"].SetValue(matProj);
-                        engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
-
-                        Matrix matRot, matScale, matTranslate;
-
-                        
+                        engine.Begin();
+                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                         {
-                            matTranslate = Matrix.CreateTranslation(-32, 120, -128);
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                            matScale = Matrix.CreateScale(256, 192, 128);
+                            pass.Begin();
+                            SetProjMatrix(Window.ClientBounds.Width, Window.ClientBounds.Height);
+                            engine.Parameters["fullbright"].SetValue(false);
 
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(concrTex);
-                            engine.Parameters["bumpTexture"].SetValue(concrBM);
-                            engine.Parameters["shininess"].SetValue(0.25f);
-                            engine.Parameters["SpecularEnabled"].SetValue(false);
-                            engine.Parameters["vertexAlpha"].SetValue(true);
-                            engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                            engine.CommitChanges();
+                            matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
+                            //render the background graphics
+                            engine.Parameters["view"].SetValue(matView);
+                            engine.Parameters["proj"].SetValue(matProj);
+                            engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
 
-                            graphics.GraphicsDevice.VertexDeclaration = vd;
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                        }
+                            Matrix matRot, matScale, matTranslate;
 
-                        if(SongListTex!=null)
-                        {//list
-                            slCurrentWave += (gameTime.ElapsedGameTime.Milliseconds / 1000f) * SONGLIST_WAVE_SPEED;
-                            //if (slCurrentWave > Math.PI*2)
-                            //    slCurrentWave-=(float)(Math.PI*2);
-                            if (songlistGeom == null || songlistGeom.Length < (SONGLIST_WAVEQUALITY-1) * 6)
-                                songlistGeom = new GBVertexFormat[(SONGLIST_WAVEQUALITY-1) * 6];
-                            float waveLast = 0, wave = 0;
-                            Vector3 normal = new Vector3(0, 0, 1), lastNormal = new Vector3(0, 0, 1);
-                            for (int i = 0; i < SONGLIST_WAVEQUALITY-1; i++)
+
                             {
-                                waveLast = wave;
-                                wave = (float)Math.Sin((-slCurrentWave + (i / (float)SONGLIST_WAVEQUALITY * slWaveLength))/(Math.PI*2));
-                                if (i <= SONGLIST_WAVEQUALITY / 10)
-                                {
-                                    wave *= (float)Math.Pow(i / (float)(SONGLIST_WAVEQUALITY / 10), 0.5f);
-                                }
-                                lastNormal = normal;
-                                float hi = 192 - (i / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH), lo=192 - ((i+1) / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH);
-                                float inh = -100 + (waveLast * slWaveStrength), inl = -100 + (wave * slWaveStrength);
-                                normal = new Vector3(0, (inl - inh)*1.5f, hi-lo);
-                                normal.Normalize();
-                                songlistGeom[(i * 6)] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
-                                songlistGeom[(i * 6)+1] = new GBVertexFormat(new Vector3(-64, lo, inl), normal, new Vector2(0, (i+1) / (float)SONGLIST_WAVEQUALITY));
-                                songlistGeom[(i * 6)+2] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i+1) / (float)SONGLIST_WAVEQUALITY));
-                                songlistGeom[(i * 6)+3] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
-                                songlistGeom[(i * 6)+4] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i+1) / (float)SONGLIST_WAVEQUALITY));
-                                songlistGeom[(i * 6)+5] = new GBVertexFormat(new Vector3(64, hi, inh), lastNormal, new Vector2(1, i / (float)SONGLIST_WAVEQUALITY));
+                                matTranslate = Matrix.CreateTranslation(-32, 120, -128);
+                                matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                                matScale = Matrix.CreateScale(256, 192, 128);
+
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseTexture"].SetValue(concrTex);
+                                engine.Parameters["bumpTexture"].SetValue(concrBM);
+                                engine.Parameters["shininess"].SetValue(0.25f);
+                                engine.Parameters["SpecularEnabled"].SetValue(false);
+                                engine.Parameters["vertexAlpha"].SetValue(true);
+                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                                engine.CommitChanges();
+
+                                graphics.GraphicsDevice.VertexDeclaration = vd;
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                             }
 
-                            songlistVB = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * (SONGLIST_WAVEQUALITY - 1) * 6, BufferUsage.WriteOnly);
+                            if (SongListTex != null)
+                            {//list
+                                slCurrentWave += (gameTime.ElapsedGameTime.Milliseconds / 1000f) * SONGLIST_WAVE_SPEED;
+                                //if (slCurrentWave > Math.PI*2)
+                                //    slCurrentWave-=(float)(Math.PI*2);
+                                if (songlistGeom == null || songlistGeom.Length < (SONGLIST_WAVEQUALITY - 1) * 6)
+                                    songlistGeom = new GBVertexFormat[(SONGLIST_WAVEQUALITY - 1) * 6];
+                                float waveLast = 0, wave = 0;
+                                Vector3 normal = new Vector3(0, 0, 1), lastNormal = new Vector3(0, 0, 1);
+                                for (int i = 0; i < SONGLIST_WAVEQUALITY - 1; i++)
+                                {
+                                    waveLast = wave;
+                                    wave = (float)Math.Sin((-slCurrentWave + (i / (float)SONGLIST_WAVEQUALITY * slWaveLength)) / (Math.PI * 2));
+                                    if (i <= SONGLIST_WAVEQUALITY / 10)
+                                    {
+                                        wave *= (float)Math.Pow(i / (float)(SONGLIST_WAVEQUALITY / 10), 0.5f);
+                                    }
+                                    lastNormal = normal;
+                                    float hi = 192 - (i / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH), lo = 192 - ((i + 1) / (float)SONGLIST_WAVEQUALITY * SONGLIST_LENGTH);
+                                    float inh = -100 + (waveLast * slWaveStrength), inl = -100 + (wave * slWaveStrength);
+                                    normal = new Vector3(0, (inl - inh) * 1.5f, hi - lo);
+                                    normal.Normalize();
+                                    songlistGeom[(i * 6)] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
+                                    songlistGeom[(i * 6) + 1] = new GBVertexFormat(new Vector3(-64, lo, inl), normal, new Vector2(0, (i + 1) / (float)SONGLIST_WAVEQUALITY));
+                                    songlistGeom[(i * 6) + 2] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i + 1) / (float)SONGLIST_WAVEQUALITY));
+                                    songlistGeom[(i * 6) + 3] = new GBVertexFormat(new Vector3(-64, hi, inh), lastNormal, new Vector2(0, i / (float)SONGLIST_WAVEQUALITY));
+                                    songlistGeom[(i * 6) + 4] = new GBVertexFormat(new Vector3(64, lo, inl), normal, new Vector2(1, (i + 1) / (float)SONGLIST_WAVEQUALITY));
+                                    songlistGeom[(i * 6) + 5] = new GBVertexFormat(new Vector3(64, hi, inh), lastNormal, new Vector2(1, i / (float)SONGLIST_WAVEQUALITY));
+                                }
 
-                            songlistVB.SetData<GBVertexFormat>(songlistGeom);
+                                songlistVB = new VertexBuffer(graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * (SONGLIST_WAVEQUALITY - 1) * 6, BufferUsage.WriteOnly);
 
-                            matRot = Matrix.CreateRotationY((float)Math.PI / -12);
-                            matTranslate = Matrix.CreateTranslation(-10, 20, 0);
-                            matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH, 1, 1));
-                            engine.Parameters["world"].SetValue(matScale*matRot*matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(SongListTex);
-                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                            engine.Parameters["shininess"].SetValue(0.25f);
-                            engine.Parameters["SpecularEnabled"].SetValue(false);
-                            engine.Parameters["vertexAlpha"].SetValue(false);
-                            engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                            engine.CommitChanges();
+                                songlistVB.SetData<GBVertexFormat>(songlistGeom);
 
-                            graphics.GraphicsDevice.VertexDeclaration = vd;
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                            graphics.GraphicsDevice.Vertices[0].SetSource(songlistVB, 0, GBVertexFormat.SizeInBytes);
-                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (SONGLIST_WAVEQUALITY-1)*2);
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                matRot = Matrix.CreateRotationY((float)Math.PI / -12);
+                                matTranslate = Matrix.CreateTranslation(-10, 20, 0);
+                                matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH, 1, 1));
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseTexture"].SetValue(SongListTex);
+                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                engine.Parameters["shininess"].SetValue(0.25f);
+                                engine.Parameters["SpecularEnabled"].SetValue(false);
+                                engine.Parameters["vertexAlpha"].SetValue(false);
+                                engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                                engine.CommitChanges();
+
+                                graphics.GraphicsDevice.VertexDeclaration = vd;
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                graphics.GraphicsDevice.Vertices[0].SetSource(songlistVB, 0, GBVertexFormat.SizeInBytes);
+                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (SONGLIST_WAVEQUALITY - 1) * 2);
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                            }
+
+                            engine.Parameters["fullbright"].SetValue(false);
+                            engine.Parameters["wAlpha"].SetValue(1.0f);
+
+                            pass.End();
                         }
-
-                        engine.Parameters["fullbright"].SetValue(false);
-                        engine.Parameters["wAlpha"].SetValue(1.0f);
-
-                        pass.End();
+                        engine.End();
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                        spritebatch.Draw(songchoosetop, new Rectangle(0, 0, windowwidth, (int)((windowheight / 768f) * 256)), Color.White);
+                        spritebatch.End();
                     }
-                    engine.End();
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                    spritebatch.Draw(songchoosetop, new Rectangle(0, 0, windowwidth, (int)((windowheight / 768f) * 256)), Color.White);
-                    spritebatch.End();
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/SS/Pt1\n"+e.Message);
+                        Exit();
+                        return;
+                    }
+
                 }
                 #endregion
                 #region contchoosescreen
                 else if (screen == S_CHOOSECONT)
                 {
-                    
-
-                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
-                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-                    //graphics.PreferMultiSampling = true;
-                    graphics.ApplyChanges();
-
-                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
-                    graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                    //graphics.GraphicsDevice.
-
-                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
-
-                    Random r = new Random();
-
-                    int linum = 0;
-                        bool[] plo = new bool[16];
-                        Vector3[] plp = new Vector3[16];
-                        float[] pln = new float[16];
-                        float[] plf = new float[16];
-                        Vector3[] pld = new Vector3[16];
-                        Vector3[] pls = new Vector3[16];
-                    for (int i = 0; i < contguis.Length; i++)
-                    {
-                        if (contguis[i].status >= 2)
-                        {
-                            plo[linum] = true;
-                            plp[linum] = new Vector3(-192+(contguis[i].loc*80), 192,-100);
-                            pln[linum] = r.Next(64);
-                            plf[linum] = r.Next(64)+65;
-                            pld[linum] = new Vector3(.9f + (float)(r.NextDouble() / 10), .5f + (float)(r.NextDouble() / 10), .2f + (float)(r.NextDouble() / 10));
-                            pls[linum] = new Vector3(0.2f, 0.1f, 0.0f);
-                            linum++;
-                        }
-                    }
-                    engine.Parameters["pLightOn"].SetValue(plo);
-                    engine.Parameters["pLightPos"].SetValue(plp);
-                    engine.Parameters["pLightNear"].SetValue(pln);
-                    engine.Parameters["pLightFar"].SetValue(plf);
-                    engine.Parameters["pLightDiffuse"].SetValue(pld);
-                    engine.Parameters["pLightSpecular"].SetValue(pls);
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                    engine.Parameters["dLightDir"].SetValue(new Vector3(0, 1, 1));
                     float vmul = 2f, hmul = 2f;
-
-                    Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
-                    if (SM.Major >= 3)
-                        engine.CurrentTechnique = engine.Techniques["menutechnique"];
-                    else if (SM.Major >= 2)
-                        engine.CurrentTechnique = engine.Techniques["menutechniquet"];
-                    else
-                        Exit();
-                    engine.CommitChanges();
-
-                    engine.Begin();
-                    foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+                    int linum = 0;
+                    bool[] plo = new bool[16];
+                    Vector3[] plp = new Vector3[16];
+                    float[] pln = new float[16];
+                    float[] plf = new float[16];
+                    Vector3[] pld = new Vector3[16];
+                    Vector3[] pls = new Vector3[16];
+                    
+                    try
                     {
-                        pass.Begin();
-                        SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
-                        engine.Parameters["fullbright"].SetValue(false);
+                        graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                        graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                        //graphics.PreferMultiSampling = true;
+                        graphics.ApplyChanges();
 
-                        if (idleTime < 29.5)
-                            matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
-                        else
-                            matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(-16 + ((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * 32 : (1 - ((idleTime * hmul) % .5f * 2)) * 16), 128 - ((idleTime * vmul) % 1 < 0.5 ? (idleTime * vmul) % 0.5f * 32 : (1 - ((idleTime * vmul) % .5f * 2)) * 16), 0), new Vector3(0, 1, 0));
-                        //render the background graphics
-                        engine.Parameters["view"].SetValue(matView);
-                        engine.Parameters["proj"].SetValue(matProj);
-                        engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+                        vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                        //graphics.GraphicsDevice.
 
-                        Matrix matRot, matScale, matTranslate;
+                        engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
+                        engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+
+                        Random r = new Random();
+
+                        
+                        for (int i = 0; i < contguis.Length; i++)
                         {
-                            matTranslate = Matrix.CreateTranslation(-32, 120, -128);
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                            matScale = Matrix.CreateScale(256, 192, 128);
-
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(concrTex);
-                            engine.Parameters["bumpTexture"].SetValue(concrBM);
-                            engine.Parameters["shininess"].SetValue(0.25f);
-                            engine.Parameters["SpecularEnabled"].SetValue(false);
-                            engine.Parameters["vertexAlpha"].SetValue(true);
-                            engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                            engine.CommitChanges();
-
-                            graphics.GraphicsDevice.VertexDeclaration = vd;
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                        }
-
-                        for (int i = 0; i < 4; i++)
-                        {
-                            matTranslate = Matrix.CreateTranslation(-96 + (64 * i), 192, -126);
-                            matRot = Matrix.Identity;
-                            matScale = Matrix.CreateScale(16, 16, 16);
-
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(texNote[i]);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                            engine.Parameters["shininess"].SetValue(0.25f);
-                            engine.Parameters["SpecularEnabled"].SetValue(false);
-                            engine.Parameters["vertexAlpha"].SetValue(false);
-                            engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                            engine.CommitChanges();
-
-                            foreach (ModelMesh mesh in nPadMdl.Meshes)
+                            if (contguis[i].status >= 2)
                             {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                                {
-                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                                }
+                                plo[linum] = true;
+                                plp[linum] = new Vector3(-192+(contguis[i].loc*80), 192,-100);
+                                pln[linum] = r.Next(64);
+                                plf[linum] = r.Next(64)+65;
+                                pld[linum] = new Vector3(.9f + (float)(r.NextDouble() / 10), .5f + (float)(r.NextDouble() / 10), .2f + (float)(r.NextDouble() / 10));
+                                pls[linum] = new Vector3(0.2f, 0.1f, 0.0f);
+                                linum++;
                             }
                         }
+                        engine.Parameters["pLightOn"].SetValue(plo);
+                        engine.Parameters["pLightPos"].SetValue(plp);
+                        engine.Parameters["pLightNear"].SetValue(pln);
+                        engine.Parameters["pLightFar"].SetValue(plf);
+                        engine.Parameters["pLightDiffuse"].SetValue(pld);
+                        engine.Parameters["pLightSpecular"].SetValue(pls);
+                        engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+                        engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                        engine.Parameters["dLightDir"].SetValue(new Vector3(0, 1, 1));
 
-                        for (int i = 0; i < 5; i++)
+                        Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
+                        if (SM.Major >= 3)
+                            engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                        else if (SM.Major >= 2)
+                            engine.CurrentTechnique = engine.Techniques["menutechniquet"];
+                        else
+                            Exit();
+                        engine.CommitChanges();
+                    }
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt1\n"+e.Message);
+                        Exit();
+                        return;
+                    }
+
+                    try
+                    {
+                        engine.Begin();
+                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                         {
-                            if (contguis[i].status==1)
+                            pass.Begin();
+                            SetProjMatrix(Window.ClientBounds.Width, Window.ClientBounds.Height);
+                            engine.Parameters["fullbright"].SetValue(false);
+
+                            if (idleTime < 29.5)
+                                matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
+                            else
+                                matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(-16 + ((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * 32 : (1 - ((idleTime * hmul) % .5f * 2)) * 16), 128 - ((idleTime * vmul) % 1 < 0.5 ? (idleTime * vmul) % 0.5f * 32 : (1 - ((idleTime * vmul) % .5f * 2)) * 16), 0), new Vector3(0, 1, 0));
+                            //render the background graphics
+                            engine.Parameters["view"].SetValue(matView);
+                            engine.Parameters["proj"].SetValue(matProj);
+                            engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+
+                            Matrix matRot, matScale, matTranslate;
                             {
-                                matTranslate = Matrix.CreateTranslation(-96 + (64 * (contguis[i].loc-1)) - 24, 180, -120);
-                                matRot = Matrix.CreateRotationZ(arrowRot[(int)(contguis[i].loc-1) * 2]) * Matrix.CreateRotationY(-(float)Math.PI / 2) * Matrix.CreateRotationZ(-MathHelper.PiOver2);
-                                matScale = Matrix.CreateScale(4, 2, 4);
+                                matTranslate = Matrix.CreateTranslation(-32, 120, -128);
+                                matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                                matScale = Matrix.CreateScale(256, 192, 128);
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(arrowTex);
+                                engine.Parameters["diffuseTexture"].SetValue(concrTex);
+                                engine.Parameters["bumpTexture"].SetValue(concrBM);
+                                engine.Parameters["shininess"].SetValue(0.25f);
+                                engine.Parameters["SpecularEnabled"].SetValue(false);
+                                engine.Parameters["vertexAlpha"].SetValue(true);
+                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                                engine.CommitChanges();
+
+                                graphics.GraphicsDevice.VertexDeclaration = vd;
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                            }
+
+                            for (int i = 0; i < 4; i++)
+                            {
+                                matTranslate = Matrix.CreateTranslation(-96 + (64 * i), 192, -126);
+                                matRot = Matrix.Identity;
+                                matScale = Matrix.CreateScale(16, 16, 16);
+
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseTexture"].SetValue(texNote[i]);
+                                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc-1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
-                                engine.Parameters["specularColor"].SetValue(charNameSelected[(int)(contguis[i].loc-1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
-                                engine.Parameters["SpecularEnabled"].SetValue(true);
-                                engine.Parameters["shininess"].SetValue(4f);
+                                engine.Parameters["shininess"].SetValue(0.25f);
+                                engine.Parameters["SpecularEnabled"].SetValue(false);
                                 engine.Parameters["vertexAlpha"].SetValue(false);
                                 engine.Parameters["BumpMappingEnabled"].SetValue(false);
                                 engine.CommitChanges();
-                                foreach (ModelMesh mesh in arrowMdl.Meshes)
-                                {
-                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                                    {
-                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                                    }
-                                }
 
-                                matTranslate = Matrix.CreateTranslation(-96 + (64 * (int)(contguis[i].loc-1)) + 24, 180, -120);
-                                matRot = Matrix.CreateRotationZ(arrowRot[(int)(contguis[i].loc-1) * 2 + 1]) * Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateRotationZ(-MathHelper.PiOver2);
-                                matScale = Matrix.CreateScale(4, 2, 4);
-
-                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                                engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc-1)] < charNames[(int)(contguis[i].loc-1) < 3 ? (int)(contguis[i].loc-1) : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
-                                engine.CommitChanges();
-                                foreach (ModelMesh mesh in arrowMdl.Meshes)
+                                foreach (ModelMesh mesh in nPadMdl.Meshes)
                                 {
                                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                                     {
@@ -2140,94 +2130,171 @@ namespace Unsigned
                                 }
                             }
 
-                        }
-
-                        {
-                            matTranslate = Matrix.CreateTranslation(-140, 200, -120);
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 4);
-                            matScale = Matrix.CreateScale(2);
-
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(rustyTex);
-                            engine.CommitChanges();
-                            foreach (ModelMesh mesh in nailMdl.Meshes)
+                            for (int i = 0; i < 5; i++)
                             {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                if (contguis[i].status == 1)
                                 {
-                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                                }
-                            }
-                        }
-                        {
-                            matTranslate = Matrix.CreateTranslation(-100, 85, -80);
-                            matRot = Matrix.CreateRotationY((float)Math.PI / 4);
-                            matScale = Matrix.CreateScale(5);
-
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                            engine.CommitChanges();
-                            foreach (ModelMesh mesh in stand.Meshes)
-                            {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                                {
-                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                                }
-                            }
-                        }
-                        {
-                            matTranslate = Matrix.CreateTranslation(-105, 92, -85);
-                            matRot = Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateRotationX((float)Math.PI / 2 - 0.2f) * Matrix.CreateRotationY((float)Math.PI / 4);
-                            matScale = Matrix.CreateScale(5);
-
-                            engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(stratTex);
-                            engine.CommitChanges();
-                            foreach (ModelMesh mesh in strat.Meshes)
-                            {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                                {
-                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                                }
-                            }
-                        }
-                        for (int k = 0; k < 4; k++)
-                            for (int i = 0; i < flames[k].Length; i++)
-                                if (flames[k][i].Z > 0)
-                                {
-                                    matTranslate = Matrix.CreateTranslation(new Vector3(flames[k][i].X, flames[k][i].Y, -117 + (k * 0.5f)));
-                                    matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                                    matScale = Matrix.CreateScale(8, 1, Math.Max(24*(1-flames[k][i].Z),4));
+                                    matTranslate = Matrix.CreateTranslation(-96 + (64 * (contguis[i].loc - 1)) - 24, 180, -120);
+                                    matRot = Matrix.CreateRotationZ(arrowRot[(int)(contguis[i].loc - 1) * 2]) * Matrix.CreateRotationY(-(float)Math.PI / 2) * Matrix.CreateRotationZ(-MathHelper.PiOver2);
+                                    matScale = Matrix.CreateScale(4, 2, 4);
 
                                     engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                     engine.Parameters["wRot"].SetValue(matRot);
-                                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                                    engine.Parameters["specularColor"].SetValue(new Vector4(0f, 0f, 0f, 1f));
-                                    float alpha = 0;
-                                    if(flames[k][i].Z>3/4f)
-                                        alpha = 1-((flames[k][i].Z-3/4f) *4);
-                                    else 
-                                        alpha = flames[k][i].Z;
-                                    engine.Parameters["wAlpha"].SetValue(alpha);
-                                    engine.Parameters["diffuseTexture"].SetValue(flameTex);
-                                    engine.Parameters["fullbright"].SetValue(true);
+                                    engine.Parameters["diffuseTexture"].SetValue(arrowTex);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                    engine.Parameters["specularColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                    engine.Parameters["SpecularEnabled"].SetValue(true);
+                                    engine.Parameters["shininess"].SetValue(4f);
+                                    engine.Parameters["vertexAlpha"].SetValue(false);
+                                    engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                                    engine.CommitChanges();
+                                    foreach (ModelMesh mesh in arrowMdl.Meshes)
+                                    {
+                                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                        {
+                                            graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                            graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                        }
+                                    }
+
+                                    matTranslate = Matrix.CreateTranslation(-96 + (64 * (int)(contguis[i].loc - 1)) + 24, 180, -120);
+                                    matRot = Matrix.CreateRotationZ(arrowRot[(int)(contguis[i].loc - 1) * 2 + 1]) * Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateRotationZ(-MathHelper.PiOver2);
+                                    matScale = Matrix.CreateScale(4, 2, 4);
+
+                                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                    engine.Parameters["wRot"].SetValue(matRot);
+                                    engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] < charNames[(int)(contguis[i].loc - 1) < 3 ? (int)(contguis[i].loc - 1) : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                    engine.CommitChanges();
+                                    foreach (ModelMesh mesh in arrowMdl.Meshes)
+                                    {
+                                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                        {
+                                            graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                            graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            {
+                                matTranslate = Matrix.CreateTranslation(-140, 200, -120);
+                                matRot = Matrix.CreateRotationX((float)Math.PI / 4);
+                                matScale = Matrix.CreateScale(2);
+
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
+                                engine.Parameters["diffuseTexture"].SetValue(rustyTex);
+                                engine.CommitChanges();
+                                foreach (ModelMesh mesh in nailMdl.Meshes)
+                                {
+                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                    {
+                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                    }
+                                }
+                            }
+                            {
+                                matTranslate = Matrix.CreateTranslation(-100, 85, -80);
+                                matRot = Matrix.CreateRotationY((float)Math.PI / 4);
+                                matScale = Matrix.CreateScale(5);
+
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1f));
+                                engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                engine.CommitChanges();
+                                foreach (ModelMesh mesh in stand.Meshes)
+                                {
+                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                    {
+                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                    }
+                                }
+                            }
+                            {
+                                matTranslate = Matrix.CreateTranslation(-105, 92, -85);
+                                matRot = Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateRotationX((float)Math.PI / 2 - 0.2f) * Matrix.CreateRotationY((float)Math.PI / 4);
+                                matScale = Matrix.CreateScale(5);
+
+                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                engine.Parameters["wRot"].SetValue(matRot);
+                                engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
+                                engine.Parameters["diffuseTexture"].SetValue(stratTex);
+                                engine.CommitChanges();
+                                foreach (ModelMesh mesh in strat.Meshes)
+                                {
+                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                    {
+                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                    }
+                                }
+                            }
+                            for (int k = 0; k < 4; k++)
+                                for (int i = 0; i < flames[k].Length; i++)
+                                    if (flames[k][i].Z > 0)
+                                    {
+                                        matTranslate = Matrix.CreateTranslation(new Vector3(flames[k][i].X, flames[k][i].Y, -117 + (k * 0.5f)));
+                                        matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                                        matScale = Matrix.CreateScale(8, 1, Math.Max(24 * (1 - flames[k][i].Z), 4));
+
+                                        engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                        engine.Parameters["wRot"].SetValue(matRot);
+                                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                                        engine.Parameters["specularColor"].SetValue(new Vector4(0f, 0f, 0f, 1f));
+                                        float alpha = 0;
+                                        if (flames[k][i].Z > 3 / 4f)
+                                            alpha = 1 - ((flames[k][i].Z - 3 / 4f) * 4);
+                                        else
+                                            alpha = flames[k][i].Z;
+                                        engine.Parameters["wAlpha"].SetValue(alpha);
+                                        engine.Parameters["diffuseTexture"].SetValue(flameTex);
+                                        engine.Parameters["fullbright"].SetValue(true);
+                                        engine.Parameters["SpecularEnabled"].SetValue(false);
+                                        engine.Parameters["vertexAlpha"].SetValue(true);
+                                        engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                                        engine.CommitChanges();
+
+                                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                    }
+
+                            engine.Parameters["fullbright"].SetValue(true);
+                            {//keyboard gui
+                                {
+                                    matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
+                                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[0].info.W);
+                                    matScale = Matrix.CreateScale(32, 32, 32);
+
+                                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                    engine.Parameters["wRot"].SetValue(matRot);
+                                    engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.Parameters["shininess"].SetValue(0.25f);
+                                    engine.Parameters["wAlpha"].SetValue(1);
                                     engine.Parameters["SpecularEnabled"].SetValue(false);
                                     engine.Parameters["vertexAlpha"].SetValue(true);
-                                    engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
                                     engine.CommitChanges();
 
                                     graphics.GraphicsDevice.VertexDeclaration = vd;
@@ -2238,376 +2305,409 @@ namespace Unsigned
                                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                                 }
-                        
-                                    engine.Parameters["fullbright"].SetValue(true);
-                        {//keyboard gui
-                            {
-                                matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
-                                matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[0].info.W);
-                                matScale = Matrix.CreateScale(32, 32, 32);
+                                if (contguis[0].loc != (int)contguis[0].loc)
+                                {
+                                    matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
+                                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[0].info.W);
+                                    matScale = Matrix.CreateScale(32, 32, 32);
 
-                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                                engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
-                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["shininess"].SetValue(0.25f);
-                                engine.Parameters["wAlpha"].SetValue(1);
-                                engine.Parameters["SpecularEnabled"].SetValue(false);
-                                engine.Parameters["vertexAlpha"].SetValue(true);
-                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                                engine.CommitChanges();
+                                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                    engine.Parameters["wRot"].SetValue(matRot);
+                                    engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.Parameters["shininess"].SetValue(0);
+                                    engine.Parameters["wAlpha"].SetValue(contguis[0].loc - (int)contguis[0].loc);
+                                    engine.Parameters["SpecularEnabled"].SetValue(false);
+                                    engine.Parameters["vertexAlpha"].SetValue(true);
+                                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                                    engine.CommitChanges();
 
-                                graphics.GraphicsDevice.VertexDeclaration = vd;
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                }
                             }
-                            if (contguis[0].loc != (int)contguis[0].loc)
-                            {
-                                matTranslate = Matrix.CreateTranslation(new Vector3(contguis[0].info.X, contguis[0].info.Y, contguis[0].info.Z));
-                                matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[0].info.W);
-                                matScale = Matrix.CreateScale(32, 32, 32);
 
-                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                                engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
-                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["shininess"].SetValue(0);
-                                engine.Parameters["wAlpha"].SetValue(contguis[0].loc - (int)contguis[0].loc);
-                                engine.Parameters["SpecularEnabled"].SetValue(false);
-                                engine.Parameters["vertexAlpha"].SetValue(true);
-                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                                engine.CommitChanges();
+                            engine.Parameters["wAlpha"].SetValue(1);
+                            for (int j = 1; j <= 4; j++)
+                            {//instrument gui
+                                {
+                                    matTranslate = Matrix.CreateTranslation(new Vector3(contguis[j].info.X, contguis[j].info.Y, contguis[j].info.Z - contguis[j].loc));
+                                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[j].info.W);
+                                    matScale = Matrix.CreateScale(32, 32, 32);
 
-                                graphics.GraphicsDevice.VertexDeclaration = vd;
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                    engine.Parameters["wRot"].SetValue(matRot);
+                                    if (contguis[j].type == ContGUIData.CONT_TYPE.DRUMSET)
+                                        engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.DRUMS_ICO_BLUR : ContGUIData.DRUMS_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.STRATOCASTER)
+                                        engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITAR_ICO_BLUR : ContGUIData.GUITAR_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.XPLORER)
+                                        engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITARX_ICO_BLUR : ContGUIData.GUITARX_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.MICROPHONE)
+                                        engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.MICROPHONE_ICO_BLUR : ContGUIData.MICROPHONE_ICO);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.Parameters["shininess"].SetValue(0.25f);
+                                    engine.Parameters["wAlpha"].SetValue(1);
+                                    engine.Parameters["SpecularEnabled"].SetValue(false);
+                                    engine.Parameters["vertexAlpha"].SetValue(true);
+                                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                                    engine.CommitChanges();
+
+                                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                }
+                                if (contguis[j].loc > 0 && contguis[j].loc < 1)
+                                {
+                                    matTranslate = Matrix.CreateTranslation(new Vector3(contguis[j].info.X, contguis[j].info.Y, contguis[j].info.Z - contguis[j].loc));
+                                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[j].info.W);
+                                    matScale = Matrix.CreateScale(32, 32, 32);
+
+                                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                                    engine.Parameters["wRot"].SetValue(matRot);
+                                    if (contguis[j].type == ContGUIData.CONT_TYPE.DRUMSET)
+                                        engine.Parameters["diffuseTexture"].SetValue(ContGUIData.DRUMS_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.STRATOCASTER)
+                                        engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITAR_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.XPLORER)
+                                        engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITARX_ICO);
+                                    else if (contguis[j].type == ContGUIData.CONT_TYPE.MICROPHONE)
+                                        engine.Parameters["diffuseTexture"].SetValue(ContGUIData.MICROPHONE_ICO);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.Parameters["shininess"].SetValue(0);
+                                    engine.Parameters["wAlpha"].SetValue(contguis[j].loc);
+                                    engine.Parameters["SpecularEnabled"].SetValue(false);
+                                    engine.Parameters["vertexAlpha"].SetValue(true);
+                                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                                    engine.CommitChanges();
+
+                                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                                }
                             }
+                            engine.Parameters["fullbright"].SetValue(false);
+                            engine.Parameters["wAlpha"].SetValue(1.0f);
+
+                            pass.End();
                         }
-                                    
-                        engine.Parameters["wAlpha"].SetValue(1);
-                        for(int j=1;j<=4;j++)
-                        {//instrument gui
-                            {
-                                matTranslate = Matrix.CreateTranslation(new Vector3(contguis[j].info.X, contguis[j].info.Y, contguis[j].info.Z-contguis[j].loc));
-                                matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[j].info.W);
-                                matScale = Matrix.CreateScale(32, 32, 32);
-
-                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                                engine.Parameters["wRot"].SetValue(matRot);
-                                if(contguis[j].type==ContGUIData.CONT_TYPE.DRUMSET)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.DRUMS_ICO_BLUR : ContGUIData.DRUMS_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.STRATOCASTER)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITAR_ICO_BLUR : ContGUIData.GUITAR_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.XPLORER)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITARX_ICO_BLUR : ContGUIData.GUITARX_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.MICROPHONE)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.MICROPHONE_ICO_BLUR : ContGUIData.MICROPHONE_ICO);
-                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["shininess"].SetValue(0.25f);
-                                engine.Parameters["wAlpha"].SetValue(1);
-                                engine.Parameters["SpecularEnabled"].SetValue(false);
-                                engine.Parameters["vertexAlpha"].SetValue(true);
-                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                                engine.CommitChanges();
-
-                                graphics.GraphicsDevice.VertexDeclaration = vd;
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                            }
-                            if (contguis[j].loc>0 && contguis[j].loc < 1)
-                            {
-                                matTranslate = Matrix.CreateTranslation(new Vector3(contguis[j].info.X, contguis[j].info.Y, contguis[j].info.Z-contguis[j].loc));
-                                matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationZ(contguis[j].info.W);
-                                matScale = Matrix.CreateScale(32, 32, 32);
-
-                                engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                                engine.Parameters["wRot"].SetValue(matRot);
-                                if(contguis[j].type==ContGUIData.CONT_TYPE.DRUMSET)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.DRUMS_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.STRATOCASTER)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITAR_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.XPLORER)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITARX_ICO);
-                                else if(contguis[j].type==ContGUIData.CONT_TYPE.MICROPHONE)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.MICROPHONE_ICO);
-                                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["shininess"].SetValue(0);
-                                engine.Parameters["wAlpha"].SetValue(contguis[j].loc);
-                                engine.Parameters["SpecularEnabled"].SetValue(false);
-                                engine.Parameters["vertexAlpha"].SetValue(true);
-                                engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                                engine.CommitChanges();
-
-                                graphics.GraphicsDevice.VertexDeclaration = vd;
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                            }
-                        }
-                        engine.Parameters["fullbright"].SetValue(false);
-                        engine.Parameters["wAlpha"].SetValue(1.0f);
-
-                        pass.End();
+                        engine.End();
                     }
-                    engine.End();
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-
-                    if (leader >= 0 && contguis[leader].status==2)
-                        spritebatch.Draw(texContinue, new Rectangle((int)(Window.ClientBounds.Width * (contguis[leader].loc) / 6), Window.ClientBounds.Height - (Window.ClientBounds.Height / 5), Window.ClientBounds.Width / 6, Window.ClientBounds.Height / 6), Color.Red);
-
-                    if (idleTime > 30)
+                    catch (Exception e)
                     {
-                        spritebatch.Draw(hairl, new Rectangle(-20, 0, (int)Window.ClientBounds.Height - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
-                        spritebatch.Draw(hairr, new Rectangle(20 + (int)Window.ClientBounds.Width - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), 0, (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt2\n"+e.Message);
+                        Exit();
+                        return;
                     }
+                    try
+                    {
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
 
-                    //spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
+                        if (leader >= 0 && contguis[leader].status == 2)
+                            spritebatch.Draw(texContinue, new Rectangle((int)(Window.ClientBounds.Width * (contguis[leader].loc) / 6), Window.ClientBounds.Height - (Window.ClientBounds.Height / 5), Window.ClientBounds.Width / 6, Window.ClientBounds.Height / 6), Color.Red);
 
-                    //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
+                        if (idleTime > 30)
+                        {
+                            spritebatch.Draw(hairl, new Rectangle(-20, 0, (int)Window.ClientBounds.Height - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
+                            spritebatch.Draw(hairr, new Rectangle(20 + (int)Window.ClientBounds.Width - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), 0, (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
+                        }
 
-                    spritebatch.End();
+                        //spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
+
+                        //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
+
+                        spritebatch.End();
+                    }
+                    catch (Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt3\n"+e.Message);
+                        Exit();
+                        return;
+                    }
                 }
                 #endregion
                 #region ingame
                 else if (screen == S_INGAME)
                 {
-                    ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                    for (int i = 0; i < 4; i++)
+                    try
                     {
-                        if (instruments[i])
+                        ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
+                        for (int i = 0; i < 4; i++)
                         {
-                            graphics.GraphicsDevice.SetRenderTarget(0, rtBar[i]);
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                            spritebatch.Draw(texWhite, new Rectangle(4, 8, 248, 240), Color.Black);
-                            spritebatch.Draw(Board.SPMFill, new Rectangle(0, 0, (int)(256 * boards[i].GetSPAmount()), 256), Color.White);
-                            spritebatch.Draw(Board.SPMBorder, new Rectangle(0, 0, 256, 256), Color.White);
-                            spritebatch.End();
-                            graphics.GraphicsDevice.SetRenderTarget(0, rtPie[i]);
-                            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                            if (boards[i].GetMultiplier() >= 4 * (boards[i].IsSPActivated() ? 2 : 1))
-                                spritebatch.Draw(Board.SPMRbgb, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
-                            else if (boards[i].GetMultiplier() >= 2)
-                                spritebatch.Draw(Board.SPMRbgs, new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * rtPieS / 4) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS/3), Color.White);
-                            if (boards[i].GetMultiplier() != 1)
-                                spritebatch.Draw(Board.SPMRnum[boards[i].GetMultiplier() - 1], new Rectangle(-(rtPieS/4) + (int)(boards[i].multSlide * (rtPieS/4)) + (int)((rtPieS/2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS/2) * (boards[i].multSlide + 1)), rtPieS/3), Color.White);
-                            spritebatch.Draw(Board.SPMRbg, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
-                            for (int k = 0; k < boards[i].GetMultiplierFraction(); k++)
-                                spritebatch.Draw(Board.SPMRslice, new Vector2(rtPieS/2, rtPieS/6), new Rectangle(0, 0, rtPieS, rtPieS), Color.White, k * (float)(Math.PI / 5), new Vector2(128, 128),rtPieS/768f, new SpriteEffects(), 0);
-                            spritebatch.Draw(Board.SPMRfg, new Rectangle(0, 0, rtPieS, rtPieS/3), Color.White);
-                            spritebatch.End();
+                            if (instruments[i])
+                            {
+                                graphics.GraphicsDevice.SetRenderTarget(0, rtBar[i]);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                                spritebatch.Draw(texWhite, new Rectangle(4, 8, 248, 240), Color.Black);
+                                spritebatch.Draw(Board.SPMFill, new Rectangle(0, 0, (int)(256 * boards[i].GetSPAmount()), 256), Color.White);
+                                spritebatch.Draw(Board.SPMBorder, new Rectangle(0, 0, 256, 256), Color.White);
+                                spritebatch.End();
+                                graphics.GraphicsDevice.SetRenderTarget(0, rtPie[i]);
+                                graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                if (boards[i].GetMultiplier() >= 4 * (boards[i].IsSPActivated() ? 2 : 1))
+                                    spritebatch.Draw(Board.SPMRbgb, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
+                                else if (boards[i].GetMultiplier() >= 2)
+                                    spritebatch.Draw(Board.SPMRbgs, new Rectangle(-(rtPieS / 4) + (int)(boards[i].multSlide * rtPieS / 4) + (int)((rtPieS / 2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS / 2) * (boards[i].multSlide + 1)), rtPieS / 3), Color.White);
+                                if (boards[i].GetMultiplier() != 1)
+                                    spritebatch.Draw(Board.SPMRnum[boards[i].GetMultiplier() - 1], new Rectangle(-(rtPieS / 4) + (int)(boards[i].multSlide * (rtPieS / 4)) + (int)((rtPieS / 2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS / 2) * (boards[i].multSlide + 1)), rtPieS / 3), Color.White);
+                                spritebatch.Draw(Board.SPMRbg, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
+                                for (int k = 0; k < boards[i].GetMultiplierFraction(); k++)
+                                    spritebatch.Draw(Board.SPMRslice, new Vector2(rtPieS / 2, rtPieS / 6), new Rectangle(0, 0, rtPieS, rtPieS), Color.White, k * (float)(Math.PI / 5), new Vector2(128, 128), rtPieS / 768f, new SpriteEffects(), 0);
+                                spritebatch.Draw(Board.SPMRfg, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
+                                spritebatch.End();
+                            }
+                        }
+                        graphics.GraphicsDevice.SetRenderTarget(0, ort);
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (instruments[i])
+                            {
+                                boards[i].SPMeterTex = rtBar[i].GetTexture();
+                                boards[i].SPMRTex = rtPie[i].GetTexture();
+                            }
                         }
                     }
-                    graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                    for (int i = 0; i < 4; i++)
+                    catch(Exception e)
                     {
-                        if (instruments[i])
-                        {
-                            boards[i].SPMeterTex = rtBar[i].GetTexture();
-                            boards[i].SPMRTex = rtPie[i].GetTexture();
-                        }
-                    }
-
-                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
-                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
-                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
-                    //graphics.PreferMultiSampling = true;
-                    graphics.ApplyChanges();
-                    Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
-                    if (SM.Major >= 3)
-                        engine.CurrentTechnique = engine.Techniques["maintechnique"];
-                    else if (SM.Major >= 2)
-                        renderLevel = 0;
-                    else
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt1\n"+e.Message);
                         Exit();
-                    if (renderLevel > 0)
+                        return;
+                    }
+
+                    try
                     {
-                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                        if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                        graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                        graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                        graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                        vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                        //graphics.PreferMultiSampling = true;
+                        graphics.ApplyChanges();
+                        Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
+                        if (SM.Major >= 3)
+                            engine.CurrentTechnique = engine.Techniques["maintechnique"];
+                        else if (SM.Major >= 2)
+                            renderLevel = 0;
+                        else
+                            Exit();
+                        if (renderLevel > 0)
                         {
-                            if (countFES < 1)
+                            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                            if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                            {
+                                if (countFES < 1)
+                                    graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
+                                else
+                                    graphics.GraphicsDevice.SetRenderTarget(0, screenTargetPre);
+                            }
+                            else
                                 graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
-                            else
-                                graphics.GraphicsDevice.SetRenderTarget(0, screenTargetPre);
-                        }
-                        else
-                            graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
 
-                        engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                            engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+                            engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
-                        
-                        engine.CurrentTechnique = engine.Techniques["maintechnique"];
-                        matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
-                        graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                        engine.Begin();
-                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
-                        {
-                            pass.Begin();
-                            engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                            engine.Parameters["SpecularEnabled"].SetValue(false);
 
-                            engine.Parameters["fullbright"].SetValue(false);
-                            matView = venue.GetViewMatrix();
-                            //render the background graphics
-                            engine.Parameters["view"].SetValue(matView);
-                            engine.Parameters["proj"].SetValue(matProj);
-                            engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
-                            venue.Render(graphics, engine, matProj, vd, gameTime);
-                            pass.End();
-                        }
-                        engine.End();
-                    }
-
-                    for (int i = 0; i < boards.Length; i++)
-                    {
-                        if (!instruments[i])
-                            continue;
-                        graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget[i]);
-                        matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
-                                  boardsTarget[i].Width / (float)boardsTarget[i].Height,
-                                  0.1f, 100.0f);
-                        graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
-                        engine.CurrentTechnique = engine.Techniques["boardTechnique"];
-                        engine.Begin();
-                        foreach (EffectPass pass in engine.CurrentTechnique.Passes)
-                        {
-                            pass.Begin();
-
-                            engine.Parameters["view"].SetValue(Matrix.Identity);
-                            engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
-                            engine.Parameters["proj"].SetValue(matProj);
-
-                            //get board measure world lengths
-                            song.GetZVals((DateTime.Now.Ticks - SongStartTime));
-
-                            //determine fling (song start board comes up)
-                            Matrix fling;
-                            if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -3)
-                                fling = Matrix.CreateRotationX(Board.rotate);
-                            else if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -4)
-                                fling = Matrix.CreateRotationX((((((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
-                            else
-                                fling = Matrix.CreateRotationX((float)Math.PI / 2);
-                            if (Venue.DEBUG_CAM_CONTROL)
-                                fling *= Matrix.CreateRotationX(-0.4f);
-
-                            engine.Parameters["fullbright"].SetValue(true);
-
-                            //draw each boards
-                            DrawBoard(i, song.zVals, fling, false);
-                            if (boards[i].IsSPActivated())
-                                DrawBoard(i, song.zVals, fling, true);
-                            DrawNotes(i, fling);
-                            DrawBoardDetail(i, fling);
-                            DrawWaves(i, fling);
-                            //draw the non-world gibs (glass shards sparks)
-                            DrawGibs();
-                            pass.End();
-                        }
-                        engine.End();
-                    }
-
-                    if (renderLevel > 0)
-                    {
-                        if (currentFES == FRAME_EFFECT_STYLE.CREST)
-                        {
-                            graphics.GraphicsDevice.SetRenderTarget(0, screenTargetFinal);
-                            graphics.GraphicsDevice.Clear(Color.Black);
-
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
-                            if (countFES < 1)
+                            engine.CurrentTechnique = engine.Techniques["maintechnique"];
+                            matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
+                            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                            engine.Begin();
+                            foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                             {
-                                spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                                spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), new Color(new Vector4(1, 1, 1, ((countFES)))));
+                                pass.Begin();
+                                engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                                engine.Parameters["SpecularEnabled"].SetValue(false);
+
+                                engine.Parameters["fullbright"].SetValue(false);
+                                matView = venue.GetViewMatrix();
+                                //render the background graphics
+                                engine.Parameters["view"].SetValue(matView);
+                                engine.Parameters["proj"].SetValue(matProj);
+                                engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+                                venue.Render(graphics, engine, matProj, vd, gameTime);
+                                pass.End();
+                            }
+                            engine.End();
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message);
+                        Exit();
+                        return;
+                    }
+
+                    try
+                    {
+                        for (int i = 0; i < boards.Length; i++)
+                        {
+                            if (!instruments[i])
+                                continue;
+                            graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget[i]);
+                            matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                                      boardsTarget[i].Width / (float)boardsTarget[i].Height,
+                                      0.1f, 100.0f);
+                            graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+                            engine.CurrentTechnique = engine.Techniques["boardTechnique"];
+                            engine.Begin();
+                            foreach (EffectPass pass in engine.CurrentTechnique.Passes)
+                            {
+                                pass.Begin();
+
+                                engine.Parameters["view"].SetValue(Matrix.Identity);
+                                engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
+                                engine.Parameters["proj"].SetValue(matProj);
+
+                                //get board measure world lengths
+                                song.GetZVals((DateTime.Now.Ticks - SongStartTime));
+
+                                //determine fling (song start board comes up)
+                                Matrix fling;
+                                if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -3)
+                                    fling = Matrix.CreateRotationX(Board.rotate);
+                                else if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -4)
+                                    fling = Matrix.CreateRotationX((((((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                                else
+                                    fling = Matrix.CreateRotationX((float)Math.PI / 2);
+                                if (Venue.DEBUG_CAM_CONTROL)
+                                    fling *= Matrix.CreateRotationX(-0.4f);
+
+                                engine.Parameters["fullbright"].SetValue(true);
+
+                                //draw each boards
+                                DrawBoard(i, song.zVals, fling, false);
+                                if (boards[i].IsSPActivated())
+                                    DrawBoard(i, song.zVals, fling, true);
+                                DrawNotes(i, fling);
+                                DrawBoardDetail(i, fling);
+                                DrawWaves(i, fling);
+                                //draw the non-world gibs (glass shards sparks)
+                                DrawGibs();
+                                pass.End();
+                            }
+                            engine.End();
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message);
+                        Exit();
+                        return;
+                    }
+
+                    try
+                    {
+                        if (renderLevel > 0)
+                        {
+                            if (currentFES == FRAME_EFFECT_STYLE.CREST)
+                            {
+                                graphics.GraphicsDevice.SetRenderTarget(0, screenTargetFinal);
+                                graphics.GraphicsDevice.Clear(Color.Black);
+
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
+                                if (countFES < 1)
+                                {
+                                    spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                                    spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), new Color(new Vector4(1, 1, 1, ((countFES)))));
+                                }
+                                else
+                                {
+                                    lastframe = screenTargetPre.GetTexture();
+                                    spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                                    countFES--;
+                                }
+                                //spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                                spritebatch.End();
+                                countFES += gameTime.ElapsedGameTime.Milliseconds / 500f;
+
+                                graphics.GraphicsDevice.SetRenderTarget(0, null);
+                                graphics.GraphicsDevice.Clear(Color.Black);
+
+
+                                ppEngine.Parameters["gradientTex"].SetValue(gradient);
+
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                                ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
+
+                                //ppEngine.Begin();
+                                //ppEngine.CurrentTechnique.Passes[0].Begin();
+                                ppEngine.Parameters["dotGrainOn"].SetValue(true);
+                                ppEngine.Parameters["ValueShift"].SetValue(0.5f);
+                                ppEngine.Parameters["grainStrength"].SetValue(.25f);
+                                float time = (float)(DateTime.Now.Ticks / 1000 % 90) + 10;
+                                ppEngine.Parameters["time"].SetValue(time);
+                                ppEngine.CommitChanges();
+                                spritebatch.Draw(screenTargetFinal.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                             }
                             else
                             {
-                                lastframe = screenTargetPre.GetTexture();
-                                spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                                countFES--;
+                                graphics.GraphicsDevice.SetRenderTarget(0, null);
+                                graphics.GraphicsDevice.Clear(Color.Black);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                                spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                             }
-                            //spritebatch.Draw(lastframe, new Rectangle(0, 0, windowwidth, windowheight), Color.White);
-                            spritebatch.End();
-                            countFES += gameTime.ElapsedGameTime.Milliseconds / 500f;
-
-                            graphics.GraphicsDevice.SetRenderTarget(0, null);
-                            graphics.GraphicsDevice.Clear(Color.Black);
-
-
-                            ppEngine.Parameters["gradientTex"].SetValue(gradient);
-
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-                            ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
-
-                            //ppEngine.Begin();
-                            //ppEngine.CurrentTechnique.Passes[0].Begin();
-                            ppEngine.Parameters["dotGrainOn"].SetValue(true);
-                            ppEngine.Parameters["ValueShift"].SetValue(0.5f);
-                            ppEngine.Parameters["grainStrength"].SetValue(.25f);
-                            float time = (float)(DateTime.Now.Ticks / 1000 % 90) + 10;
-                            ppEngine.Parameters["time"].SetValue(time);
-                            ppEngine.CommitChanges();
-                            spritebatch.Draw(screenTargetFinal.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                         }
                         else
                         {
                             graphics.GraphicsDevice.SetRenderTarget(0, null);
-                            graphics.GraphicsDevice.Clear(Color.Black);
                             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-                            spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
+                            graphics.GraphicsDevice.Clear(Color.Black);
                         }
                     }
-                    else
+                    catch(Exception e)
                     {
-                        graphics.GraphicsDevice.SetRenderTarget(0, null);
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-                        graphics.GraphicsDevice.Clear(Color.Black);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message);
+                        Exit();
+                        return;
                     }
                     //ppEngine.CurrentTechnique.Passes[0].End();
                     //ppEngine.End();
                     //spritebatch.End();
-
-                    for(int i=0;i<4;i++)
-                        if(instruments[i])
-                            spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
-                    if (screen == S_INGAME)
+                    try
                     {
-                        //draw score/stars
-                        DrawScoreStars();
-
-                        //draw rock meter
-                        DrawRockMeter();
-
-                        //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
-
-                        //draw development info
+                        for (int i = 0; i < 4; i++)
+                            if (instruments[i])
+                                spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
+                        if (screen == S_INGAME)
                         {
-                            //spritebatch.DrawString(DefaultFont, "" + ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond), new Vector2(0, 0), Color.Red);
-                            //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
-                            //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
-                            //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
-                            //spritebatch.DrawString(DefaultFont, "" + controllers[contInput[0]].ThumbSticks.Right.Y, new Vector2(0, 48), Color.Red);
+                            //draw score/stars
+                            DrawScoreStars();
+
+                            //draw rock meter
+                            DrawRockMeter();
+
+                            //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
+
+                            //draw development info
+                            {
+                                //spritebatch.DrawString(DefaultFont, "" + ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond), new Vector2(0, 0), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + controllers[contInput[0]].ThumbSticks.Right.Y, new Vector2(0, 48), Color.Red);
+                            }
                         }
+                    }
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message);
+                        Exit();
+                        return;
                     }
 
                     spritebatch.End();
