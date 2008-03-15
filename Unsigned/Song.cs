@@ -115,7 +115,7 @@ namespace Unsigned
             {
 #if ! XBOX
 
-                sound.Paused = false; ;
+                sound.Paused = false; 
                 //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
                 playing = true;
 #else

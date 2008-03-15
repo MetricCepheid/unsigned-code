@@ -53,8 +53,8 @@ namespace chart2unsigned
     
     public struct Event
     {
-        string value;
-        int time;
+        public string value;
+        public int time;
         public Event(string v, int t)
         {
             value = v;
@@ -132,6 +132,9 @@ namespace chart2unsigned
             List<Pair> timesigs = new List<Pair>();
             List<Note>[][] notes = new List<Note>[4][];
             List<SPPH>[][] SPs = new List<SPPH>[4][];
+            List<SPPH> DFs = new List<SPPH>();
+            List<int> cameraSwitches = new List<int>();
+            List<Event> globalevents = new List<Event>();
             int[][][] starLevels = new int[4][][];
             for (int i = 0; i < 4; i++)
             {
@@ -276,8 +279,10 @@ namespace chart2unsigned
             if(outputLevel>=2)
                 Console.Out.WriteLine("File Details:");
             int inputLineCount = 0;
+#if !DEBUG
             try
             {
+#endif
                 while (!fin.EndOfStream)
                 {
                     inputLineCount++;
@@ -395,11 +400,16 @@ namespace chart2unsigned
                         Console.WriteLine("Event info loading");
                         while (!line.Equals("}"))
                         {
+                            Event e = new Event();
+                            e.time = Int32.Parse(line.Substring(0, line.IndexOf('=')).Trim());
+                            e.value = line.Substring(line.IndexOf('E') + 1).Trim();
+                            e.value = e.value.Substring(1, e.value.Length - 2);
+                            globalevents.Add(e);
                             inputLineCount++;
                             line = fin.ReadLine().Trim();
                         }
                     }
-                    else if (track.Contains("Single") || track.Contains("Double") || track.Contains("Drums"))
+                    else if (track.Contains("Single") || track.Contains("Double") || track.Contains("Drums") || track.Contains("Vocals"))
                     {
                         if (outputLevel >= 2)
                             Console.WriteLine("Track info Loading");
@@ -409,8 +419,10 @@ namespace chart2unsigned
                             inst = 0;
                         else if (track.Contains("Double"))
                             inst = 3;
-                        else
+                        else if (track.Contains("Drums"))
                             inst = 2;
+                        else 
+                            inst = 1;
                         if (track.Contains("Easy"))
                             diff = 0;
                         else if (track.Contains("Medium"))
@@ -455,6 +467,8 @@ namespace chart2unsigned
                                 int len = Int32.Parse(line);
                                 if (value == 2)
                                     SPs[inst][diff].Add(new SPPH((byte)value, time, len));
+                                else if (inst == 2 && diff == 3 && value == 3)
+                                    DFs.Add(new SPPH((byte)value, time, len));
                                 if (outputLevel >= 3)
                                     Console.WriteLine("(S"+value+":" + time + ")");
                             }
@@ -473,6 +487,7 @@ namespace chart2unsigned
                         }
                     }
                 }
+#if !DEBUG
             }
             catch (System.IO.IOException e)
             {
@@ -493,122 +508,142 @@ namespace chart2unsigned
                     "Error info: " + e.Message);
                 return;
             }
+#endif
             fin.Close();
             Console.Out.WriteLine("File successfully Loaded");
 
-            if (cSync.Equals("ask"))
-            {
-                Console.Write("Who synced this chart? ");
-                cSync = Console.ReadLine().Trim();
-            }
-            if (cEffects.Equals("ask"))
-            {
-                Console.Write("Who wrote the effects for this chart? ");
-                cEffects = Console.ReadLine().Trim();
-            }
-            if (cGuitar.Equals("ask"))
-            {
-                Console.Write("Who wrote the guitar part of this chart? ");
-                cGuitar = Console.ReadLine().Trim();
-            }
-            if (cBass.Equals("ask"))
-            {
-                Console.Write("Who wrote the bass part of this chart? ");
-                cBass = Console.ReadLine().Trim();
-            }
-            if (cDrums.Equals("ask"))
-            {
-                Console.Write("Who wrote the drum part of this chart? ");
-                cDrums = Console.ReadLine().Trim();
-            }
-            if (cVocals.Equals("ask"))
-            {
-                Console.Write("Who wrote the vocal part of this chart? ");
-                cVocals = Console.ReadLine().Trim();
-            }
 
-
-            Console.WriteLine("Song Length:");
-            Console.WriteLine("Format hh:mm:ss (leading digits optional)");
-            String timeTemp = Console.ReadLine();
-            int sLength=0;
-            if (!timeTemp.Contains(":"))
-                sLength = Int32.Parse(timeTemp) * 1;
-            else if (timeTemp.IndexOf(':') == timeTemp.LastIndexOf(':'))
-                sLength = (Int32.Parse(timeTemp.Substring(0,timeTemp.IndexOf(':'))) * 60)+
-                          (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':')+1)) * 1);
-            else
-                sLength = (Int32.Parse(timeTemp.Substring(0,timeTemp.IndexOf(':'))) * 360)+
-                          (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':')+1,timeTemp.LastIndexOf(':')-(timeTemp.IndexOf(':')+1))) * 60)+
-                          (Int32.Parse(timeTemp.Substring(timeTemp.LastIndexOf(':')+1)) * 1);
-
+            try
+            {
+                if (cSync.Equals("ask"))
+                {
+                    Console.Write("Who synced this chart? ");
+                    cSync = Console.ReadLine().Trim();
+                }
+                if (cEffects.Equals("ask"))
+                {
+                    Console.Write("Who wrote the effects for this chart? ");
+                    cEffects = Console.ReadLine().Trim();
+                }
+                if (cGuitar.Equals("ask"))
+                {
+                    Console.Write("Who wrote the guitar part of this chart? ");
+                    cGuitar = Console.ReadLine().Trim();
+                }
+                if (cBass.Equals("ask"))
+                {
+                    Console.Write("Who wrote the bass part of this chart? ");
+                    cBass = Console.ReadLine().Trim();
+                }
+                if (cDrums.Equals("ask"))
+                {
+                    Console.Write("Who wrote the drum part of this chart? ");
+                    cDrums = Console.ReadLine().Trim();
+                }
+                if (cVocals.Equals("ask"))
+                {
+                    Console.Write("Who wrote the vocal part of this chart? ");
+                    cVocals = Console.ReadLine().Trim();
+                }
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
+            int sLength = 0;
             string timeS = "";
-            if (((int)(sLength / 3600)) <= 0)
-                timeS += "00" + ":";
-            else if(((int)(sLength / 3600))<10)
-                timeS += "0" + ((int)(sLength / 3600)) + ":";
-            else
-                timeS += ((int)(sLength / 3600)) + ":";
-            if (((int)((sLength / 60) % 60)) <= 0)
-                timeS += "00" + ":";
-            else if(((int)((sLength / 60) % 60))<10)
-                timeS += "0" + ((int)((sLength / 60) % 60)) + ":";
-            else
-                timeS += ((int)((sLength / 60) % 60)) + ":";
-            if (((int)(sLength % 60)) <= 0)
-                timeS += "00";
-            else if(((int)(sLength % 60))<10)
-                timeS += "0" + ((int)(sLength % 60));
-            else
-                timeS += ((int)(sLength % 60));
+            try
+            {
+                Console.WriteLine("Song Length:");
+                Console.WriteLine("Format hh:mm:ss (leading digits optional)");
+                String timeTemp = Console.ReadLine();
+                if (!timeTemp.Contains(":"))
+                    sLength = Int32.Parse(timeTemp) * 1;
+                else if (timeTemp.IndexOf(':') == timeTemp.LastIndexOf(':'))
+                    sLength = (Int32.Parse(timeTemp.Substring(0, timeTemp.IndexOf(':'))) * 60) +
+                              (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':') + 1)) * 1);
+                else
+                    sLength = (Int32.Parse(timeTemp.Substring(0, timeTemp.IndexOf(':'))) * 360) +
+                              (Int32.Parse(timeTemp.Substring(timeTemp.IndexOf(':') + 1, timeTemp.LastIndexOf(':') - (timeTemp.IndexOf(':') + 1))) * 60) +
+                              (Int32.Parse(timeTemp.Substring(timeTemp.LastIndexOf(':') + 1)) * 1);
 
-            sLength *= 1000;
+                
+                if (((int)(sLength / 3600)) <= 0)
+                    timeS += "00" + ":";
+                else if (((int)(sLength / 3600)) < 10)
+                    timeS += "0" + ((int)(sLength / 3600)) + ":";
+                else
+                    timeS += ((int)(sLength / 3600)) + ":";
+                if (((int)((sLength / 60) % 60)) <= 0)
+                    timeS += "00" + ":";
+                else if (((int)((sLength / 60) % 60)) < 10)
+                    timeS += "0" + ((int)((sLength / 60) % 60)) + ":";
+                else
+                    timeS += ((int)((sLength / 60) % 60)) + ":";
+                if (((int)(sLength % 60)) <= 0)
+                    timeS += "00";
+                else if (((int)(sLength % 60)) < 10)
+                    timeS += "0" + ((int)(sLength % 60));
+                else
+                    timeS += ((int)(sLength % 60));
+
+                sLength *= 1000;
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
 
             if (outputLevel >= 2)
                 Console.WriteLine("Length parsed well");
-
             int lastBeat = 0;
-            for (int m = 0; m < notes.Length; m++)
-                for (int n = 0; n < notes[m].Length; n++)
-                    if(notes[m][n].Count>0)
-                        if (notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len > lastBeat)
-                            lastBeat = notes[m][n][notes[m][n].Count - 1].time + notes[m][n][notes[m][n].Count - 1].len;
-            if (bpmsigs[bpmsigs.Count - 1].time > lastBeat)
-                lastBeat = bpmsigs[bpmsigs.Count - 1].time;
-            if (timesigs[timesigs.Count - 1].time > lastBeat)
-                lastBeat = timesigs[timesigs.Count - 1].time;
+            for (int i = 0; i < globalevents.Count; i++)
+                if (globalevents[i].value.Equals("end"))
+                    lastBeat = globalevents[i].time;
 
             if (outputLevel >= 3)
                 Console.WriteLine("Last Beat Found");
 
+            
             List<BarLine> barlines = new List<BarLine>();
             List<int> beatTimesL = new List<int>();
             int cBPM=0, cTS = 0;
             float currentTime = 0;
             int currentBeat = 0;
             int currentBPM = 0;
-            for (int i = 0; i < lastBeat / 192 + 8; i++)
+            try
             {
-                float add = 0;
-                for (int k = currentBeat; k < currentBeat + 192; k++)
+                for (int i = 0; i < lastBeat / 192 + 8; i++)
                 {
-                    if (cBPM<bpmsigs.Count && bpmsigs[cBPM].time == k)
-                    { currentBPM = bpmsigs[cBPM].value; cBPM++; }
+                    float add = 0;
+                    for (int k = currentBeat; k < currentBeat + 192; k++)
+                    {
+                        if (cBPM < bpmsigs.Count && bpmsigs[cBPM].time == k)
+                        { currentBPM = bpmsigs[cBPM].value; cBPM++; }
 
-                    add+=(60000f / currentBPM * 1000) / 192f;
+                        add += (60000f / currentBPM * 1000) / 192f;
+                    }
+                    beatTimesL.Add((int)currentTime);
+                    if (outputLevel >= 3)
+                        Console.Write("(Beat:" + ((int)currentTime) + ")");
+                    currentBeat += 192;
+                    currentTime += add;
+                }
+                while (currentTime < sLength)
+                {
+                    beatTimesL.Add((int)currentTime);
+                    if (outputLevel >= 3)
+                        Console.Write("(Beat:" + ((int)currentTime) + ")");
+                    currentTime += (60000f / currentBPM * 1000) / 192f;
                 }
                 beatTimesL.Add((int)currentTime);
-                if (outputLevel >= 3)
-                    Console.Write("(Beat:" + ((int)currentTime) + ")");
-                currentBeat += 192;
-                currentTime += add;
             }
-            while (currentTime < sLength)
+            catch (Exception e)
             {
-                beatTimesL.Add((int)currentTime);
-                if (outputLevel >= 3)
-                    Console.Write("(Beat:" + ((int)currentTime) + ")");
-                currentTime+=(60000f / currentBPM * 1000) / 192f;
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
             }
             int[] beatTimes = beatTimesL.ToArray();
             if (outputLevel >= 2)
@@ -616,121 +651,195 @@ namespace chart2unsigned
             int currentTS = 0;
             currentBeat = 0;
             int countBeat = 0;
-            for (int i = 0; i < beatTimes.Length; i++)
+            try
             {
-                if (cTS<timesigs.Count && timesigs[cTS].time <= currentBeat)
-                { currentTS = timesigs[cTS].value; cTS++; }
-                if (countBeat == 0)
-                    barlines.Add(new BarLine(beatTimes[currentBeat / 192], currentTS, currentBeat / 192));
-                countBeat++;
-                if (countBeat >= currentTS)
-                    countBeat = 0;
-                currentBeat += 192;
-            }
-            if (outputLevel >= 2)
-                Console.WriteLine("Barlines parsed");
-            for (int m = 0; m < notes.Length; m++)
-                for (int n = 0; n < notes[m].Length; n++)
+                for (int i = 0; i < beatTimes.Length; i++)
                 {
-                    for (int i = 0; i < notes[m][n].Count - 1; )
-                        if (notes[m][n][i].time == notes[m][n][i + 1].time)
-                        {
-                            Note r = notes[m][n][i];
-                            r.value |= notes[m][n][i + 1].value;
-                            notes[m][n][i] = r;
-                            notes[m][n].RemoveAt(i + 1);
-                        }
-                        else
-                            i++;
+                    if (cTS < timesigs.Count && timesigs[cTS].time <= currentBeat)
+                    { currentTS = timesigs[cTS].value; cTS++; }
+                    if (countBeat == 0)
+                        barlines.Add(new BarLine(beatTimes[currentBeat / 192], currentTS, currentBeat / 192));
+                    countBeat++;
+                    if (countBeat >= currentTS)
+                        countBeat = 0;
+                    currentBeat += 192;
                 }
+                if (outputLevel >= 2)
+                    Console.WriteLine("Barlines parsed");
+                for (int m = 0; m < notes.Length; m++)
+                    for (int n = 0; n < notes[m].Length; n++)
+                    {
+                        for (int i = 0; i < notes[m][n].Count - 1; )
+                            if (notes[m][n][i].time == notes[m][n][i + 1].time)
+                            {
+                                Note r = notes[m][n][i];
+                                r.value |= notes[m][n][i + 1].value;
+                                notes[m][n][i] = r;
+                                notes[m][n].RemoveAt(i + 1);
+                            }
+                            else
+                                i++;
+                    }
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
+            
             if (outputLevel >= 2)
                 Console.WriteLine("Chords Parsed");
+
             Note[][][] newnotes = new Note[notes.Length][][];
-            for (int m = 0; m < notes.Length; m++)
+            try
             {
-                newnotes[m] = new Note[notes[m].Length][];
-                for (int n = 0; n < notes[m].Length; n++)
+                for (int m = 0; m < notes.Length; m++)
                 {
-                    newnotes[m][n] = notes[m][n].ToArray();
-                    if (outputLevel >= 3)
-                        Console.WriteLine("Notes Arrayed");
-                    Array.Sort<Note>(newnotes[m][n]);
-                    if(m==2 && !drumLayout)
+                    newnotes[m] = new Note[notes[m].Length][];
+                    for (int n = 0; n < notes[m].Length; n++)
+                    {
+                        newnotes[m][n] = notes[m][n].ToArray();
+                        if (outputLevel >= 3)
+                            Console.WriteLine("Notes Arrayed");
+                        Array.Sort<Note>(newnotes[m][n]);
+                        if(m==2 && !drumLayout)
+                            for (int i = 0; i < newnotes[m][n].Length; i++)
+                            {
+                                byte newVal = 0;
+                                if ((newnotes[m][n][i].value & 1) != 0)
+                                    newVal |= 16;
+                                if ((newnotes[m][n][i].value & 2) != 0)
+                                    newVal |= 2;
+                                if ((newnotes[m][n][i].value & 4) != 0)
+                                    newVal |= 4;
+                                if ((newnotes[m][n][i].value & 8) != 0)
+                                    newVal |= 8;
+                                if ((newnotes[m][n][i].value & 16) != 0)
+                                    newVal |= 1;
+                                newnotes[m][n][i].value = newVal;
+                                if (outputLevel >= 3)
+                                    Console.WriteLine("Drum Layout Converted");
+                            }
+                        
+                        for (int i = 1; i < newnotes[m][n].Length; i++)
+                            if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 100)
+                                if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i-1].value&0x1F&newnotes[m][n][i].value)==0)
+                                    newnotes[m][n][i].value |= (1 << 5);
+                        if (outputLevel >= 3)
+                            Console.WriteLine("HOPOs Configured");
                         for (int i = 0; i < newnotes[m][n].Length; i++)
                         {
-                            byte newVal = 0;
-                            if ((newnotes[m][n][i].value & 1) != 0)
-                                newVal |= 16;
-                            if ((newnotes[m][n][i].value & 2) != 0)
-                                newVal |= 2;
-                            if ((newnotes[m][n][i].value & 4) != 0)
-                                newVal |= 4;
-                            if ((newnotes[m][n][i].value & 8) != 0)
-                                newVal |= 8;
-                            if ((newnotes[m][n][i].value & 16) != 0)
-                                newVal |= 1;
-                            newnotes[m][n][i].value = newVal;
-                            if (outputLevel >= 3)
-                                Console.WriteLine("Drum Layout Converted");
+                            float when = newnotes[m][n][i].time / 192f;
+                            if (when == (int)when)
+                                newnotes[m][n][i].time = beatTimes[(int)when];
+                            else
+                                newnotes[m][n][i].time = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
+                            when += newnotes[m][n][i].len / 192f;
+                            if (when == (int)when)
+                                newnotes[m][n][i].len = beatTimes[(int)when]-newnotes[m][n][i].time;
+                            else
+                                newnotes[m][n][i].len = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))))-newnotes[m][n][i].time;
                         }
-                    
-                    for (int i = 1; i < newnotes[m][n].Length; i++)
-                        if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 100)
-                            if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i-1].value&0x1F&newnotes[m][n][i].value)==0)
-                                newnotes[m][n][i].value |= (1 << 5);
-                    if (outputLevel >= 3)
-                        Console.WriteLine("HOPOs Configured");
-                    for (int i = 0; i < newnotes[m][n].Length; i++)
-                    {
-                        float when = newnotes[m][n][i].time / 192f;
-                        if (when == (int)when)
-                            newnotes[m][n][i].time = beatTimes[(int)when];
-                        else
-                            newnotes[m][n][i].time = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
-                        when += newnotes[m][n][i].len / 192f;
-                        if (when == (int)when)
-                            newnotes[m][n][i].len = beatTimes[(int)when]-newnotes[m][n][i].time;
-                        else
-                            newnotes[m][n][i].len = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))))-newnotes[m][n][i].time;
+                        if (outputLevel >= 3)
+                            Console.WriteLine("Times Converted");
+                        for (int i = 0; i < newnotes[m][n].Length - 1; i++)
+                            if (newnotes[m][n][i].len > 0)
+                                if (newnotes[m][n][i].time + newnotes[m][n][i].len > newnotes[m][n][i + 1].time - 50)
+                                    newnotes[m][n][i].len -= 50;
+                        if (outputLevel >= 3)
+                            Console.WriteLine("Fixed for Held Continuity Glitch");
+                        
                     }
-                    if (outputLevel >= 3)
-                        Console.WriteLine("Times Converted");
-                    for (int i = 0; i < newnotes[m][n].Length - 1; i++)
-                        if (newnotes[m][n][i].len > 0)
-                            if (newnotes[m][n][i].time + newnotes[m][n][i].len > newnotes[m][n][i + 1].time - 50)
-                                newnotes[m][n][i].len -= 50;
-                    if (outputLevel >= 3)
-                        Console.WriteLine("Fixed for Held Continuity Glitch");
                 }
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
             }
             if (outputLevel >= 2)
                 Console.WriteLine("Notes Parsed");
             SPPH[][][] newSPs = new SPPH[SPs.Length][][];
-            for (int m = 0; m < SPs.Length; m++)
+            try
             {
-                newSPs[m] = new SPPH[SPs[m].Length][];
-                for (int n = 0; n < SPs[m].Length; n++)
+                for (int m = 0; m < SPs.Length; m++)
                 {
-                    newSPs[m][n] = SPs[m][n].ToArray();
-                    for (int i = 0; i < newSPs[m][n].Length; i++)
+                    newSPs[m] = new SPPH[SPs[m].Length][];
+                    for (int n = 0; n < SPs[m].Length; n++)
                     {
-                        float when = newSPs[m][n][i].time / 192f;
-                        if (when == (int)when)
-                            newSPs[m][n][i].time = beatTimes[(int)when];
-                        else
-                            newSPs[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
-                        when += newSPs[m][n][i].len / 192f;
-                        if (when == (int)when)
-                            newSPs[m][n][i].len = beatTimes[(int)when];
-                        else
-                            newSPs[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newSPs[m][n] = SPs[m][n].ToArray();
+                        for (int i = 0; i < newSPs[m][n].Length; i++)
+                        {
+                            float when = newSPs[m][n][i].time / 192f;
+                            if (when == (int)when)
+                                newSPs[m][n][i].time = beatTimes[(int)when];
+                            else
+                                newSPs[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                            when += newSPs[m][n][i].len / 192f;
+                            if (when == (int)when)
+                                newSPs[m][n][i].len = beatTimes[(int)when];
+                            else
+                                newSPs[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        }
+                        if (outputLevel >= 3)
+                            Console.Out.Write("Overdrive Phrases calculated");
                     }
-                    if (outputLevel >= 3)
-                        Console.Out.Write("Overdrive Phrases calculated");
                 }
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
             }
             if (outputLevel >= 2)
                 Console.WriteLine("Overdrive Phrases parsed");
+
+            int start=-1;
+            for (int i = 0; i < events[2][3].Count; i++)
+            {
+                if (events[2][3][i].value.Equals("drumfill_on"))
+                    start = events[2][3][i].time;
+                if (events[2][3][i].value.Equals("drumfill_off"))
+                    DFs.Add(new SPPH(0, start, events[2][3][i].time - start));
+            }
+
+            for (int i = 0; i < DFs.Count-1; i++)
+            {
+                for (int k = i + 1; k < DFs.Count; k++)
+                {
+                    if (DFs[i].time == DFs[k].time)
+                        DFs.Remove(DFs[k]);
+                }
+            }
+
+            SPPH[] newDFs = DFs.ToArray(); ;
+            try
+            {
+                for (int i = 0; i < newDFs.Length; i++)
+                {
+                    float when = newDFs[i].time / 192f;
+                    if (when == (int)when)
+                        newDFs[i].time = beatTimes[(int)when];
+                    else
+                        newDFs[i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                    when += newDFs[i].len / 192f;
+                    if (when == (int)when)
+                        newDFs[i].len = beatTimes[(int)when];
+                    else
+                        newDFs[i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                }
+                if (outputLevel >= 3)
+                    Console.Out.Write("Drum Fills calculated");
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
+            if (outputLevel >= 2)
+                Console.WriteLine("Drum Fills parsed");
+
+
             for(int m=0;m<4;m++)
                 for (int n = 0; n < 4; n++)
                 {
@@ -774,6 +883,34 @@ namespace chart2unsigned
                 }
             if (outputLevel >= 2)
                 Console.WriteLine("ScoreStars Parsed");
+
+            for (int i = 0; i < globalevents.Count; i++)
+            {
+                if (globalevents[i].value.Equals("camera_switch"))
+                    cameraSwitches.Add(globalevents[i].time);
+            }
+            if (outputLevel >= 2)
+            Console.Out.Write("Camera Switches parsed");
+            int[] newcameraSwitches = cameraSwitches.ToArray(); ;
+            try
+            {
+                for (int i = 0; i < newcameraSwitches.Length; i++)
+                {
+                    float when = newcameraSwitches[i] / 192f;
+                    if (when == (int)when)
+                        newcameraSwitches[i] = beatTimes[(int)when];
+                    else
+                        newcameraSwitches[i] = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                }
+                if (outputLevel >= 3)
+                    Console.Out.Write("Camera Switches calculated");
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
+
             Console.WriteLine("Finished Processing");
 
             //OUTPUT
@@ -848,7 +985,7 @@ namespace chart2unsigned
             for (int i = 0; i < newSPs[3][3].Length; i++)
             {
                 fout.Write(newSPs[3][3][i].time);
-                fout.Write(newSPs[3][3][i].len);
+                fout.Write(newSPs[3][3][i].len-newSPs[3][3][i].time);
             }
             for (int i = 3; i >= 0; i--)
             {
@@ -878,9 +1015,14 @@ namespace chart2unsigned
             for (int i = 0; i < newSPs[2][3].Length; i++)
             {
                 fout.Write(newSPs[2][3][i].time);
-                fout.Write(newSPs[2][3][i].len);
+                fout.Write(newSPs[2][3][i].len-newSPs[2][3][i].time);
             }
-            fout.Write(0);
+            fout.Write(newDFs.Length);
+            for (int i = 0; i < newDFs.Length; i++)
+            {
+                fout.Write(newDFs[i].time);
+                fout.Write(newDFs[i].len);
+            }
             for (int i = 3; i >= 0; i--)
             {
                 fout.Write(i);
@@ -903,8 +1045,10 @@ namespace chart2unsigned
             {
                 Error("Problem opening GBE for writing");
             }
-            fout.Write(2);
+            fout.Write(2+newcameraSwitches.Length);
             fout.Write(0);
+            for (int i = 0; i < newcameraSwitches.Length; i++)
+                fout.Write(newcameraSwitches[i]);
             fout.Write(sLength);
             fout.Write(1);
             fout.Write(0);
@@ -929,6 +1073,12 @@ namespace chart2unsigned
             Console.Beep(100, 150);
             Console.Beep(200, 150);
             Console.Beep(100, 150);
+            Console.Write("Closing...");
+            for (int i = 5; i >= 0; i--)
+            {
+                Console.Write(i + "...");
+                Console.Beep(37+i, 1000);
+            }
             return;
         }
 
