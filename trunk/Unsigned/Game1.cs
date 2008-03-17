@@ -471,12 +471,12 @@ namespace Unsigned
                         wait = 30;
                         if (loc == 1)
                             nextLoc = 0;
-                        //else if (loc == 2 && !filled[0])
-                        //    nextLoc = 1;
-                        //else if (loc == 2)
-                        //    nextLoc = 0;
-                        //else if (loc == 3 && !filled[1])
-                        //    nextLoc = 2;
+                        else if (loc == 2 && !filled[0])
+                            nextLoc = 1;
+                        else if (loc == 2)
+                            nextLoc = 0;
+                        else if (loc == 3 && !filled[1])
+                            nextLoc = 2;
                         else if (loc == 3 && !filled[0])
                             nextLoc = 1;
                         else if (loc == 3)
@@ -493,22 +493,22 @@ namespace Unsigned
                         wait = 30;
                         if (loc == 0 && !filled[0])
                             nextLoc = 1;
-                        //else if (loc == 0 && !filled[1])
-                        //    nextLoc = 2;
+                        else if (loc == 0 && !filled[1])
+                            nextLoc = 2;
                         else if (loc == 0 && !filled[2])
                             nextLoc = 3;
                         else if (loc == 0 && !filled[3])
                             nextLoc = 4;
-                        //else if (loc == 1 && !filled[1])
-                        //    nextLoc = 2;
+                        else if (loc == 1 && !filled[1])
+                            nextLoc = 2;
                         else if (loc == 1 && !filled[2])
                             nextLoc = 3;
                         else if (loc == 1 && !filled[3])
                             nextLoc = 4;
-                        //else if (loc == 2 && !filled[2])
-                        //    nextLoc = 3;
-                        //else if (loc == 2 && !filled[3])
-                        //    nextLoc = 4;
+                        else if (loc == 2 && !filled[2])
+                            nextLoc = 3;
+                        else if (loc == 2 && !filled[3])
+                            nextLoc = 4;
                         else if (loc == 3 && !filled[3])
                             nextLoc = 4;
                     }
@@ -679,10 +679,10 @@ namespace Unsigned
         {
             Window.Title = "Unsigned";
 
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
-            windowwidth = 800;
-            windowheight = 600;
+            graphics.PreferredBackBufferWidth = 1024;
+            graphics.PreferredBackBufferHeight = 768;
+            windowwidth = 1024;
+            windowheight = 768;
             //graphics.ToggleFullScreen();
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
@@ -1017,6 +1017,13 @@ namespace Unsigned
                         for (int i = 0; i <= 9; i++)
                             texRockstarRingHiLi[i] = content.Load<Texture2D>("graphics\\border0" + i);
                         texRockstarRingHiLi[10] = content.Load<Texture2D>("graphics\\border10");
+                        Board.vBar = content.Load<Texture2D>("graphics\\vocalbar");
+                        Board.vBGExt = content.Load<Texture2D>("graphics\\vocalbg_ext");
+                        Board.vBGInt = content.Load<Texture2D>("graphics\\vocalbg_int");
+                        Board.vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
+                        Board.vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
+                        Board.vSPMeter = content.Load<Texture2D>("graphics\\vocal_spmeter");
+                        Board.vSPMeterFill = content.Load<Texture2D>("graphics\\vocal_spmeterfill");
                         GC.Collect();
                         loading &= (byte)(~S_INGAME & 255);
                         loaded |= S_INGAME;
@@ -2442,8 +2449,10 @@ namespace Unsigned
                 #region ingame
                 else if (screen == S_INGAME)
                 {
+#if !DEBUG
                     try
                     {
+#endif
                         ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
                         for (int i = 0; i < 4; i++)
                         {
@@ -2481,6 +2490,7 @@ namespace Unsigned
                                 boards[i].SPMRTex = rtPie[i].GetTexture();
                             }
                         }
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
@@ -2491,6 +2501,7 @@ namespace Unsigned
 
                     try
                     {
+#endif
                         graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                         graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                         graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
@@ -2544,6 +2555,7 @@ namespace Unsigned
                             }
                             engine.End();
                         }
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
@@ -2554,6 +2566,7 @@ namespace Unsigned
 
                     try
                     {
+#endif
                         for (int i = 0; i < boards.Length; i++)
                         {
                             if (!instruments[i])
@@ -2563,6 +2576,13 @@ namespace Unsigned
                                       boardsTarget[i].Width / (float)boardsTarget[i].Height,
                                       0.1f, 100.0f);
                             graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+                            if (i == 1)
+                            {
+                                spritebatch.Begin();
+                                boards[i].Draw(spritebatch,((DateTime.Now.Ticks - SongStartTime)/(TicksPerSecond/1000)));
+                                spritebatch.End();
+                                continue;
+                            }
                             engine.CurrentTechnique = engine.Techniques["boardTechnique"];
                             engine.Begin();
                             foreach (EffectPass pass in engine.CurrentTechnique.Passes)
@@ -2602,6 +2622,7 @@ namespace Unsigned
                             }
                             engine.End();
                         }
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
@@ -2612,6 +2633,7 @@ namespace Unsigned
 
                     try
                     {
+#endif
                         if (renderLevel > 0)
                         {
                             if (currentFES == FRAME_EFFECT_STYLE.CREST)
@@ -2668,6 +2690,7 @@ namespace Unsigned
                             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
                             graphics.GraphicsDevice.Clear(Color.Black);
                         }
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
@@ -2680,6 +2703,7 @@ namespace Unsigned
                     //spritebatch.End();
                     try
                     {
+#endif
                         for (int i = 0; i < 4; i++)
                             if (instruments[i])
                                 spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
@@ -2702,6 +2726,7 @@ namespace Unsigned
                                 //spritebatch.DrawString(DefaultFont, "" + controllers[contInput[0]].ThumbSticks.Right.Y, new Vector2(0, 48), Color.Red);
                             }
                         }
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
@@ -2709,6 +2734,7 @@ namespace Unsigned
                         Exit();
                         return;
                     }
+#endif
 
                     spritebatch.End();
                 }
@@ -3001,6 +3027,21 @@ namespace Unsigned
             }
             else if (!guitarist && !bassist && !percussionist && vocalist)
             {
+                song = new Song(4, 2, songname,this.Window.Handle);
+                boards[1] = new Board(VOCALIST, 0, song, difficulty[1]);
+                Board.vocaly = 10;
+                Board.vocalheight = 140;
+                Board.vocalzerox = windowwidth / 10;
+                Board.vocalwidth = 1f;
+                /*Board.curveHeight = 0.03f;
+                Board.height = -1.6f;
+                Board.length = 3f;
+                Board.width = 0.6f;
+                Board.rotate = .3f;
+                Board.zeroZ = 2.8f;
+                Board.sFade = 0.8f;
+                Board.eFade = 1.2f;*/
+                boardsTarget[1] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
 
             this.venue = new Venue(venue + ".gbw", songname, this, content, graphics, engine);

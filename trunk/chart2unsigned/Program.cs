@@ -20,8 +20,8 @@ namespace chart2unsigned
     public struct Note : IComparable
     {
         public byte value;
-        public int time, len;
-        public Note(byte v, int t, int l)
+        public uint time, len;
+        public Note(byte v, uint t, uint l)
         {
             value = v;
             time = t;
@@ -36,10 +36,10 @@ namespace chart2unsigned
     public struct SPPH
     {
         public byte value;
-        public int time, len;
+        public uint time, len;
         public int start1, start2;
         public int end1, end2;
-        public SPPH(byte v, int t, int l)
+        public SPPH(byte v, uint t, uint l)
         {
             value = v;
             time = t;
@@ -54,8 +54,8 @@ namespace chart2unsigned
     public struct Event
     {
         public string value;
-        public int time;
-        public Event(string v, int t)
+        public uint time;
+        public Event(string v, uint t)
         {
             value = v;
             time = t;
@@ -64,10 +64,10 @@ namespace chart2unsigned
 
     public class BarLine
     {
-        public int time;
+        public uint time;
         public int beats;
-        public int sBeat;
-        public BarLine(int t, int b, int s)
+        public uint sBeat;
+        public BarLine(uint t, int b, uint s)
         {
             time = t;
             beats = b;
@@ -75,17 +75,17 @@ namespace chart2unsigned
         }
     }
 
-    public class AdvBarLine : BarLine
+    public class VocalWord
     {
-        public int[] eigthtimes;
-        public AdvBarLine(int t, int b, int s) : base(t,b,s)
-        {
-            time = t;
-            beats = b;
-            sBeat = s;
-            eigthtimes = new int[beats * 2];
-            
-        }
+        public uint time, length;
+        public ushort note;
+        public string value;
+    }
+
+    public class VocalPhrase
+    {
+        public List<VocalWord> words;
+        public uint time;
     }
 
     static class Program
@@ -133,7 +133,7 @@ namespace chart2unsigned
             List<Note>[][] notes = new List<Note>[4][];
             List<SPPH>[][] SPs = new List<SPPH>[4][];
             List<SPPH> DFs = new List<SPPH>();
-            List<int> cameraSwitches = new List<int>();
+            List<uint> cameraSwitches = new List<uint>();
             List<Event> globalevents = new List<Event>();
             int[][][] starLevels = new int[4][][];
             for (int i = 0; i < 4; i++)
@@ -161,9 +161,6 @@ namespace chart2unsigned
                 for (int k = 0; k < 4; k++)
                     events[i][k] = new List<Event>();
             }
-
-            int dotcount = 0;
-            int dcmax = 500;
             System.IO.StreamReader fin;
 
             Console.WriteLine("Full setup complete");
@@ -194,7 +191,7 @@ namespace chart2unsigned
                             outputLevel = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                             outputLevel = Math.Max(1, Math.Min(3, outputLevel));
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             Error("Error! The output in config.cfg must be a number!");
                         }
@@ -236,10 +233,10 @@ namespace chart2unsigned
             catch (System.IO.IOException e)
             {
                 Error("IO Error\n"+
-                    "Please Dump output at forums");
+                    "Please Dump output at forums\n"+e.Message);
                 return;
             }
-            catch (System.OutOfMemoryException e)
+            catch (System.OutOfMemoryException)
             {
                 Error("You ran out of memory!!!\n"+
                     "Try closing some programs, or go buy some memory. It\'s cheap");
@@ -401,7 +398,7 @@ namespace chart2unsigned
                         while (!line.Equals("}"))
                         {
                             Event e = new Event();
-                            e.time = Int32.Parse(line.Substring(0, line.IndexOf('=')).Trim());
+                            e.time = UInt32.Parse(line.Substring(0, line.IndexOf('=')).Trim());
                             e.value = line.Substring(line.IndexOf('E') + 1).Trim();
                             e.value = e.value.Substring(1, e.value.Length - 2);
                             globalevents.Add(e);
@@ -438,7 +435,7 @@ namespace chart2unsigned
                         string line = fin.ReadLine().Trim();
                         while (!line.Equals("}"))
                         {
-                            int time = Int32.Parse(line.Substring(0, line.IndexOf('=')).Trim());
+                            uint time = UInt32.Parse(line.Substring(0, line.IndexOf('=')).Trim());
                             line = line.Substring(line.IndexOf('=') + 1).Trim();
                             string what = line.Substring(0, line.IndexOf(' ')).Trim();
                             line = line.Substring(line.IndexOf(' ') + 1).Trim();
@@ -447,7 +444,7 @@ namespace chart2unsigned
                             {
                                 int value = Int32.Parse(line.Substring(0, line.IndexOf(' ')).Trim());
                                 line = line.Substring(line.IndexOf(' ') + 1).Trim();
-                                int len = Int32.Parse(line);
+                                uint len = UInt32.Parse(line);
                                 byte valueB = (byte)(1 << value);
                                 notes[inst][diff].Add(new Note(valueB, time, len));
                                 if (outputLevel >= 3)
@@ -464,7 +461,7 @@ namespace chart2unsigned
                             {
                                 int value = Int32.Parse(line.Substring(0, line.IndexOf(' ')).Trim());
                                 line = line.Substring(line.IndexOf(' ') + 1).Trim();
-                                int len = Int32.Parse(line);
+                                uint len = UInt32.Parse(line);
                                 if (value == 2)
                                     SPs[inst][diff].Add(new SPPH((byte)value, time, len));
                                 else if (inst == 2 && diff == 3 && value == 3)
@@ -598,7 +595,7 @@ namespace chart2unsigned
 
             if (outputLevel >= 2)
                 Console.WriteLine("Length parsed well");
-            int lastBeat = 0;
+            uint lastBeat = 0;
             for (int i = 0; i < globalevents.Count; i++)
                 if (globalevents[i].value.Equals("end"))
                     lastBeat = globalevents[i].time;
@@ -608,24 +605,24 @@ namespace chart2unsigned
 
             
             List<BarLine> barlines = new List<BarLine>();
-            List<int> beatTimesL = new List<int>();
+            List<uint> beatTimesL = new List<uint>();
             int cBPM=0, cTS = 0;
             float currentTime = 0;
-            int currentBeat = 0;
+            uint currentBeat = 0;
             int currentBPM = 0;
             try
             {
                 for (int i = 0; i < lastBeat / 192 + 8; i++)
                 {
                     float add = 0;
-                    for (int k = currentBeat; k < currentBeat + 192; k++)
+                    for (uint k = currentBeat; k < currentBeat + 192; k++)
                     {
                         if (cBPM < bpmsigs.Count && bpmsigs[cBPM].time == k)
                         { currentBPM = bpmsigs[cBPM].value; cBPM++; }
 
                         add += (60000f / currentBPM * 1000) / 192f;
                     }
-                    beatTimesL.Add((int)currentTime);
+                    beatTimesL.Add((uint)currentTime);
                     if (outputLevel >= 3)
                         Console.Write("(Beat:" + ((int)currentTime) + ")");
                     currentBeat += 192;
@@ -633,19 +630,19 @@ namespace chart2unsigned
                 }
                 while (currentTime < sLength)
                 {
-                    beatTimesL.Add((int)currentTime);
+                    beatTimesL.Add((uint)currentTime);
                     if (outputLevel >= 3)
                         Console.Write("(Beat:" + ((int)currentTime) + ")");
                     currentTime += (60000f / currentBPM * 1000) / 192f;
                 }
-                beatTimesL.Add((int)currentTime);
+                beatTimesL.Add((uint)currentTime);
             }
             catch (Exception e)
             {
                 Error("Unknown Error occurred\n" + e.Message);
                 return;
             }
-            int[] beatTimes = beatTimesL.ToArray();
+            uint[] beatTimes = beatTimesL.ToArray();
             if (outputLevel >= 2)
                 Console.WriteLine("Beat times parsed");
             int currentTS = 0;
@@ -722,7 +719,7 @@ namespace chart2unsigned
                             }
                         
                         for (int i = 1; i < newnotes[m][n].Length; i++)
-                            if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time <= 100)
+                            if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time < 90)
                                 if(!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i-1].value&0x1F&newnotes[m][n][i].value)==0)
                                     newnotes[m][n][i].value |= (1 << 5);
                         if (outputLevel >= 3)
@@ -733,12 +730,12 @@ namespace chart2unsigned
                             if (when == (int)when)
                                 newnotes[m][n][i].time = beatTimes[(int)when];
                             else
-                                newnotes[m][n][i].time = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
+                                newnotes[m][n][i].time = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                             when += newnotes[m][n][i].len / 192f;
                             if (when == (int)when)
                                 newnotes[m][n][i].len = beatTimes[(int)when]-newnotes[m][n][i].time;
                             else
-                                newnotes[m][n][i].len = (int)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))))-newnotes[m][n][i].time;
+                                newnotes[m][n][i].len = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))))-newnotes[m][n][i].time;
                         }
                         if (outputLevel >= 3)
                             Console.WriteLine("Times Converted");
@@ -774,12 +771,12 @@ namespace chart2unsigned
                             if (when == (int)when)
                                 newSPs[m][n][i].time = beatTimes[(int)when];
                             else
-                                newSPs[m][n][i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                                newSPs[m][n][i].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
                             when += newSPs[m][n][i].len / 192f;
                             if (when == (int)when)
                                 newSPs[m][n][i].len = beatTimes[(int)when];
                             else
-                                newSPs[m][n][i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                                newSPs[m][n][i].len = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
                         }
                         if (outputLevel >= 3)
                             Console.Out.Write("Overdrive Phrases calculated");
@@ -794,13 +791,13 @@ namespace chart2unsigned
             if (outputLevel >= 2)
                 Console.WriteLine("Overdrive Phrases parsed");
 
-            int start=-1;
+            uint start=0;
             for (int i = 0; i < events[2][3].Count; i++)
             {
                 if (events[2][3][i].value.Equals("drumfill_on"))
                     start = events[2][3][i].time;
                 if (events[2][3][i].value.Equals("drumfill_off"))
-                    DFs.Add(new SPPH(0, start, events[2][3][i].time - start));
+                    DFs.Add(new SPPH(0, (uint)start, (uint)(events[2][3][i].time - start)));
             }
 
             for (int i = 0; i < DFs.Count-1; i++)
@@ -821,12 +818,12 @@ namespace chart2unsigned
                     if (when == (int)when)
                         newDFs[i].time = beatTimes[(int)when];
                     else
-                        newDFs[i].time = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newDFs[i].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
                     when += newDFs[i].len / 192f;
                     if (when == (int)when)
                         newDFs[i].len = beatTimes[(int)when];
                     else
-                        newDFs[i].len = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newDFs[i].len = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
                 }
                 if (outputLevel >= 3)
                     Console.Out.Write("Drum Fills calculated");
@@ -891,7 +888,7 @@ namespace chart2unsigned
             }
             if (outputLevel >= 2)
             Console.Out.Write("Camera Switches parsed");
-            int[] newcameraSwitches = cameraSwitches.ToArray(); ;
+            uint[] newcameraSwitches = cameraSwitches.ToArray(); ;
             try
             {
                 for (int i = 0; i < newcameraSwitches.Length; i++)
@@ -900,7 +897,7 @@ namespace chart2unsigned
                     if (when == (int)when)
                         newcameraSwitches[i] = beatTimes[(int)when];
                     else
-                        newcameraSwitches[i] = (int)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newcameraSwitches[i] = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
                 }
                 if (outputLevel >= 3)
                     Console.Out.Write("Camera Switches calculated");
@@ -911,6 +908,96 @@ namespace chart2unsigned
                 return;
             }
 
+            List<Event> vocalEvents = new List<Event>();
+            for (int i = 0; i < events[1][3].Count; i++)
+                if (events[1][3][i].value.StartsWith("V"))
+                    vocalEvents.Add(events[1][3][i]);
+            if (outputLevel >= 2)
+                    Console.Out.Write("Vocal Events parsed");
+
+            ushort[] notesVal = { 1, 3, 4, 6, 8, 9, 11 };
+            string notesStr = "ABCDEFG";
+
+            List<VocalPhrase> vocalPhrases = new List<VocalPhrase>();
+            VocalPhrase tempPhrase = new VocalPhrase();
+            for (int i = 0; i < notes[1][3].Count; i++)
+            {
+                if ((notes[1][3][i].value & (1 << 4))!=0)
+                {
+                    if(tempPhrase.words!=null)
+                        vocalPhrases.Add(tempPhrase);
+                    tempPhrase = new VocalPhrase();
+                    tempPhrase.words = new List<VocalWord>();
+                    tempPhrase.time = notes[1][3][i].time;
+                }
+                if ((notes[1][3][i].value & 1)!=0)
+                {
+                    VocalWord tW = new VocalWord();
+                    tW.time = notes[1][3][i].time;
+                    ushort note = 0;
+                    Event ev = new Event();
+                    for (int k = 0; k < vocalEvents.Count; k++)
+                    {
+                        if (vocalEvents[k].time == notes[1][3][i].time)
+                        {
+                            ev = vocalEvents[k];
+                            break;
+                        }
+                    }
+                    if (ev.value.Equals(""))
+                        continue;
+                    tW.value = ev.value.Substring(ev.value.IndexOf('-')+1);
+                    char[] chars = ev.value.Substring(0, 4).ToCharArray();
+                    if (chars[1] == 'H')
+                        note += 24;
+                    else if (chars[1] == 'M')
+                        note += 12;
+                    note += notesVal[notesStr.IndexOf(chars[2])];
+                    if (chars[3] == 'S')
+                        note++;
+                    else if (chars[3] == 'F')
+                        note--;
+                    tW.note = note;
+                    tempPhrase.words.Add(tW);
+                }
+            }
+            try
+            {
+                for (int i = 0; i < vocalPhrases.Count; i++)
+                {
+                    {
+                        float when = vocalPhrases[i].time / 192f;
+                        if (when == (int)when)
+                            vocalPhrases[i].time = beatTimes[(int)when];
+                        else
+                            vocalPhrases[i].time = (uint)((beatTimes[(int)when] * (when - (int)when)) + (beatTimes[(int)when + 1] * (1 - (when - (int)when))));
+                    }
+                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                    {
+                        float when = vocalPhrases[i].words[k].time / 192f;
+                        if (when == (int)when)
+                            vocalPhrases[i].words[k].time = beatTimes[(int)when];
+                        else
+                            vocalPhrases[i].words[k].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        when += vocalPhrases[i].words[k].length / 192f;
+                        if (when == (int)when)
+                            vocalPhrases[i].words[k].length = beatTimes[(int)when];
+                        else
+                            vocalPhrases[i].words[k].length = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                    }
+                }
+                if (outputLevel >= 3)
+                    Console.Out.Write("Camera Switches calculated");
+            }
+            catch (Exception e)
+            {
+                Error("Unknown Error occurred\n" + e.Message);
+                return;
+            }
+            if (outputLevel >= 2)
+                    Console.Out.Write("Vocal Phrases parsed");
+            
+
             Console.WriteLine("Finished Processing");
 
             //OUTPUT
@@ -920,7 +1007,7 @@ namespace chart2unsigned
             {
                 fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gba"));
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Error("Problem opening GBA for writing");
                 return;
@@ -946,7 +1033,7 @@ namespace chart2unsigned
             {
                 fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbg"));
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Error("Problem opening GBG for writing");
             }
@@ -976,7 +1063,7 @@ namespace chart2unsigned
             {
                 fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbb"));
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Error("Problem opening GBB for writing");
             }
@@ -1006,7 +1093,7 @@ namespace chart2unsigned
             {
                 fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbd"));
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Error("Problem opening GBD for writing");
             }
@@ -1039,9 +1126,35 @@ namespace chart2unsigned
             Console.Out.WriteLine("GBD Written");
             try
             {
+                fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbv"));
+            }
+            catch(Exception)
+            {
+                Error("Problem opening GBV for writing");
+            }
+            fout.Write(VERSION);
+            fout.Write(vocalPhrases.Count);
+            for (int i = 0; i < vocalPhrases.Count; i++)
+            {
+                fout.Write(vocalPhrases[i].time);
+                fout.Write(vocalPhrases[i].words.Count);
+                for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                {
+                    fout.Write(vocalPhrases[i].words[k].time);
+                    fout.Write(vocalPhrases[i].words[k].note);
+                    fout.Write(vocalPhrases[i].words[k].length);
+                    fout.Write(vocalPhrases[i].words[k].value);
+                }
+            }
+            for (int k = 0; k < 5; k++)
+                fout.Write(starLevels[1][3][k]);
+            fout.Close();
+            Console.Out.WriteLine("GBV Written");
+            try
+            {
                 fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[0].Substring(0, args[0].LastIndexOf("\\") + 1) + cName + ".gbe"));
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Error("Problem opening GBE for writing");
             }
