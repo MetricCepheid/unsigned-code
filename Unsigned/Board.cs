@@ -30,11 +30,35 @@ namespace Unsigned
         public int hitSPPH, missedSPPH;
     }
 
+    struct VocalWord
+    {
+        public int time;
+        public ushort note;
+        public string value;
+    }
+
+    struct VocalPhrase
+    {
+        public VocalWord[] words;
+        public int time;
+    }
+
+    class WaveVector2
+    {
+        public float X;
+        public long Y;
+        public WaveVector2(float X, long Y)
+        {
+            this.X = X;
+            this.Y = Y;
+        }
+    }
+
     class Board
     {
         private int type;
         public int xOffset;
-        public static float vocalheight, vocaly;
+        public static float vocalheight, vocaly, vocalzerox, vocalwidth;
         public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
         public float yRotate=0;
         public static Texture2D[][] boardTexPlain;
@@ -42,6 +66,7 @@ namespace Unsigned
         public float multSlide=0;
         public static Texture2D SPMBorder, SPMFill, SPMFlashTex, drumfillTex, SPBoardTex;
         public static Texture2D SPMRbg, SPMRslice, SPMRfg, SPMRbgb, SPMRbgs;
+        public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar;
         public static Texture2D[] SPMRnum;
         public float SPMFlash=0, SPMFVel=0;
         public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
@@ -72,7 +97,8 @@ namespace Unsigned
         private bool SPActivated = false;
         public static int[] guitarToDrums = { 1, 2, 3, 0, -1 };
         public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
-        public LinkedList<Vector2> whammyage;
+        public int whammyageLength;
+        public LinkedList<WaveVector2> whammyage;
         float waveoffset=0;
         Results myResults;
 
@@ -83,6 +109,7 @@ namespace Unsigned
         public int[] wavesSubLen;
 
         private NoteSet[] notes;
+        private VocalPhrase[] vNotes;
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
 
@@ -99,7 +126,7 @@ namespace Unsigned
             popup = new float[5];
             popupSpeed = new float[5];
             if (type == 0 || type == 3)
-                whammyage = new LinkedList<Vector2>();
+                whammyage = new LinkedList<WaveVector2>();
             OutNotes = new Vector4[0];
         }
 
@@ -189,6 +216,7 @@ namespace Unsigned
             }
         }
 
+        float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
         public void GetNotes(long currenttime, long viewdistance)
         {
             currenttime /= (long)Game1.TicksPerSecond / 1000;
@@ -259,29 +287,13 @@ namespace Unsigned
                 {
                     if (notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE || notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
                         continue;
-                    if ((notes[i].type & NS_GREEN) != 0)
+                    for(int r=0;r<5;r++)
+                    if ((notes[i].type & (1<<r)) != 0)
                     {
-                        OutNotes[indx] = new Vector4(-1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
-                        indx++;
-                    }
-                    if ((notes[i].type & NS_RED) != 0)
-                    {
-                        OutNotes[indx] = new Vector4(-0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
-                        indx++;
-                    }
-                    if ((notes[i].type & NS_YELLOW) != 0)
-                    {
-                        OutNotes[indx] = new Vector4(0f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
-                        indx++;
-                    }
-                    if ((notes[i].type & NS_BLUE) != 0)
-                    {
-                        OutNotes[indx] = new Vector4(0.5f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
-                        indx++;
-                    }
-                    if ((notes[i].type & NS_ORANGE) != 0)
-                    {
-                        OutNotes[indx] = new Vector4(1f, notes[i].time, ((notes[i].type & NS_HOPO) != 0) ? 1f : -1f, sp);
+                        OutNotes[indx].X=-1f+(0.5f*r);
+                        OutNotes[indx].Y=notes[i].time;
+                        OutNotes[indx].Z=((notes[i].type & NS_HOPO) != 0) ? 1f : -1f;
+                        OutNotes[indx].W=sp;
                         indx++;
                     }
                 }
@@ -295,44 +307,40 @@ namespace Unsigned
                     {
                         if (fill)
                         {
-                            OutNotes[indx] = new Vector4(dfA[DFIndex + plus], DFStart[DFIndex + plus], 1, (DFHitGreen[DFIndex + plus] ? 1 : 0));
-                            OutNotes[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
+                            OutNotes[indx].X=dfA[DFIndex + plus];
+                            OutNotes[indx].Y=DFStart[DFIndex + plus];
+                            OutNotes[indx].Z=1;
+                            OutNotes[indx].W=DFHitGreen[DFIndex + plus] ? 1 : 0;
+                            OutNotes[indx + 1].X=dfA[DFIndex + plus];
+                            OutNotes[indx + 1].Y=DFEnd[DFIndex + plus];
+                            OutNotes[indx + 1].Z=2;
+                            OutNotes[indx + 1].W=0;
                             indx+=2;
                             fill = false;
                             plus++;
                         }
-                        if ((notes[i].type & NS_GREEN) != 0 && notes[i].visible[0] == 0)
-                        {
-                            OutNotes[indx] = new Vector4(1f, notes[i].time, 0, sp);
-                            indx++;
-                        }
-                        if ((notes[i].type & NS_RED) != 0 && notes[i].visible[1] == 0)
-                        {
-                            OutNotes[indx] = new Vector4(-1f, notes[i].time, 0, sp);
-                            indx++;
-                        }
-                        if ((notes[i].type & NS_YELLOW) != 0 && notes[i].visible[2] == 0)
-                        {
-                            OutNotes[indx] = new Vector4(-1 / 3f, notes[i].time, 0, sp);
-                            indx++;
-                        }
-                        if ((notes[i].type & NS_BLUE) != 0 && notes[i].visible[3] == 0)
-                        {
-                            OutNotes[indx] = new Vector4(1 / 3f, notes[i].time, 0, sp);
-                            indx++;
-                        }
-                        if ((notes[i].type & NS_ORANGE) != 0 && notes[i].visible[4] == 0)
-                        {
-                            OutNotes[indx] = new Vector4(0f, notes[i].time, 0, sp);
-                            indx++;
-                        }
+                        for(int r=0;r<5;r++)
+                            if ((notes[i].type & (1 << r)) != 0 && notes[i].visible[r] == 0)
+                            {
+                                OutNotes[indx].X=drumxvals[r];
+                                OutNotes[indx].Y=notes[i].time;
+                                OutNotes[indx].Z=0;
+                                OutNotes[indx].W=sp;
+                                indx++;
+                            }
                     }
                 }
             }
             if (fill)
             {
-                OutNotes[indx] = new Vector4(dfA[DFIndex+plus], DFStart[DFIndex + plus], 1, 0);
-                OutNotes[indx + 1] = new Vector4(dfA[DFIndex + plus], DFEnd[DFIndex + plus], 2, 0);
+                OutNotes[indx].X=dfA[DFIndex+plus];
+                OutNotes[indx].Y=DFStart[DFIndex + plus];
+                OutNotes[indx].Z=1;
+                OutNotes[indx].W=0;
+                OutNotes[indx + 1].X=dfA[DFIndex + plus];
+                OutNotes[indx+1].Y=DFEnd[DFIndex + plus];
+                OutNotes[indx+1].Z = 2;
+                OutNotes[indx+1].W=0;
                 indx += 2;
                 fill = false;
                 plus++;
@@ -348,99 +356,121 @@ namespace Unsigned
 
             byte version = reader.ReadByte();
 
-            int numSPP = reader.ReadInt32();
-            myResults.totalSPPH = numSPP;
-            SPStart = new int[numSPP];
-            SPEnd = new int[numSPP];
-            for (int i = 0; i < numSPP; i++)
+            if (GetBoardType() != Game1.VOCALIST)
             {
-                SPStart[i] = reader.ReadInt32();
-                SPEnd[i] = reader.ReadInt32() + SPStart[i];
+                int numSPP = reader.ReadInt32();
+                myResults.totalSPPH = numSPP;
+                SPStart = new int[numSPP];
+                SPEnd = new int[numSPP];
+                for (int i = 0; i < numSPP; i++)
+                {
+                    SPStart[i] = reader.ReadInt32();
+                    SPEnd[i] = reader.ReadInt32() + SPStart[i];
+                }
+
+                if (GetBoardType() == Game1.PERCUSSIONIST)
+                {
+                    int numDFP = reader.ReadInt32();
+                    DFStart = new int[numDFP];
+                    DFEnd = new int[numDFP];
+                    dfA = new float[numDFP];
+                    DFHitGreen = new bool[numDFP];
+                    for (int i = 0; i < numDFP; i++)
+                    {
+                        DFStart[i] = reader.ReadInt32();
+                        DFEnd[i] = reader.ReadInt32();
+                        dfA[i] = 0;
+                        DFHitGreen[i] = false;
+                    }
+                }
+                for (int dfrep = 3; dfrep >= 0; dfrep--)
+                {
+                    bool skip = true;
+                    int difr = reader.ReadInt32();
+                    if (diff == Game1.D_EXPERT && difr == 3)
+                        skip = false;
+                    if (diff == Game1.D_HARD && difr == 2)
+                        skip = false;
+                    if (diff == Game1.D_MEDIUM && difr == 1)
+                        skip = false;
+                    if (diff == Game1.D_EASY && difr == 0)
+                        skip = false;
+
+                    if (skip)
+                    {
+                        int notesn = reader.ReadInt32();
+                        for (int i = 0; i < notesn; i++)
+                        {
+                            reader.ReadByte();
+                            if (GetBoardType() != Game1.DRUMS)
+                            {
+                                reader.ReadInt32();
+                                reader.ReadInt32();
+                            }
+                            else
+                            {
+                                reader.ReadInt32();
+                            }
+                        }
+                        for (int i = 1; i <= 5; i++)
+                            reader.ReadInt32();
+                    }
+                    else
+                    {
+                        notes = new NoteSet[reader.ReadInt32()];
+                        myResults.totalNotes = notes.Length;
+                        for (int i = 0; i < notes.Length; i++)
+                        {
+                            notes[i] = new NoteSet();
+                            notes[i].type = reader.ReadByte();
+                            if (GetBoardType() != Game1.DRUMS)
+                            {
+                                notes[i].time = reader.ReadInt32();
+                                notes[i].length = reader.ReadInt32();
+                                notes[i].visible = new NoteSet.VIS_STATE[1];
+                            }
+                            else
+                            {
+                                notes[i].visible = new NoteSet.VIS_STATE[5];
+                                notes[i].time = reader.ReadInt32();
+                                notes[i].length = 0;
+                            }
+                        }
+                        starPts = new int[6];
+                        starPts[0] = 0;
+                        for (int i = 1; i <= 5; i++)
+                            starPts[i] = reader.ReadInt32();
+                        int numrep = 0;
+                        int curtm = 0;
+                        for (int i = 0; i < notes.Length; i++)
+                        {
+                            if (notes[i].time < curtm)
+                                numrep++;
+                            curtm = notes[i].time;
+                        }
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                vNotes = new VocalPhrase[reader.ReadInt32()];
+                for (int i = 0; i < vNotes.Length; i++)
+                {
+                    vNotes[i] = new VocalPhrase();
+                    vNotes[i].time = reader.ReadInt32();
+                    vNotes[i].words = new VocalWord[reader.ReadInt32()];
+                    for (int k = 0; k < vNotes[i].words.Length; k++)
+                    {
+                        vNotes[i].words[k] = new VocalWord();
+                        vNotes[i].words[k].time = reader.ReadInt32();
+                        vNotes[i].words[k].note = reader.ReadUInt16();
+                        vNotes[i].words[k].value = reader.ReadString();
+                    }
+                }
             }
 
-            if (GetBoardType()==Game1.PERCUSSIONIST)
-            {
-                int numDFP = reader.ReadInt32();
-                DFStart = new int[numDFP];
-                DFEnd = new int[numDFP];
-                dfA = new float[numDFP];
-                DFHitGreen = new bool[numDFP];
-                for (int i = 0; i < numDFP; i++)
-                {
-                    DFStart[i] = reader.ReadInt32();
-                    DFEnd[i] = reader.ReadInt32();
-                    dfA[i] = 0;
-                    DFHitGreen[i] = false;
-                }
-            }
-            for(int dfrep = 3; dfrep>=0; dfrep--)
-            {
-                bool skip = true;
-                int difr = reader.ReadInt32();
-                if (diff == Game1.D_EXPERT && difr==3)
-                    skip = false;
-                if (diff == Game1.D_HARD && difr==2)
-                    skip = false;
-                if (diff == Game1.D_MEDIUM && difr==1)
-                    skip = false;
-                if (diff == Game1.D_EASY && difr==0)
-                    skip = false;
-
-                if (skip)
-                {
-                    int notesn = reader.ReadInt32();
-                    for (int i = 0; i < notesn; i++)
-                    {
-                        reader.ReadByte();
-                        if (GetBoardType()!=Game1.DRUMS)
-                        {
-                            reader.ReadInt32();
-                            reader.ReadInt32();
-                        }
-                        else
-                        {
-                            reader.ReadInt32();
-                        }
-                    }
-                    for (int i = 1; i <= 5; i++)
-                        reader.ReadInt32();
-                }
-                else
-                {
-                    notes = new NoteSet[reader.ReadInt32()];
-                    myResults.totalNotes = notes.Length;
-                    for (int i = 0; i < notes.Length; i++)
-                    {
-                        notes[i] = new NoteSet();
-                        notes[i].type = reader.ReadByte();
-                        if (GetBoardType()!=Game1.DRUMS)
-                        {
-                            notes[i].time = reader.ReadInt32();
-                            notes[i].length = reader.ReadInt32();
-                            notes[i].visible = new NoteSet.VIS_STATE[1];
-                        }
-                        else
-                        {
-                            notes[i].visible = new NoteSet.VIS_STATE[5];
-                            notes[i].time = reader.ReadInt32();
-                            notes[i].length = 0;
-                        }
-                    }
-                    starPts = new int[6];
-                    starPts[0] = 0;
-                    for (int i = 1; i <= 5; i++)
-                        starPts[i] = reader.ReadInt32();
-                    int numrep = 0;
-                    int curtm = 0;
-                    for (int i = 0; i < notes.Length; i++)
-                    {
-                        if (notes[i].time < curtm)
-                            numrep++;
-                        curtm = notes[i].time;
-                    }
-                    break;
-                }
-            }
+            reader.Close();
         }
 
         public bool IsValidFrettage(byte note, byte pressed)
@@ -639,10 +669,10 @@ namespace Unsigned
                 }
                 if ((GetBoardType() == Game1.GUITARIST || GetBoardType() == Game1.BASSIST) && index < notes.Length && notes[index].burning)
                 {
-                    LinkedListNode<Vector2> temp = whammyage.First;
+                    LinkedListNode<WaveVector2> temp = whammyage.First;
                     while (temp != null)
                     {
-                        temp.Value = new Vector2(temp.Value.X, temp.Value.Y + gameTime.ElapsedGameTime.Milliseconds);
+                        temp.Value.Y += gameTime.ElapsedGameTime.Milliseconds;
                         temp = temp.Next;
                     }
                     if (IsValidFrettage(notes[index].type, pressed))
@@ -845,6 +875,8 @@ namespace Unsigned
 
         public float GetStars()
         {
+            if (GetBoardType() == Game1.VOCALIST)
+                return 5f;
             int i;
             for (i = 0; i < starPts.Length; i++)
                 if (score < starPts[i])
@@ -974,7 +1006,7 @@ namespace Unsigned
                 return;
             if (notes[index].burning && notes[index].time < currenttime && notes[index].time + notes[index].length > currenttime)
             {
-                whammyage.AddFirst(new Vector2(p, 0));
+                whammyage.AddFirst(new WaveVector2(p, 0));
                 int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - currenttime);
                 while (whammyage.Last.Value.Y >= end)
                     whammyage.RemoveLast();
@@ -987,7 +1019,7 @@ namespace Unsigned
         {
             if (whammyage.Count < 2)
                 return 0f;
-            LinkedListNode<Vector2> temp = whammyage.First;
+            LinkedListNode<WaveVector2> temp = whammyage.First;
             while (temp!=null && temp.Value.Y < y)
             {
                 temp = temp.Next;
@@ -1026,6 +1058,17 @@ namespace Unsigned
         {
             if (StarPowerAmount>=0.5)
                 SPActivated = true;
+        }
+
+        public void Draw(SpriteBatch spritebatch, long currenttime)
+        {
+            spritebatch.Draw(vBGInt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
+            for (int i = index; i < vNotes.Length; i++)
+            {
+                spritebatch.Draw(vHeadBar, new Rectangle((int)(vocalzerox+(vocalwidth*(vNotes[i].time-currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
+            }
+            spritebatch.Draw(vBGExt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
+            spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
         }
     }
 }
