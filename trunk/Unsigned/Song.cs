@@ -87,9 +87,8 @@ namespace Unsigned
 #endif
         }
 
-        public void GetZVals(long currenttime)
+        public void GetZVals(ulong currenttime)
         {
-            currenttime /= (long)(Game1.TicksPerSecond / 1000);
             int k;
             for (k = 0; k < Bars.Length; k++)
                 if (Bars[k].X > currenttime)
@@ -108,16 +107,25 @@ namespace Unsigned
                 zVals[i].X = ((zVals[i].X)-currenttime)/1000f;
         }
 
-        public void Update(long currenttime)
+        public void play()
         {
-            currenttime /= (long)(Game1.TicksPerSecond / 1000);
+            sound.Paused = false; 
+                //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
+                playing = true;
+        }
+
+        public ulong getTime()
+        {
+            return sound.PlayPosition;  
+        }
+
+        public void Update(ulong currenttime)
+        {
             if (currenttime >= 0 && !playing)
             {
 #if ! XBOX
 
-                sound.Paused = false; 
-                //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
-                playing = true;
+                
 #else
 
                 asb.PlayCue(cues[cueindex]);
@@ -130,9 +138,9 @@ namespace Unsigned
             }
         }
 
-        public bool IsOver(long currenttime)
+        public bool IsOver(ulong currenttime)
         {
-            if (currenttime/Game1.TicksPerSecond > ((TimeH*360)+(TimeM*60)+(TimeS)))
+            if ((long)currenttime/1000 > ((TimeH*360)+(TimeM*60)+(TimeS)))
                 return true;
             return false;
         }
@@ -147,14 +155,14 @@ namespace Unsigned
             return Bars;
         }
 
-        internal float GetMeasureProgress(long currenttime)
+        internal float GetMeasureProgress(ulong currenttime)
         {
             if(currentBar<Bars.Length)
                 return (currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X);
             return 0f;
         }
 
-        internal int GetBPMeasure(long currenttime)
+        internal int GetBPMeasure(ulong currenttime)
         {
             if(currentBar<Bars.Length)
                 return (int)Bars[currentBar].Y;

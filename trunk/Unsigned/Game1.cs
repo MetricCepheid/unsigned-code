@@ -212,9 +212,9 @@ namespace Unsigned
         public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
         public static Color[] FretColors = { Color.Green, Color.Red, Color.Yellow, Color.Blue, Color.Orange };
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
-        private bool started = false;
+        private int started = 0;
         public static SpriteFont DefaultFont;
-        public static long TicksPerSecond = 10000000;
+        public static ulong TicksPerSecond = 10000000;
         public static VertexBuffer square;
         public static Texture2D texGlow, texDefaultBM;
         public static VertexDeclaration vd;
@@ -224,7 +224,7 @@ namespace Unsigned
 
 #region boards
 
-        Board[] boards;
+        private static Board[] boards;
         private Texture2D[] texShard;
         private Texture2D texSpark;
         private ShatterGlass[] glass;
@@ -235,15 +235,15 @@ namespace Unsigned
 
 #region song
 
-        private Song song;
-        private long SongStartTime;
+        private static Song song;
+        private ulong CurrentTime, lastChange;
         private SetList setlist;
 
 #endregion
 
 #region venue
 
-        private Venue venue;
+        private static Venue venue;
         private string venueName = "tikibar";
 
 #endregion
@@ -259,6 +259,7 @@ namespace Unsigned
 
 #region waves
 
+        private int WAVEDETAIL = 0;
         private Texture2D texLine, texLineEnd;
 
 #endregion
@@ -575,7 +576,7 @@ namespace Unsigned
         }
         private const byte S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_CHOOSEDIFF=16, S_MAINMENU=2, S_RESULTS=32;
         private byte screen = S_MAINMENU;
-        String songname;
+        static String songname;
         byte[] diff;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
         Texture2D stratTex;
@@ -607,7 +608,7 @@ namespace Unsigned
         VertexBuffer songlistVB;
         float SONGLIST_WAVE_SPEED=5, slCurrentWave, slWaveLength=50f, slWaveStrength=2, SONGLIST_LENGTH=170, SONGLIST_WIDTH=1;
 
-        byte loaded = 0, loading = 0;
+        bool MenuLoading = false, MenuLoaded = false, GameLoading = false, GameLoaded = false;
 #endregion
 
         public Game1()
@@ -723,6 +724,10 @@ namespace Unsigned
                         else
                             renderLevel = 10;
                     }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("WaveDetail"))
+                    {
+                        WAVEDETAIL = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
                 } while (!fin.EndOfStream);
             }
             catch (FormatException e)
@@ -791,349 +796,216 @@ namespace Unsigned
                 sr.Close();
         }
 
-        private void LoadContent(byte c)
+        private void LoadGameContent()
         {
-            if ((loaded & c) == 0 && (loading & c) == 0)
+            if (GameLoaded || GameLoading)
+                return;
+            ThreadStart ThreadStarter = delegate
             {
-                #region MAINMENU
-                if ((c & S_MAINMENU) != 0)
+                
+                InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName, this);
+                rtBar = new RenderTarget2D[4];
+                rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtPie = new RenderTarget2D[4];
+                rtPieS = windowheight;
+                rtPie[0] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
+                rtPie[1] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
+                rtPie[2] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
+                rtPie[3] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
+
+                if (HALF_RENDER)
                 {
-                    loaded |=  S_MAINMENU;
+                    screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
+                    screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
                 }
-                #endregion
-                #region RESULTS
-                if ((c & S_RESULTS) != 0)
+                else
                 {
-                    loaded |=  S_RESULTS;
+                    screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                    screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                 }
-                #endregion
-                #region SONGMENU
-                else if ((c & S_CHOOSESONG) != 0)
+                screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);                        
+
+                Board.InitModel(graphics,content,engine);
+                texRockstarRed = content.Load<Texture2D>("graphics\\red");
+                texRockstarRing = content.Load<Texture2D>("graphics\\ring");
+                texRockstarCover = content.Load<Texture2D>("graphics\\starcover");
+                texRockMeterOutline = content.Load<Texture2D>("graphics\\rockmeter");
+                texWhite = content.Load<Texture2D>("graphics\\white");
+                texRockMeterLogoStem = content.Load<Texture2D>("graphics\\logo_stem");
+                texRockMeterGuitarLogo = content.Load<Texture2D>("graphics\\guitar_logo");
+                texRockMeterBassLogo = content.Load<Texture2D>("graphics\\bass_logo");
+                texRockMeterDrumLogo = content.Load<Texture2D>("graphics\\drums_logo");
+                texRockMeterSingerLogo = content.Load<Texture2D>("graphics\\vocal_logo");
+                texScoreBoard = content.Load<Texture2D>("graphics\\scoreboard");
+                texLine = content.Load<Texture2D>("graphics\\line");
+                texLineEnd = content.Load<Texture2D>("graphics\\linetaper");
+                texGlow = content.Load<Texture2D>("graphics\\triggerglow");
+
+                texShard = new Texture2D[8];
+                for (int k = 0; k < 8; k++)
+                    texShard[k] = content.Load<Texture2D>("graphics\\glassshard0" + (k + 1));
+                texSpark = content.Load<Texture2D>("graphics\\spark");
+                Board.boardTexPlain = new Texture2D[2][];
+                for (int i = 0; i < 2; i++)
                 {
-                    loading |= S_CHOOSESONG;
-                    ThreadStart ThreadStarter = delegate
+                    Board.boardTexPlain[i] = new Texture2D[Board.boardValidBPM.Length];
+                    for (int k = 0; k < Board.boardValidBPM.Length; k++)
                     {
-                        if (SongListRT == null)
-                        {
-                            SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
-                        }
-                        SongListBG = content.Load<Texture2D>("graphics\\songlist");
-                        SongHiLi = content.Load<Texture2D>("graphics\\songhili");
-                        songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
-                        GC.Collect();
-                        loading &= (byte)(~S_CHOOSESONG & 255);
-                        loaded |=  S_CHOOSESONG;
-                    };
-                    
-                    Thread myThread = new Thread(ThreadStarter);
-                    myThread.Start();
+                        Board.boardTexPlain[i][Board.boardBeatsIndex[Board.boardValidBPM[k]]] = content.Load<Texture2D>("graphics\\board_" + (i + 4) + "" + (Board.boardValidBPM[k]));
+                    }
                 }
-                #endregion
-                #region DIFFMENU
-                else if ((c & S_CHOOSEDIFF) != 0)
-                {
-                    loaded |=  S_CHOOSEDIFF;
-                }
-                #endregion
-                #region CHOOSECONT
-                if ((c&S_CHOOSECONT)!=0)
-                {
-                    loading |= S_CHOOSECONT;
-                    ThreadStart ThreadStarter = delegate
-                    {
-                        rtNote = new RenderTarget2D[4];
-                        rtNote[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtNote[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtNote[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        nPadTex = new Texture2D[4];
-                        nPadTex[0] = content.Load<Texture2D>("graphics\\paper1");
-                        nPadTex[1] = content.Load<Texture2D>("graphics\\paper2");
-                        nPadTex[2] = content.Load<Texture2D>("graphics\\paper3");
-                        nPadTex[3] = content.Load<Texture2D>("graphics\\paper4");
-                        texNote = new Texture2D[4];
-                        concrTex = content.Load<Texture2D>("graphics\\concr");
-                        concrBM = content.Load<Texture2D>("graphics\\concrBM");
-                        nPadMdl = content.Load<Model>("meshes\\paper1");
-                        arrowMdl = content.Load<Model>("meshes\\arrow");
-                        nailMdl = content.Load<Model>("meshes\\nail");
-                        arrowTex = content.Load<Texture2D>("graphics\\arrow");
-                        strat = content.Load<Model>("meshes\\stratcont");
-                        stand = content.Load<Model>("meshes\\gstand");
-                        stratTex = content.Load<Texture2D>("graphics\\stratcont");
-                        rustyTex = content.Load<Texture2D>("graphics\\rusty");
-                        contguis = new ContGUIData[5];
-                        for (int i = 0; i < 5; i++)
-                            contguis[i] = ContGUIData.INVALID;
-                        GetContGUIData();
-                        arrowRot = new float[8];
-                        arrowTimer = new float[8];
-                        charNameSelected = new int[4];
-                        for (int i = 0; i < 4; i++)
-                            charNameSelected[i] = -1;
-                        charNames = new String[3][];
-                        String[] files = System.IO.Directory.GetFiles("characters\\");
-                        int[] num = new int[3];
-                        for (int i = 0; i < files.Length; i++)
-                        {
-                            if (files[i].EndsWith(".ggc"))
-                                num[0]++;
-                            else if (files[i].EndsWith(".gdc"))
-                                num[1]++;
-                            else if (files[i].EndsWith(".gvc"))
-                                num[2]++;
-                        }
-                        charNames[0] = new String[num[0]];
-                        charNames[1] = new String[num[1]];
-                        charNames[2] = new String[num[2]];
-                        for (int i = 0; i < files.Length; i++)
-                        {
-                            if (files[i].EndsWith(".ggc"))
-                            { charNames[0][charNames[0].Length - num[0]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[0]--; }
-                            else if (files[i].EndsWith(".gdc"))
-                            { charNames[1][charNames[1].Length - num[1]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[1]--; }
-                            else if (files[i].EndsWith(".gvc"))
-                            { charNames[2][charNames[2].Length - num[2]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[2]--; }
-                        }
-                        finals = new bool[4];
-                        flames = new Vector3[4][];
-                        flames[0] = new Vector3[100];
-                        flames[1] = new Vector3[100];
-                        flames[2] = new Vector3[100];
-                        flames[3] = new Vector3[100];
-                        ContGUIData.KB_ICO_DRUM = content.Load<Texture2D>("graphics\\keyboard_d");
-                        ContGUIData.KB_ICO_BLUR = content.Load<Texture2D>("graphics\\keyboard_a");
-                        ContGUIData.KB_ICO_GUITAR = content.Load<Texture2D>("graphics\\keyboard_g");
-                        ContGUIData.KB_ICO_VOCAL = content.Load<Texture2D>("graphics\\keyboard_v");
-                        ContGUIData.GUITAR_ICO = content.Load<Texture2D>("graphics\\guitarlogo");
-                        ContGUIData.GUITAR_ICO_BLUR = content.Load<Texture2D>("graphics\\guitarlogo_blur");
-                        ContGUIData.GUITARX_ICO = content.Load<Texture2D>("graphics\\xplorerlogo");
-                        ContGUIData.GUITARX_ICO_BLUR = content.Load<Texture2D>("graphics\\xplorerlogo_blur");
-                        ContGUIData.DRUMS_ICO = content.Load<Texture2D>("graphics\\drumslogo");
-                        ContGUIData.DRUMS_ICO_BLUR = content.Load<Texture2D>("graphics\\drumslogo_blur");
-                        ContGUIData.MICROPHONE_ICO = content.Load<Texture2D>("graphics\\mphonelogo");
-                        ContGUIData.MICROPHONE_ICO_BLUR = content.Load<Texture2D>("graphics\\mphonelogo_blur");
-                        hairl = content.Load<Texture2D>("graphics\\hairl");
-                        hairr = content.Load<Texture2D>("graphics\\hairr");
-                        flameTex = content.Load<Texture2D>("graphics\\flame");
-                        texContinue = content.Load<Texture2D>("graphics\\continue");
-                        GC.Collect();
-                        loading &= (byte)(~S_CHOOSECONT & 255);
-                        loaded |= S_CHOOSECONT;
-                    };
-                    Thread myThread = new Thread(ThreadStarter);
-                    myThread.Start();
-                }
-                #endregion
-                #region INGAME
-                if ((c&S_INGAME)!=0)
-                {
-                    ThreadStart ThreadStarter = delegate
-                    {
-                        rtBar = new RenderTarget2D[4];
-                        rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                        rtPie = new RenderTarget2D[4];
-                        rtPieS = windowheight;
-                        rtPie[0] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                        rtPie[1] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                        rtPie[2] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                        rtPie[3] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-
-                        if (HALF_RENDER)
-                        {
-                            screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
-                            screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
-                        }
-                        else
-                        {
-                            screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
-                            screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
-                        }
-                        screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);                        
-
-                        Board.InitModel(graphics,content,engine);
-                        texRockstarRed = content.Load<Texture2D>("graphics\\red");
-                        texRockstarRing = content.Load<Texture2D>("graphics\\ring");
-                        texRockstarCover = content.Load<Texture2D>("graphics\\starcover");
-                        texRockMeterOutline = content.Load<Texture2D>("graphics\\rockmeter");
-                        texWhite = content.Load<Texture2D>("graphics\\white");
-                        texRockMeterLogoStem = content.Load<Texture2D>("graphics\\logo_stem");
-                        texRockMeterGuitarLogo = content.Load<Texture2D>("graphics\\guitar_logo");
-                        texRockMeterBassLogo = content.Load<Texture2D>("graphics\\bass_logo");
-                        texRockMeterDrumLogo = content.Load<Texture2D>("graphics\\drums_logo");
-                        texRockMeterSingerLogo = content.Load<Texture2D>("graphics\\vocal_logo");
-                        texScoreBoard = content.Load<Texture2D>("graphics\\scoreboard");
-                        texLine = content.Load<Texture2D>("graphics\\line");
-                        texLineEnd = content.Load<Texture2D>("graphics\\linetaper");
-                        texGlow = content.Load<Texture2D>("graphics\\triggerglow");
-
-                        texShard = new Texture2D[8];
-                        for (int k = 0; k < 8; k++)
-                            texShard[k] = content.Load<Texture2D>("graphics\\glassshard0" + (k + 1));
-                        texSpark = content.Load<Texture2D>("graphics\\spark");
-                        Board.boardTexPlain = new Texture2D[2][];
-                        for (int i = 0; i < 2; i++)
-                        {
-                            Board.boardTexPlain[i] = new Texture2D[Board.boardValidBPM.Length];
-                            for (int k = 0; k < Board.boardValidBPM.Length; k++)
-                            {
-                                Board.boardTexPlain[i][Board.boardBeatsIndex[Board.boardValidBPM[k]]] = content.Load<Texture2D>("graphics\\board_" + (i + 4) + "" + (Board.boardValidBPM[k]));
-                            }
-                        }
-                        Board.texTriggerBorder = content.Load<Texture2D>("graphics\\triggerborder");
-                        Board.SPMBorder = content.Load<Texture2D>("graphics\\SPMBorder");
-                        Board.SPBoardTex = content.Load<Texture2D>("graphics\\flames");
-                        Board.SPMFill = content.Load<Texture2D>("graphics\\SPMFill");
-                        Board.SPMRbg = content.Load<Texture2D>("graphics\\SPMRbg");
-                        Board.drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
-                        Board.SPMRfg = content.Load<Texture2D>("graphics\\SPMRfg");
-                        Board.SPMRbgb = content.Load<Texture2D>("graphics\\SPMRbgb");
-                        Board.SPMRbgs = content.Load<Texture2D>("graphics\\SPMRbgs");
-                        Board.SPMRslice = content.Load<Texture2D>("graphics\\SPMRslice");
-                        Board.SPMRnum = new Texture2D[8];
-                        Board.SPMRnum[0] = null;
-                        Board.SPMRnum[1] = content.Load<Texture2D>("graphics\\SPMRnum2");
-                        Board.SPMRnum[2] = content.Load<Texture2D>("graphics\\SPMRnum3");
-                        Board.SPMRnum[3] = content.Load<Texture2D>("graphics\\SPMRnum4");
-                        Board.SPMRnum[4] = content.Load<Texture2D>("graphics\\SPMRnum5");
-                        Board.SPMRnum[5] = content.Load<Texture2D>("graphics\\SPMRnum6");
-                        Board.SPMRnum[6] = null;
-                        Board.SPMRnum[7] = content.Load<Texture2D>("graphics\\SPMRnum8");
-                        Board.SPMFlashTex = content.Load<Texture2D>("graphics\\SPMFlash");
-                        Board.texTriggerBorderLit = content.Load<Texture2D>("graphics\\triggerborderlit");
-                        Board.texTriggers = new Texture2D[5];
-                        for (int i = 0; i < 5; i++)
-                            Board.texTriggers[i] = content.Load<Texture2D>("graphics\\trigger" + i);
-                        Board.texTriggersLit = new Texture2D[5];
-                        for (int i = 0; i < 5; i++)
-                            Board.texTriggersLit[i] = content.Load<Texture2D>("graphics\\triggerlit" + i);
-                        Board.texNotes = new Texture2D[5];
-                        for (int i = 0; i < 5; i++)
-                            Board.texNotes[i] = content.Load<Texture2D>("graphics\\notes" + i);
-                        texRockstarRingHiLi = new Texture2D[11];
-                        for (int i = 0; i <= 9; i++)
-                            texRockstarRingHiLi[i] = content.Load<Texture2D>("graphics\\border0" + i);
-                        texRockstarRingHiLi[10] = content.Load<Texture2D>("graphics\\border10");
-                        Board.vBar = content.Load<Texture2D>("graphics\\vocalbar");
-                        Board.vBGExt = content.Load<Texture2D>("graphics\\vocalbg_ext");
-                        Board.vBGInt = content.Load<Texture2D>("graphics\\vocalbg_int");
-                        Board.vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
-                        Board.vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
-                        Board.vSPMeter = content.Load<Texture2D>("graphics\\vocal_spmeter");
-                        Board.vSPMeterFill = content.Load<Texture2D>("graphics\\vocal_spmeterfill");
-                        GC.Collect();
-                        loading &= (byte)(~S_INGAME & 255);
-                        loaded |= S_INGAME;
-                    };
-
-                    Thread myThread = new Thread(ThreadStarter);
-                    loading |= S_INGAME;
-                    myThread.Start();
-                }
-                #endregion
-            }
-
+                Board.texTriggerBorder = content.Load<Texture2D>("graphics\\triggerborder");
+                Board.SPMBorder = content.Load<Texture2D>("graphics\\SPMBorder");
+                Board.SPBoardTex = content.Load<Texture2D>("graphics\\flames");
+                Board.SPMFill = content.Load<Texture2D>("graphics\\SPMFill");
+                Board.SPMRbg = content.Load<Texture2D>("graphics\\SPMRbg");
+                Board.drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
+                Board.SPMRfg = content.Load<Texture2D>("graphics\\SPMRfg");
+                Board.SPMRbgb = content.Load<Texture2D>("graphics\\SPMRbgb");
+                Board.SPMRbgs = content.Load<Texture2D>("graphics\\SPMRbgs");
+                Board.SPMRslice = content.Load<Texture2D>("graphics\\SPMRslice");
+                Board.SPMRnum = new Texture2D[8];
+                Board.SPMRnum[0] = null;
+                Board.SPMRnum[1] = content.Load<Texture2D>("graphics\\SPMRnum2");
+                Board.SPMRnum[2] = content.Load<Texture2D>("graphics\\SPMRnum3");
+                Board.SPMRnum[3] = content.Load<Texture2D>("graphics\\SPMRnum4");
+                Board.SPMRnum[4] = content.Load<Texture2D>("graphics\\SPMRnum5");
+                Board.SPMRnum[5] = content.Load<Texture2D>("graphics\\SPMRnum6");
+                Board.SPMRnum[6] = null;
+                Board.SPMRnum[7] = content.Load<Texture2D>("graphics\\SPMRnum8");
+                Board.SPMFlashTex = content.Load<Texture2D>("graphics\\SPMFlash");
+                Board.texTriggerBorderLit = content.Load<Texture2D>("graphics\\triggerborderlit");
+                Board.texTriggers = new Texture2D[5];
+                for (int i = 0; i < 5; i++)
+                    Board.texTriggers[i] = content.Load<Texture2D>("graphics\\trigger" + i);
+                Board.texTriggersLit = new Texture2D[5];
+                for (int i = 0; i < 5; i++)
+                    Board.texTriggersLit[i] = content.Load<Texture2D>("graphics\\triggerlit" + i);
+                Board.texNotes = new Texture2D[5];
+                for (int i = 0; i < 5; i++)
+                    Board.texNotes[i] = content.Load<Texture2D>("graphics\\notes" + i);
+                texRockstarRingHiLi = new Texture2D[11];
+                for (int i = 0; i <= 9; i++)
+                    texRockstarRingHiLi[i] = content.Load<Texture2D>("graphics\\border0" + i);
+                texRockstarRingHiLi[10] = content.Load<Texture2D>("graphics\\border10");
+                Board.vBar = content.Load<Texture2D>("graphics\\vocalbar");
+                Board.vBGExt = content.Load<Texture2D>("graphics\\vocalbg_ext");
+                Board.vBGInt = content.Load<Texture2D>("graphics\\vocalbg_int");
+                Board.vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
+                Board.vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
+                Board.vSPMeter = content.Load<Texture2D>("graphics\\vocal_spmeter");
+                Board.vSPMeterFill = content.Load<Texture2D>("graphics\\vocal_spmeterfill");
+                Board.vGlow = content.Load<Texture2D>("graphics\\vGlow");
+                GC.Collect();
+                GameLoaded = true;
+                GameLoading = false;
+            };
+            GameLoading = true;
+            song = new Song(4, 2, songname,this.Window.Handle);
+            Thread myThread = new Thread(ThreadStarter);
+            myThread.Start();
         }
 
-        //unload all content except for c
-        private void UnloadContent(byte c)
+        private void LoadMenuContent()
         {
-            if ((loaded & ((byte)1 << c)) == 0 && (loading & ((byte)1 << c)) == 0)
+            if (MenuLoaded || MenuLoading)
+                return;
+            ThreadStart ThreadStarter = delegate
             {
-                //basically:
-                //everything that shares all cats listed
-                //should be destroyed
-                //if((loaded&(S_MAINMENU|S_INGAME|S_CHOOSESONG|S_CHOOSECONT))==0 &&
-                //   (c&(S_MAINMENU|S_INGAME|S_CHOOSESONG|S_CHOOSECONT))==0)
-
-                if ((loaded & (S_CHOOSECONT | S_CHOOSESONG | S_INGAME | S_MAINMENU)) != 0 &&
-                   (c & (S_CHOOSECONT | S_CHOOSESONG | S_INGAME | S_MAINMENU)) == 0)
+                MenuLoading = true;
+                if (SongListRT == null)
                 {
-                    texWhite = null;
-                    texRockMeterGuitarLogo = null;
-                    texRockMeterBassLogo = null;
-                    texRockMeterDrumLogo = null;
-                    texRockMeterSingerLogo = null;
-                    GC.Collect();
+                    SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
                 }
-
-                //CHOOSECONT Specific content
-                if((loaded&(S_CHOOSECONT))!=0 &&
-                   (c&(S_CHOOSECONT))==0)
+                SongListBG = content.Load<Texture2D>("graphics\\songlist");
+                SongHiLi = content.Load<Texture2D>("graphics\\songhili");
+                songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
+                rtNote = new RenderTarget2D[4];
+                rtNote[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtNote[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                rtNote[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                nPadTex = new Texture2D[4];
+                nPadTex[0] = content.Load<Texture2D>("graphics\\paper1");
+                nPadTex[1] = content.Load<Texture2D>("graphics\\paper2");
+                nPadTex[2] = content.Load<Texture2D>("graphics\\paper3");
+                nPadTex[3] = content.Load<Texture2D>("graphics\\paper4");
+                texNote = new Texture2D[4];
+                concrTex = content.Load<Texture2D>("graphics\\concr");
+                concrBM = content.Load<Texture2D>("graphics\\concrBM");
+                nPadMdl = content.Load<Model>("meshes\\paper1");
+                arrowMdl = content.Load<Model>("meshes\\arrow");
+                nailMdl = content.Load<Model>("meshes\\nail");
+                arrowTex = content.Load<Texture2D>("graphics\\arrow");
+                strat = content.Load<Model>("meshes\\stratcont");
+                stand = content.Load<Model>("meshes\\gstand");
+                stratTex = content.Load<Texture2D>("graphics\\stratcont");
+                rustyTex = content.Load<Texture2D>("graphics\\rusty");
+                contguis = new ContGUIData[5];
+                for (int i = 0; i < 5; i++)
+                    contguis[i] = ContGUIData.INVALID;
+                GetContGUIData();
+                arrowRot = new float[8];
+                arrowTimer = new float[8];
+                charNameSelected = new int[4];
+                for (int i = 0; i < 4; i++)
+                    charNameSelected[i] = -1;
+                charNames = new String[3][];
+                String[] files = System.IO.Directory.GetFiles("characters\\");
+                int[] num = new int[3];
+                for (int i = 0; i < files.Length; i++)
                 {
-                    rtNote = null;
-                    nPadMdl = null;
-                    arrowMdl = null;
-                    nailMdl = null;
-                    arrowTex = null;
-                    strat = null;
-                    stand = null;
-                    stratTex = null;
-                    nPadTex = null;
-                    rustyTex = null;
-                    arrowRot = null;
-                    arrowTimer = null;
-                    charNameSelected = null;
-                    charNames = null;
-                    flames = null;
-                    ContGUIData.KB_ICO_GUITAR = null;
-                    ContGUIData.KB_ICO_DRUM = null;
-                    ContGUIData.KB_ICO_BLUR = null;
-                    ContGUIData.DRUMS_ICO = null;
-                    ContGUIData.GUITAR_ICO = null;
-                    hairl = null;
-                    hairr = null;
-                    flameTex = null;
-                    texContinue = null;
-                    loaded &=  (byte)(~S_CHOOSECONT & 255);//loaded &= ~S_CHOOSECONT;
-                    GC.Collect();
+                    if (files[i].EndsWith(".ggc"))
+                        num[0]++;
+                    else if (files[i].EndsWith(".gdc"))
+                        num[1]++;
+                    else if (files[i].EndsWith(".gvc"))
+                        num[2]++;
                 }
-
-                //INGAME Specific content
-                if((loaded&(S_INGAME))!=0 &&
-                   (c&(S_INGAME))==0)
+                charNames[0] = new String[num[0]];
+                charNames[1] = new String[num[1]];
+                charNames[2] = new String[num[2]];
+                for (int i = 0; i < files.Length; i++)
                 {
-                    rtBar = null;
-                    rtPie = null;
-
-                    texRockstarRed = null;
-                    texRockstarRing = null;
-                    texRockstarCover = null;
-                    texRockMeterOutline = null;
-                    texRockMeterLogoStem = null;
-                    
-                    texScoreBoard = null;
-                    texLine = null;
-                    texLineEnd = null;
-                    texGlow = null;
-
-                    texShard = null;
-                    texSpark = null;
-                    Board.boardTexPlain = null;
-                    Board.texTriggerBorder = null;
-                    Board.SPMBorder = null;
-                    Board.SPBoardTex = null;
-                    Board.SPMFill = null;
-                    Board.SPMRbg = null;
-                    Board.drumfillTex = null;
-                    Board.SPMRfg = null;
-                    Board.SPMRbgb = null;
-                    Board.SPMRbgs = null;
-                    Board.SPMRslice = null;
-                    Board.SPMRnum = null;
-                    Board.SPMFlashTex = null;
-                    Board.texTriggerBorderLit = null;
-                    Board.texTriggers = null;
-                    Board.texTriggersLit = null;
-                    Board.texNotes = null;
-                    texRockstarRingHiLi = null;
-                    loaded &= (byte)(~S_INGAME & 255);//loaded &= ~S_INGAME;
-                    GC.Collect();
+                    if (files[i].EndsWith(".ggc"))
+                    { charNames[0][charNames[0].Length - num[0]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[0]--; }
+                    else if (files[i].EndsWith(".gdc"))
+                    { charNames[1][charNames[1].Length - num[1]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[1]--; }
+                    else if (files[i].EndsWith(".gvc"))
+                    { charNames[2][charNames[2].Length - num[2]] = files[i].Substring(files[i].LastIndexOf('\\') + 1, files[i].LastIndexOf('.') - files[i].LastIndexOf('\\') - 1); num[2]--; }
                 }
-            }
+                finals = new bool[4];
+                flames = new Vector3[4][];
+                flames[0] = new Vector3[100];
+                flames[1] = new Vector3[100];
+                flames[2] = new Vector3[100];
+                flames[3] = new Vector3[100];
+                ContGUIData.KB_ICO_DRUM = content.Load<Texture2D>("graphics\\keyboard_d");
+                ContGUIData.KB_ICO_BLUR = content.Load<Texture2D>("graphics\\keyboard_a");
+                ContGUIData.KB_ICO_GUITAR = content.Load<Texture2D>("graphics\\keyboard_g");
+                ContGUIData.KB_ICO_VOCAL = content.Load<Texture2D>("graphics\\keyboard_v");
+                ContGUIData.GUITAR_ICO = content.Load<Texture2D>("graphics\\guitarlogo");
+                ContGUIData.GUITAR_ICO_BLUR = content.Load<Texture2D>("graphics\\guitarlogo_blur");
+                ContGUIData.GUITARX_ICO = content.Load<Texture2D>("graphics\\xplorerlogo");
+                ContGUIData.GUITARX_ICO_BLUR = content.Load<Texture2D>("graphics\\xplorerlogo_blur");
+                ContGUIData.DRUMS_ICO = content.Load<Texture2D>("graphics\\drumslogo");
+                ContGUIData.DRUMS_ICO_BLUR = content.Load<Texture2D>("graphics\\drumslogo_blur");
+                ContGUIData.MICROPHONE_ICO = content.Load<Texture2D>("graphics\\mphonelogo");
+                ContGUIData.MICROPHONE_ICO_BLUR = content.Load<Texture2D>("graphics\\mphonelogo_blur");
+                hairl = content.Load<Texture2D>("graphics\\hairl");
+                hairr = content.Load<Texture2D>("graphics\\hairr");
+                flameTex = content.Load<Texture2D>("graphics\\flame");
+                texContinue = content.Load<Texture2D>("graphics\\continue");
+                GC.Collect();
+                MenuLoaded = true;
+                MenuLoading = false;
+            };
+            Thread myThread = new Thread(ThreadStarter);
+            myThread.Start();
+                
 
         }
 
@@ -1147,21 +1019,19 @@ namespace Unsigned
 
             Random r = new Random();
             GetGamepadStates(false);
-
-            if ((loaded & screen) == 0)
+            #region mainmenu
+            if (screen == S_MAINMENU)
             {
-                LoadContent((byte)screen);
-            }
-            else
-            {
-                UnloadContent(screen);
-                #region mainmenu
-                if (screen == S_MAINMENU)
+                if (!MenuLoaded)
+                {
+                    LoadMenuContent();
+                }
+                else
                 {
                     if (mmenu_ticker <= 0)
                     {
                         int collective = 0;
-                        bool green=false, red=false;
+                        bool green = false, red = false;
                         GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
                         for (int i = 0; i < 4; i++)
                             if (conts[i].IsConnected)
@@ -1191,7 +1061,7 @@ namespace Unsigned
                             while (mmenu_select >= 50)
                                 mmenu_select -= 10;
 
-                            if (green && (mmenu_select == 20 || mmenu_select==40))
+                            if (green && (mmenu_select == 20 || mmenu_select == 40))
                                 mmenu_select++;
                         }
                         else
@@ -1210,7 +1080,7 @@ namespace Unsigned
                             if (mmenu_select == 41)
                                 this.Exit();
 
-                                
+
                             if (red)
                                 mmenu_select = mmenu_select / 10 * 10;
                         }
@@ -1220,488 +1090,511 @@ namespace Unsigned
                     else
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                 }
-                #endregion
-                #region diffscreen
-                else if (screen == S_CHOOSEDIFF)
+            }
+            #endregion
+            #region diffscreen
+            else if (screen == S_CHOOSEDIFF)
+            {
+                if (mmenu_ticker <= 0)
                 {
-                    if (mmenu_ticker <= 0)
+                    bool green = false, red = false;
+                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                    for (int i = 0; i < 4; i++)
+                        if (conts[i].IsConnected)
+                        {
+                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                                green = true;
+                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                                red = true;
+                        }
+                    for(int i=0;i<4;i++)
+                    if(instruments[i])
                     {
-                        bool green = false, red = false;
-                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
-                        for (int i = 0; i < 4; i++)
-                            if (conts[i].IsConnected)
-                            {
-                                if (conts[i].Buttons.A == ButtonState.Pressed)
-                                    green = true;
-                                if (conts[i].Buttons.B == ButtonState.Pressed)
-                                    red = true;
-                            }
-                        for(int i=0;i<4;i++)
-                        if(instruments[i])
+                        if (contInput[i] >= 4)
                         {
-                            if (contInput[i] >= 4)
-                            {
-                                if (Keyboard.GetState().IsKeyDown(Keys.Down) && diff[i] < 3)
-                                { diff[i]++; mmenu_ticker = 200; }
-                                else if (Keyboard.GetState().IsKeyDown(Keys.Up) && diff[i] > 0)
-                                { diff[i]--; mmenu_ticker = 200; }
-                            }
-                            else
-                            {
-                                GamePadState gps = GamePad.GetState((PlayerIndex)contInput[i]);
-                                GamePadCapabilities gpc = GamePad.GetCapabilities((PlayerIndex)contInput[i]);
-                                bool up=false, down = false;
-                                if (gps.DPad.Down == ButtonState.Pressed)
-                                    down = true;
-                                if (gps.DPad.Up == ButtonState.Pressed)
-                                    up = true;
-                                if (gpc.GamePadType == GamePadType.DrumKit)
-                                {
-                                    if (gps.Buttons.X == ButtonState.Pressed)
-                                        down = true;
-                                    if (gps.Buttons.Y == ButtonState.Pressed)
-                                        up = true;
-                                }
-                                if (up && diff[i] > 0)
-                                    diff[i]--;
-                                if (down && diff[i] < 3)
-                                    diff[i]++;
-                                if (up || down)
-                                    mmenu_ticker = 200;
-                            }
-                        }
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
-                            green = true;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                            red = true;
-                        
-                        if (green)
-                        {
-                            screen = S_INGAME;
-                            for (int i = 0; i < 4; i++)
-                                if (diff[i] == 0)
-                                    diff[i] = D_EASY;
-                                else if (diff[i] == 1)
-                                    diff[i] = D_MEDIUM;
-                                else if (diff[i] == 2)
-                                    diff[i] = D_HARD;
-                                else if (diff[i] == 3)
-                                    diff[i] = D_EXPERT;
-                            InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName);
-                        }
-                        if (red)
-                        { screen = S_CHOOSESONG; mmenu_ticker = 200; }
-                    }
-                    else
-                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
-                }
-                #endregion
-                #region songscreen
-                else if (screen == S_CHOOSESONG)
-                {
-                    bool chgd = SongListTex==null;
-                    int numsongs = 0;
-                    for (int i = 0; i < cSongNames.Length; i++)
-                        numsongs += cSongNames[i].Length;
-
-                    if (mmenu_ticker <= 0)
-                    {
-                        int collective = 0;
-                        bool green = false, red = false;
-                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
-                        for (int i = 0; i < 4; i++)
-                            if (conts[i].IsConnected)
-                            {
-                                if (conts[i].DPad.Down == ButtonState.Pressed)
-                                    collective--;
-                                if (conts[i].DPad.Up == ButtonState.Pressed)
-                                    collective++;
-                                if (conts[i].Buttons.A == ButtonState.Pressed)
-                                    green = true;
-                                if (conts[i].Buttons.B == ButtonState.Pressed)
-                                    red = true;
-                            }
-                        if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                            collective--;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                            collective++;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
-                            green = true;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                            red = true;
-
-                        if (collective > 0 && songselected > 0)
-                        { songselected--; chgd = true; }
-                        else if (collective < 0 && songselected < numsongs - 1)
-                        { songselected++; chgd = true; }
-                        songoffset = -(Math.Max(3, Math.Min(numsongs - 3, songselected))-3);
-                        if (green)
-                        {
-                            int i = 0;
-                            for (int k = 0; k < cSongNames.Length; k++)
-                                for (int j = 0; j < cSongNames[k].Length; j++)
-                                {
-                                    if (i == songselected)
-                                        songname = cSongNames[k][j];
-                                    i++;
-                                }
-                            for (int k = 0; k < 4; k++)
-                                diff[k] = D_EASY;
-                            screen = S_CHOOSEDIFF;
-                            mmenu_ticker = 200;
-                        }
-                        if (red)
-                        {screen = S_CHOOSECONT; mmenu_ticker = 200; }
-                        if (collective != 0)
-                            mmenu_ticker = 200;
-                    }
-                    else
-                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
-                    if (chgd)
-                    {
-                        int i = 0, ii=0;
-                        graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
-                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                        graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                        spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
-                        for (int j = 0; j < vSongNames.Length; j++)
-                        {
-                            for (int k = 0; k < vSongNames[j].Length; k++)
-                            {
-                                if (i == songselected && k!=0)
-                                    spritebatch.Draw(SongHiLi, new Rectangle(20, (ii + songoffset) * 40 + 58, SongListRT.Width - 40, 40), Color.White);
-                                if (i >= songoffset && ii + songoffset >= 0)
-                                {
-                                    spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
-                                    //if(k!=0)
-                                        //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
-                                }
-                                if(k!=0)
-                                    i++;
-                                ii++;
-                                if (ii + songoffset >9)
-                                    break;
-                            }
-                                if (ii + songoffset > 9)
-                                    break;
-                        }
-                        spritebatch.End();
-                        graphics.GraphicsDevice.SetRenderTarget(0, null);
-                        SongListTex = SongListRT.GetTexture();
-                    }
-                }
-                #endregion
-                #region contchoosescreen
-                else if (screen == S_CHOOSECONT)
-                {
-                    if (Keyboard.GetState().GetPressedKeys().Length <= 0)
-                        idleTime += gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                    else
-                        idleTime = 0;
-
-                    //charNameSelected[i] < charNames[i < 3 ? i : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f)
-                    if (mmenu_ticker <= 0)
-                    {
-                        for (int i = 0; i < 8; i++)
-                        {
-                            if (arrowTimer[i] <= 0)
-                            {
-                                if (i % 2 == 0)
-                                    if (charNameSelected[i / 2] <= 0)
-                                    {
-                                        arrowRot[i] = 0;
-                                        arrowTimer[i] = 5000;
-                                        continue;
-                                    }
-                                if (i % 2 == 1)
-                                    if (charNameSelected[i / 2] >= charNames[(i / 2) < 3 ? (i / 2) : 0].Length - 1)
-                                    {
-                                        arrowRot[i] = 0;
-                                        arrowTimer[i] = 5000;
-                                        continue;
-                                    }
-                                if (arrowRot[i] < Math.PI * 2)
-                                {
-                                    arrowRot[i] += gameTime.ElapsedGameTime.Milliseconds / 100f;
-                                    if (arrowRot[i] > Math.PI * 2)
-                                    {
-                                        arrowRot[i] = 0;
-                                        arrowTimer[i] = 1000 + (float)(r.NextDouble() * 3000);
-                                    }
-                                }
-                            }
-                            else
-                                arrowTimer[i] -= gameTime.ElapsedGameTime.Milliseconds;
-                        }
-
-                        /* if ((kblev > 0.5 && !finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                         {
-                             if (Math.Abs(kbld) < 0.01 && kblev > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
-                                 kbld = -1;
-                             if (Math.Abs(kbld) < 0.01 && kblev < 3 && Keyboard.GetState().IsKeyDown(Keys.Right))
-                                 kbld = 1;
-                         }
-                         else if ((kblev > 0.5 && !chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                         {
-                             if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] < charNames[kblev == 1 ? 0 : kblev < 3 ? (int)(kblev + 0.5) : 0].Length - 1 && Keyboard.GetState().IsKeyDown(Keys.Right))
-                                 charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]++;
-                             if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
-                                 charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]--;
-                         }
-                         kblev += kbld * (gameTime.ElapsedGameTime.Milliseconds / 500f);
-                         if (kbld > 0)
-                             if (kblev >= kblevp + 1)
-                             {
-                                 kblev = kblevp + 1;
-                                 kblevp = kblev;
-                                 kbld = 0;
-                             }
-                         if (kbld < 0)
-                             if (kblev <= kblevp - 1)
-                             {
-                                 kblev = kblevp - 1;
-                                 kblevp = kblev;
-                                 kbld = 0;
-                             }
-                         Vector3[] nfo = { new Vector3(-140, 180, -120), new Vector3(-140, 190, -110), new Vector3(-96, 128, -110), new Vector3(32, 128, -110), new Vector3(96, 128, -110) };
-                         if (kblev == (int)kblev)
-                             kbinfo = new Vector4(nfo[(int)kblev + (kblev == 0 ? 0 : 1)], kblev <= 0 ? (float)Math.PI / 2 : 0);
-                         else if (kblev < 1)
-                         {
-                             if (kblev < 0.2)
-                                 kbinfo = new Vector4((nfo[0] * ((0.2f - kblev) / 0.2f)) + (nfo[1] * (kblev % 1 / 0.2f)), (1 - kblev) * (float)(Math.PI / 2));
-                             else
-                                 kbinfo = new Vector4((nfo[1] * ((1f - kblev) / 0.8f)) + (nfo[2] * ((kblev - 0.2f) / 0.8f)), (1 - kblev) * (float)(Math.PI / 2));
-                         }
-                         else
-                         {
-                             if (kbld > 0)
-                                 kbinfo = new Vector4((nfo[(int)kblevp + 1] * (1 - (kblev % 1))) + (nfo[(int)(kblevp + kbld) + 1] * (kblev % 1)), 0);
-                             else
-                                 kbinfo = new Vector4((nfo[(int)kblevp + 1] * (kblev % 1)) + (nfo[(int)(kblevp + kbld) + 1] * (1 - (kblev % 1))), 0);
-                         }*/
-                        for (int k = 0; k < 4; k++)
-                            for (int i = 0; i < flames[k].Length; i++)
-                                if (flames[k][i].Z > 0)
-                                {
-                                    flames[k][i].Z -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                                    flames[k][i].Y += (k + 1) * 1.5f * gameTime.ElapsedGameTime.Milliseconds / 100f;
-                                    flames[k][i].X += (float)(r.NextDouble() - 0.5) * gameTime.ElapsedGameTime.Milliseconds / 50f;
-                                }
-                        if (gameTime.ElapsedGameTime.Milliseconds < 1000 / 30f)
-                            for (int j = 0; j < 5; j++)
-                                if (contguis[j].status == 2)
-                                    for (int k = 0; k < 4; k++)
-                                        for (int i = 0; i < flames[k].Length; i++)
-                                            if (flames[k][i].Z <= 0)
-                                            {
-                                                flames[k][i] = new Vector3((-96 + ((int)(contguis[j].loc - 1) * 64)) + (-24 + (float)(r.NextDouble() * 48)), 180 + (-24 + (float)(r.NextDouble() * 48)), 1);
-                                                break;
-                                            }
-                        /*if (Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.Enter))
-                            if ((int)kblev == kblev && kblev > 0)
-                                if (wait <= 0)
-                                {
-                                    if(kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)] && chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
-                                    {
-                                        screen = S_INGAME;
-                                        contInput = new byte[4];
-                                        contInput[kblev == 1 ? 0 : (int)(kblev + 0.5)] = 4;
-                                        InitForSong(chosen[0], chosen[1], chosen[2], chosen[3], diff, "garage");
-                                    }
-                                    else if (!finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
-                                    {
-                                        finalized[kblev == 1 ? 0 : (int)kblev] = true;
-                                        wait = 30;
-                                    }
-                                    else if ((kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
-                                    {
-                                        chosen[kblev == 1 ? 0 : (int)kblev] = true;
-                                        leader = kblev == 1 ? 0 : (int)kblev;
-                                        wait = 30;
-                                    }
-                                }
-                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                            if ((int)kblev == kblev && kblev > 0)
-                                if (wait <= 0)
-                                {
-                                    if (chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
-                                    {
-                                        chosen[kblev == 1 ? 0 : (int)kblev] = false;
-                                        wait = 30;
-                                    }
-                                    else if (finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
-                                    {
-                                        finalized[kblev == 1 ? 0 : (int)kblev] = false;
-                                    }
-                                }
-
-                        if (wait > 0)
-                            wait--;*/
-
-
-                        GetContGUIData();
-                        if (counterer > 10)
-                        {
-                            if (texNote[0] == null)
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
-                                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                    spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                                    spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
-                                    spritebatch.End();
-                                    graphics.GraphicsDevice.SetRenderTarget(0, null);
-                                    texNote[i] = rtNote[i].GetTexture();
-                                }
+                            if (Keyboard.GetState().IsKeyDown(Keys.Down) && diff[i] < 3)
+                            { diff[i]++; mmenu_ticker = 200; }
+                            else if (Keyboard.GetState().IsKeyDown(Keys.Up) && diff[i] > 0)
+                            { diff[i]--; mmenu_ticker = 200; }
                         }
                         else
-                            counterer++;
-                        for (int i = 0; i < 4; i++)
-                            finals[i] = false;
-                        leader = 0;
-                        for (int i = 0; i < 5; i++)
                         {
-                            if (contguis[i].nextLoc > 0)
-                                finals[contguis[i].nextLoc - 1] = true;
-                            if (contguis[i].GetLeaderVal() * ((contguis[i].status == 2) ? 1 : 0) > contguis[leader].GetLeaderVal() * ((contguis[leader].status == 2) ? 1 : 0))
-                                leader = i;
-                        }
-                        for (int i = 0; i < 5; i++)
-                        {
-                            ContGUIData.RETURN_VALUE ret = contguis[i].Update(gameTime, finals);
-                            if (ret != ContGUIData.RETURN_VALUE.NOTHING)
+                            GamePadState gps = GamePad.GetState((PlayerIndex)contInput[i]);
+                            GamePadCapabilities gpc = GamePad.GetCapabilities((PlayerIndex)contInput[i]);
+                            bool up=false, down = false;
+                            if (gps.DPad.Down == ButtonState.Pressed)
+                                down = true;
+                            if (gps.DPad.Up == ButtonState.Pressed)
+                                up = true;
+                            if (gpc.GamePadType == GamePadType.DrumKit)
                             {
-                                if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
+                                if (gps.Buttons.X == ButtonState.Pressed)
+                                    down = true;
+                                if (gps.Buttons.Y == ButtonState.Pressed)
+                                    up = true;
+                            }
+                            if (up && diff[i] > 0)
+                                diff[i]--;
+                            if (down && diff[i] < 3)
+                                diff[i]++;
+                            if (up || down)
+                                mmenu_ticker = 200;
+                        }
+                    }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                        green = true;
+                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                        red = true;
+                    
+                    if (green)
+                    {
+                        screen = S_INGAME;
+                        for (int i = 0; i < 4; i++)
+                            if (diff[i] == 0)
+                                diff[i] = D_EASY;
+                            else if (diff[i] == 1)
+                                diff[i] = D_MEDIUM;
+                            else if (diff[i] == 2)
+                                diff[i] = D_HARD;
+                            else if (diff[i] == 3)
+                                diff[i] = D_EXPERT;
+                        LoadGameContent();
+                    }
+                    if (red)
+                    { screen = S_CHOOSESONG; mmenu_ticker = 200; }
+                }
+                else
+                    mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+            }
+            #endregion
+            #region songscreen
+            else if (screen == S_CHOOSESONG)
+            {
+                bool chgd = SongListTex==null;
+                int numsongs = 0;
+                for (int i = 0; i < cSongNames.Length; i++)
+                    numsongs += cSongNames[i].Length;
+
+                if (mmenu_ticker <= 0)
+                {
+                    int collective = 0;
+                    bool green = false, red = false;
+                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                    for (int i = 0; i < 4; i++)
+                        if (conts[i].IsConnected)
+                        {
+                            if (conts[i].DPad.Down == ButtonState.Pressed)
+                                collective--;
+                            if (conts[i].DPad.Up == ButtonState.Pressed)
+                                collective++;
+                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                                green = true;
+                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                                red = true;
+                        }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                        collective--;
+                    if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                        collective++;
+                    if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                        green = true;
+                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                        red = true;
+
+                    if (collective > 0 && songselected > 0)
+                    { songselected--; chgd = true; }
+                    else if (collective < 0 && songselected < numsongs - 1)
+                    { songselected++; chgd = true; }
+                    songoffset = -(Math.Max(3, Math.Min(numsongs - 3, songselected))-3);
+                    if (green)
+                    {
+                        int i = 0;
+                        for (int k = 0; k < cSongNames.Length; k++)
+                            for (int j = 0; j < cSongNames[k].Length; j++)
+                            {
+                                if (i == songselected)
+                                    songname = cSongNames[k][j];
+                                i++;
+                            }
+                        for (int k = 0; k < 4; k++)
+                            diff[k] = D_EASY;
+                        screen = S_CHOOSEDIFF;
+                        mmenu_ticker = 200;
+                    }
+                    if (red)
+                    {screen = S_CHOOSECONT; mmenu_ticker = 200; }
+                    if (collective != 0)
+                        mmenu_ticker = 200;
+                }
+                else
+                    mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+                if (chgd)
+                {
+                    int i = 0, ii=0;
+                    graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                    graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                    spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
+                    for (int j = 0; j < vSongNames.Length; j++)
+                    {
+                        for (int k = 0; k < vSongNames[j].Length; k++)
+                        {
+                            if (i == songselected && k!=0)
+                                spritebatch.Draw(SongHiLi, new Rectangle(20, (ii + songoffset) * 40 + 58, SongListRT.Width - 40, 40), Color.White);
+                            if (i >= songoffset && ii + songoffset >= 0)
+                            {
+                                spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                                //if(k!=0)
+                                    //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                            }
+                            if(k!=0)
+                                i++;
+                            ii++;
+                            if (ii + songoffset >9)
+                                break;
+                        }
+                            if (ii + songoffset > 9)
+                                break;
+                    }
+                    spritebatch.End();
+                    graphics.GraphicsDevice.SetRenderTarget(0, null);
+                    SongListTex = SongListRT.GetTexture();
+                }
+            }
+            #endregion
+            #region contchoosescreen
+            else if (screen == S_CHOOSECONT)
+            {
+                if (Keyboard.GetState().GetPressedKeys().Length <= 0)
+                    idleTime += gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                else
+                    idleTime = 0;
+
+                //charNameSelected[i] < charNames[i < 3 ? i : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f)
+                if (mmenu_ticker <= 0)
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (arrowTimer[i] <= 0)
+                        {
+                            if (i % 2 == 0)
+                                if (charNameSelected[i / 2] <= 0)
                                 {
-                                    int cgcount = 0;
-                                    for (int p = 0; p < contguis.Length; p++)
-                                        if (contguis[p].loc > 0.5)
-                                            cgcount++;
-                                    if(cgcount>0)
-                                    if (leader == i)
-                                    {
-                                        screen = S_CHOOSESONG;
-                                        contInput = new byte[4];
-                                        rockerNames = new String[4];
-                                        for (int k = 0; k < 4; k++)
-                                        { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
-                                        for (int k = 0; k < 5; k++)
-                                            if (contguis[k].status == 2)
-                                            {
-                                                rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
-                                                instruments[(int)contguis[k].loc - 1] = true;
-                                                contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
-                                            }
-                                        mmenu_ticker = 200;
-                                    }
-                                    idleTime = 0;
+                                    arrowRot[i] = 0;
+                                    arrowTimer[i] = 5000;
+                                    continue;
                                 }
-                                else
+                            if (i % 2 == 1)
+                                if (charNameSelected[i / 2] >= charNames[(i / 2) < 3 ? (i / 2) : 0].Length - 1)
                                 {
-                                    idleTime = 0;
-                                    if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
-                                    {
-                                        if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
-                                            charNameSelected[(int)contguis[i].loc - 1]++;
-                                        else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
-                                            charNameSelected[(int)contguis[i].loc - 1]++;
-                                        else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
-                                            charNameSelected[(int)contguis[i].loc - 1]--;
-                                        else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
-                                            charNameSelected[(int)contguis[i].loc - 1]--;
-                                        charNameSelected[(int)contguis[i].loc - 1]++;
-                                    }
-                                    if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
-                                    {
-                                        if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
-                                            charNameSelected[(int)contguis[i].loc - 1]--;
-                                        else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
-                                            charNameSelected[(int)contguis[i].loc - 1]--;
-                                        else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
-                                            charNameSelected[(int)contguis[i].loc - 1]++;
-                                        else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
-                                            charNameSelected[(int)contguis[i].loc - 1]++;
-                                        charNameSelected[(int)contguis[i].loc - 1]--;
-                                    }
-                                    ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                                    graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
-                                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                    spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
-                                    spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
-                                    if (contguis[i].status == 1)
-                                        spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
-                                    spritebatch.End();
-                                    graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                                    texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
+                                    arrowRot[i] = 0;
+                                    arrowTimer[i] = 5000;
+                                    continue;
+                                }
+                            if (arrowRot[i] < Math.PI * 2)
+                            {
+                                arrowRot[i] += gameTime.ElapsedGameTime.Milliseconds / 100f;
+                                if (arrowRot[i] > Math.PI * 2)
+                                {
+                                    arrowRot[i] = 0;
+                                    arrowTimer[i] = 1000 + (float)(r.NextDouble() * 3000);
                                 }
                             }
                         }
-
-                        for (int i = 0; i < 5; i++)
-                            if (contguis[i].index >= 0)
-                                if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && GamePad.GetState((PlayerIndex)contguis[i].index).IsButtonDown(Buttons.B))) && contguis[i].status == 0)
-                                { screen = S_MAINMENU; mmenu_ticker = 200; }
-                        /*for (int i = 0; i < 4; i++)
-                        contInput[i] = 100;
-
-                    for (byte i = 0; i < 4; i++)
-                    {
-                        if (contCapabilities[i].GamePadType == GamePadType.Guitar)
-                        {
-                            if (contInput[0] >=100)
-                                contInput[0] = i;
-                            else if (contInput[3] >=100)
-                                contInput[3] = i;
-                        }
-                        else if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
-                        {
-                            if (contInput[2] >= 100)
-                                contInput[2] = i;
-                        }
-                        else if (contCapabilities[i].GamePadType == GamePadType.GamePad)
-                        {
-                            if (contInput[1] >= 100)
-                                contInput[1] = i;
-                        }
+                        else
+                            arrowTimer[i] -= gameTime.ElapsedGameTime.Milliseconds;
                     }
 
-                    bool noone = true;
-                    for (int i = 0; i < 4; i++)
-                        if (contInput[i] < 100)
-                            noone = false;
-                    if (noone)
-                        contInput[2] = 4;*/
+                    /* if ((kblev > 0.5 && !finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                     {
+                         if (Math.Abs(kbld) < 0.01 && kblev > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
+                             kbld = -1;
+                         if (Math.Abs(kbld) < 0.01 && kblev < 3 && Keyboard.GetState().IsKeyDown(Keys.Right))
+                             kbld = 1;
+                     }
+                     else if ((kblev > 0.5 && !chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                     {
+                         if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] < charNames[kblev == 1 ? 0 : kblev < 3 ? (int)(kblev + 0.5) : 0].Length - 1 && Keyboard.GetState().IsKeyDown(Keys.Right))
+                             charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]++;
+                         if (charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)] > 0 && Keyboard.GetState().IsKeyDown(Keys.Left))
+                             charNameSelected[kblev == 1 ? 0 : (int)(kblev + 0.5)]--;
+                     }
+                     kblev += kbld * (gameTime.ElapsedGameTime.Milliseconds / 500f);
+                     if (kbld > 0)
+                         if (kblev >= kblevp + 1)
+                         {
+                             kblev = kblevp + 1;
+                             kblevp = kblev;
+                             kbld = 0;
+                         }
+                     if (kbld < 0)
+                         if (kblev <= kblevp - 1)
+                         {
+                             kblev = kblevp - 1;
+                             kblevp = kblev;
+                             kbld = 0;
+                         }
+                     Vector3[] nfo = { new Vector3(-140, 180, -120), new Vector3(-140, 190, -110), new Vector3(-96, 128, -110), new Vector3(32, 128, -110), new Vector3(96, 128, -110) };
+                     if (kblev == (int)kblev)
+                         kbinfo = new Vector4(nfo[(int)kblev + (kblev == 0 ? 0 : 1)], kblev <= 0 ? (float)Math.PI / 2 : 0);
+                     else if (kblev < 1)
+                     {
+                         if (kblev < 0.2)
+                             kbinfo = new Vector4((nfo[0] * ((0.2f - kblev) / 0.2f)) + (nfo[1] * (kblev % 1 / 0.2f)), (1 - kblev) * (float)(Math.PI / 2));
+                         else
+                             kbinfo = new Vector4((nfo[1] * ((1f - kblev) / 0.8f)) + (nfo[2] * ((kblev - 0.2f) / 0.8f)), (1 - kblev) * (float)(Math.PI / 2));
+                     }
+                     else
+                     {
+                         if (kbld > 0)
+                             kbinfo = new Vector4((nfo[(int)kblevp + 1] * (1 - (kblev % 1))) + (nfo[(int)(kblevp + kbld) + 1] * (kblev % 1)), 0);
+                         else
+                             kbinfo = new Vector4((nfo[(int)kblevp + 1] * (kblev % 1)) + (nfo[(int)(kblevp + kbld) + 1] * (1 - (kblev % 1))), 0);
+                     }*/
+                    for (int k = 0; k < 4; k++)
+                        for (int i = 0; i < flames[k].Length; i++)
+                            if (flames[k][i].Z > 0)
+                            {
+                                flames[k][i].Z -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                                flames[k][i].Y += (k + 1) * 1.5f * gameTime.ElapsedGameTime.Milliseconds / 100f;
+                                flames[k][i].X += (float)(r.NextDouble() - 0.5) * gameTime.ElapsedGameTime.Milliseconds / 50f;
+                            }
+                    if (gameTime.ElapsedGameTime.Milliseconds < 1000 / 30f)
+                        for (int j = 0; j < 5; j++)
+                            if (contguis[j].status == 2)
+                                for (int k = 0; k < 4; k++)
+                                    for (int i = 0; i < flames[k].Length; i++)
+                                        if (flames[k][i].Z <= 0)
+                                        {
+                                            flames[k][i] = new Vector3((-96 + ((int)(contguis[j].loc - 1) * 64)) + (-24 + (float)(r.NextDouble() * 48)), 180 + (-24 + (float)(r.NextDouble() * 48)), 1);
+                                            break;
+                                        }
+                    /*if (Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.Enter))
+                        if ((int)kblev == kblev && kblev > 0)
+                            if (wait <= 0)
+                            {
+                                if(kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)] && chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                {
+                                    screen = S_INGAME;
+                                    contInput = new byte[4];
+                                    contInput[kblev == 1 ? 0 : (int)(kblev + 0.5)] = 4;
+                                    InitForSong(chosen[0], chosen[1], chosen[2], chosen[3], diff, "garage");
+                                }
+                                else if (!finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                {
+                                    finalized[kblev == 1 ? 0 : (int)kblev] = true;
+                                    wait = 30;
+                                }
+                                else if ((kblev > 0.5 && finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
+                                {
+                                    chosen[kblev == 1 ? 0 : (int)kblev] = true;
+                                    leader = kblev == 1 ? 0 : (int)kblev;
+                                    wait = 30;
+                                }
+                            }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                        if ((int)kblev == kblev && kblev > 0)
+                            if (wait <= 0)
+                            {
+                                if (chosen[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                {
+                                    chosen[kblev == 1 ? 0 : (int)kblev] = false;
+                                    wait = 30;
+                                }
+                                else if (finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)])
+                                {
+                                    finalized[kblev == 1 ? 0 : (int)kblev] = false;
+                                }
+                            }
+
+                    if (wait > 0)
+                        wait--;*/
+
+
+                    GetContGUIData();
+                    if (counterer > 10)
+                    {
+                        if (texNote[0] == null)
+                            for (int i = 0; i < 4; i++)
+                            {
+                                graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
+                                spritebatch.End();
+                                graphics.GraphicsDevice.SetRenderTarget(0, null);
+                                texNote[i] = rtNote[i].GetTexture();
+                            }
                     }
                     else
-                        mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
-                }
-                #endregion
-                #region ingame
-                else if (screen == S_INGAME)
-                {
-
-                    //start song TEMPORARY CODE? probably not...
-                    if (started == false)
+                        counterer++;
+                    for (int i = 0; i < 4; i++)
+                        finals[i] = false;
+                    leader = 0;
+                    for (int i = 0; i < 5; i++)
                     {
-                        SongStartTime = DateTime.Now.Ticks +50000000;
-                        started = true;
+                        if (contguis[i].nextLoc > 0)
+                            finals[contguis[i].nextLoc - 1] = true;
+                        if (contguis[i].GetLeaderVal() * ((contguis[i].status == 2) ? 1 : 0) > contguis[leader].GetLeaderVal() * ((contguis[leader].status == 2) ? 1 : 0))
+                            leader = i;
                     }
+                    for (int i = 0; i < 5; i++)
+                    {
+                        ContGUIData.RETURN_VALUE ret = contguis[i].Update(gameTime, finals);
+                        if (ret != ContGUIData.RETURN_VALUE.NOTHING)
+                        {
+                            if (ret == ContGUIData.RETURN_VALUE.NEXT_SCREEN)
+                            {
+                                int cgcount = 0;
+                                for (int p = 0; p < contguis.Length; p++)
+                                    if (contguis[p].loc > 0.5)
+                                        cgcount++;
+                                if(cgcount>0)
+                                if (leader == i)
+                                {
+                                    screen = S_CHOOSESONG;
+                                    contInput = new byte[4];
+                                    rockerNames = new String[4];
+                                    for (int k = 0; k < 4; k++)
+                                    { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
+                                    for (int k = 0; k < 5; k++)
+                                        if (contguis[k].status == 2)
+                                        {
+                                            rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
+                                            instruments[(int)contguis[k].loc - 1] = true;
+                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
+                                        }
+                                    mmenu_ticker = 200;
+                                }
+                                idleTime = 0;
+                            }
+                            else
+                            {
+                                idleTime = 0;
+                                if (ret == ContGUIData.RETURN_VALUE.INCREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] < charNames[((int)contguis[i].loc - 1) <= 2 ? ((int)contguis[i].loc - 1) : 0].Length - 1)
+                                {
+                                    if (contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3] && charNameSelected[0] + 2 < charNames[0].Length)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0] && charNameSelected[3] + 2 < charNames[0].Length)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if ((contguis[i].loc == 1 && charNameSelected[0] + 1 == charNameSelected[3]))
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] + 1 == charNameSelected[0])
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    charNameSelected[(int)contguis[i].loc - 1]++;
+                                }
+                                if (ret == ContGUIData.RETURN_VALUE.DECREMENT_NAME && charNameSelected[(int)contguis[i].loc - 1] > -1)
+                                {
+                                    if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 2 >= -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 2 >= -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]--;
+                                    else if (contguis[i].loc == 1 && charNameSelected[0] - 1 == charNameSelected[3] && charNameSelected[0] - 1 != -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    else if (contguis[i].loc == 4 && charNameSelected[3] - 1 == charNameSelected[0] && charNameSelected[3] - 1 != -1)
+                                        charNameSelected[(int)contguis[i].loc - 1]++;
+                                    charNameSelected[(int)contguis[i].loc - 1]--;
+                                }
+                                ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
+                                graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                                spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
+                                if (contguis[i].status == 1)
+                                    spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
+                                spritebatch.End();
+                                graphics.GraphicsDevice.SetRenderTarget(0, ort);
+                                texNote[(int)contguis[i].loc - 1] = rtNote[(int)contguis[i].loc - 1].GetTexture();
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < 5; i++)
+                        if (contguis[i].index >= 0)
+                            if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && GamePad.GetState((PlayerIndex)contguis[i].index).IsButtonDown(Buttons.B))) && contguis[i].status == 0)
+                            { screen = S_MAINMENU; mmenu_ticker = 200; }
+                    /*for (int i = 0; i < 4; i++)
+                    contInput[i] = 100;
+
+                for (byte i = 0; i < 4; i++)
+                {
+                    if (contCapabilities[i].GamePadType == GamePadType.Guitar)
+                    {
+                        if (contInput[0] >=100)
+                            contInput[0] = i;
+                        else if (contInput[3] >=100)
+                            contInput[3] = i;
+                    }
+                    else if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
+                    {
+                        if (contInput[2] >= 100)
+                            contInput[2] = i;
+                    }
+                    else if (contCapabilities[i].GamePadType == GamePadType.GamePad)
+                    {
+                        if (contInput[1] >= 100)
+                            contInput[1] = i;
+                    }
+                }
+
+                bool noone = true;
+                for (int i = 0; i < 4; i++)
+                    if (contInput[i] < 100)
+                        noone = false;
+                if (noone)
+                    contInput[2] = 4;*/
+                }
+                else
+                    mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+            }
+            #endregion
+            #region ingame
+            else if (screen == S_INGAME)
+            {
+                if (GameLoaded)
+                {
+                    //start song TEMPORARY CODE? probably not...
+                    if (started == 0)
+                    {
+                        CurrentTime = 5*TicksPerSecond;
+                        started = 1;
+                        return;
+                    }
+                    else if (started == 1)
+                    {
+                        if ((long)CurrentTime - gameTime.ElapsedGameTime.Ticks < 0)
+                        {
+                            CurrentTime = 0;
+                            song.play();
+                            started = 2;
+                        }
+                        else
+                            CurrentTime -= (ulong)gameTime.ElapsedGameTime.Ticks;
+                        return;
+                    }
+                    ulong songt = song.getTime();
+                    if (lastChange != songt)
+                    {
+                        CurrentTime = songt * (ulong)(TicksPerSecond / 1000);
+                        lastChange = songt;
+                    }
+                    CurrentTime += (ulong)gameTime.ElapsedGameTime.Ticks;
                     UpdateGibs(gameTime);
 
-                    long currenttime = DateTime.Now.Ticks - SongStartTime;
+                    
+                    ulong currenttime = CurrentTime / (ulong)(TicksPerSecond/1000);
 
                     if (song.IsOver(currenttime))
                         screen = S_RESULTS;
-                    if(renderLevel>0)
+                    if (renderLevel > 0)
                         venue.Update(gameTime, currenttime, engine, song);
                     matView = venue.GetViewMatrix();
                     //audioEngine.Update();
 
-                    song.Update((long)currenttime);
+                    song.Update(currenttime);
 
-                    ProcessInput(gameTime);
+                    ProcessInput(gameTime,currenttime);
 
                     if (rockstarDir > Math.PI * 2)
                         rockstarDir = 0;
@@ -1712,54 +1605,54 @@ namespace Unsigned
                         //audioSoundBank.PlayCue("starching");
                     }
                     if (instruments[0] && contInput[0] < 4)
-                        boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
+                        boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime);
                     if (instruments[3] && contInput[3] < 4)
-                        boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime / (TicksPerSecond / 1000));
+                        boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime);
                 }
-                #endregion
-                #region results
-                else if (screen == S_RESULTS)
+            }
+            #endregion
+            #region results
+            else if (screen == S_RESULTS)
+            {
+                if (totalresults.Length == 0)
                 {
-                    if (totalresults.Length == 0)
-                    {
-                        totalresults = new Results[5];
-                        for (int i = 0; i < 4; i++)
-                            if (instruments[i])
-                                totalresults[i] = boards[i].getResults();
-                        totalresults[4] = new Results();
-                        for (int i = 0; i < 4; i++)
-                            if(instruments[i])
-                            {
-                                totalresults[4].hitNotes += totalresults[i].hitNotes;
-                                totalresults[4].hitSPPH += totalresults[i].hitSPPH;
-                                totalresults[4].missedNotes += totalresults[i].missedNotes;
-                                totalresults[4].missedSPPH += totalresults[i].missedSPPH;
-                                totalresults[4].totalNotes += totalresults[i].totalNotes;
-                                totalresults[4].totalSPPH += totalresults[i].totalSPPH;
-                            }
-                    }
+                    totalresults = new Results[5];
+                    for (int i = 0; i < 4; i++)
+                        if (instruments[i])
+                            totalresults[i] = boards[i].getResults();
+                    totalresults[4] = new Results();
+                    for (int i = 0; i < 4; i++)
+                        if(instruments[i])
+                        {
+                            totalresults[4].hitNotes += totalresults[i].hitNotes;
+                            totalresults[4].hitSPPH += totalresults[i].hitSPPH;
+                            totalresults[4].missedNotes += totalresults[i].missedNotes;
+                            totalresults[4].missedSPPH += totalresults[i].missedSPPH;
+                            totalresults[4].totalNotes += totalresults[i].totalNotes;
+                            totalresults[4].totalSPPH += totalresults[i].totalSPPH;
+                        }
+                }
 
-                    bool green=false, red=false;//what should red be used for?
-                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
-                        for (int i = 0; i < 4; i++)
-                            if (conts[i].IsConnected)
-                            {
-                                if (conts[i].Buttons.A == ButtonState.Pressed)
-                                    green = true;
-                                if (conts[i].Buttons.B == ButtonState.Pressed)
-                                    red = true;
-                            }
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
-                            green = true;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                            red = true;
-                        if (green)
-                        { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = false; mmenu_ticker = 200; mmenu_select = 0; }
-                }
-                #endregion
-                else
-                {
-                }
+                bool green=false, red=false;//what should red be used for?
+                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                    for (int i = 0; i < 4; i++)
+                        if (conts[i].IsConnected)
+                        {
+                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                                green = true;
+                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                                red = true;
+                        }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                        green = true;
+                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                        red = true;
+                    if (green)
+                    { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = 0; mmenu_ticker = 200; mmenu_select = 0; }
+            }
+            #endregion
+            else
+            {
             }
 
             base.Update(gameTime);
@@ -1767,7 +1660,7 @@ namespace Unsigned
 
         protected override void Draw(GameTime gameTime)
         {
-            if ((loaded & screen) == 0)
+            if (MenuLoading || GameLoading)
             {
                 graphics.GraphicsDevice.Clear(Color.Black);
                 spritebatch.Begin();
@@ -1875,7 +1768,13 @@ namespace Unsigned
                         engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
                         engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0, 3, 1)));
 
-                        engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                        Version SM = graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
+                        if (SM.Major >= 3)
+                            engine.CurrentTechnique = engine.Techniques["menutechnique"];
+                        else if (SM.Major >= 2)
+                            engine.CurrentTechnique = engine.Techniques["menutechniquet"];
+                        else
+                            Exit();
                         engine.CommitChanges();
 
                         engine.Begin();
@@ -2449,6 +2348,7 @@ namespace Unsigned
                 #region ingame
                 else if (screen == S_INGAME)
                 {
+                    ulong currenttime = CurrentTime / (ulong)(TicksPerSecond / 1000);
 #if !DEBUG
                     try
                     {
@@ -2574,12 +2474,12 @@ namespace Unsigned
                             graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget[i]);
                             matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                                       boardsTarget[i].Width / (float)boardsTarget[i].Height,
-                                      0.1f, 100.0f);
+                                      1f, 10.0f);
                             graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
                             if (i == 1)
                             {
                                 spritebatch.Begin();
-                                boards[i].Draw(spritebatch,((DateTime.Now.Ticks - SongStartTime)/(TicksPerSecond/1000)));
+                                boards[i].Draw(spritebatch,(currenttime));
                                 spritebatch.End();
                                 continue;
                             }
@@ -2594,14 +2494,14 @@ namespace Unsigned
                                 engine.Parameters["proj"].SetValue(matProj);
 
                                 //get board measure world lengths
-                                song.GetZVals((DateTime.Now.Ticks - SongStartTime));
+                                song.GetZVals(currenttime);
 
                                 //determine fling (song start board comes up)
                                 Matrix fling;
-                                if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -3)
+                                if (currenttime / 1000f > -3)
                                     fling = Matrix.CreateRotationX(Board.rotate);
-                                else if ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond > -4)
-                                    fling = Matrix.CreateRotationX((((((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                                else if (currenttime / 1000f > -4)
+                                    fling = Matrix.CreateRotationX(((((currenttime / 1000f) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
                                 else
                                     fling = Matrix.CreateRotationX((float)Math.PI / 2);
                                 if (Venue.DEBUG_CAM_CONTROL)
@@ -2610,12 +2510,12 @@ namespace Unsigned
                                 engine.Parameters["fullbright"].SetValue(true);
 
                                 //draw each boards
-                                DrawBoard(i, song.zVals, fling, false);
+                                DrawBoard(i, song.zVals, fling, false, currenttime);
                                 if (boards[i].IsSPActivated())
-                                    DrawBoard(i, song.zVals, fling, true);
-                                DrawNotes(i, fling);
+                                    DrawBoard(i, song.zVals, fling, true, currenttime);
+                                DrawNotes(i, fling,currenttime);
                                 DrawBoardDetail(i, fling);
-                                DrawWaves(i, fling);
+                                DrawWaves(i, fling,currenttime);
                                 //draw the non-world gibs (glass shards sparks)
                                 DrawGibs();
                                 pass.End();
@@ -2710,10 +2610,10 @@ namespace Unsigned
                         if (screen == S_INGAME)
                         {
                             //draw score/stars
-                            DrawScoreStars();
+                            DrawScoreStars(currenttime);
 
                             //draw rock meter
-                            DrawRockMeter();
+                            DrawRockMeter(currenttime);
 
                             //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
@@ -2858,7 +2758,7 @@ namespace Unsigned
             return (add / ct) / 100f;
         }
 
-        public void InitForSong(bool guitarist, bool vocalist, bool percussionist, bool bassist, byte[] difficulty, String venue)
+        public void InitForSong(bool guitarist, bool vocalist, bool percussionist, bool bassist, byte[] difficulty, String venueStr, Game1 gameRef)
         {
             rockstarLoc = new Vector2(graphics.PreferredBackBufferWidth* 0.8f, graphics.PreferredBackBufferHeight * ( (vocalist) ? 0.25f : 0.1f));
             rockstarScale = new Vector2(graphics.PreferredBackBufferWidth * 0.2f, graphics.PreferredBackBufferHeight * 0.1f);
@@ -2882,7 +2782,7 @@ namespace Unsigned
             }
             else if (guitarist && bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -250;
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
@@ -2912,7 +2812,7 @@ namespace Unsigned
             }
             else if (guitarist && bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -175;
                 boards[0].yRotate = -0.15f;
@@ -2938,7 +2838,7 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
                 boards[3].xOffset = -175;
                 boards[3].yRotate = -0.15f;
@@ -2958,7 +2858,7 @@ namespace Unsigned
             }
             else if (guitarist && !bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 boards[0].xOffset = -175;
                 boards[0].yRotate = -0.15f;
@@ -2978,14 +2878,14 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && !percussionist && vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[1] = new Board(VOCALS, 0, song, difficulty[1]);
                 Board.vocalheight = 100;
                 Board.vocaly = 450;
             }
             else if (guitarist && !bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
                 Board.curveHeight = 0.03f;
                 Board.height = -2.0f;
@@ -2999,7 +2899,7 @@ namespace Unsigned
             }
             else if (!guitarist && bassist && !percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
                 Board.curveHeight = 0.03f;
                 Board.height = -2.0f;
@@ -3013,7 +2913,7 @@ namespace Unsigned
             }
             else if (!guitarist && !bassist && percussionist && !vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
                 Board.curveHeight = 0.03f;
                 Board.height = -1.6f;
@@ -3027,12 +2927,12 @@ namespace Unsigned
             }
             else if (!guitarist && !bassist && !percussionist && vocalist)
             {
-                song = new Song(4, 2, songname,this.Window.Handle);
+                
                 boards[1] = new Board(VOCALIST, 0, song, difficulty[1]);
                 Board.vocaly = 10;
                 Board.vocalheight = 140;
                 Board.vocalzerox = windowwidth / 10;
-                Board.vocalwidth = 1f;
+                Board.vocalwidth = 0.25f;
                 /*Board.curveHeight = 0.03f;
                 Board.height = -1.6f;
                 Board.length = 3f;
@@ -3044,7 +2944,7 @@ namespace Unsigned
                 boardsTarget[1] = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
             }
 
-            this.venue = new Venue(venue + ".gbw", songname, this, content, graphics, engine);
+            venue = new Venue(venueStr + ".gbw", songname, this, content, graphics, engine);
         }
 
         public static double dirdistTOhdist(double dir, double dist)
@@ -3184,6 +3084,7 @@ namespace Unsigned
             }
         }
 
+        #region shards
         private static Vector3[] shardmethlist = { new Vector3(-.5f,0f,0f),new Vector3(-.5f,1f,0f),new Vector3(-.5f,.5f,.5f),new Vector3(-.5f,.5f,-.5f),new Vector3(.5f,0f,0f),new Vector3(.5f,1f,0f),new Vector3(.5f,.5f,.5f),new Vector3(.5f,.5f,-.5f)};
         public void AddShards(byte note, int board)
         {
@@ -3319,8 +3220,9 @@ namespace Unsigned
                 }
             }
         }
+        #endregion
 
-        private void ProcessInput(GameTime gameTime)
+        private void ProcessInput(GameTime gameTime, ulong currenttime)
         {
             for (int i = 0; i < 4; i++)
                 if (boards[i] != null)
@@ -3356,7 +3258,7 @@ namespace Unsigned
                             if (Keyboard.GetState().IsKeyDown(Keys.A))
                                 pressed |= bits[boards[i].IsLefty()?4:0];
                         }
-                        boards[i].Update(gameTime,(long)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
+                        boards[i].Update(gameTime,currenttime, this, i, pressed);
                     }
                     else if (i == 2)
                     {
@@ -3389,20 +3291,19 @@ namespace Unsigned
                         }
                         if (pressed != 0)
                         {
-                            byte e = boards[2].Bang(pressed, (long)(DateTime.Now.Ticks - SongStartTime), this);
+                            byte e = boards[2].Bang(pressed, currenttime, this);
                             if (e > 0)
                             {
-                                //rockMeterLevel[2] += 0.5f * (boards[2].IsSPActivated()?5:1);
                                 if ((e & bits[7]) != 0)
                                     AddSparks(e, 2);
                                 else
                                     AddShards(e, 2);
                             }
                         }
-                        boards[i].Update(gameTime, (long)(DateTime.Now.Ticks - SongStartTime), this, i, pressed);
+                        boards[i].Update(gameTime, currenttime, this, i, pressed);
                     }
                     else
-                        boards[i].Update(gameTime,(long)(DateTime.Now.Ticks - SongStartTime), this, i, 0);
+                        boards[i].Update(gameTime,currenttime, this, i, 0);
                 }
 
             if (instruments[0])
@@ -3424,7 +3325,7 @@ namespace Unsigned
                         if (controllers[contInput[0]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
 
-                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, currenttime,this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3450,7 +3351,7 @@ namespace Unsigned
                             pressed |= 8;
                         if (controllers[contInput[0]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
-                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, currenttime,this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3483,7 +3384,7 @@ namespace Unsigned
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[0].IsLefty()?4:0];
 
-                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, currenttime,this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3509,7 +3410,7 @@ namespace Unsigned
                             pressed |= bits[boards[0].IsLefty()?3:1];
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[0].IsLefty()?4:0];
-                        byte e = boards[0].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,0);
+                        byte e = boards[0].Strum(pressed, currenttime,this,0);
                         if (e > 0)
                         {
                             Help(0);
@@ -3545,7 +3446,7 @@ namespace Unsigned
                         if (controllers[contInput[3]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
 
-                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        byte e = boards[3].Strum(pressed, currenttime,this,3);
                         if (e > 0)
                         {
                             Help(3);
@@ -3571,7 +3472,7 @@ namespace Unsigned
                             pressed |= 8;
                         if (controllers[contInput[3]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
-                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        byte e = boards[3].Strum(pressed, currenttime,this,3);
                         if (e > 0)
                         {
                             Help(3);
@@ -3604,7 +3505,7 @@ namespace Unsigned
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[3].IsLefty()?4:0];
 
-                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        byte e = boards[3].Strum(pressed, currenttime,this,3);
                         if (e > 0)
                         {
                             Help(3);
@@ -3630,7 +3531,7 @@ namespace Unsigned
                             pressed |= bits[boards[3].IsLefty()?3:1];
                         if (Keyboard.GetState().IsKeyDown(Keys.A))
                             pressed |= bits[boards[3].IsLefty()?4:0];
-                        byte e = boards[3].Strum(pressed, (long)(DateTime.Now.Ticks - SongStartTime),this,3);
+                        byte e = boards[3].Strum(pressed, currenttime,this,3);
                         if (e > 0)
                         {
                             Help(3);
@@ -3649,7 +3550,7 @@ namespace Unsigned
             }
         }
 
-        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP)
+        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP, ulong currenttime)
         {
             if (i != 1)
             {
@@ -3660,8 +3561,8 @@ namespace Unsigned
                 {
                     matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((SongStartTime / (float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
-
+                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((currenttime/1000f) - Math.Min(lenvals[0].X, Board.sFade))));
+                    
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
                     if (!SP)
@@ -3825,7 +3726,7 @@ namespace Unsigned
             }
         }
 
-        private void DrawWaves(int i, Matrix fling)
+        private void DrawWaves(int i, Matrix fling,ulong currenttime)
         {
             bool hide = false;
             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3836,7 +3737,7 @@ namespace Unsigned
             if (boards[i].IsLefty())
                 lefty = -1;
             GBVertexFormat[] tmpMdl = new GBVertexFormat[6];
-            if (!boards[i].getWaves((long)(DateTime.Now.Ticks - SongStartTime), 3 * (long)TicksPerSecond))
+            if (!boards[i].getWaves(currenttime, 3000))
                 return;
             tmpMdl[0] = new GBVertexFormat(new Vector3(0, 0f, 0f), new Vector3(0,1,0), new Vector2(0f, 1f));
             tmpMdl[1] = new GBVertexFormat(new Vector3(0, 0f, 1f), new Vector3(0,1,0), new Vector2(0f, 0f));
@@ -3938,7 +3839,7 @@ namespace Unsigned
             engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));
         }
 
-        private void DrawNotes(int i, Matrix fling)
+        private void DrawNotes(int i, Matrix fling, ulong currenttime)
         {
             if (i != 1)
             {
@@ -3947,7 +3848,7 @@ namespace Unsigned
                 int lefty = 1;
                 if (boards[i].IsLefty() && boards[i].GetBoardType() != PERCUSSIONIST)
                     lefty = -1;
-                boards[i].GetNotes(DateTime.Now.Ticks - SongStartTime, (long)(Board.eFade * TicksPerSecond));
+                boards[i].GetNotes(currenttime, (ulong)(Board.eFade*1000));
                 for (int p = 0; p < boards[i].notesLen; p++)
                 {
                     if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
@@ -3995,9 +3896,9 @@ namespace Unsigned
 
 
                             matIdentity = Matrix.Identity;
-                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF)+0.1f, 0f);
                             matOrbit = Matrix.CreateTranslation(0.75f * Board.width, 0f, -(Board.length * (boards[i].OutNotes[p + 1].Y - 0.1f)) - Board.zeroZ) * fling;
-                            matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.15f * boards[i].OutNotes[p].X, 0.3f));
+                            matScale = Matrix.CreateScale(new Vector3(0.15f * Board.width, 0.3f, 0.3f));
 
                             float alpha;
                             if (boards[i].OutNotes[p].Y < Board.sFade)
@@ -4022,6 +3923,16 @@ namespace Unsigned
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                             graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                             graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
                             foreach (ModelMesh mesh in Board.mdlNote.Meshes)
                             {
                                 foreach (ModelMeshPart part in mesh.MeshParts)
@@ -4044,8 +3955,11 @@ namespace Unsigned
                     {
                         Matrix matIdentity, matTransl, matScale, matOrbit;
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
+                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        else
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF)+0.05f, 0f);
+                        matOrbit = Matrix.CreateRotationX(-boards[i].OutNotes[p].Y*MathHelper.Pi)*Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
                         if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
                             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
                         else
@@ -4106,6 +4020,21 @@ namespace Unsigned
                             graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                         }
                         else
+                        {
+                            foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+
+                                    //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                                    engine.CommitChanges();
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
                             foreach (ModelMesh mesh in Board.mdlNote.Meshes)
                             {
                                 foreach (ModelMeshPart part in mesh.MeshParts)
@@ -4120,6 +4049,7 @@ namespace Unsigned
                                     graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
                                 }
                             }
+                        }
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
                 }
@@ -4437,13 +4367,13 @@ namespace Unsigned
             }
         }
 
-        private void DrawRockMeter()
+        private void DrawRockMeter(ulong currenttime)
         {
             float rex;
-            if (((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) > -2.5)
+            if (currenttime/1000f > -2.5)
                 rex = rockMeterLoc.X;
-            else if (((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) > -3)
-                rex = -(rockMeterScale.X * 3) + (((((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
+            else if ((currenttime/1000f) > -3)
+                rex = -(rockMeterScale.X * 3) + ((((currenttime/1000f) + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
             else
                 rex = -rockMeterScale.X * 3;
             float rmFill = GetRockMeterFill();
@@ -4497,13 +4427,13 @@ namespace Unsigned
             }
         }
 
-        private void DrawScoreStars()
+        private void DrawScoreStars(ulong currenttime)
         {
             float xers;
-            if (((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) > -2.5)
+            if (CurrentTime/1000f > -2.5)
                 xers = rockstarLoc.X;
-            else if (((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) > -3)
-                xers = (Window.ClientBounds.Width - (((((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond) + 3f) * 2) * (Window.ClientBounds.Width - rockstarLoc.X)));
+            else if (currenttime / 1000f > -3)
+                xers = (Window.ClientBounds.Width - ((((currenttime/1000f) + 3f) * 2) * (Window.ClientBounds.Width - rockstarLoc.X)));
             else
                 xers = Window.ClientBounds.Width;
             for (int i = 0; i < 5; i++)

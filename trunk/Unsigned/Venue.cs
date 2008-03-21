@@ -168,7 +168,7 @@ namespace Unsigned
             LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
         }
 
-        public void Update(GameTime gameTime, long songtime, Effect engine, Song song)
+        public void Update(GameTime gameTime, ulong songtime, Effect engine, Song song)
         {
             if (DEBUG_CAM_CONTROL)
             {/*
@@ -216,7 +216,7 @@ namespace Unsigned
                 camindex = list[rand.Next(list.Count)];
                 camtime++;
             }
-            else if (camtime < camtimes.Length - 1 && (songtime / (Game1.TicksPerSecond / 1000)) > camtimes[camtime + 1])
+            else if (camtime < camtimes.Length - 1 && (long)songtime > camtimes[camtime + 1])
             {//sets up camera movement interpolation
                 int k;
                 do 
@@ -246,7 +246,7 @@ namespace Unsigned
             if (camtime >= camtimes.Length-1)//sets flag for new camera
                 camblendvalue = -1;
             else//interpolation math:
-                camblendvalue = ((songtime / (Game1.TicksPerSecond / 1000)) - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
+                camblendvalue = ((long)songtime - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
 
             //Dynamic light init
             Vector3[] plPos = new Vector3[16];
@@ -272,7 +272,7 @@ namespace Unsigned
 
             for (int i = 0; i < effects.Length; i++)
             {
-                if (effects[i].begin <= (songtime / (Game1.TicksPerSecond / 1000)) && effects[i].end > (songtime / (Game1.TicksPerSecond / 1000)))
+                if (effects[i].begin <= songtime && effects[i].end > songtime)
                 {
                     switch (effects[i].type)
                     {
@@ -321,7 +321,7 @@ namespace Unsigned
                                     ons[lt] = true;
                                     fars[lt] = lights[j].outerAngle;
                                     nears[lt] = lights[j].innerAngle;
-                                    powers[lt] = GetStrobe(effects[i].data, song,(long)(songtime / (Game1.TicksPerSecond / 1000)));
+                                    powers[lt] = GetStrobe(effects[i].data, song,songtime);
                                     poss[lt] = lights[j].pos;
                                     dirs[lt] = lights[j].targs[0].dir;
                                     lt++;
@@ -349,7 +349,7 @@ namespace Unsigned
                                     nears[lt] = lights[j].innerAngle;
                                     powers[lt] = 1f;
                                     poss[lt] = lights[j].pos;
-                                    float val = (((songtime / (Game1.TicksPerSecond / 1000)) - effects[i].begin) / (float)(effects[i].end - effects[i].begin));
+                                    float val = (((songtime) - effects[i].begin) / (float)(effects[i].end - effects[i].begin));
                                     dirs[lt] = (lights[j].targs[0].dir*(1-val))+(lights[j].targs[1].dir*val);
                                     lt++;
                                     if (lt >= numLights)
@@ -378,7 +378,7 @@ namespace Unsigned
             engine.CommitChanges();
         }
 
-        private float GetStrobe(int spb, Song song, long currenttime)
+        private float GetStrobe(int spb, Song song, ulong currenttime)
         {
             float measure = song.GetMeasureProgress(currenttime);
             int bpm = song.GetBPMeasure(currenttime);

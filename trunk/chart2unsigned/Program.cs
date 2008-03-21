@@ -934,6 +934,7 @@ namespace chart2unsigned
                 {
                     VocalWord tW = new VocalWord();
                     tW.time = notes[1][3][i].time;
+                    tW.length = notes[1][3][i].len;
                     ushort note = 0;
                     Event ev = new Event();
                     for (int k = 0; k < vocalEvents.Count; k++)
@@ -970,7 +971,7 @@ namespace chart2unsigned
                         if (when == (int)when)
                             vocalPhrases[i].time = beatTimes[(int)when];
                         else
-                            vocalPhrases[i].time = (uint)((beatTimes[(int)when] * (when - (int)when)) + (beatTimes[(int)when + 1] * (1 - (when - (int)when))));
+                            vocalPhrases[i].time = (uint)((beatTimes[(int)when+1] * (when - (int)when)) + (beatTimes[(int)when] * (1 - (when - (int)when))));
                     }
                     for (int k = 0; k < vocalPhrases[i].words.Count; k++)
                     {
@@ -978,12 +979,12 @@ namespace chart2unsigned
                         if (when == (int)when)
                             vocalPhrases[i].words[k].time = beatTimes[(int)when];
                         else
-                            vocalPhrases[i].words[k].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                            vocalPhrases[i].words[k].time = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                         when += vocalPhrases[i].words[k].length / 192f;
                         if (when == (int)when)
                             vocalPhrases[i].words[k].length = beatTimes[(int)when];
                         else
-                            vocalPhrases[i].words[k].length = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                            vocalPhrases[i].words[k].length = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                     }
                 }
                 if (outputLevel >= 3)
@@ -1141,8 +1142,8 @@ namespace chart2unsigned
                 for (int k = 0; k < vocalPhrases[i].words.Count; k++)
                 {
                     fout.Write(vocalPhrases[i].words[k].time);
-                    fout.Write(vocalPhrases[i].words[k].note);
                     fout.Write(vocalPhrases[i].words[k].length);
+                    fout.Write(vocalPhrases[i].words[k].note);
                     fout.Write(vocalPhrases[i].words[k].value);
                 }
             }
