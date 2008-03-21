@@ -32,7 +32,7 @@ namespace Unsigned
 
     struct VocalWord
     {
-        public int time;
+        public uint time,len;
         public ushort note;
         public string value;
     }
@@ -56,6 +56,7 @@ namespace Unsigned
 
     class Board
     {
+        private static Random random;
         private int type;
         public int xOffset;
         public static float vocalheight, vocaly, vocalzerox, vocalwidth;
@@ -66,7 +67,7 @@ namespace Unsigned
         public float multSlide=0;
         public static Texture2D SPMBorder, SPMFill, SPMFlashTex, drumfillTex, SPBoardTex;
         public static Texture2D SPMRbg, SPMRslice, SPMRfg, SPMRbgb, SPMRbgs;
-        public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar;
+        public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
         public static Texture2D[] SPMRnum;
         public float SPMFlash=0, SPMFVel=0;
         public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
@@ -74,7 +75,7 @@ namespace Unsigned
         public static GBVertexFormat[] arrBoard;
         public static VertexBuffer mdlBoard, mdlSPM;
         public static VertexBuffer mdlTrigger, mdlTriggerBorder;
-        public static Model mdlNote;
+        public static Model mdlNote, mdlNoteInside;
         public static Texture2D[] texNotes, texTriggers, texTriggersLit;
         public static Texture2D texTriggerBorder, texTriggerBorderLit;
         public static float BOARD_BUMP_COEF = 0.002f;
@@ -128,6 +129,7 @@ namespace Unsigned
             if (type == 0 || type == 3)
                 whammyage = new LinkedList<WaveVector2>();
             OutNotes = new Vector4[0];
+            random = new Random();
         }
 
         public int GetBoardType()
@@ -176,11 +178,14 @@ namespace Unsigned
                 mdlSPM.SetData<GBVertexFormat>(zmdlBoard);
             }
             {
+                mdlNoteInside = content.Load<Model>("meshes\\noteinside");
+                foreach (ModelMesh mesh in mdlNoteInside.Meshes)
+                    foreach(ModelMeshPart part in mesh.MeshParts)
+                        part.Effect = engine;
                 mdlNote = content.Load<Model>("meshes\\note");
                 foreach (ModelMesh mesh in mdlNote.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = engine;
-                            
+                        part.Effect = engine;      
             }
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     };
@@ -217,17 +222,15 @@ namespace Unsigned
         }
 
         float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
-        public void GetNotes(long currenttime, long viewdistance)
+        public void GetNotes(ulong currenttime, ulong viewdistance)
         {
-            currenttime /= (long)Game1.TicksPerSecond / 1000;
-            viewdistance /= (long)Game1.TicksPerSecond / 1000;
             int k;
             for (k = 0; k < notes.Length; k++)
-                if (notes[k].time > currenttime - (viewdistance / 4))
+                if ((ulong)notes[k].time > currenttime - (viewdistance / 4))
                     break;
             int count = 0;
             bool fill = false;
-            for (int i = k; i<notes.Length && notes[i].time < currenttime + viewdistance; i++)
+            for (int i = k; i<notes.Length && (ulong)notes[i].time < currenttime + viewdistance; i++)
             {
                 if (GetBoardType() != Game1.PERCUSSIONIST)
                 {
@@ -277,7 +280,7 @@ namespace Unsigned
             notesLen = count;
             int indx = 0;
             int plus = 0;
-            for (int i = k; i < notes.Length && notes[i].time < currenttime + viewdistance; i++)
+            for (int i = k; i < notes.Length && (ulong)notes[i].time < currenttime + viewdistance; i++)
             {
                 float sp = 0f;
                 if (SPIndex<SPStart.Length && notes[i].time >= SPStart[SPIndex] && notes[i].time < SPEnd[SPIndex] && SPGood)
@@ -463,7 +466,8 @@ namespace Unsigned
                     for (int k = 0; k < vNotes[i].words.Length; k++)
                     {
                         vNotes[i].words[k] = new VocalWord();
-                        vNotes[i].words[k].time = reader.ReadInt32();
+                        vNotes[i].words[k].time = reader.ReadUInt32();
+                        vNotes[i].words[k].len = reader.ReadUInt32();
                         vNotes[i].words[k].note = reader.ReadUInt16();
                         vNotes[i].words[k].value = reader.ReadString();
                     }
@@ -550,18 +554,17 @@ namespace Unsigned
             return fair;*/
         }
 
-        public void Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
+        public void Update(GameTime gameTime, ulong currenttime,Game1 reff, int ind, byte pressed)
         {
             if (GetBoardType() != Game1.VOCALS)
             {
                 waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
-                currenttime /= (long)Game1.TicksPerSecond / 1000;
                 if (GetBoardType() != Game1.PERCUSSIONIST)
                     if (index < notes.Length)
                         if (multiplier > 1)
                             if ((notes[index].type & NS_HOPO) != 0)
-                                if (Math.Abs(notes[index].time - currenttime) < 100)
+                                if (Math.Abs((long)notes[index].time - (long)currenttime) < 100)
                                     if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED)
                                         if (IsValidFrettage(notes[index].type, pressed))
                                         {
@@ -575,7 +578,7 @@ namespace Unsigned
                                             if (notes[index].length > 0)
                                                 notes[index].burning = true;
                                         }
-                while (index < notes.Length - 1 && Math.Abs((notes[index].time + notes[index].length) - currenttime) > Math.Abs((notes[index + 1].time) - currenttime))
+                while (index < notes.Length - 1 && Math.Abs((notes[index].time + notes[index].length) - (long)currenttime) > Math.Abs((notes[index + 1].time) - (long)currenttime))
                 {
                     if (GetBoardType() != Game1.PERCUSSIONIST)
                     {
@@ -615,7 +618,7 @@ namespace Unsigned
                     }
                     index++;
                 }
-                if (index < notes.Length && (notes[index].time + notes[index].length) - currenttime < -100)
+                if (index < notes.Length && (notes[index].time + notes[index].length) - (long)currenttime < -100)
                 {
                     if (GetBoardType() != Game1.PERCUSSIONIST)
                     {
@@ -702,7 +705,7 @@ namespace Unsigned
                     popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
                 }
 
-                if (SPIndex < SPStart.Length && currenttime > SPEnd[SPIndex])
+                if (SPIndex < SPStart.Length && (long)currenttime > SPEnd[SPIndex])
                 {
                     if (SPGood)
                     {
@@ -746,7 +749,7 @@ namespace Unsigned
                     }
                 }
                 if (GetBoardType() == Game1.PERCUSSIONIST)
-                    if (DFIndex < DFEnd.Length && currenttime > DFEnd[DFIndex])
+                    if (DFIndex < DFEnd.Length && (long)currenttime > DFEnd[DFIndex])
                         DFIndex++;
                 lastPressed = pressed;
 
@@ -766,12 +769,11 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
+        public byte Strum(byte pressed, ulong currenttime, Game1 game, int ind)
         {
-            currenttime/=(long)Game1.TicksPerSecond/1000;
             if (index >= notes.Length)
                 return 0;
-            if (Math.Abs(notes[index].time - currenttime) < 100)
+            if (Math.Abs(notes[index].time - (long)currenttime) < 100)
             {
                 if (IsValidFrettage(notes[index].type, pressed))
                 {
@@ -810,7 +812,7 @@ namespace Unsigned
                     return notes[index - 1].type;
                 }
             }
-            else if (currenttime > notes[index].time && currenttime < notes[index].time+notes[index].length)
+            else if (currenttime > (ulong)notes[index].time && currenttime < ((ulong)notes[index].time+(ulong)notes[index].length))
             {
                 notes[index].burning = false; multiplier = 1; game.Hurt(ind);
             if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
@@ -823,7 +825,7 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Bang(byte pressed, long currenttime, Game1 game)
+        public byte Bang(byte pressed, ulong currenttime, Game1 game)
         {
             byte newPressed = 0;
             for (int i = 0; i < 5; i++)
@@ -833,13 +835,12 @@ namespace Unsigned
             }
             if (newPressed == 0)
                 return 0;
-            currenttime /= (long)Game1.TicksPerSecond / 1000;
             if (index >= notes.Length)
                 return 0;
-            if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= DFStart[DFIndex] && currenttime <= DFEnd[DFIndex])
+            if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= (ulong)DFStart[DFIndex] && currenttime <= (ulong)DFEnd[DFIndex])
             {
                 if ((newPressed & Game1.bits[0]) != 0)
-                    if (Math.Abs((DFEnd[DFIndex] - 100) - currenttime) < 100)
+                    if (Math.Abs((DFEnd[DFIndex] - 100) - (long)currenttime) < 100)
                     { SPActivated = true; DFHitGreen[DFIndex] = true; }
                 float numperfill = 4f * (DFEnd[DFIndex] - DFStart[DFIndex]) / 1000f;
                 int numhit = 0;
@@ -851,7 +852,7 @@ namespace Unsigned
                     dfA[DFIndex] = 1f;
                 return (byte)(newPressed | Game1.bits[7]);
             }
-            else if ((notes[index].time - currenttime) < 100)
+            else if ((notes[index].time - (long)currenttime) < 100)
             {
                 int scre = 0;
                 byte ret = 0;
@@ -916,12 +917,10 @@ namespace Unsigned
             return LeftySwitch;
         }
 
-        public bool getWaves(long currenttime, long viewdistance)
+        public bool getWaves(ulong currenttime, long viewdistance)
         {
-            currenttime/=(long)(Game1.TicksPerSecond/1000);
-            viewdistance/=(long)(Game1.TicksPerSecond/1000);
             int count = 0;
-            for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>currenttime; i++)
+            for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
             {
                 if (notes[i].length > 0)
                     count++;
@@ -932,37 +931,37 @@ namespace Unsigned
             if (count == 0)
                 return false;
             count = 0;
-            for (int i = index; i < notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>currenttime; i++)
+            for (int i = index; i < notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
             {
                 if (notes[i].length > 0)
                 {
                     if (notes[i].burning)
                     {
                         
-                        int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - currenttime)) - ((notes[i].time < currenttime) ? currenttime - notes[i].time : 0) - 50f) / 50f);
+                        int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - (long)currenttime)) - ((notes[i].time < (long)currenttime) ? (long)currenttime - notes[i].time : 0) - 50f) / 50f);
                         num += 2;
                         if (wavesSubLen[count] < num)
                         { waves[count] = new WaveNode[num];  }
                         wavesSubLen[count] = num;
                         waves[count][0].X = 0f;
-                        waves[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                        waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
                         float varyPower;
                         for (int n = 0; n < num - 1; n++)
                         {
-                            waves[count][n].Y = ((notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime)) + (50f * n);
+                            waves[count][n].Y = ((notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime)) + (50f * n);
                             varyPower = GetWhammy(waves[count][n].Y,currenttime);
                             if(varyPower<0.1)
                                 waves[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (waves[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
                             else
                                 waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
-                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
                         }
 
-                        waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
+                        waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
                         waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
                         waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
-                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime?0:128));
+                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
                         count++;
                     }
                     else
@@ -971,12 +970,12 @@ namespace Unsigned
                         { waves[count] = new WaveNode[2]; }
                          wavesSubLen[count] = 2;
                         waves[count][0].X = 0.2f;
-                        waves[count][0].Y = (notes[i].time < currenttime) ? 0 : (notes[i].time - currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
+                        waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128));
 
-                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - currenttime), ((eFade * 1000f)));
+                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
                         waves[count][1].X = 0.2f;
-                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>currenttime-100?0:128));
+                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128));
                         count++;
                     }
                 }
@@ -999,15 +998,15 @@ namespace Unsigned
             return SPActivated;
         }
 
-        public void Whammy(float p,long currenttime)
+        public void Whammy(float p,ulong currenttime)
         {
             p = (p + 1) / 2f;
             if (index >= notes.Length)
                 return;
-            if (notes[index].burning && notes[index].time < currenttime && notes[index].time + notes[index].length > currenttime)
+            if (notes[index].burning && notes[index].time < (long)currenttime && notes[index].time + notes[index].length > (long)currenttime)
             {
                 whammyage.AddFirst(new WaveVector2(p, 0));
-                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - currenttime);
+                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
                 while (whammyage.Last.Value.Y >= end)
                     whammyage.RemoveLast();
             }
@@ -1015,7 +1014,7 @@ namespace Unsigned
                 whammyage.Clear();
         }
 
-        private float GetWhammy(float y,long currenttime)
+        private float GetWhammy(float y,ulong currenttime)
         {
             if (whammyage.Count < 2)
                 return 0f;
@@ -1026,7 +1025,7 @@ namespace Unsigned
             }
             if (temp == null)
             {
-                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - currenttime);
+                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
                 float p = (y - whammyage.Last.Value.Y) / (end - whammyage.Last.Value.Y);
                 return (0.1f * p) + (whammyage.Last.Value.X*(1 - p));
             }
@@ -1060,14 +1059,32 @@ namespace Unsigned
                 SPActivated = true;
         }
 
-        public void Draw(SpriteBatch spritebatch, long currenttime)
+        public void Draw(SpriteBatch spritebatch, ulong currenttime)
         {
+            Vector2 center = new Vector2(vFuzz.Width/2,vFuzz.Height/2);
+            SpriteEffects se = new SpriteEffects();
+            float vScale=0.2f;
+            float height = vFuzz.Height*vScale;
+            Color glow = new Color(150, 255, 150, 255);
             spritebatch.Draw(vBGInt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
             for (int i = index; i < vNotes.Length; i++)
             {
-                spritebatch.Draw(vHeadBar, new Rectangle((int)(vocalzerox+(vocalwidth*(vNotes[i].time-currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
+                spritebatch.Draw(vBar, new Rectangle((int)(vocalzerox+(vocalwidth*(vNotes[i].time-(long)currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
+                
+                for (int k = 0; k < vNotes[i].words.Length; k++)
+                {
+                    float minx=(vocalzerox+(vocalwidth*(vNotes[i].words[k].time-currenttime))), maxx=(vocalzerox+(vocalwidth*((vNotes[i].words[k].len)-currenttime))), y=(1-((vNotes[i].words[k].note%12)/12f))*vocalheight*.69f+vocaly;
+                    spritebatch.Draw(vGlow, new Rectangle((int)minx, (int)(y - height/2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(0, 0, 128, 256), glow);
+                    spritebatch.Draw(vGlow, new Rectangle((int)(minx+Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height/2), (int)((maxx-minx)-(Math.Min(128 * vScale, (maxx - minx) * vScale)*2)), (int)(height)), new Rectangle(128, 0, 128, 256), glow);
+                    spritebatch.Draw(vGlow, new Rectangle((int)(maxx-Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height/2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(128, 0, -128, 256), glow);
+                }
             }
+
             spritebatch.Draw(vBGExt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
+            
+            for (int i = index; i < vNotes.Length; i++)
+            for (int k = 0; k < vNotes[i].words.Length; k++)
+                    spritebatch.DrawString(Game1.DefaultFont, vNotes[i].words[k].value, new Vector2((vocalzerox + (vocalwidth * (vNotes[i].words[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
             spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
         }
     }
