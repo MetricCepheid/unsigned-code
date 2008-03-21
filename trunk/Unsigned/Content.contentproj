@@ -134,11 +134,6 @@
       <Processor>TextureProcessor</Processor>
       <Name>triggerglow</Name>
     </Compile>
-    <Compile Include="graphics\bassist_tex.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>bassist_tex</Name>
-    </Compile>
     <Compile Include="graphics\beam.png">
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
@@ -174,20 +169,10 @@
       <Processor>TextureProcessor</Processor>
       <Name>crate</Name>
     </Compile>
-    <Compile Include="graphics\drummer_tex.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>drummer_tex</Name>
-    </Compile>
     <Compile Include="graphics\garageshell.PNG">
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Name>garageshell</Name>
-    </Compile>
-    <Compile Include="graphics\guitarist_tex.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>guitarist_tex</Name>
     </Compile>
     <Compile Include="graphics\note0.PNG">
       <Importer>TextureImporter</Importer>
@@ -213,11 +198,6 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Name>note4</Name>
-    </Compile>
-    <Compile Include="graphics\singer_tex.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>singer_tex</Name>
     </Compile>
     <Compile Include="graphics\trigger0.png">
       <Importer>TextureImporter</Importer>
