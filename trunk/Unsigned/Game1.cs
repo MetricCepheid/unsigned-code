@@ -804,6 +804,7 @@ namespace Unsigned
             {
                 rtNote = null;
                 SongListRT = null;
+                GC.Collect();
                 InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName, this);
                 rtBar = new RenderTarget2D[4];
                 rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
