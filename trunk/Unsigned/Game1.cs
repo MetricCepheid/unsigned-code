@@ -802,7 +802,8 @@ namespace Unsigned
                 return;
             ThreadStart ThreadStarter = delegate
             {
-                
+                rtNote = null;
+                SongListRT = null;
                 InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName, this);
                 rtBar = new RenderTarget2D[4];
                 rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
@@ -2619,7 +2620,7 @@ namespace Unsigned
 
                             //draw development info
                             {
-                                //spritebatch.DrawString(DefaultFont, "" + ((DateTime.Now.Ticks - SongStartTime) / (float)TicksPerSecond), new Vector2(0, 0), Color.Red);
+                                spritebatch.DrawString(DefaultFont, "" + (1000f/gameTime.ElapsedRealTime.Milliseconds), new Vector2(0, 0), Color.Red);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
                                 //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
                                 //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
@@ -3585,8 +3586,6 @@ namespace Unsigned
                     graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
-
                 }
                 //Draw song board
                 int k;

@@ -84,6 +84,11 @@ namespace chart2unsigned
 
     public class VocalPhrase
     {
+        public enum TYPE {REGULAR=0, BLANK=1, RHYTHM=2};
+        public enum RTYPE { TAMBOURINE = 0, COWBELL = 1, CLAP = 2 };
+        public TYPE type;
+        public RTYPE rType;
+        public bool SP;
         public List<VocalWord> words;
         public uint time;
     }
@@ -109,7 +114,7 @@ namespace chart2unsigned
             for (int i = 0; i < args.Length; i++)
                 Console.WriteLine(args[i]);
 
-            byte VERSION = 8;
+            byte VERSION = 9;
 
             Console.WriteLine("Initial setup complete");
             
@@ -117,7 +122,7 @@ namespace chart2unsigned
 
             string cSync = "", cEffects = "", cGuitar = "", 
                    cBass = "", cDrums = "", cVocals = "";
-
+            byte[] totalDiffs = { 0, 0, 0, 0 };
             string name="", artist="", charter="";
             int outputLevel = 1;
             string cName;
@@ -771,12 +776,12 @@ namespace chart2unsigned
                             if (when == (int)when)
                                 newSPs[m][n][i].time = beatTimes[(int)when];
                             else
-                                newSPs[m][n][i].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                                newSPs[m][n][i].time = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                             when += newSPs[m][n][i].len / 192f;
                             if (when == (int)when)
                                 newSPs[m][n][i].len = beatTimes[(int)when];
                             else
-                                newSPs[m][n][i].len = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                                newSPs[m][n][i].len = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                         }
                         if (outputLevel >= 3)
                             Console.Out.Write("Overdrive Phrases calculated");
@@ -818,12 +823,12 @@ namespace chart2unsigned
                     if (when == (int)when)
                         newDFs[i].time = beatTimes[(int)when];
                     else
-                        newDFs[i].time = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newDFs[i].time = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                     when += newDFs[i].len / 192f;
                     if (when == (int)when)
                         newDFs[i].len = beatTimes[(int)when];
                     else
-                        newDFs[i].len = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newDFs[i].len = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                 }
                 if (outputLevel >= 3)
                     Console.Out.Write("Drum Fills calculated");
@@ -897,7 +902,7 @@ namespace chart2unsigned
                     if (when == (int)when)
                         newcameraSwitches[i] = beatTimes[(int)when];
                     else
-                        newcameraSwitches[i] = (uint)((beatTimes[(int)when]*(when-(int)when))+(beatTimes[(int)when+1]*(1-(when-(int)when))));
+                        newcameraSwitches[i] = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                 }
                 if (outputLevel >= 3)
                     Console.Out.Write("Camera Switches calculated");
@@ -986,9 +991,18 @@ namespace chart2unsigned
                         else
                             vocalPhrases[i].words[k].length = (uint)((beatTimes[(int)when+1]*(when-(int)when))+(beatTimes[(int)when]*(1-(when-(int)when))));
                     }
+                    if (vocalPhrases[i].words.Count <= 0)
+                        vocalPhrases[i].type = VocalPhrase.TYPE.BLANK;
+                    
                 }
                 if (outputLevel >= 3)
-                    Console.Out.Write("Camera Switches calculated");
+                    Console.Out.Write("Vocal Phrases calculated");
+                for(int i=0;i<vocalPhrases.Count;i++)
+                for(int k=0;k<newSPs[1][3].Length;k++)
+                    if (vocalPhrases[i].time >= newSPs[1][3][k].time && vocalPhrases[i].time <= newSPs[1][3][k].len)
+                    {
+                        vocalPhrases[i].SP = true;
+                    }
             }
             catch (Exception e)
             {
@@ -997,6 +1011,9 @@ namespace chart2unsigned
             }
             if (outputLevel >= 2)
                     Console.Out.Write("Vocal Phrases parsed");
+
+
+            Console.WriteLine("Beginning difficulty parsing");
             
 
             Console.WriteLine("Finished Processing");
@@ -1024,6 +1041,8 @@ namespace chart2unsigned
             fout.Write(cVocals);
             fout.Write(cDrums);
             fout.Write(cBass);
+            for (int i = 0; i < 4; i++)
+                fout.Write(totalDiffs[i]);
             fout.Write(barlines.Count);
             for (int i = 0; i < barlines.Count; i++)
             { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
@@ -1138,13 +1157,28 @@ namespace chart2unsigned
             for (int i = 0; i < vocalPhrases.Count; i++)
             {
                 fout.Write(vocalPhrases[i].time);
+                fout.Write((byte)vocalPhrases[i].type);
                 fout.Write(vocalPhrases[i].words.Count);
-                for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                switch(vocalPhrases[i].type)
                 {
-                    fout.Write(vocalPhrases[i].words[k].time);
-                    fout.Write(vocalPhrases[i].words[k].length);
-                    fout.Write(vocalPhrases[i].words[k].note);
-                    fout.Write(vocalPhrases[i].words[k].value);
+                    case VocalPhrase.TYPE.REGULAR:
+                        for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                        {
+                            fout.Write(vocalPhrases[i].words[k].time);
+                            fout.Write(vocalPhrases[i].words[k].length);
+                            fout.Write(vocalPhrases[i].words[k].note);
+                            fout.Write(vocalPhrases[i].words[k].value);
+                        }
+                        break;
+                    case VocalPhrase.TYPE.BLANK:
+                        break;
+                    case VocalPhrase.TYPE.RHYTHM:
+                        fout.Write((byte)vocalPhrases[i].rType);
+                        for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                        {
+                            fout.Write(vocalPhrases[i].words[k].time);
+                        }
+                        break;
                 }
             }
             for (int k = 0; k < 5; k++)
