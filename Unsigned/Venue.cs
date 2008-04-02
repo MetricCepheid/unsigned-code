@@ -134,9 +134,11 @@ namespace Unsigned
         private SEffect[] effects;
 
         #region DEBUG_VAR
-        public static bool DEBUG_CAM_CONTROL = false;
+//#define DEBUG_CAM_CONTROL
+#if DEBUG_CAM_CONTROL
         private Vector3 DEBUG_cp;
         private Vector2 DEBUG_rot;
+#endif
         #endregion
 
         private String Filename;
@@ -170,30 +172,29 @@ namespace Unsigned
 
         public void Update(GameTime gameTime, ulong songtime, Effect engine, Song song)
         {
-            if (DEBUG_CAM_CONTROL)
-            {/*
-                KeyboardState kbs = Keyboard.GetState();
-                if (kbs.IsKeyDown(Keys.H))
-                    DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if (kbs.IsKeyDown(Keys.K))
-                    DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) - 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) - 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if (kbs.IsKeyDown(Keys.U))
-                    DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI), 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI), 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if (kbs.IsKeyDown(Keys.J))
-                    DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 180, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 180, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if (kbs.IsKeyDown(Keys.O))
-                    DEBUG_cp += new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if (kbs.IsKeyDown(Keys.L))
-                    DEBUG_cp -= new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if(kbs.IsKeyDown(Keys.NumPad8))
-                    DEBUG_rot.Y+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if(kbs.IsKeyDown(Keys.NumPad2))
-                    DEBUG_rot.Y-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if(kbs.IsKeyDown(Keys.NumPad4))
-                    DEBUG_rot.X+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-                if(kbs.IsKeyDown(Keys.NumPad6))
-                    DEBUG_rot.X-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
-            */}
+#if DEBUG_CAM_CONTROL
+            KeyboardState kbs = Keyboard.GetState();
+            if (kbs.IsKeyDown(Keys.H))
+                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if (kbs.IsKeyDown(Keys.K))
+                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) - 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) - 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if (kbs.IsKeyDown(Keys.U))
+                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI), 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI), 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if (kbs.IsKeyDown(Keys.J))
+                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 180, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 180, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if (kbs.IsKeyDown(Keys.O))
+                DEBUG_cp += new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if (kbs.IsKeyDown(Keys.L))
+                DEBUG_cp -= new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if(kbs.IsKeyDown(Keys.NumPad8))
+                DEBUG_rot.Y+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if(kbs.IsKeyDown(Keys.NumPad2))
+                DEBUG_rot.Y-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if(kbs.IsKeyDown(Keys.NumPad4))
+                DEBUG_rot.X+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+            if(kbs.IsKeyDown(Keys.NumPad6))
+                DEBUG_rot.X-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+#endif
 
             if (camtime==-1)
             {//sets the next camera view once the previous one is finished
@@ -255,7 +256,7 @@ namespace Unsigned
             float[] plFar = new float[16];
             Vector3[] plDif = new Vector3[16];
             Vector3[] plSpc = new Vector3[16];
-            int pl = 0;
+
 
             for (int i = 0; i < Entities.Count; i++)
             {//updates the entities
@@ -388,17 +389,14 @@ namespace Unsigned
 
         public Matrix GetViewMatrix()
         {
-            if (DEBUG_CAM_CONTROL)
-            {
+#if DEBUG_CAM_CONTROL
                 Vector3 cu = new Vector3(0, 1, 0);
                 Vector3 ct = Vector3.Transform(new Vector3(1, 0, 0), Matrix.CreateRotationZ(DEBUG_rot.Y) * Matrix.CreateRotationY(DEBUG_rot.X))+DEBUG_cp;
                 camPos = DEBUG_cp;
                 camUp = cu;
                 camFor = ct;
                 return Matrix.CreateLookAt(DEBUG_cp,ct,cu);
-            }
-            else
-            {
+#else
                 Vector3 cp = new Vector3(0f, 0f, 0f), ct = new Vector3(0f, 0f, 0f), cu = new Vector3(0f, 1f, 0f);
                 if (CamBlends.Length < 1)
                     return Matrix.CreateLookAt(cp, ct, cu);//No cam blends... problem!
@@ -422,7 +420,7 @@ namespace Unsigned
                 camUp = cu;
                 camFor = ct;
                 return Matrix.CreateLookAt(cp, ct, cu);
-            }
+#endif
         }
 
         public Matrix GetProjMatrix(float aspect)

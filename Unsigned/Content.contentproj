@@ -552,68 +552,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="graphics\SPMRbg.png">
-      <Name>SPMRbg</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRbgb.png">
-      <Name>SPMRbgb</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRbgs.png">
-      <Name>SPMRbgs</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRfg.png">
-      <Name>SPMRfg</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum1.png">
-      <Name>SPMRnum1</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum2.png">
-      <Name>SPMRnum2</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum3.png">
-      <Name>SPMRnum3</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum4.png">
-      <Name>SPMRnum4</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum5.png">
-      <Name>SPMRnum5</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum6.png">
-      <Name>SPMRnum6</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRnum8.png">
-      <Name>SPMRnum8</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\SPMRslice.png">
-      <Name>SPMRslice</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="graphics\drumfill.png">
       <Name>drumfill</Name>
       <Importer>TextureImporter</Importer>

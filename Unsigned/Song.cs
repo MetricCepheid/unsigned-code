@@ -20,6 +20,7 @@ namespace Unsigned
         bool playing = false;
         String[] charters;
         public Vector2[] zVals = new Vector2[12];
+        public int[] diffs = new int[4];
 
 #if ! XBOX
 
@@ -68,9 +69,9 @@ namespace Unsigned
             charters = new String[6];
             for (int i = 0; i < 6; i++)
                 charters[i] = reader.ReadString();
+            for(int i=0;i<4;i++)
+                diffs[i] = reader.ReadByte();
             Bars = new Vector2[reader.ReadInt32()];
-
-            String a;
             for (int c = 0; c < Bars.Length; c++)
             {
                 Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
@@ -81,6 +82,11 @@ namespace Unsigned
             sEngine = new ISoundEngine();
             song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.Streaming, true);
             sound = sEngine.Play2D(song, false, true, true);
+            if (sound == null)
+            {
+                System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
+                return;
+            }
             /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
             manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
             manager.StopOggFile(0);*/
@@ -91,7 +97,7 @@ namespace Unsigned
         {
             int k;
             for (k = 0; k < Bars.Length; k++)
-                if (Bars[k].X > currenttime)
+                if (Bars[k].X > (currenttime/(float)(Game1.TicksPerSecond/1000)))
                     break;
             k -= 3;
             if (k < 0)
@@ -104,7 +110,7 @@ namespace Unsigned
                     zVals[i] = Bars[i + k];
             }
             for (int i = 0; i < 12; i++)
-                zVals[i].X = ((zVals[i].X)-currenttime)/1000f;
+                zVals[i].X = ((zVals[i].X)-(currenttime/(float)(Game1.TicksPerSecond/1000)))/1000f;
         }
 
         public void play()

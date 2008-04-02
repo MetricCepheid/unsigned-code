@@ -13,12 +13,13 @@ namespace Unsigned
         public float Rot;
         private float[] anmRots;
         private Model model;
-        private Matrix[] boneTransforms;
+        //private Matrix[] boneTransforms;
         private ContentManager content;
         private String FileName;
         private Texture2D tex;
         AnimationPlayer animationPlayer;
         private Vector3 position;
+        //Matrix[] bones;
 
         private enum RockerBoneData
         {
@@ -74,20 +75,20 @@ namespace Unsigned
         public void Draw(GameTime gameTime, GraphicsDeviceManager graphics)
         {
             animationPlayer.Update(gameTime.ElapsedGameTime, true, Matrix.Identity);
-            Matrix[] bones = animationPlayer.GetSkinTransforms();
+            //Matrix[] bones = animationPlayer.GetSkinTransforms();
             
             
             model.Meshes[0].Effects[0].Parameters["diffuseTexture"].SetValue(tex);
             model.Meshes[0].Effects[0].Parameters["diffuseColor"].SetValue(new Vector4(1, 1, 1, 1));
             model.Meshes[0].Effects[0].Parameters["vertexAlpha"].SetValue(false);
-            model.Meshes[0].Effects[0].Parameters["skinned"].SetValue(true);
+            //model.Meshes[0].Effects[0].Parameters["false"].SetValue(true);
             model.Meshes[0].Effects[0].Parameters["BumpMappingEnabled"].SetValue(false);
             foreach (ModelMesh mesh in model.Meshes)
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
                     meshpart.Effect.Parameters["world"].SetValue(Matrix.CreateScale(Venue.SCALE)*Matrix.CreateRotationY(Rot)*Matrix.CreateTranslation(position));
-                    meshpart.Effect.Parameters["Bones"].SetValue(bones);
+                    //meshpart.Effect.Parameters["Bones"].SetValue(bones);
                     meshpart.Effect.CommitChanges();
                     graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                     graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);

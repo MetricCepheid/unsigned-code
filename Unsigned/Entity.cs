@@ -28,10 +28,9 @@ namespace Unsigned
     {
         private int model, texture;
         private float swingAmt, rotSpd, ovalish;
-        private bool fullBright, emmissive;
+        private bool fullBright;
         private Matrix staticRot;
         private float rotVal;
-        private bool glow;
 
         public SwingingEntity(int model,int tex, Vector3 loc)
         {
@@ -43,9 +42,7 @@ namespace Unsigned
             rotSpd = 0;
             ovalish = 1;
             fullBright=false;
-            emmissive=false;
             rotVal = 0;
-            glow = false;
         }
 
         public void SetSwing(float amt, float rSpd, float oval)
@@ -116,7 +113,7 @@ namespace Unsigned
             engine.Parameters["fullbright"].SetValue(false);
         }
     }
-    public class LightEntity : Entity
+    /*public class LightEntity : Entity
     {
         private float sFade, eFade;
         private Vector3 dif, spc;
@@ -145,5 +142,5 @@ namespace Unsigned
         {
             //TODO: update for effects (strobe, etc)
         }
-    }
+    }*/
 }
