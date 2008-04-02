@@ -122,14 +122,18 @@ namespace Unsigned
         GraphicsDeviceManager graphics;
         ContentManager content;
         SpriteBatch spritebatch;
+#if XBOX
         AudioEngine audioEngine;
         SoundBank audioSoundBank;
         WaveBank audioWaveBank;
+#endif
         private Effect engine, ppEngine;
         private Matrix matView;
         private Matrix matProj;
         private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
         private RenderTarget2D[] boardsTarget;
+
+        bool fullScreen = false;
 
         private int renderLevel = 10;
 
@@ -220,6 +224,7 @@ namespace Unsigned
         public static VertexDeclaration vd;
         private RenderTarget2D ort;
         int windowheight, windowwidth;
+        Random r;
 #endregion
 
 #region boards
@@ -229,8 +234,7 @@ namespace Unsigned
         private Texture2D texSpark;
         private ShatterGlass[] glass;
         private ShatterSpark[] sparks;
-        private RenderTarget2D[] rtBar, rtPie;
-        private int rtPieS;
+        private RenderTarget2D[] rtBar;
 #endregion
 
 #region song
@@ -611,23 +615,32 @@ namespace Unsigned
         bool MenuLoading = false, MenuLoaded = false, GameLoading = false, GameLoaded = false;
 #endregion
 
+#region optimizers
+        Rectangle rect256 = new Rectangle(0, 0, 256, 256);
+#endregion
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             content = new ContentManager(Services);
-            
+
+            r = new Random((int)DateTime.Now.Ticks);
+
             content.RootDirectory = "";
         }
 
         protected override void Initialize()
         {
+            Configurate();
             InitXNAApp();
             
-            //audioEngine = new AudioEngine("audio\\Win\\unsigned.xgs");
-            //audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
-            //audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
+#if XBOX
+            audioEngine = new AudioEngine("audio\\Win\\unsigned.xgs");
+            audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
+            audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
+#endif
 
-            Configurate();
+            
 
             setlist.Load("SongList.gbl");
 
@@ -680,11 +693,11 @@ namespace Unsigned
         {
             Window.Title = "Unsigned";
 
-            graphics.PreferredBackBufferWidth = 1024;
-            graphics.PreferredBackBufferHeight = 768;
-            windowwidth = 1024;
-            windowheight = 768;
-            //graphics.ToggleFullScreen();
+            graphics.PreferredBackBufferWidth = windowwidth;
+            graphics.PreferredBackBufferHeight = windowheight;
+            graphics.ApplyChanges();
+            if(fullScreen)
+                graphics.ToggleFullScreen();
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
@@ -701,11 +714,15 @@ namespace Unsigned
         private void Configurate()
         {
             System.IO.StreamReader fin;
+#if !DEBUG
             try
             {
+#endif
                 fin = new System.IO.StreamReader("config.cfg");
+                
+#if !DEBUG
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
                 Exit();
@@ -713,10 +730,11 @@ namespace Unsigned
             }
             try
             {
+#endif
                 do
                 {
                     String str = fin.ReadLine();
-                    if (str.Length > 12 && str.Substring(0, 12).ToLower().Equals("3dbackground"))
+                    if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("3dbkground"))
                     {
                         int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                         if (val == 0)
@@ -724,20 +742,36 @@ namespace Unsigned
                         else
                             renderLevel = 10;
                     }
-                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("WaveDetail"))
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("wavedetail"))
                     {
                         WAVEDETAIL = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("resolution"))
+                    {
+                        windowwidth = Int32.Parse(str.Substring(str.IndexOf('=') + 1,Math.Max(str.IndexOf('x'),str.IndexOf('X'))-(str.IndexOf('=') + 1)).Trim());
+                        windowheight = Int32.Parse(str.Substring(Math.Max(str.IndexOf('x'),str.IndexOf('X'))+1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("fullscreen"))
+                    {
+                        fullScreen = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("halfrender"))
+                    {
+                        HALF_RENDER = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+
                 } while (!fin.EndOfStream);
+#if !DEBUG
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 System.Windows.Forms.MessageBox.Show("config.cfg number was not a number!");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 System.Windows.Forms.MessageBox.Show("config.cfg general error");
             }
+#endif
         }
 
         void SetProjMatrix(int w, int h)
@@ -802,31 +836,35 @@ namespace Unsigned
                 return;
             ThreadStart ThreadStarter = delegate
             {
+                for (int i = 0; i < rtNote.Length; i++)
+                    if (rtNote[i] != null)
+                        rtNote[i].Dispose();
                 rtNote = null;
+                SongListRT.Dispose();
                 SongListRT = null;
                 GC.Collect();
                 InitForSong(instruments[0], instruments[1], instruments[2], instruments[3], diff, venueName, this);
-                rtBar = new RenderTarget2D[4];
-                rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                rtPie = new RenderTarget2D[4];
-                rtPieS = windowheight;
-                rtPie[0] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                rtPie[1] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                rtPie[2] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
-                rtPie[3] = new RenderTarget2D(graphics.GraphicsDevice, rtPieS, rtPieS, 1, SurfaceFormat.Color);
+                
 
                 if (HALF_RENDER)
                 {
                     screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
                     screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
+                    rtBar = new RenderTarget2D[4];
+                    rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
+                    //rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
+                    rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
+                    rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
                 }
                 else
                 {
                     screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                     screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
+                    rtBar = new RenderTarget2D[4];
+                    rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    //rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
                 }
                 screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);                        
 
@@ -863,21 +901,7 @@ namespace Unsigned
                 Board.SPMBorder = content.Load<Texture2D>("graphics\\SPMBorder");
                 Board.SPBoardTex = content.Load<Texture2D>("graphics\\flames");
                 Board.SPMFill = content.Load<Texture2D>("graphics\\SPMFill");
-                Board.SPMRbg = content.Load<Texture2D>("graphics\\SPMRbg");
                 Board.drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
-                Board.SPMRfg = content.Load<Texture2D>("graphics\\SPMRfg");
-                Board.SPMRbgb = content.Load<Texture2D>("graphics\\SPMRbgb");
-                Board.SPMRbgs = content.Load<Texture2D>("graphics\\SPMRbgs");
-                Board.SPMRslice = content.Load<Texture2D>("graphics\\SPMRslice");
-                Board.SPMRnum = new Texture2D[8];
-                Board.SPMRnum[0] = null;
-                Board.SPMRnum[1] = content.Load<Texture2D>("graphics\\SPMRnum2");
-                Board.SPMRnum[2] = content.Load<Texture2D>("graphics\\SPMRnum3");
-                Board.SPMRnum[3] = content.Load<Texture2D>("graphics\\SPMRnum4");
-                Board.SPMRnum[4] = content.Load<Texture2D>("graphics\\SPMRnum5");
-                Board.SPMRnum[5] = content.Load<Texture2D>("graphics\\SPMRnum6");
-                Board.SPMRnum[6] = null;
-                Board.SPMRnum[7] = content.Load<Texture2D>("graphics\\SPMRnum8");
                 Board.SPMFlashTex = content.Load<Texture2D>("graphics\\SPMFlash");
                 Board.texTriggerBorderLit = content.Load<Texture2D>("graphics\\triggerborderlit");
                 Board.texTriggers = new Texture2D[5];
@@ -1019,7 +1043,6 @@ namespace Unsigned
             windowheight = Window.ClientBounds.Height;
             windowwidth = Window.ClientBounds.Width;
 
-            Random r = new Random();
             GetGamepadStates(false);
             #region mainmenu
             if (screen == S_MAINMENU)
@@ -1034,17 +1057,17 @@ namespace Unsigned
                     {
                         int collective = 0;
                         bool green = false, red = false;
-                        GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                        GetGamepadStates(false);
                         for (int i = 0; i < 4; i++)
-                            if (conts[i].IsConnected)
+                            if (controllers[i].IsConnected)
                             {
-                                if (conts[i].DPad.Down == ButtonState.Pressed)
+                                if (controllers[i].DPad.Down == ButtonState.Pressed)
                                     collective--;
-                                if (conts[i].DPad.Up == ButtonState.Pressed)
+                                if (controllers[i].DPad.Up == ButtonState.Pressed)
                                     collective++;
-                                if (conts[i].Buttons.A == ButtonState.Pressed)
+                                if (controllers[i].Buttons.A == ButtonState.Pressed)
                                     green = true;
-                                if (conts[i].Buttons.B == ButtonState.Pressed)
+                                if (controllers[i].Buttons.B == ButtonState.Pressed)
                                     red = true;
                             }
                         if (Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -1100,13 +1123,13 @@ namespace Unsigned
                 if (mmenu_ticker <= 0)
                 {
                     bool green = false, red = false;
-                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                    GetGamepadStates(true);
                     for (int i = 0; i < 4; i++)
-                        if (conts[i].IsConnected)
+                        if (controllers[i].IsConnected)
                         {
-                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                            if (controllers[i].Buttons.A == ButtonState.Pressed)
                                 green = true;
-                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                            if (controllers[i].Buttons.B == ButtonState.Pressed)
                                 red = true;
                         }
                     for(int i=0;i<4;i++)
@@ -1121,18 +1144,16 @@ namespace Unsigned
                         }
                         else
                         {
-                            GamePadState gps = GamePad.GetState((PlayerIndex)contInput[i]);
-                            GamePadCapabilities gpc = GamePad.GetCapabilities((PlayerIndex)contInput[i]);
                             bool up=false, down = false;
-                            if (gps.DPad.Down == ButtonState.Pressed)
+                            if (controllers[contInput[i]].DPad.Down == ButtonState.Pressed)
                                 down = true;
-                            if (gps.DPad.Up == ButtonState.Pressed)
+                            if (controllers[contInput[i]].DPad.Up == ButtonState.Pressed)
                                 up = true;
-                            if (gpc.GamePadType == GamePadType.DrumKit)
+                            if (contCapabilities[contInput[i]].GamePadType == GamePadType.DrumKit)
                             {
-                                if (gps.Buttons.X == ButtonState.Pressed)
+                                if (controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
                                     down = true;
-                                if (gps.Buttons.Y == ButtonState.Pressed)
+                                if (controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
                                     up = true;
                             }
                             if (up && diff[i] > 0)
@@ -1181,17 +1202,17 @@ namespace Unsigned
                 {
                     int collective = 0;
                     bool green = false, red = false;
-                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                    GetGamepadStates(false);
                     for (int i = 0; i < 4; i++)
-                        if (conts[i].IsConnected)
+                        if (controllers[i].IsConnected)
                         {
-                            if (conts[i].DPad.Down == ButtonState.Pressed)
+                            if (controllers[i].DPad.Down == ButtonState.Pressed)
                                 collective--;
-                            if (conts[i].DPad.Up == ButtonState.Pressed)
+                            if (controllers[i].DPad.Up == ButtonState.Pressed)
                                 collective++;
-                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                            if (controllers[i].Buttons.A == ButtonState.Pressed)
                                 green = true;
-                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                            if (controllers[i].Buttons.B == ButtonState.Pressed)
                                 red = true;
                         }
                     if (Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -1272,6 +1293,8 @@ namespace Unsigned
                     idleTime += gameTime.ElapsedGameTime.Milliseconds / 1000f;
                 else
                     idleTime = 0;
+
+                GetGamepadStates(false);
 
                 //charNameSelected[i] < charNames[i < 3 ? i : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f)
                 if (mmenu_ticker <= 0)
@@ -1514,7 +1537,7 @@ namespace Unsigned
 
                     for (int i = 0; i < 5; i++)
                         if (contguis[i].index >= 0)
-                            if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && GamePad.GetState((PlayerIndex)contguis[i].index).IsButtonDown(Buttons.B))) && contguis[i].status == 0)
+                            if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && controllers[(int)contguis[i].index].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
                             { screen = S_MAINMENU; mmenu_ticker = 200; }
                     /*for (int i = 0; i < 4; i++)
                     contInput[i] = 100;
@@ -1576,9 +1599,9 @@ namespace Unsigned
                         return;
                     }
                     ulong songt = song.getTime();
-                    if (lastChange != songt)
+                    if (lastChange != songt && Math.Abs((float)(CurrentTime/(ulong)(TicksPerSecond / 1000))-songt)>10)
                     {
-                        CurrentTime = songt * (ulong)(TicksPerSecond / 1000);
+                        //CurrentTime = songt * (ulong)(TicksPerSecond / 1000);
                         lastChange = songt;
                     }
                     CurrentTime += (ulong)gameTime.ElapsedGameTime.Ticks;
@@ -1636,13 +1659,13 @@ namespace Unsigned
                 }
 
                 bool green=false, red=false;//what should red be used for?
-                    GamePadState[] conts = { GamePad.GetState(PlayerIndex.One), GamePad.GetState(PlayerIndex.Two), GamePad.GetState(PlayerIndex.Three), GamePad.GetState(PlayerIndex.Four) };
+                GetGamepadStates(false);
                     for (int i = 0; i < 4; i++)
-                        if (conts[i].IsConnected)
+                        if (controllers[i].IsConnected)
                         {
-                            if (conts[i].Buttons.A == ButtonState.Pressed)
+                            if (controllers[i].Buttons.A == ButtonState.Pressed)
                                 green = true;
-                            if (conts[i].Buttons.B == ButtonState.Pressed)
+                            if (controllers[i].Buttons.B == ButtonState.Pressed)
                                 red = true;
                         }
                     if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
@@ -2367,20 +2390,6 @@ namespace Unsigned
                                 spritebatch.Draw(Board.SPMFill, new Rectangle(0, 0, (int)(256 * boards[i].GetSPAmount()), 256), Color.White);
                                 spritebatch.Draw(Board.SPMBorder, new Rectangle(0, 0, 256, 256), Color.White);
                                 spritebatch.End();
-                                graphics.GraphicsDevice.SetRenderTarget(0, rtPie[i]);
-                                graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                if (boards[i].GetMultiplier() >= 4 * (boards[i].IsSPActivated() ? 2 : 1))
-                                    spritebatch.Draw(Board.SPMRbgb, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
-                                else if (boards[i].GetMultiplier() >= 2)
-                                    spritebatch.Draw(Board.SPMRbgs, new Rectangle(-(rtPieS / 4) + (int)(boards[i].multSlide * rtPieS / 4) + (int)((rtPieS / 2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS / 2) * (boards[i].multSlide + 1)), rtPieS / 3), Color.White);
-                                if (boards[i].GetMultiplier() != 1)
-                                    spritebatch.Draw(Board.SPMRnum[boards[i].GetMultiplier() - 1], new Rectangle(-(rtPieS / 4) + (int)(boards[i].multSlide * (rtPieS / 4)) + (int)((rtPieS / 2) * (1 - boards[i].multSlide)), 0, (int)((rtPieS / 2) * (boards[i].multSlide + 1)), rtPieS / 3), Color.White);
-                                spritebatch.Draw(Board.SPMRbg, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
-                                for (int k = 0; k < boards[i].GetMultiplierFraction(); k++)
-                                    spritebatch.Draw(Board.SPMRslice, new Vector2(rtPieS / 2, rtPieS / 6), new Rectangle(0, 0, rtPieS, rtPieS), Color.White, k * (float)(Math.PI / 5), new Vector2(128, 128), rtPieS / 768f, new SpriteEffects(), 0);
-                                spritebatch.Draw(Board.SPMRfg, new Rectangle(0, 0, rtPieS, rtPieS / 3), Color.White);
-                                spritebatch.End();
                             }
                         }
                         graphics.GraphicsDevice.SetRenderTarget(0, ort);
@@ -2389,7 +2398,6 @@ namespace Unsigned
                             if (instruments[i])
                             {
                                 boards[i].SPMeterTex = rtBar[i].GetTexture();
-                                boards[i].SPMRTex = rtPie[i].GetTexture();
                             }
                         }
 #if !DEBUG
@@ -2469,6 +2477,7 @@ namespace Unsigned
                     try
                     {
 #endif
+                    song.GetZVals(CurrentTime);
                         for (int i = 0; i < boards.Length; i++)
                         {
                             if (!instruments[i])
@@ -2496,7 +2505,7 @@ namespace Unsigned
                                 engine.Parameters["proj"].SetValue(matProj);
 
                                 //get board measure world lengths
-                                song.GetZVals(currenttime);
+                                
 
                                 //determine fling (song start board comes up)
                                 Matrix fling;
@@ -2506,17 +2515,19 @@ namespace Unsigned
                                     fling = Matrix.CreateRotationX(((((currenttime / 1000f) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
                                 else
                                     fling = Matrix.CreateRotationX((float)Math.PI / 2);
-                                if (Venue.DEBUG_CAM_CONTROL)
+#if DEBUG_CAM_CONTROL
                                     fling *= Matrix.CreateRotationX(-0.4f);
+#endif
 
                                 engine.Parameters["fullbright"].SetValue(true);
+                                Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
 
                                 //draw each boards
-                                DrawBoard(i, song.zVals, fling, false, currenttime);
+                                DrawBoard(i, song.zVals, fling, false, CurrentTime, matTransl);
                                 if (boards[i].IsSPActivated())
-                                    DrawBoard(i, song.zVals, fling, true, currenttime);
+                                    DrawBoard(i, song.zVals, fling, true, currenttime, matTransl);
                                 DrawNotes(i, fling,currenttime);
-                                DrawBoardDetail(i, fling);
+                                DrawBoardDetail(i, fling,matTransl);
                                 DrawWaves(i, fling,currenttime);
                                 //draw the non-world gibs (glass shards sparks)
                                 DrawGibs();
@@ -3552,18 +3563,17 @@ namespace Unsigned
             }
         }
 
-        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP, ulong currenttime)
+        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP, ulong currenttime, Matrix matTransl)
         {
             if (i != 1)
             {
-                Matrix matTransl, matScale, matOrbit;
+                Matrix matScale, matOrbit;
                 VertexBuffer vb;
                 //draw pre-song board
                 if (lenvals[0].X > -Board.zeroZ)
                 {
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((currenttime/1000f) - Math.Min(lenvals[0].X, Board.sFade))));
+                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((currenttime/(float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
                     
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
@@ -3596,7 +3606,6 @@ namespace Unsigned
                     {
                         if (lenvals[k + 1].X >= Board.sFade)
                             break;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - lenvals[k + 1].X)));
 
@@ -3632,7 +3641,6 @@ namespace Unsigned
                 float eTexY = (lenvals[k].X - Board.eFade) / (lenvals[k].X - lenvals[k + 1].X);
                 if (lenvals[0].X <= Board.sFade && boards[i].GetBoardType() != VOCALIST)
                 {
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * lenvals[k].X) - Board.zeroZ) * fling;
                     matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (lenvals[k].X - Board.sFade)));
 
@@ -3670,7 +3678,6 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
                 {
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0f + (SP ? 0.01f : 0f), -(Board.length * Board.sFade) - Board.zeroZ) * fling;
                     matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * (Board.sFade - Board.eFade)));
 
@@ -4059,7 +4066,9 @@ namespace Unsigned
             }
         }
 
-        private void DrawBoardDetail(int i, Matrix fling)
+        
+        int[] gloworder = { 0, 4, 1, 3, 2 };
+        private void DrawBoardDetail(int i, Matrix fling, Matrix matTransl)
         {
             if (i != 1)
             {
@@ -4070,7 +4079,7 @@ namespace Unsigned
 
                 if (boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS)
                 {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    Matrix matIdentity, matScale, matOrbit;
 
                     bool[] glow = new bool[5];
                     for (int p = 0; p < 5; p++)
@@ -4078,6 +4087,7 @@ namespace Unsigned
                         float rise = -.01f;
 
                         matIdentity = Matrix.Identity;
+                        //matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((boards[i].GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
                         matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
@@ -4141,7 +4151,7 @@ namespace Unsigned
                     }
                     engine.Parameters["fullbright"].SetValue(true);
                     float[] pop = boards[i].GetPopups();
-                    for (int p = 0; p < 5; p++)
+                    /*for (int p = 0; p < 5; p++)
                     {
 
                         matIdentity = Matrix.Identity;
@@ -4168,7 +4178,7 @@ namespace Unsigned
                         graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                         //graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
+                    }*/
                     engine.Parameters["fullbright"].SetValue(false);
                     engine.Parameters["wAlpha"].SetValue(1);
 
@@ -4183,7 +4193,7 @@ namespace Unsigned
                         glow[k] = pop[k] > 0;
                     for (int p = 0; p < 5; p++)
                     {
-                        Matrix matIdentity, matTransl, matScale, matOrbit;
+                        Matrix matIdentity, matScale, matOrbit;
                         float rise = -.01f;
                         if (p < 4)
                         {
@@ -4255,13 +4265,12 @@ namespace Unsigned
                         }
 
                     }
-                    int[] gloworder = { 0, 4, 1, 3, 2 };
                     engine.Parameters["fullbright"].SetValue(true);
                     for (int p = 0; p < 4; p++)
                     {
                         if (glow[p])
                         {
-                            Matrix matIdentity, matTransl, matScale, matOrbit;
+                            Matrix matIdentity, matScale, matOrbit;
 
                             matIdentity = Matrix.Identity;
                             matTransl = Matrix.CreateTranslation((-0.75f + (p * .5f)) * Board.width, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
@@ -4297,9 +4306,9 @@ namespace Unsigned
                 }
                 engine.Parameters["fullbright"].SetValue(true);
                 {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    Matrix matIdentity, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    //matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0.09f, (0.25f) - Board.zeroZ) * fling;
                     matScale = Matrix.CreateScale(new Vector3(Board.width * 1.1f, Board.curveHeight * 0.8f, Board.length * 0.05f));
 
@@ -4320,8 +4329,9 @@ namespace Unsigned
                 }
                 engine.Parameters["wAlpha"].SetValue(1.0f);
                 {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
+                    Matrix matIdentity, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
+                    //matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                     matOrbit = Matrix.CreateTranslation(0f, 0.1f, (0.2f) - Board.zeroZ) * fling;
                     matScale = Matrix.CreateScale(new Vector3(Board.width * 0.9f, Board.curveHeight * 0.8f, Board.length * 0.02f));
@@ -4341,34 +4351,19 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-                {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
-                    matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(0f, 0.110f, (0.265f) - Board.zeroZ - Board.spShift) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width * 0.325f, 0.02f, Board.length * 0.2f));
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                    engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMRTex);
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
                 engine.Parameters["fullbright"].SetValue(false);
             }
         }
 
+        private byte[] logoslots = new byte[11];
+        private Color rmColor;
         private void DrawRockMeter(ulong currenttime)
         {
+            rmColor =Color.Black;
+            float rmFill = GetRockMeterFill();
+            rmColor = new Color(rmFill<0.66?(byte)255:(byte)128, 
+                                rmFill>0.33?(byte)255:(byte)128,
+                                127);
             float rex;
             if (currenttime/1000f > -2.5)
                 rex = rockMeterLoc.X;
@@ -4376,16 +4371,14 @@ namespace Unsigned
                 rex = -(rockMeterScale.X * 3) + ((((currenttime/1000f) + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
             else
                 rex = -rockMeterScale.X * 3;
-            float rmFill = GetRockMeterFill();
             if (rmFill <= 0.33)
                 spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 0, 0f, 0.8f)));
             else if(rmFill<=0.67)
                 spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 1f, 0f, 0.8f)));
             else
                 spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(0f, 1f, 0f, 0.8f)));
-            spritebatch.Draw(texRockMeterOutline, new Rectangle((int)rex, (int)rockMeterLoc.Y, (int)rockMeterScale.X, (int)rockMeterScale.Y), Color.White);
+            spritebatch.Draw(texRockMeterOutline, new Rectangle((int)rex, (int)rockMeterLoc.Y, (int)rockMeterScale.X, (int)rockMeterScale.Y), rmColor);
 
-            byte[] logoslots = new byte[11];
             for (int i = 0; i < 10; i++)
                 logoslots[i] = (byte)0;
             for (int i = 0; i < 4; i++)
@@ -4393,36 +4386,47 @@ namespace Unsigned
                     logoslots[(int)Math.Min(Math.Round(rockMeterLevel[i] / 10f), 10)] |= bits[i];
 
             for (int i = 0; i < 11; i++)
-            {
-                int numhere = 0;
-                for (int k = 0; k < 4; k++)
-                    if ((logoslots[i] & bits[k]) != 0)
-                        numhere++;
+            {   
                 int logoscale = 4;
-                if (numhere > 0)
+                if (logoslots[i]!=0)
                 {
-                    spritebatch.Draw(texRockMeterLogoStem, new Vector2(rex + (rockMeterScale.X / 2), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * 3, new SpriteEffects(), 0);
+                    int numhere = 0;
+                    for (int k = 0; k < 4; k++)
+                        if ((logoslots[i] & bits[k]) != 0)
+                            numhere++;
+                    rmFill = ((10 - i) / 10f);
+                    rmColor = new Color((1-rmFill)<0.66?(byte)255:(byte)128, 
+                                        (1-rmFill)>0.33?(byte)255:(byte)128,
+                                        127);
+                    spritebatch.Draw(texRockMeterLogoStem, new Vector2(rex + (rockMeterScale.X / 2), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * 3, new SpriteEffects(), 0);
                     int tnum = numhere;
                     for (int k = 3; k >= 0; k--)
+                    {
+                        
                         if ((logoslots[i] & bits[k]) != 0)
                         {
+                            rmFill = rockMeterLevel[k]/100f;
+                            rmColor = new Color(rmFill<0.66?(byte)255:(byte)128, 
+                                rmFill>0.33?(byte)255:(byte)128,
+                                127);
                             switch (k)
                             {
                                 case 0:
-                                    spritebatch.Draw(texRockMeterGuitarLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterGuitarLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
                                     break;
                                 case 1:
-                                    spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
                                     break;
                                 case 2:
-                                    spritebatch.Draw(texRockMeterDrumLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterDrumLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
                                     break;
                                 case 3:
-                                    spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), Color.White, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, new SpriteEffects(), 0);
+                                    spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
                                     break;
                             }
                             tnum--;
                         }
+                    }
                 }
             }
         }

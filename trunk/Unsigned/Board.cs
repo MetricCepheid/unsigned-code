@@ -63,12 +63,10 @@ namespace Unsigned
         public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
         public float yRotate=0;
         public static Texture2D[][] boardTexPlain;
-        public Texture2D SPMeterTex, SPMRTex;
+        public Texture2D SPMeterTex;
         public float multSlide=0;
         public static Texture2D SPMBorder, SPMFill, SPMFlashTex, drumfillTex, SPBoardTex;
-        public static Texture2D SPMRbg, SPMRslice, SPMRfg, SPMRbgb, SPMRbgs;
         public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
-        public static Texture2D[] SPMRnum;
         public float SPMFlash=0, SPMFVel=0;
         public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
         public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 6, 6, -1, 7, };
@@ -98,7 +96,6 @@ namespace Unsigned
         private bool SPActivated = false;
         public static int[] guitarToDrums = { 1, 2, 3, 0, -1 };
         public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
-        public int whammyageLength;
         public LinkedList<WaveVector2> whammyage;
         float waveoffset=0;
         Results myResults;
@@ -127,9 +124,15 @@ namespace Unsigned
             popup = new float[5];
             popupSpeed = new float[5];
             if (type == 0 || type == 3)
+            {
                 whammyage = new LinkedList<WaveVector2>();
+                waves = new WaveNode[5][];
+                for (int i = 0; i < 5; i++)
+                    waves[i] = new WaveNode[50];
+            }
             OutNotes = new Vector4[0];
             random = new Random();
+            
         }
 
         public int GetBoardType()
@@ -854,7 +857,6 @@ namespace Unsigned
             }
             else if ((notes[index].time - (long)currenttime) < 100)
             {
-                int scre = 0;
                 byte ret = 0;
                 for (int i = 0; i < 5; i++)
                     if ((notes[index].type & Game1.bits[i]) != 0 && (newPressed & Game1.bits[i]) != 0 && notes[index].visible[i]==0)
@@ -1062,7 +1064,6 @@ namespace Unsigned
         public void Draw(SpriteBatch spritebatch, ulong currenttime)
         {
             Vector2 center = new Vector2(vFuzz.Width/2,vFuzz.Height/2);
-            SpriteEffects se = new SpriteEffects();
             float vScale=0.2f;
             float height = vFuzz.Height*vScale;
             Color glow = new Color(150, 255, 150, 255);
