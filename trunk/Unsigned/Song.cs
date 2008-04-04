@@ -93,7 +93,7 @@ namespace Unsigned
 #endif
         }
 
-        public void GetZVals(ulong currenttime)
+        public void GetZVals(long currenttime)
         {
             int k;
             for (k = 0; k < Bars.Length; k++)
@@ -120,12 +120,12 @@ namespace Unsigned
                 playing = true;
         }
 
-        public ulong getTime()
+        public long getTime()
         {
             return sound.PlayPosition;  
         }
 
-        public void Update(ulong currenttime)
+        public void Update(long currenttime)
         {
             if (currenttime >= 0 && !playing)
             {
@@ -144,7 +144,7 @@ namespace Unsigned
             }
         }
 
-        public bool IsOver(ulong currenttime)
+        public bool IsOver(long currenttime)
         {
             if ((long)currenttime/1000 > ((TimeH*360)+(TimeM*60)+(TimeS)))
                 return true;
@@ -161,14 +161,14 @@ namespace Unsigned
             return Bars;
         }
 
-        internal float GetMeasureProgress(ulong currenttime)
+        internal float GetMeasureProgress(long currenttime)
         {
             if(currentBar<Bars.Length)
                 return (currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X);
             return 0f;
         }
 
-        internal int GetBPMeasure(ulong currenttime)
+        internal int GetBPMeasure(long currenttime)
         {
             if(currentBar<Bars.Length)
                 return (int)Bars[currentBar].Y;

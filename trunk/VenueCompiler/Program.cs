@@ -979,12 +979,12 @@ namespace HFPS_LEVEL_COMPILER
 
             int CAMERA_SIB = 36;
 
-            ulong nBytesT = 3;//T{}
+            long nBytesT = 3;//T{}
             nBytesT += 4;//len
             for (int i = 0; i < texNew.Length; i++)
                 nBytesT += (uint)(texNew[i].Length + 1);
 
-            ulong nBytesG = 3;//G{}
+            long nBytesG = 3;//G{}
             nBytesG += 4;//len
             uint NB_PER_PG = 1 + 4+4+4 + 4+4+4 + 4 + 4;
             uint NB_PER_PGV = 4 * 5;
@@ -997,7 +997,7 @@ namespace HFPS_LEVEL_COMPILER
             int NB_PER_LIGHT_TARG = 14;
             int NB_PER_LIGHT = 28;
 
-            ulong nBytesE = 3;//E{}
+            long nBytesE = 3;//E{}
             nBytesE += 4;
             if (cameras.Count > 0)
                 nBytesE += 8 + (uint)(CAMERA_SIB * cameras.Count);
@@ -1013,7 +1013,7 @@ namespace HFPS_LEVEL_COMPILER
             nBytesHeader += 4+4;//clipping
             nBytesHeader += 12 * 4;//rocker positions
 
-            ulong nBytesFile = nBytesHeader + nBytesT + nBytesG + nBytesE;
+            long nBytesFile = nBytesHeader + nBytesT + nBytesG + nBytesE;
             uint nBytesEnd = 16 - (uint)(nBytesFile % 16);
             nBytesFile += nBytesEnd;
             

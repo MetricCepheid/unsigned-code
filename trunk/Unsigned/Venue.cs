@@ -170,7 +170,7 @@ namespace Unsigned
             LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
         }
 
-        public void Update(GameTime gameTime, ulong songtime, Effect engine, Song song)
+        public void Update(GameTime gameTime, long songtime, Effect engine, Song song)
         {
 #if DEBUG_CAM_CONTROL
             KeyboardState kbs = Keyboard.GetState();
@@ -379,7 +379,7 @@ namespace Unsigned
             engine.CommitChanges();
         }
 
-        private float GetStrobe(int spb, Song song, ulong currenttime)
+        private float GetStrobe(int spb, Song song, long currenttime)
         {
             float measure = song.GetMeasureProgress(currenttime);
             int bpm = song.GetBPMeasure(currenttime);
@@ -460,7 +460,7 @@ namespace Unsigned
 
             char[] header = fin.ReadChars(8);
 
-            ulong filesize = fin.ReadUInt64();
+            long filesize = fin.ReadInt64();
 
             cNear = fin.ReadUInt32();
             cFar = fin.ReadUInt32();

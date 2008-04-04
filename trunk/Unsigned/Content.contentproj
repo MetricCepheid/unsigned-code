@@ -1072,6 +1072,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="shaders\BoardFade.fx">
+      <Name>BoardFade</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\gradientMask.tga">
+      <Name>gradientMask</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="charmodels\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
