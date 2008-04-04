@@ -63,7 +63,7 @@ namespace Unsigned
         public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
         public float yRotate=0;
         public static Texture2D[][] boardTexPlain;
-        public Texture2D SPMeterTex;
+        public Texture2D texBoard;
         public float multSlide=0;
         public static Texture2D SPMBorder, SPMFill, SPMFlashTex, drumfillTex, SPBoardTex;
         public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
@@ -225,15 +225,15 @@ namespace Unsigned
         }
 
         float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
-        public void GetNotes(ulong currenttime, ulong viewdistance)
+        public void GetNotes(long currenttime, long viewdistance)
         {
             int k;
             for (k = 0; k < notes.Length; k++)
-                if ((ulong)notes[k].time > currenttime - (viewdistance / 4))
+                if ((long)notes[k].time*(Game1.TicksPerSecond/1000) > (currenttime) - (viewdistance / 4))
                     break;
             int count = 0;
             bool fill = false;
-            for (int i = k; i<notes.Length && (ulong)notes[i].time < currenttime + viewdistance; i++)
+            for (int i = k; i<notes.Length && (long)notes[i].time*(Game1.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
                 if (GetBoardType() != Game1.PERCUSSIONIST)
                 {
@@ -283,7 +283,7 @@ namespace Unsigned
             notesLen = count;
             int indx = 0;
             int plus = 0;
-            for (int i = k; i < notes.Length && (ulong)notes[i].time < currenttime + viewdistance; i++)
+            for (int i = k; i < notes.Length && (long)notes[i].time*(Game1.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
                 float sp = 0f;
                 if (SPIndex<SPStart.Length && notes[i].time >= SPStart[SPIndex] && notes[i].time < SPEnd[SPIndex] && SPGood)
@@ -297,7 +297,7 @@ namespace Unsigned
                     if ((notes[i].type & (1<<r)) != 0)
                     {
                         OutNotes[indx].X=-1f+(0.5f*r);
-                        OutNotes[indx].Y=notes[i].time;
+                        OutNotes[indx].Y=(long)notes[i].time*(Game1.TicksPerSecond/1000);
                         OutNotes[indx].Z=((notes[i].type & NS_HOPO) != 0) ? 1f : -1f;
                         OutNotes[indx].W=sp;
                         indx++;
@@ -314,11 +314,11 @@ namespace Unsigned
                         if (fill)
                         {
                             OutNotes[indx].X=dfA[DFIndex + plus];
-                            OutNotes[indx].Y=DFStart[DFIndex + plus];
+                            OutNotes[indx].Y=(long)DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000);
                             OutNotes[indx].Z=1;
                             OutNotes[indx].W=DFHitGreen[DFIndex + plus] ? 1 : 0;
                             OutNotes[indx + 1].X=dfA[DFIndex + plus];
-                            OutNotes[indx + 1].Y=DFEnd[DFIndex + plus];
+                            OutNotes[indx + 1].Y=(long)DFEnd[DFIndex + plus]*(Game1.TicksPerSecond/1000);
                             OutNotes[indx + 1].Z=2;
                             OutNotes[indx + 1].W=0;
                             indx+=2;
@@ -329,7 +329,7 @@ namespace Unsigned
                             if ((notes[i].type & (1 << r)) != 0 && notes[i].visible[r] == 0)
                             {
                                 OutNotes[indx].X=drumxvals[r];
-                                OutNotes[indx].Y=notes[i].time;
+                                OutNotes[indx].Y=(long)notes[i].time*(Game1.TicksPerSecond/1000);
                                 OutNotes[indx].Z=0;
                                 OutNotes[indx].W=sp;
                                 indx++;
@@ -340,11 +340,11 @@ namespace Unsigned
             if (fill)
             {
                 OutNotes[indx].X=dfA[DFIndex+plus];
-                OutNotes[indx].Y=DFStart[DFIndex + plus];
+                OutNotes[indx].Y=(long)DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000);
                 OutNotes[indx].Z=1;
                 OutNotes[indx].W=0;
                 OutNotes[indx + 1].X=dfA[DFIndex + plus];
-                OutNotes[indx+1].Y=DFEnd[DFIndex + plus];
+                OutNotes[indx+1].Y=(long)DFEnd[DFIndex + plus]*(Game1.TicksPerSecond/1000);
                 OutNotes[indx+1].Z = 2;
                 OutNotes[indx+1].W=0;
                 indx += 2;
@@ -352,7 +352,7 @@ namespace Unsigned
                 plus++;
             }
             for (int i = 0; i < notesLen; i++)
-                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / 1000f;
+                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / (float)Game1.TicksPerSecond;
         }
 
         private void LoadNotes(String filename, byte diff, Song song)
@@ -557,7 +557,7 @@ namespace Unsigned
             return fair;*/
         }
 
-        public void Update(GameTime gameTime, ulong currenttime,Game1 reff, int ind, byte pressed)
+        public void Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
         {
             if (GetBoardType() != Game1.VOCALS)
             {
@@ -772,7 +772,7 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Strum(byte pressed, ulong currenttime, Game1 game, int ind)
+        public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
         {
             if (index >= notes.Length)
                 return 0;
@@ -815,7 +815,7 @@ namespace Unsigned
                     return notes[index - 1].type;
                 }
             }
-            else if (currenttime > (ulong)notes[index].time && currenttime < ((ulong)notes[index].time+(ulong)notes[index].length))
+            else if (currenttime > (long)notes[index].time && currenttime < ((long)notes[index].time+(long)notes[index].length))
             {
                 notes[index].burning = false; multiplier = 1; game.Hurt(ind);
             if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
@@ -828,7 +828,7 @@ namespace Unsigned
             return 0;
         }
 
-        public byte Bang(byte pressed, ulong currenttime, Game1 game)
+        public byte Bang(byte pressed, long currenttime, Game1 game)
         {
             byte newPressed = 0;
             for (int i = 0; i < 5; i++)
@@ -840,7 +840,7 @@ namespace Unsigned
                 return 0;
             if (index >= notes.Length)
                 return 0;
-            if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= (ulong)DFStart[DFIndex] && currenttime <= (ulong)DFEnd[DFIndex])
+            if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= (long)DFStart[DFIndex] && currenttime <= (long)DFEnd[DFIndex])
             {
                 if ((newPressed & Game1.bits[0]) != 0)
                     if (Math.Abs((DFEnd[DFIndex] - 100) - (long)currenttime) < 100)
@@ -919,7 +919,7 @@ namespace Unsigned
             return LeftySwitch;
         }
 
-        public bool getWaves(ulong currenttime, long viewdistance)
+        public bool getWaves(long currenttime, long viewdistance)
         {
             int count = 0;
             for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
@@ -1000,7 +1000,7 @@ namespace Unsigned
             return SPActivated;
         }
 
-        public void Whammy(float p,ulong currenttime)
+        public void Whammy(float p,long currenttime)
         {
             p = (p + 1) / 2f;
             if (index >= notes.Length)
@@ -1016,7 +1016,7 @@ namespace Unsigned
                 whammyage.Clear();
         }
 
-        private float GetWhammy(float y,ulong currenttime)
+        private float GetWhammy(float y,long currenttime)
         {
             if (whammyage.Count < 2)
                 return 0f;
@@ -1061,7 +1061,7 @@ namespace Unsigned
                 SPActivated = true;
         }
 
-        public void Draw(SpriteBatch spritebatch, ulong currenttime)
+        public void Draw(SpriteBatch spritebatch, long currenttime)
         {
             Vector2 center = new Vector2(vFuzz.Width/2,vFuzz.Height/2);
             float vScale=0.2f;

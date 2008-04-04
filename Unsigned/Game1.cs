@@ -127,7 +127,7 @@ namespace Unsigned
         SoundBank audioSoundBank;
         WaveBank audioWaveBank;
 #endif
-        private Effect engine, ppEngine;
+        private Effect engine, ppEngine, fader;
         private Matrix matView;
         private Matrix matProj;
         private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
@@ -218,7 +218,7 @@ namespace Unsigned
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
         private int started = 0;
         public static SpriteFont DefaultFont;
-        public static ulong TicksPerSecond = 10000000;
+        public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
         public static Texture2D texGlow, texDefaultBM;
         public static VertexDeclaration vd;
@@ -232,15 +232,16 @@ namespace Unsigned
         private static Board[] boards;
         private Texture2D[] texShard;
         private Texture2D texSpark;
+        private Texture2D gradientMask;
         private ShatterGlass[] glass;
         private ShatterSpark[] sparks;
-        private RenderTarget2D[] rtBar;
+        private RenderTarget2D[] rtBoard;
 #endregion
 
 #region song
 
         private static Song song;
-        private ulong CurrentTime, lastChange;
+        private long CurrentTime, lastChange;
         private SetList setlist;
 
 #endregion
@@ -701,7 +702,7 @@ namespace Unsigned
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
-            
+            fader = content.Load<Effect>("shaders\\BoardFade");
 
             SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
@@ -791,6 +792,7 @@ namespace Unsigned
             texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             DefaultFont = content.Load<SpriteFont>("BasicFont");
             gradient = content.Load<Texture2D>("graphics\\gradient");
+            gradientMask = content.Load<Texture2D>("graphics\\gradientMask");
             System.IO.StreamReader sr = new System.IO.StreamReader("SongList.gbl");
             String str = sr.ReadLine();
             str = str.Trim();
@@ -850,21 +852,21 @@ namespace Unsigned
                 {
                     screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
                     screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth / 2, windowheight / 2, 1, SurfaceFormat.Color);
-                    rtBar = new RenderTarget2D[4];
-                    rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
+                    rtBoard = new RenderTarget2D[4];
+                    rtBoard[0] = new RenderTarget2D(graphics.GraphicsDevice, 128, 256, 1, SurfaceFormat.Color);
                     //rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
-                    rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
-                    rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 128, 128, 1, SurfaceFormat.Color);
+                    rtBoard[2] = new RenderTarget2D(graphics.GraphicsDevice, 128, 256, 1, SurfaceFormat.Color);
+                    rtBoard[3] = new RenderTarget2D(graphics.GraphicsDevice, 128, 256, 1, SurfaceFormat.Color);
                 }
                 else
                 {
                     screenTarget = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
                     screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);
-                    rtBar = new RenderTarget2D[4];
-                    rtBar[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtBoard = new RenderTarget2D[4];
+                    rtBoard[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 512, 1, SurfaceFormat.Color);
                     //rtBar[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                    rtBar[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
-                    rtBar[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtBoard[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 512, 1, SurfaceFormat.Color);
+                    rtBoard[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 512, 1, SurfaceFormat.Color);
                 }
                 screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, windowwidth, windowheight, 1, SurfaceFormat.Color);                        
 
@@ -1595,20 +1597,20 @@ namespace Unsigned
                             started = 2;
                         }
                         else
-                            CurrentTime -= (ulong)gameTime.ElapsedGameTime.Ticks;
+                            CurrentTime -= (long)gameTime.ElapsedGameTime.Ticks;
                         return;
                     }
-                    ulong songt = song.getTime();
-                    if (lastChange != songt && Math.Abs((float)(CurrentTime/(ulong)(TicksPerSecond / 1000))-songt)>10)
+                    long songt = song.getTime();
+                    if (lastChange != songt && Math.Abs((float)(CurrentTime/(long)(TicksPerSecond / 1000))-songt)>100)
                     {
-                        //CurrentTime = songt * (ulong)(TicksPerSecond / 1000);
+                        CurrentTime = songt * (long)(TicksPerSecond / 1000);
                         lastChange = songt;
                     }
-                    CurrentTime += (ulong)gameTime.ElapsedGameTime.Ticks;
+                    CurrentTime += (long)gameTime.ElapsedGameTime.Ticks;
                     UpdateGibs(gameTime);
 
                     
-                    ulong currenttime = CurrentTime / (ulong)(TicksPerSecond/1000);
+                    long currenttime = CurrentTime / (long)(TicksPerSecond/1000);
 
                     if (song.IsOver(currenttime))
                         screen = S_RESULTS;
@@ -2373,41 +2375,8 @@ namespace Unsigned
                 #region ingame
                 else if (screen == S_INGAME)
                 {
-                    ulong currenttime = CurrentTime / (ulong)(TicksPerSecond / 1000);
+                    long currenttime = CurrentTime / (long)(TicksPerSecond / 1000);
 #if !DEBUG
-                    try
-                    {
-#endif
-                        ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (instruments[i])
-                            {
-                                graphics.GraphicsDevice.SetRenderTarget(0, rtBar[i]);
-                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                                spritebatch.Draw(texWhite, new Rectangle(4, 8, 248, 240), Color.Black);
-                                spritebatch.Draw(Board.SPMFill, new Rectangle(0, 0, (int)(256 * boards[i].GetSPAmount()), 256), Color.White);
-                                spritebatch.Draw(Board.SPMBorder, new Rectangle(0, 0, 256, 256), Color.White);
-                                spritebatch.End();
-                            }
-                        }
-                        graphics.GraphicsDevice.SetRenderTarget(0, ort);
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (instruments[i])
-                            {
-                                boards[i].SPMeterTex = rtBar[i].GetTexture();
-                            }
-                        }
-#if !DEBUG
-                    }
-                    catch(Exception e)
-                    {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt1\n"+e.Message);
-                        Exit();
-                        return;
-                    }
 
                     try
                     {
@@ -2477,11 +2446,13 @@ namespace Unsigned
                     try
                     {
 #endif
-                    song.GetZVals(CurrentTime);
+                    song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
                         for (int i = 0; i < boards.Length; i++)
                         {
                             if (!instruments[i])
                                 continue;
+                            
+                            DrawBoardTarget(i, song.zVals, boards[i].IsSPActivated());
                             graphics.GraphicsDevice.SetRenderTarget(0, boardsTarget[i]);
                             matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                                       boardsTarget[i].Width / (float)boardsTarget[i].Height,
@@ -2509,12 +2480,17 @@ namespace Unsigned
 
                                 //determine fling (song start board comes up)
                                 Matrix fling;
-                                if (currenttime / 1000f > -3)
-                                    fling = Matrix.CreateRotationX(Board.rotate);
-                                else if (currenttime / 1000f > -4)
-                                    fling = Matrix.CreateRotationX(((((currenttime / 1000f) + 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                                if (started == 1)
+                                {
+                                    if (currenttime / 1000f < 3)
+                                        fling = Matrix.CreateRotationX(Board.rotate);
+                                    else if (currenttime / 1000f < 4)
+                                        fling = Matrix.CreateRotationX(((-((currenttime / 1000f) - 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                                    else
+                                        fling = Matrix.CreateRotationX((float)Math.PI / 2);
+                                }
                                 else
-                                    fling = Matrix.CreateRotationX((float)Math.PI / 2);
+                                    fling = Matrix.CreateRotationX(Board.rotate);
 #if DEBUG_CAM_CONTROL
                                     fling *= Matrix.CreateRotationX(-0.4f);
 #endif
@@ -2524,9 +2500,7 @@ namespace Unsigned
 
                                 //draw each boards
                                 DrawBoard(i, song.zVals, fling, false, CurrentTime, matTransl);
-                                if (boards[i].IsSPActivated())
-                                    DrawBoard(i, song.zVals, fling, true, currenttime, matTransl);
-                                DrawNotes(i, fling,currenttime);
+                                DrawNotes(i, fling,started<2?-CurrentTime:CurrentTime);
                                 DrawBoardDetail(i, fling,matTransl);
                                 DrawWaves(i, fling,currenttime);
                                 //draw the non-world gibs (glass shards sparks)
@@ -2633,6 +2607,7 @@ namespace Unsigned
                             //draw development info
                             {
                                 spritebatch.DrawString(DefaultFont, "" + (1000f/gameTime.ElapsedRealTime.Milliseconds), new Vector2(0, 0), Color.Red);
+                                spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
                                 //spritebatch.DrawString(DefaultFont, "" + (boards[2].lastPressed & bits[0]) + (boards[2].lastPressed & bits[1]) + (boards[2].lastPressed & bits[2]) + (boards[2].lastPressed & bits[3]) + (boards[2].lastPressed & bits[4]), new Vector2(0, 48), Color.Red);
                                 //spritebatch.DrawString(DefaultFont, "" + boards[2].multiplier, new Vector2(0, 48), Color.Red);
@@ -3235,7 +3210,7 @@ namespace Unsigned
         }
         #endregion
 
-        private void ProcessInput(GameTime gameTime, ulong currenttime)
+        private void ProcessInput(GameTime gameTime, long currenttime)
         {
             for (int i = 0; i < 4; i++)
                 if (boards[i] != null)
@@ -3563,17 +3538,96 @@ namespace Unsigned
             }
         }
 
-        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP, ulong currenttime, Matrix matTransl)
+        private void DrawBoardTarget(int index, Vector2[] songtimes, bool sp)
         {
-            if (i != 1)
+            if (index == 1)
+                return;
+            for (int i = 0; i < 4; i++)
+            {
+                if (instruments[i])
+                {
+                    graphics.GraphicsDevice.SetRenderTarget(0, rtBoard[i]);
+                    fader.CurrentTechnique = fader.Techniques["Fade"];
+                    float fh = (Board.eFade - Board.sFade) / (Board.eFade * 1.5f);
+                    fader.Parameters["blend"].SetValue(fh);
+                    //float scale = (Board.eFade - Board.sFade) / (Board.eFade * 1.5f);
+
+                    fader.CommitChanges();
+                    float scale = rtBoard[i].Height / (Board.eFade * 1.5f);
+                    graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                    
+                    
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+                    
+                    int fiver = index == 0 || index == 3 ? 1 : 0;
+                    int lowestPoint = 0;
+                    for (int k = 0; k < songtimes.Length - 1; k++)
+                    {
+                        fader.CommitChanges();
+                        if (started < 2 && CurrentTime < 30 * TicksPerSecond)
+                        {
+                            if ((int)(rtBoard[i].Height * 2f / 3f) - (int)(songtimes[k].X * scale) > lowestPoint)
+                                lowestPoint = (int)(rtBoard[i].Height * 2f / 3f) - (int)(songtimes[k].X * scale);
+                        }
+                        spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[(int)songtimes[k].Y]], new Rectangle(0, (int)(rtBoard[i].Height * 2f / 3f) - (int)(songtimes[k].X * scale) - (int)((songtimes[k + 1].X - songtimes[k].X) * scale), rtBoard[i].Width, (int)((songtimes[k + 1].X - songtimes[k].X) * scale)), Color.White);
+                    }
+                    if (started < 2 && CurrentTime < 30 * TicksPerSecond)
+                    if(lowestPoint<rtBoard[i].Height*.99)
+                        spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[1]], new Rectangle(0, lowestPoint, rtBoard[i].Width, rtBoard[i].Height-lowestPoint), Color.White);
+
+                    spritebatch.End();
+
+                    graphics.GraphicsDevice.SetRenderTarget(0, null);
+                    boards[i].texBoard = rtBoard[i].GetTexture();
+                    graphics.GraphicsDevice.SetRenderTarget(0, rtBoard[i]);
+                    graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+                    fader.Begin();
+                    fader.CurrentTechnique.Passes[0].Begin();
+                    
+                    spritebatch.Draw(boards[i].texBoard,new Rectangle(0,0,rtBoard[i].Width,rtBoard[i].Height),Color.White);
+
+                    spritebatch.End();
+                    fader.CurrentTechnique.Passes[0].End();
+                    fader.End();
+                }
+            }
+            graphics.GraphicsDevice.SetRenderTarget(0, null);
+            for (int i = 0; i < 4; i++)
+            {
+                if (instruments[i])
+                {
+                    boards[i].texBoard = rtBoard[i].GetTexture();
+                }
+            }
+        }
+
+        private void DrawBoard(int i, Vector2[] lenvals, Matrix fling, bool SP, long currenttime, Matrix matTransl)
+        {
+            //if (i != 1)
             {
                 Matrix matScale, matOrbit;
+                matOrbit = Matrix.CreateTranslation(0f, 0f, /*-(Board.length * Math.Min(lenvals[0].X, Board.sFade))*/ - Board.zeroZ - (Board.eFade*Board.length)) * fling;
+                matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length*Board.eFade*1.5f));
+                engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+                engine.Parameters["diffuseTexture"].SetValue(boards[i].texBoard);
+                engine.Parameters["wAlpha"].SetValue(1.0f);
+                engine.CommitChanges();
+                graphics.GraphicsDevice.VertexDeclaration = vd;
+                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+                /*
                 VertexBuffer vb;
                 //draw pre-song board
                 if (lenvals[0].X > -Board.zeroZ)
                 {
-                    matOrbit = Matrix.CreateTranslation(0f, 0f, -(Board.length * Math.Min(lenvals[0].X, Board.sFade)) - Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * ((currenttime/(float)TicksPerSecond) - Math.Min(lenvals[0].X, Board.sFade))));
+                    
                     
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
@@ -3729,11 +3783,11 @@ namespace Unsigned
                         Board.arrBoard[r].TexCoord.Y = old[r];
                         Board.arrBoard[r].Alpha = 1f;
                     }
-                }
+                }*/
             }
         }
 
-        private void DrawWaves(int i, Matrix fling,ulong currenttime)
+        private void DrawWaves(int i, Matrix fling,long currenttime)
         {
             bool hide = false;
             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3846,7 +3900,7 @@ namespace Unsigned
             engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));
         }
 
-        private void DrawNotes(int i, Matrix fling, ulong currenttime)
+        private void DrawNotes(int i, Matrix fling, long currenttime)
         {
             if (i != 1)
             {
@@ -3855,7 +3909,7 @@ namespace Unsigned
                 int lefty = 1;
                 if (boards[i].IsLefty() && boards[i].GetBoardType() != PERCUSSIONIST)
                     lefty = -1;
-                boards[i].GetNotes(currenttime, (ulong)(Board.eFade*1000));
+                boards[i].GetNotes(currenttime, (long)(Board.eFade*Game1.TicksPerSecond));
                 for (int p = 0; p < boards[i].notesLen; p++)
                 {
                     if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
@@ -4328,36 +4382,13 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
                 engine.Parameters["wAlpha"].SetValue(1.0f);
-                {
-                    Matrix matIdentity, matScale, matOrbit;
-                    matIdentity = Matrix.Identity;
-                    //matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                    matOrbit = Matrix.CreateTranslation(0f, 0.1f, (0.2f) - Board.zeroZ) * fling;
-                    matScale = Matrix.CreateScale(new Vector3(Board.width * 0.9f, Board.curveHeight * 0.8f, Board.length * 0.02f));
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                    engine.Parameters["diffuseTexture"].SetValue(boards[i].SPMeterTex);
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlSPM, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlSPM.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
                 engine.Parameters["fullbright"].SetValue(false);
             }
         }
 
         private byte[] logoslots = new byte[11];
         private Color rmColor;
-        private void DrawRockMeter(ulong currenttime)
+        private void DrawRockMeter(long currenttime)
         {
             rmColor =Color.Black;
             float rmFill = GetRockMeterFill();
@@ -4431,7 +4462,7 @@ namespace Unsigned
             }
         }
 
-        private void DrawScoreStars(ulong currenttime)
+        private void DrawScoreStars(long currenttime)
         {
             float xers;
             if (CurrentTime/1000f > -2.5)
