@@ -3759,8 +3759,7 @@ namespace Unsigned
                     
                     graphics.GraphicsDevice.Clear(new Color(255, 255, 255, 0));
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.AlphaSourceBlend = Blend.InverseSourceAlpha;
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.BackToFront, SaveStateMode.SaveState);
                     float bgyscale = 2.0f;
                     for (int k = -4; k < 8; k++)
                     {
@@ -3798,7 +3797,7 @@ namespace Unsigned
                         {
                             for (int k = 0; k < spcircles.Length; k++)
                                 if(spcircles[k].pos.X<boards[i].GetSPAmount())
-                                    spritebatch.Draw(Board.spMeterCurl, new Vector2((spcircles[k].pos.X * width) + left, (spcircles[k].pos.Y * height) + top), null, new Color(255,255,128,(byte)(255*spcircles[k].alpha)), spcircles[k].rotation, new Vector2(Board.spMeterCurl.Width / 2, Board.spMeterCurl.Height / 2), new Vector2(scale/1500,scale/1500), SpriteEffects.None, 0);
+                                    spritebatch.Draw(Board.spMeterCurl, new Vector2((spcircles[k].pos.X * width) + left, (spcircles[k].pos.Y * height) + top), null, new Color(255,255,255,(byte)(255*spcircles[k].alpha)), spcircles[k].rotation, new Vector2(Board.spMeterCurl.Width / 2, Board.spMeterCurl.Height / 2), new Vector2(scale/1500,scale/1500), SpriteEffects.None, 0);
                         }
                     }
                     int f = boards[i].GetMultiplierFraction();
