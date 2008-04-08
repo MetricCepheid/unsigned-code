@@ -63,10 +63,11 @@ namespace Unsigned
         public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
         public float yRotate=0;
         public static Texture2D[][] boardTexPlain;
-        public Texture2D texBoard;
+        public Texture2D texBoard, texWaves;
         public float multSlide=0;
-        public static Texture2D SPMBorder, SPMFill, SPMFlashTex, drumfillTex, SPBoardTex;
-        public static Texture2D vSPMeter, vSPMeterFill, vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
+        public static float WaveDetail = 50f;
+        public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
+        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
         public float SPMFlash=0, SPMFVel=0;
         public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
         public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 6, 6, -1, 7, };
@@ -77,6 +78,8 @@ namespace Unsigned
         public static Texture2D[] texNotes, texTriggers, texTriggersLit;
         public static Texture2D texTriggerBorder, texTriggerBorderLit;
         public static float BOARD_BUMP_COEF = 0.002f;
+        public static float spMeterYScale = 0.4f;
+        public int spMeterShift = 7;
         private Song song;
         private byte difficulty;
         private int index;
@@ -906,7 +909,10 @@ namespace Unsigned
                 return 10;
             else if (multiplier >= 6)
                 return 10;
-            return (int)((multiplier % 1) * 10);
+            int i= (int)((multiplier % 1) * 10);
+            if (i == 0 && multiplier > 1)
+                i = 10;
+            return i;
         }
 
         public int GetMultiplier()
@@ -919,7 +925,7 @@ namespace Unsigned
             return LeftySwitch;
         }
 
-        public bool getWaves(long currenttime, long viewdistance)
+        public bool getWaves(long currenttime)
         {
             int count = 0;
             for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
@@ -940,30 +946,30 @@ namespace Unsigned
                     if (notes[i].burning)
                     {
                         
-                        int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - (long)currenttime)) - ((notes[i].time < (long)currenttime) ? (long)currenttime - notes[i].time : 0) - 50f) / 50f);
+                        int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - (long)currenttime)) - ((notes[i].time < (long)currenttime) ? (long)currenttime - notes[i].time : 0) - WaveDetail) / WaveDetail);
                         num += 2;
                         if (wavesSubLen[count] < num)
                         { waves[count] = new WaveNode[num];  }
                         wavesSubLen[count] = num;
                         waves[count][0].X = 0f;
                         waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
                         float varyPower;
                         for (int n = 0; n < num - 1; n++)
                         {
-                            waves[count][n].Y = ((notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime)) + (50f * n);
+                            waves[count][n].Y = ((notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime)) + (WaveDetail * n);
                             varyPower = GetWhammy(waves[count][n].Y,currenttime);
                             if(varyPower<0.1)
                                 waves[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (waves[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
                             else
                                 waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
-                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
+                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
                         }
 
                         waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
-                        waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
+                        //waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
                         waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
-                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128));
+                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
                         count++;
                     }
                     else
@@ -973,11 +979,11 @@ namespace Unsigned
                          wavesSubLen[count] = 2;
                         waves[count][0].X = 0.2f;
                         waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128));
+                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
 
-                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
+                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), (eFade * 1000f));
                         waves[count][1].X = 0.2f;
-                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128));
+                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
                         count++;
                     }
                 }

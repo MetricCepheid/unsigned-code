@@ -1,5 +1,6 @@
 NumSets(1)
 	Set(0)
 	Name(Quick Jams)
-		NumSongs(1)
+		NumSongs(2)
+			Song(dontholdback)
 			Song(Master_of_Puppets)

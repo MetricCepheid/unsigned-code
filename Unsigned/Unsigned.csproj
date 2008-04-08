@@ -124,6 +124,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="boards\" />
     <Folder Include="meshes\" />
     <Folder Include="shaders\" />
   </ItemGroup>

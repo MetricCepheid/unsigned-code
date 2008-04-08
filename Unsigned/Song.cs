@@ -21,6 +21,7 @@ namespace Unsigned
         String[] charters;
         public Vector2[] zVals = new Vector2[12];
         public int[] diffs = new int[4];
+        public string[] songInfo;
 
 #if ! XBOX
 
@@ -66,9 +67,61 @@ namespace Unsigned
             z = z.Substring(z.IndexOf(':') + 1);
             TimeM = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             TimeS = Int32.Parse(z.Substring(z.IndexOf(':')+1));
-            charters = new String[6];
-            for (int i = 0; i < 6; i++)
+
+
+            int numCharters = 6;
+            charters = new String[numCharters];
+            for (int i = 0; i < numCharters; i++)
                 charters[i] = reader.ReadString();
+            int[] numC = new int[numCharters];
+            string[] charters2 = new string[numCharters];
+            charters2[0] = charters[0];
+            numC[0]++;
+            int nC2 = 1;
+            for (int i = 1; i < numCharters; i++)
+            {
+                int k;
+                for(k=0;k<nC2;k++)
+                    if (charters[i].Equals(charters2[k]))
+                    {
+                        numC[k]++;
+                        break;
+                    }
+                if (k >= nC2)
+                {
+                    charters2[k] = charters[i];
+                    numC[k]++;
+                    nC2++;
+                }
+            }
+            if (nC2 > 2)
+            {
+                for (int i = 2; i < nC2; i++)
+                {
+                    for (int k = i - 1; k >= 1; k--)
+                    {
+                        if (numC[k] > numC[k + 1])
+                        {
+                            int t = numC[k];
+                            numC[k] = numC[k + 1];
+                            numC[k + 1] = t;
+                            string s = charters2[k];
+                            charters2[k] = charters2[k + 1];
+                            charters2[k + 1] = s;
+                        }
+                        else
+                            break;
+                    }
+                }
+            }
+
+            songInfo = new string[3 + nC2];
+            songInfo[0] = SongName;
+            songInfo[1] = ArtistName;
+            songInfo[2] = "Charter" + (nC2 > 1 ? "s:" : ":");
+            for (int i = 0; i < nC2; i++)
+                songInfo[i + 3] = charters2[i];
+
             for(int i=0;i<4;i++)
                 diffs[i] = reader.ReadByte();
             Bars = new Vector2[reader.ReadInt32()];
