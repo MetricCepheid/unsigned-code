@@ -602,7 +602,7 @@ namespace Unsigned
             fin.Close();
 
             System.IO.BinaryReader sr = new System.IO.BinaryReader(System.IO.File.OpenRead(Songname + ".gbe"));
-
+            byte ver = sr.ReadByte();
             int nTransitions = sr.ReadInt32();
             camtimes = new int[nTransitions];
             for (int i = 0; i < nTransitions; i++)

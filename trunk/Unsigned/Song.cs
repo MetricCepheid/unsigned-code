@@ -8,8 +8,6 @@ namespace Unsigned
 {
     class Song
     {
-        private int bpm;
-        private float mps;
         private String FileName;
         private Vector2[] Bars;
         private int endLength;
@@ -22,6 +20,10 @@ namespace Unsigned
         public Vector2[] zVals = new Vector2[12];
         public int[] diffs = new int[4];
         public string[] songInfo;
+        public string[] quotes = new string[8];
+
+        public float percentBeat;
+
 
 #if ! XBOX
 
@@ -38,20 +40,8 @@ namespace Unsigned
 
         public Song(int bpm, float mps, String FileName, IntPtr game)
         {
-            this.bpm = bpm;
-            this.mps = mps;
             this.FileName = FileName;
             LoadSong(FileName, game);
-        }
-
-        public int GetBPM()
-        {
-            return bpm;
-        }
-
-        public float GetMPS()
-        {
-            return mps;
         }
 
         private void LoadSong(String fn, IntPtr game)
@@ -62,12 +52,16 @@ namespace Unsigned
             byte version = reader.ReadByte();
             SongName = reader.ReadString();
             ArtistName = reader.ReadString();
+            int year = reader.ReadInt32();
+            String genre = reader.ReadString();
             String z = reader.ReadString();
             TimeH = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             z = z.Substring(z.IndexOf(':') + 1);
             TimeM = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             TimeS = Int32.Parse(z.Substring(z.IndexOf(':')+1));
 
+            for (int i = 0; i < quotes.Length; i++)
+                quotes[i] = reader.ReadString();
 
             int numCharters = 6;
             charters = new String[numCharters];
@@ -124,7 +118,8 @@ namespace Unsigned
 
             for(int i=0;i<4;i++)
                 diffs[i] = reader.ReadByte();
-            Bars = new Vector2[reader.ReadInt32()];
+            int rks = reader.ReadInt32();
+            Bars = new Vector2[rks];
             for (int c = 0; c < Bars.Length; c++)
             {
                 Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
@@ -133,13 +128,14 @@ namespace Unsigned
 #if ! XBOX
 
             sEngine = new ISoundEngine();
-            song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.Streaming, true);
+            song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.NoStreaming, true);
             sound = sEngine.Play2D(song, false, true, true);
-            if (sound == null)
+            if (song==null || sound==null)
             {
-                System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
+                System.Windows.Forms.MessageBox.Show("audio not found");
                 return;
             }
+            sound.Volume = 0.75f;
             /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
             manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
             manager.StopOggFile(0);*/
@@ -182,6 +178,7 @@ namespace Unsigned
         {
             if (currenttime >= 0 && !playing)
             {
+                
 #if ! XBOX
 
                 
@@ -195,6 +192,8 @@ namespace Unsigned
             {
                 currentBar++;
             }
+
+            percentBeat = ((currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X))%(1/Bars[currentBar].Y);
         }
 
         public bool IsOver(long currenttime)
@@ -226,6 +225,22 @@ namespace Unsigned
             if(currentBar<Bars.Length)
                 return (int)Bars[currentBar].Y;
             return 1;
+        }
+
+        internal void pause()
+        {
+            sound.Paused = true;
+        }
+
+        internal void resume(long p)
+        {
+            sound.PlayPosition = (uint)p;
+            sound.Paused = false;
+        }
+
+        public float PercentSong()
+        {
+            return sound.PlayPosition / (float)sound.PlayLength;
         }
     }
 }
