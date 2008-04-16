@@ -103,10 +103,6 @@
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>
-    <None Include="SongList.gbl">
-      <Name>SongList</Name>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="venues\tikibar.gbw">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -124,7 +120,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="boards\" />
     <Folder Include="meshes\" />
     <Folder Include="shaders\" />
   </ItemGroup>

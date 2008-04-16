@@ -28,19 +28,25 @@ namespace Unsigned
         public int hitNotes, missedNotes;
         public int totalNotes, totalSPPH;//temp
         public int hitSPPH, missedSPPH;
+        public float percentSong;
     }
 
     struct VocalWord
     {
         public uint time,len;
-        public ushort note;
+        public short note;
         public string value;
     }
 
     struct VocalPhrase
     {
+        public enum TYPE {REGULAR=0, BLANK=1, RHYTHM=2};
+        public enum RTYPE { TAMBOURINE = 0, COWBELL = 1, CLAP = 2 };
+        public TYPE type;
+        public RTYPE rType;
+        public bool SP;
         public VocalWord[] words;
-        public int time;
+        public uint time;
     }
 
     class WaveVector2
@@ -67,7 +73,7 @@ namespace Unsigned
         public float multSlide=0;
         public static float WaveDetail = 50f;
         public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
-        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow;
+        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
         public float SPMFlash=0, SPMFVel=0;
         public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
         public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 6, 6, -1, 7, };
@@ -79,7 +85,7 @@ namespace Unsigned
         public static Texture2D texTriggerBorder, texTriggerBorderLit;
         public static float BOARD_BUMP_COEF = 0.002f;
         public static float spMeterYScale = 0.4f;
-        public int spMeterShift = 7;
+        public int spMeterShift = 7, spMeterShiftDrums=10;
         private Song song;
         private byte difficulty;
         private int index;
@@ -256,9 +262,9 @@ namespace Unsigned
                 else
                 {
 
-                    if (StarPowerAmount >= 0.5 && DFIndex<DFStart.Length && notes[i].time >= DFStart[DFIndex] && notes[i].time <= DFEnd[DFIndex])
+                    if (StarPowerAmount >= 0.5 && !SPActivated && DFIndex<DFStart.Length && notes[i].time >= DFStart[DFIndex] && notes[i].time <= DFEnd[DFIndex])
                         fill=true;
-                    else if (StarPowerAmount >= 0.5 && DFIndex+1<DFStart.Length && notes[i].time >= DFStart[DFIndex+1] && notes[i].time <= DFEnd[DFIndex+1])
+                    else if (StarPowerAmount >= 0.5 && !SPActivated && DFIndex+1<DFStart.Length && notes[i].time >= DFStart[DFIndex+1] && notes[i].time <= DFEnd[DFIndex+1])
                         fill=true;
                     else
                     {
@@ -308,16 +314,16 @@ namespace Unsigned
                 }
                 else
                 {
-                    if (StarPowerAmount >= 0.5 && DFIndex < DFStart.Length && notes[i].time >= DFStart[DFIndex] && notes[i].time <= DFEnd[DFIndex])
+                    if (StarPowerAmount >= 0.5 && !SPActivated && DFIndex < DFStart.Length && notes[i].time >= DFStart[DFIndex] && notes[i].time <= DFEnd[DFIndex])
                         fill = true;
-                    else if (StarPowerAmount >= 0.5 && DFIndex + 1 < DFStart.Length && notes[i].time >= DFStart[DFIndex+1] && notes[i].time <= DFEnd[DFIndex+1])
+                    else if (StarPowerAmount >= 0.5 && !SPActivated && DFIndex + 1 < DFStart.Length && notes[i].time >= DFStart[DFIndex+1] && notes[i].time <= DFEnd[DFIndex+1])
                         fill = true;
                     else
                     {
                         if (fill)
                         {
                             OutNotes[indx].X=dfA[DFIndex + plus];
-                            OutNotes[indx].Y=(long)DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000);
+                            OutNotes[indx].Y=(long)Math.Max(DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000),currenttime);
                             OutNotes[indx].Z=1;
                             OutNotes[indx].W=DFHitGreen[DFIndex + plus] ? 1 : 0;
                             OutNotes[indx + 1].X=dfA[DFIndex + plus];
@@ -343,7 +349,7 @@ namespace Unsigned
             if (fill)
             {
                 OutNotes[indx].X=dfA[DFIndex+plus];
-                OutNotes[indx].Y=(long)DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000);
+                OutNotes[indx].Y=(long)Math.Max(DFStart[DFIndex + plus]*(Game1.TicksPerSecond/1000),currenttime);
                 OutNotes[indx].Z=1;
                 OutNotes[indx].W=0;
                 OutNotes[indx + 1].X=dfA[DFIndex + plus];
@@ -467,15 +473,30 @@ namespace Unsigned
                 for (int i = 0; i < vNotes.Length; i++)
                 {
                     vNotes[i] = new VocalPhrase();
-                    vNotes[i].time = reader.ReadInt32();
+                    vNotes[i].time = reader.ReadUInt32();
+                    vNotes[i].type = (VocalPhrase.TYPE)reader.ReadByte();
                     vNotes[i].words = new VocalWord[reader.ReadInt32()];
-                    for (int k = 0; k < vNotes[i].words.Length; k++)
+                    switch (vNotes[i].type)
                     {
-                        vNotes[i].words[k] = new VocalWord();
-                        vNotes[i].words[k].time = reader.ReadUInt32();
-                        vNotes[i].words[k].len = reader.ReadUInt32();
-                        vNotes[i].words[k].note = reader.ReadUInt16();
-                        vNotes[i].words[k].value = reader.ReadString();
+                        case VocalPhrase.TYPE.REGULAR:
+                            for (int k = 0; k < vNotes[i].words.Length; k++)
+                            {
+                                vNotes[i].words[k] = new VocalWord();
+                                vNotes[i].words[k].time = reader.ReadUInt32();
+                                vNotes[i].words[k].len = reader.ReadUInt32();
+                                vNotes[i].words[k].note = reader.ReadInt16();
+                                vNotes[i].words[k].value = reader.ReadString();
+                            }
+                            break;
+                        case VocalPhrase.TYPE.BLANK:
+                            break;
+                        case VocalPhrase.TYPE.RHYTHM:
+                            vNotes[i].rType = (VocalPhrase.RTYPE)reader.ReadByte();
+                            for (int k = 0; k < vNotes[i].words.Length; k++)
+                            {
+                                vNotes[i].words[k].time = reader.ReadUInt32();
+                            }
+                            break;
                     }
                 }
             }
@@ -607,7 +628,14 @@ namespace Unsigned
                                 shouldhurt = true;
                                 notes[index].visible[i] = NoteSet.VIS_STATE.GREYED_OUT;
                             }
-                        if (shouldhurt)
+                        bool indf = false;
+                        if (index<notes.Length && DFIndex<DFStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time >= DFStart[DFIndex] && notes[index].time <= DFEnd[DFIndex])
+                            indf = true;
+                        if (indf)
+                        {
+                            myResults.hitNotes++;
+                        }
+                        else if (shouldhurt)
                         {
                             reff.Hurt(ind);
                             multiplier = 1;
@@ -620,7 +648,16 @@ namespace Unsigned
                             //reff.Hurt(2);
                         }
                         else
-                        { multiplier = Math.Min(multiplier + 0.1f, 4); reff.Help(2); myResults.hitNotes++; }
+                        {
+                            reff.Help(2);
+                            myResults.hitNotes++;
+                            int scre = 0;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & Game1.bits[i]) != 0)
+                                    scre++;
+                            score += scre * (int)multiplier * 100;
+                            multiplier = Math.Min(multiplier + (scre*0.1f), 4);
+                        }
                     }
                     index++;
                 }
@@ -651,7 +688,18 @@ namespace Unsigned
                             {
                                 shouldhurt = true;
                             }
-                        if (shouldhurt)
+                        
+
+                        
+                        bool indf = false;
+                        if (index<notes.Length && DFIndex<DFStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time > DFStart[DFIndex] && notes[index].time < DFEnd[DFIndex])
+                            indf = true;
+                        if (indf)
+                        {
+                            myResults.hitNotes++;
+
+                        }
+                        else if (shouldhurt)
                         {
                             reff.Hurt(ind);
                             multiplier = 1;
@@ -664,13 +712,14 @@ namespace Unsigned
                         }
                         else
                         {
-                            multiplier = Math.Min(multiplier + 0.1f, 4);
+                            
                             reff.Help(2);
                             myResults.hitNotes++;
                             int scre = 0;
                             for (int i = 0; i < 5; i++)
                                 if ((notes[index].type & Game1.bits[i]) != 0)
                                     scre++;
+                            multiplier = Math.Min(multiplier + (scre*0.1f), 4);
                             score += scre * (int)multiplier * 100;
                         }
                     }
@@ -716,18 +765,13 @@ namespace Unsigned
                     if (SPGood)
                     {
                         StarPowerAmount += 0.25f;
+                        myResults.hitSPPH++;
                     }
                     SPGood = true;
                     SPIndex++;
                 }
 
-                if (Math.Abs(StarPowerAmount - SPADisplay) > 0.0001f)
-                {
-                    if (StarPowerAmount > SPADisplay)
-                        SPADisplay += gameTime.ElapsedGameTime.Milliseconds / 5000f;
-                    else if (StarPowerAmount < SPADisplay)
-                        SPADisplay -= gameTime.ElapsedGameTime.Milliseconds / 5000f;
-                }
+                
                 if (StarPowerAmount >= 0.5)
                 {
                     if (SPMFVel == 0)
@@ -745,15 +789,7 @@ namespace Unsigned
                 if (GetMultiplier() < 2 && multSlide > 0)
                     multSlide -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
 
-                if (SPActivated)
-                {
-                    StarPowerAmount -= gameTime.ElapsedGameTime.Milliseconds / 20000f;
-                    if (StarPowerAmount < 0)
-                    {
-                        SPActivated = false;
-                        StarPowerAmount = 0;
-                    }
-                }
+
                 if (GetBoardType() == Game1.PERCUSSIONIST)
                     if (DFIndex < DFEnd.Length && (long)currenttime > DFEnd[DFIndex])
                         DFIndex++;
@@ -763,6 +799,26 @@ namespace Unsigned
                     multiplier = 6;
                 else if (multiplier > 4 && type != Game1.BASS)
                     multiplier = 4;
+            }
+            else
+            {
+
+            }
+
+            if (Math.Abs(StarPowerAmount - SPADisplay) > 0.001f)
+            {
+                SPADisplay = (StarPowerAmount*0.25f)+(SPADisplay*0.75f);
+            }
+            else
+                SPADisplay = StarPowerAmount;
+            if (SPActivated)
+            {
+                StarPowerAmount -= gameTime.ElapsedGameTime.Milliseconds / 20000f;
+                if (StarPowerAmount < 0)
+                {
+                    SPActivated = false;
+                    StarPowerAmount = 0;
+                }
             }
         }
 
@@ -843,7 +899,7 @@ namespace Unsigned
                 return 0;
             if (index >= notes.Length)
                 return 0;
-            if (StarPowerAmount>0.5 && DFIndex<DFEnd.Length && currenttime >= (long)DFStart[DFIndex] && currenttime <= (long)DFEnd[DFIndex])
+            if (StarPowerAmount>=0.5 && !SPActivated && DFIndex<DFEnd.Length && currenttime >= (long)DFStart[DFIndex] && currenttime <= (long)DFEnd[DFIndex])
             {
                 if ((newPressed & Game1.bits[0]) != 0)
                     if (Math.Abs((DFEnd[DFIndex] - 100) - (long)currenttime) < 100)
@@ -1080,6 +1136,8 @@ namespace Unsigned
                 
                 for (int k = 0; k < vNotes[i].words.Length; k++)
                 {
+                    if (vNotes[i].words[k].note < 0)
+                        continue;
                     float minx=(vocalzerox+(vocalwidth*(vNotes[i].words[k].time-currenttime))), maxx=(vocalzerox+(vocalwidth*((vNotes[i].words[k].len)-currenttime))), y=(1-((vNotes[i].words[k].note%12)/12f))*vocalheight*.69f+vocaly;
                     spritebatch.Draw(vGlow, new Rectangle((int)minx, (int)(y - height/2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(0, 0, 128, 256), glow);
                     spritebatch.Draw(vGlow, new Rectangle((int)(minx+Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height/2), (int)((maxx-minx)-(Math.Min(128 * vScale, (maxx - minx) * vScale)*2)), (int)(height)), new Rectangle(128, 0, 128, 256), glow);
@@ -1094,5 +1152,12 @@ namespace Unsigned
                     spritebatch.DrawString(Game1.DefaultFont, vNotes[i].words[k].value, new Vector2((vocalzerox + (vocalwidth * (vNotes[i].words[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
             spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
         }
+
+        internal void EatHalfSP()
+        {
+            StarPowerAmount -= 0.5f;
+        }
+
+        
     }
 }

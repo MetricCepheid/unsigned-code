@@ -489,26 +489,7 @@ if(!fullbright)
 EngineVertexToPixel MenuVertexShadert(EngineVertexInput input)
 {
   EngineVertexToPixel output = (EngineVertexToPixel)0;
-  float4x4 rRot;
-
-  if(skinned)
-  {
-    float4x4 skinTransform = 0;
-
-    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
-    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
-    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
-    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
-
-    output.pos = mul(float4(input.pos,1), skinTransform);
-    
-    rRot = skinTransform*wRot;
-  }
-  else
-  {
-    rRot = wRot;
-    output.pos = float4(input.pos,1);
-  }
+  output.pos = float4(input.pos,1);
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
   
@@ -516,12 +497,17 @@ EngineVertexToPixel MenuVertexShadert(EngineVertexInput input)
   float3 worldVertPos = GetWorldPos(input.pos);
   
   output.wPos = worldVertPos;//mul(input.pos,world);
+  output.viewVec = mul(worldEyePos - worldVertPos,wRot);
+  output.tangentMatrix = float3x3(1,0,0,0,1,0,0,0,1);
+  output.normal=mul(input.normal,wRot);
   if(vertexAlpha)
+  {
     output.alpha = input.alpha;
+  }
   else
+  {
     output.alpha = 1.0f;
-  output.viewVec = mul(worldEyePos - worldVertPos,rRot);
-  output.normal=mul(input.normal,rRot);
+  }
 
   return output;
 }
@@ -537,7 +523,7 @@ float4 MenuPixelShadert(EnginePixelIn input) : COLOR
   //float3 viewVector = normalize(input.viewVec);
   
   {// Directional Light
-	diffuseCol = saturate(dot(normalVector, dLightDir))*dLDiffuseColor;
+	diffuseCol = saturate(dot(normalVector, normalize(dLightDir)))*diffuseColor*dLDiffuseColor;
   }
 
   // Point Lights
