@@ -1163,6 +1163,11 @@
       <Name>Wave Bank</Name>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="meshes\roundmeter.x">
+      <Name>roundmeter</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
     <Compile Include="meshes\strap.x">
       <Name>strap</Name>
       <Importer>XImporter</Importer>
