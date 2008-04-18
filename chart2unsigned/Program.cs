@@ -1204,7 +1204,7 @@ namespace chart2unsigned
                     fout.Write(barlines.Count);
                     for (int i = 0; i < barlines.Count; i++)
                     { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
-                    fout.Write(barlines[barlines.Length - 1] - barlines[barLines.Length - 2]);
+                    fout.Write(beatTimes[beatTimes.Length-1] - beatTimes[beatTimes.Length - 2]);
 
                 }
                 catch (Exception e)

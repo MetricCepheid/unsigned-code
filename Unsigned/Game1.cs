@@ -110,7 +110,7 @@ namespace Unsigned
             setlist = new List<SongSet>();
             SongSet[] sets = new SongSet[20];
             for (int i = 0; i < 20; i++)
-                sets[i] = new SongSet((i<10?"19":"20") + (i) + "0s");
+                sets[i] = new SongSet((i<10?"19":"20") + (i%100) + "0s");
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
@@ -332,7 +332,7 @@ namespace Unsigned
         private Texture2D texRockMeterLogoStem;
         private Vector2 rockMeterLoc, rockMeterScale;
         private enum GUIStyle { RB = 0, GH = 1, UN = 2 };
-        private GUIStyle cGUIStyle = GUIStyle.UN;
+        private GUIStyle cGUIStyle = GUIStyle.RB;
         private Model mdlMeter;
 
 #endregion
@@ -392,16 +392,17 @@ namespace Unsigned
         public static Color[] FadedFretColors = { new Color(175,207,175), new Color(207,175,175), new Color(207,207,175), new Color(175,175,207), new Color(207,191,175) };
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
         private int started = 0;
-        public static SpriteFont DefaultFont;
+        public static SpriteFont DefaultFont, BigFont;
         public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
         public static Texture2D texGlow, texDefaultBM;
         public static VertexDeclaration vd;
         private RenderTarget2D ort;
         int windowheight, windowwidth;
-        Random r;
+        public static Random r;
         static String loadingText = "Loading";
-        bool DemoMode = true;
+        public static bool DemoMode = false;
+        private bool demomodepress = false;
         byte[] failStatus;
         public static byte FS_GOOD = 0, FS_FAILING = 1, FS_DNE=2;
         float failTime;
@@ -1066,6 +1067,7 @@ namespace Unsigned
             sfMenu = content.Load<SpriteFont>("fonts\\menu");
             texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             DefaultFont = content.Load<SpriteFont>("BasicFont");
+            BigFont = content.Load<SpriteFont>("fonts\\bigfont");
             gradient = content.Load<Texture2D>("graphics\\gradient");
             gradientMask = content.Load<Texture2D>("graphics\\gradientMask");
             tbgGreen = content.Load<Texture2D>("graphics\\large_face_a");
@@ -1521,6 +1523,13 @@ namespace Unsigned
             windowheight = Window.ClientBounds.Height;
             windowwidth = Window.ClientBounds.Width;
             audioEngine.Update();
+
+            if (demomodepress != Keyboard.GetState().IsKeyDown(Keys.O))
+            {
+                demomodepress = Keyboard.GetState().IsKeyDown(Keys.O);
+                if (demomodepress)
+                    DemoMode = !DemoMode;
+            }
 
             GetGamepadStates(false);
             #region mainmenu
@@ -2783,6 +2792,12 @@ namespace Unsigned
                         spritebatch.Draw(songchoosetop, new Rectangle(0, (int)(windowheight-songchoosetop.Height *.74f), windowwidth, songchoosetop.Height),null, Color.White,0,new Vector2(0,0),SpriteEffects.FlipVertically,0);
                         spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
                         spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
+                        if (DemoMode)
+                        {
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
+                        }
                         spritebatch.End();
 #if !DEBUG
                     }
@@ -3666,6 +3681,12 @@ namespace Unsigned
                         spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
                         spritebatch.Draw(tbgRed, new Rectangle((int)(0.99f * windowwidth)-(int)(0.09f * windowheight), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
                         spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
+                        if (DemoMode)
+                        {
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
+                        }
                         spritebatch.End();
 #if !DEBUG
                     }
@@ -3831,6 +3852,12 @@ namespace Unsigned
                         spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
                         spritebatch.Draw(tbgRed, new Rectangle((int)(0.99f * windowwidth)-(int)(0.09f * windowheight), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
                         spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
+                        if (DemoMode)
+                        {
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
+                        }
                         spritebatch.End();
                     }
                     catch(Exception e)
@@ -4296,7 +4323,12 @@ namespace Unsigned
                         //spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
 
                         //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
-
+                        if (DemoMode)
+                        {
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                            spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
+                        }
                         spritebatch.End();
 #if !DEBUG
                     }
@@ -4582,6 +4614,12 @@ namespace Unsigned
                                     spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 150 + (40 * i)), aColor);
                                 for (int i = 2; i < song.songInfo.Length; i++)
                                     spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 190 + (40 * i)), aColor);
+                            }
+                            if (DemoMode)
+                            {
+                                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                             }
 #if !DEBUG
                     }
@@ -4910,6 +4948,12 @@ namespace Unsigned
                         }
                     spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
                     spritebatch.DrawString(DefaultFont, "Continue", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Continue").Y)), Color.White);
+                    if (DemoMode)
+                    {
+                        spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
+                        spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
+                        spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
+                    }
                     spritebatch.End();
                 }
                 #endregion
@@ -5702,6 +5746,7 @@ namespace Unsigned
 
         private void ProcessInput(GameTime gameTime, long currenttime)
         {
+            byte er = 0;
             for (int i = 0; i < 4; i++)
                 if (boards[i] != null)
                 {
@@ -5742,7 +5787,7 @@ namespace Unsigned
                             if (Keyboard.GetState().IsKeyDown(Keys.Escape) || Keyboard.GetState().IsKeyDown(Keys.Back))
                                 TogglePause();
                         }
-                        boards[i].Update(gameTime,currenttime, this, i, pressed);
+                        er=boards[i].Update(gameTime,currenttime, this, i, pressed);
                     }
                     else if (i == 2)
                     {
@@ -5796,11 +5841,20 @@ namespace Unsigned
                                     AddShards(e, 2);
                             }
                         }
-                        boards[i].Update(gameTime, currenttime, this, i, pressed);
+                        er=boards[i].Update(gameTime, currenttime, this, i, pressed);
                     }
                     else
-                        boards[i].Update(gameTime,currenttime, this, i, 0);
+                        er=boards[i].Update(gameTime,currenttime, this, i, 0);
                 }
+
+            if (er > 0)
+            {
+                if ((er & bits[7]) != 0)
+                    AddSparks(er, 0);
+                else
+                    AddShards(er, 0);
+                
+            }
 
             if (instruments[0])
             {
@@ -6571,29 +6625,32 @@ namespace Unsigned
             if (started < 2 && CurrentTime < 30 * TicksPerSecond)
                 if (lowestPoint < rtBoard[i].Height * .99)
                     spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[1]], new Rectangle(0, lowestPoint, rtBoard[i].Width, rtBoard[i].Height - lowestPoint),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);
-            int spheight = (int)((rtBoard[i].Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.spMeterYScale);
-            spritebatch.Draw(Board.spMeterBG, new Rectangle((int)(rtBoard[i].Width * 0.0117f + 0.5f), (int)(rtBoard[i].Height * ratio) + (i==2?boards[i].spMeterShiftDrums:boards[i].spMeterShift), (int)(rtBoard[i].Width * 0.97656f + 0.5f), spheight),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.1f);
+            if (!DemoMode)
             {
-                int left = (int)(rtBoard[i].Width * 0.03125f + rtBoard[i].Width * 0.0117f + 0.5f);
-                int top = (int)(rtBoard[i].Height * ratio) + (i==2?boards[i].spMeterShiftDrums:boards[i].spMeterShift) + (int)(spheight * 0.03125f + 0.5f);
-                int width = (int)(rtBoard[i].Width * 0.97656f * 0.9375f * boards[i].GetSPAmount() + 0.5f);
-                int height = (int)(spheight * 0.21875f + 0.5f);
-                spritebatch.Draw(Board.spMeterFill, new Rectangle(left, top, width, height), Color.Yellow);
-                width = (int)(rtBoard[i].Width * 0.97656f * 0.9375f + 0.5f);
-
-                if (boards[i].GetSPAmount()>=0.4999f)
+                int spheight = (int)((rtBoard[i].Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.spMeterYScale);
+                spritebatch.Draw(Board.spMeterBG, new Rectangle((int)(rtBoard[i].Width * 0.0117f + 0.5f), (int)(rtBoard[i].Height * ratio) + (i == 2 ? boards[i].spMeterShiftDrums : boards[i].spMeterShift), (int)(rtBoard[i].Width * 0.97656f + 0.5f), spheight), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.1f);
                 {
-                    for (int k = 0; k < spcircles.Length; k++)
-                        if(spcircles[k].pos.X<boards[i].GetSPAmount())
-                            spritebatch.Draw(Board.spMeterCurl, new Vector2((spcircles[k].pos.X * width) + left, (spcircles[k].pos.Y * height) + top), null, new Color(new Vector4(1,1,1,spcircles[k].alpha)), spcircles[k].rotation, new Vector2(Board.spMeterCurl.Width / 2, Board.spMeterCurl.Height / 2), new Vector2(scale/1500,scale/1500), SpriteEffects.None, 0);
+                    int left = (int)(rtBoard[i].Width * 0.03125f + rtBoard[i].Width * 0.0117f + 0.5f);
+                    int top = (int)(rtBoard[i].Height * ratio) + (i == 2 ? boards[i].spMeterShiftDrums : boards[i].spMeterShift) + (int)(spheight * 0.03125f + 0.5f);
+                    int width = (int)(rtBoard[i].Width * 0.97656f * 0.9375f * boards[i].GetSPAmount() + 0.5f);
+                    int height = (int)(spheight * 0.21875f + 0.5f);
+                    spritebatch.Draw(Board.spMeterFill, new Rectangle(left, top, width, height), Color.Yellow);
+                    width = (int)(rtBoard[i].Width * 0.97656f * 0.9375f + 0.5f);
+
+                    if (boards[i].GetSPAmount() >= 0.4999f)
+                    {
+                        for (int k = 0; k < spcircles.Length; k++)
+                            if (spcircles[k].pos.X < boards[i].GetSPAmount())
+                                spritebatch.Draw(Board.spMeterCurl, new Vector2((spcircles[k].pos.X * width) + left, (spcircles[k].pos.Y * height) + top), null, new Color(new Vector4(1, 1, 1, spcircles[k].alpha)), spcircles[k].rotation, new Vector2(Board.spMeterCurl.Width / 2, Board.spMeterCurl.Height / 2), new Vector2(scale / 1500, scale / 1500), SpriteEffects.None, 0);
+                    }
                 }
+                int f = boards[i].GetMultiplierFraction();
+                int m = boards[i].GetMultiplier();
+                for (int k = 0; k < f; k++)
+                    spritebatch.Draw(Board.spMeterLED, new Rectangle((int)(rtBoard[i].Width * 0.109375f + rtBoard[i].Width * 0.0117f + 0.5f) + (int)(rtBoard[i].Width * 0.97656f * .078125f * k + 0.5f), (int)(rtBoard[i].Height * ratio) + (i == 2 ? boards[i].spMeterShiftDrums : boards[i].spMeterShift) + (int)(spheight * 0.3125f + 0.5f), (int)(rtBoard[i].Width * 0.97656f * .078125f + 0.5f) + 1, (int)(spheight * 0.3125f + 0.5f)), null, m <= 1 ? Color.Yellow : m == 2 && f == 10 ? Color.Yellow : m == 2 ? Color.Green : m == 3 && f == 10 ? Color.Green : Color.Purple, 0, new Vector2(0, 0), SpriteEffects.None, 0.8f);
+                if (multToIndex[m] >= 0)
+                    spritebatch.Draw(texMult[multToIndex[m]], new Rectangle(rtBoard[i].Width / 3, (int)(rtBoard[i].Height * ratio) + (i == 2 ? boards[i].spMeterShiftDrums : boards[i].spMeterShift) + (int)(spheight * 0.3125f + 0.5f), rtBoard[i].Width / 3, (int)(spheight * 0.5f + 0.5f)), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0);
             }
-            int f = boards[i].GetMultiplierFraction();
-            int m = boards[i].GetMultiplier();
-            for (int k = 0; k < f; k++)
-                spritebatch.Draw(Board.spMeterLED, new Rectangle((int)(rtBoard[i].Width * 0.109375f + rtBoard[i].Width * 0.0117f + 0.5f) + (int)(rtBoard[i].Width * 0.97656f * .078125f * k + 0.5f), (int)(rtBoard[i].Height * ratio) + (i==2?boards[i].spMeterShiftDrums:boards[i].spMeterShift) + (int)(spheight * 0.3125f + 0.5f), (int)(rtBoard[i].Width * 0.97656f * .078125f + 0.5f)+1, (int)(spheight * 0.3125f + 0.5f)),null, m <= 1 ? Color.Yellow : m == 2 && f == 10 ? Color.Yellow : m == 2 ? Color.Green : m == 3 && f == 10 ? Color.Green : Color.Purple,0,new Vector2(0,0),SpriteEffects.None,0.8f);
-            if (multToIndex[m] >= 0)
-                spritebatch.Draw(texMult[multToIndex[m]], new Rectangle(rtBoard[i].Width / 3, (int)(rtBoard[i].Height * ratio) + (i==2?boards[i].spMeterShiftDrums:boards[i].spMeterShift) + (int)(spheight * 0.3125f + 0.5f), rtBoard[i].Width / 3, (int)(spheight * 0.5f + 0.5f)),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0);
             spritebatch.End();
 
             graphics.GraphicsDevice.SetRenderTarget(0, null);
@@ -7689,6 +7746,23 @@ namespace Unsigned
 
         private byte[] logoslots = new byte[11];
         private Color rmColor;
+        private void PreRenderRockMeter()
+        {
+            float rmFill = GetRockMeterFill();
+            if (cGUIStyle == GUIStyle.UN)
+            {
+                graphics.GraphicsDevice.SetRenderTarget(0, rtSongFinished);
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
+                spritebatch.Draw(texWhite, new Rectangle(0, 256 - (int)(song.PercentSong() * 254), 8, (int)(song.PercentSong() * 254)), Color.White);
+                spritebatch.End();
+                graphics.GraphicsDevice.SetRenderTarget(0, rtRockMeter);
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
+                spritebatch.Draw(texWhite, new Rectangle(0, 1, 8, (int)(rmFill * 254)), Color.Green);
+                spritebatch.End();
+            }
+        }
         private void RenderRockMeter()
         {
             if (cGUIStyle == GUIStyle.UN)
@@ -7722,21 +7796,12 @@ namespace Unsigned
             float rmFill = GetRockMeterFill();
             if (cGUIStyle == GUIStyle.UN)
             {
-                graphics.GraphicsDevice.SetRenderTarget(0, rtSongFinished);
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
-                spritebatch.Draw(texWhite, new Rectangle(0, 256-(int)(song.PercentSong()*254), 8, (int)(song.PercentSong()*254)), Color.White);
-                spritebatch.End();
-                graphics.GraphicsDevice.SetRenderTarget(0, rtRockMeter);
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
-                spritebatch.Draw(texWhite, new Rectangle(0, 1, 8, (int)(rmFill*254)), Color.Green);
-                spritebatch.End();
-                graphics.GraphicsDevice.SetRenderTarget(0, null);
+                
 
             }
             else if (cGUIStyle == GUIStyle.RB)
             {
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                 rmColor = Color.Black;
                 
                 rmColor = new Color(rmFill < 0.66 ? (byte)255 : (byte)128,
@@ -7821,6 +7886,7 @@ namespace Unsigned
                         }
                     }
                 }
+                spritebatch.End();
             }
         }
 
@@ -7950,7 +8016,7 @@ namespace Unsigned
                 if (arr[i]>0)
                 {
                     Matrix matRot, matTransl, matOrbit, matScale;
-                    matRot = Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
+                    matRot = Matrix.CreateRotationY(boards[index].flashRot)*Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
                     if (index == 2)
                     {
                         matTransl = Matrix.CreateTranslation((-.75f + (i * .5f)) * (Board.width), 0.1f + Board.height + (boards[index].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
