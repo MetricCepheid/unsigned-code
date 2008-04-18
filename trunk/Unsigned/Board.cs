@@ -87,6 +87,7 @@ namespace Unsigned
         public static float spMeterYScale = 0.4f;
         public int spMeterShift = 7, spMeterShiftDrums=10;
         private Song song;
+        public float flashRot;
         private byte difficulty;
         private int index;
         private float multiplier=1;
@@ -581,10 +582,70 @@ namespace Unsigned
             return fair;*/
         }
 
-        public void Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
+        public byte Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
         {
             if (GetBoardType() != Game1.VOCALS)
             {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (popup[i] > 20 && popupSpeed[i] > 0)
+                        popupSpeed[i] = 0;
+                    if (popup[i] <= 0 && popupSpeed[i] < 0)
+                    {
+                        popup[i] = 0;
+                        popupSpeed[i] = 0;
+                    }
+                    else if (popupSpeed[i] > 0 || popup[i] > 0)
+                    {
+                        popupSpeed[i] -= (gameTime.ElapsedGameTime.Milliseconds);
+                    }
+                    popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
+                }
+                if (Game1.DemoMode)
+                {
+                    if(index<notes.Length)
+                        if (notes[index].time - currenttime < 0)
+                        {
+                            if(!notes[index].burning)
+                            {
+                                if (notes[index].length > 0)
+                                {
+                                    notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                                    notes[index].burning = true;
+                                    for (int i = 0; i < 5; i++)
+                                    if ((notes[index].type & (1 << i)) != 0)
+                                        popupSpeed[i] += 100;
+                                    flashRot = (float)(Game1.r.Next() * Math.PI * 2);
+                                    return notes[index].type;
+                                }
+                                else
+                                {
+                                    notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                                    index++;
+                                    for (int i = 0; i < 5; i++)
+                                    if ((notes[index].type & (1 << i)) != 0)
+                                        popupSpeed[i] += 100;
+                                    flashRot = (float)(Game1.r.Next() * Math.PI * 2);
+                                    return notes[index - 1].type;
+                                }
+                            }
+                            else
+                            {
+                                if ((notes[index].time + notes[index].length) - currenttime < 0)
+                                {
+                                    index++;
+                                    return 0;
+                                }
+                                else
+                                {
+                                    reff.Burn(gameTime, notes[index].type, ind);
+                                    //Burn(gameTime, notes[index].type);
+                                    return 0;// (byte)(Game1.bits[7] | notes[index].type);
+                                }
+                            }
+                        }
+                    return 0;
+                }
                 waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
                 if (GetBoardType() != Game1.PERCUSSIONIST)
@@ -744,21 +805,7 @@ namespace Unsigned
                         index++;
                     }
                 }
-                for (int i = 0; i < 5; i++)
-                {
-                    if (popup[i] > 20 && popupSpeed[i] > 0)
-                        popupSpeed[i] = 0;
-                    if (popup[i] <= 0 && popupSpeed[i] < 0)
-                    {
-                        popup[i] = 0;
-                        popupSpeed[i] = 0;
-                    }
-                    else if (popupSpeed[i] > 0 || popup[i] > 0)
-                    {
-                        popupSpeed[i] -= (gameTime.ElapsedGameTime.Milliseconds);
-                    }
-                    popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
-                }
+                
 
                 if (SPIndex < SPStart.Length && (long)currenttime > SPEnd[SPIndex])
                 {
@@ -820,6 +867,7 @@ namespace Unsigned
                     StarPowerAmount = 0;
                 }
             }
+            return 0;
         }
 
         public float GetBoardBump()//bass bump
