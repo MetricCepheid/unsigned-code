@@ -331,6 +331,9 @@ namespace Unsigned
                           texRockMeterDrumLogo, texRockMeterSingerLogo;
         private Texture2D texRockMeterLogoStem;
         private Vector2 rockMeterLoc, rockMeterScale;
+        private enum GUIStyle { RB = 0, GH = 1, UN = 2 };
+        private GUIStyle cGUIStyle = GUIStyle.UN;
+        private Model mdlMeter;
 
 #endregion
 
@@ -772,6 +775,7 @@ namespace Unsigned
         private const byte M_GAME = 1, M_FREESTYLE = 2;
         private byte screen = S_MAINMENU, mode=M_GAME;
         Texture2D tbgGreen, tbgRed, tbgYellow, tbgPedal;
+        RenderTarget2D rtSongFinished, rtRockMeter;
         static String songname;
         byte[] diff;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
@@ -1175,6 +1179,9 @@ namespace Unsigned
                         }
                 }
 
+                rtRockMeter = new RenderTarget2D(graphics.GraphicsDevice, 8, 256, 1, SurfaceFormat.Color);
+                rtSongFinished = new RenderTarget2D(graphics.GraphicsDevice, 8, 256, 1, SurfaceFormat.Color);
+
                 for (int i = 0; i < spcircles.Length; i++)
                 {
                     spcircles[i].alpha = (float)r.NextDouble();
@@ -1197,6 +1204,7 @@ namespace Unsigned
                 texRockMeterDrumLogo = content.Load<Texture2D>("graphics\\drums_logo");
                 texRockMeterSingerLogo = content.Load<Texture2D>("graphics\\vocal_logo");
                 texScoreBoard = content.Load<Texture2D>("graphics\\scoreboard");
+                mdlMeter = content.Load<Model>("meshes\\roundmeter");
                 texLine = content.Load<Texture2D>("graphics\\line");
                 texLineEnd = content.Load<Texture2D>("graphics\\linetaper");
                 texGlow = content.Load<Texture2D>("graphics\\triggerglow");
@@ -1277,6 +1285,10 @@ namespace Unsigned
             failTime = -2;
             screenTarget.Dispose();
             screenTargetPre.Dispose();
+            rtRockMeter.Dispose();
+            rtRockMeter = null;
+            rtSongFinished.Dispose();
+            rtSongFinished = null;
             for(int i=0;i<4;i++)
             if(instruments[i])
             {rtBoard[i].Dispose();rtWaves[i].Dispose();}
@@ -1297,6 +1309,7 @@ namespace Unsigned
             texRockMeterBassLogo = null;
             texRockMeterDrumLogo = null;
             texRockMeterSingerLogo = null;
+            mdlMeter = null;
             texScoreBoard = null;
             texLine = null;
             texLineEnd = null;
@@ -4536,10 +4549,11 @@ namespace Unsigned
                                 spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
                             //draw score/stars
                             DrawScoreStars(currenttime);
-
+                            spritebatch.End();
                             //draw rock meter
                             DrawRockMeter(currenttime);
 
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
                             //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
                             //draw development info
@@ -5033,7 +5047,7 @@ namespace Unsigned
             return (add / ct) / 100f;
         }
 
-        public void InitForSong(bool guitarist, bool vocalist, bool percussionist, bool bassist, byte[] difficulty, String venueStr, Game1 gameRef)
+        public void InitForSong(bool guitarist, bool vocalist, bool percussionist, bool bassist, byte[] difficulty, String venueStr, Game1 gameRef) 
         {
             rockstarLoc = new Vector2(graphics.PreferredBackBufferWidth* 0.8f, graphics.PreferredBackBufferHeight * ( (vocalist) ? 0.25f : 0.1f));
             rockstarScale = new Vector2(graphics.PreferredBackBufferWidth * 0.2f, graphics.PreferredBackBufferHeight * 0.1f);
@@ -6531,10 +6545,14 @@ namespace Unsigned
                 else if (rockMeterLevel[i]<20)
                 {
                     if(song.percentBeat>0.5)
-                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((song.percentBeat-0.5)*511), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((song.percentBeat-0.5)*255), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
                     else
-                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((0.5-song.percentBeat)*511), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((0.5-song.percentBeat)*255), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
                 }
+                else if(rockMeterLevel[i]>80)
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, (byte)(30+((rockMeterLevel[i]-80)/20f)*50), 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                else if(rockMeterLevel[i]<40)
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(30+(1-((rockMeterLevel[i]-20)/20f))*50), 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                 else
                     spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
             }
@@ -7671,88 +7689,135 @@ namespace Unsigned
 
         private byte[] logoslots = new byte[11];
         private Color rmColor;
+        private void RenderRockMeter()
+        {
+            if (cGUIStyle == GUIStyle.UN)
+            {
+                engine.Parameters["proj"].SetValue(Matrix.Identity);
+                engine.Parameters["view"].SetValue(Matrix.Identity);
+                engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
+                engine.Parameters["world"].SetValue(Matrix.CreateRotationX(-MathHelper.PiOver2));
+                engine.Parameters["diffuseTexture"].SetValue(rtSongFinished.GetTexture());
+                engine.Parameters["fullbright"].SetValue(true);
+                engine.CommitChanges();
+                graphics.GraphicsDevice.VertexDeclaration = vd;
+                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                foreach (ModelMesh mesh in mdlMeter.Meshes)
+                {
+                    foreach (ModelMeshPart part in mesh.MeshParts)
+                    {
+                        graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                    }
+                }
+                engine.Parameters["fullbright"].SetValue(false);
+            }
+        }
         private void DrawRockMeter(long currenttime)
         {
-            rmColor =Color.Black;
             float rmFill = GetRockMeterFill();
-            rmColor = new Color(rmFill<0.66?(byte)255:(byte)128, 
-                                rmFill>0.33?(byte)255:(byte)128,
-                                127);
-            float rex;
-            if (currenttime/1000f > -2.5)
-                rex = rockMeterLoc.X;
-            else if ((currenttime/1000f) > -3)
-                rex = -(rockMeterScale.X * 3) + ((((currenttime/1000f) + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
-            else
-                rex = -rockMeterScale.X * 3;
-            if (failTime > 0)
+            if (cGUIStyle == GUIStyle.UN)
             {
-                if (song.percentBeat > 0.5)
-                {
-                    spritebatch.Draw(texWhite,new Rectangle((int)((rockMeterScale.X * 0.2f) + rex),(int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime/3)) * 0.95f)),(int)(rockMeterScale.X * 0.65f),(int)(rockMeterScale.Y * (failTime/3) * 0.95f)),new Color((byte)((song.percentBeat-0.5)*255+128),0,0));
-                }
-                else
-                {
-                    spritebatch.Draw(texWhite,new Rectangle((int)((rockMeterScale.X * 0.2f) + rex),(int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime/3)) * 0.95f)),(int)(rockMeterScale.X * 0.65f),(int)(rockMeterScale.Y * (failTime/3) * 0.95f)),new Color((byte)((0.5-song.percentBeat)*255+128),0,0));
-                }
+                graphics.GraphicsDevice.SetRenderTarget(0, rtSongFinished);
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
+                spritebatch.Draw(texWhite, new Rectangle(0, 256-(int)(song.PercentSong()*254), 8, (int)(song.PercentSong()*254)), Color.White);
+                spritebatch.End();
+                graphics.GraphicsDevice.SetRenderTarget(0, rtRockMeter);
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
+                spritebatch.Draw(texWhite, new Rectangle(0, 1, 8, (int)(rmFill*254)), Color.Green);
+                spritebatch.End();
+                graphics.GraphicsDevice.SetRenderTarget(0, null);
+
             }
-            else
+            else if (cGUIStyle == GUIStyle.RB)
             {
-                if (rmFill <= 0.33)
-                    spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 0, 0f, 0.8f)));
-                else if (rmFill <= 0.67)
-                    spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 1f, 0f, 0.8f)));
+                rmColor = Color.Black;
+                
+                rmColor = new Color(rmFill < 0.66 ? (byte)255 : (byte)128,
+                                    rmFill > 0.33 ? (byte)255 : (byte)128,
+                                    127);
+                float rex;
+                if (currenttime / 1000f > -2.5)
+                    rex = rockMeterLoc.X;
+                else if ((currenttime / 1000f) > -3)
+                    rex = -(rockMeterScale.X * 3) + ((((currenttime / 1000f) + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
                 else
-                    spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(0f, 1f, 0f, 0.8f)));
-            }
-            spritebatch.Draw(texRockMeterOutline, new Rectangle((int)rex, (int)rockMeterLoc.Y, (int)rockMeterScale.X, (int)rockMeterScale.Y), rmColor);
-
-            for (int i = 0; i < 10; i++)
-                logoslots[i] = (byte)0;
-            for (int i = 0; i < 4; i++)
-                if (instruments[i])
-                    logoslots[(int)Math.Min(Math.Round(Math.Max(0,rockMeterLevel[i]) / 10f), 10)] |= bits[i];
-
-            for (int i = 0; i < 11; i++)
-            {   
-                int logoscale = 4;
-                if (logoslots[i]!=0)
+                    rex = -rockMeterScale.X * 3;
+                if (failTime > 0)
                 {
-                    int numhere = 0;
-                    for (int k = 0; k < 4; k++)
-                        if ((logoslots[i] & bits[k]) != 0)
-                            numhere++;
-                    rmFill = ((10 - i) / 10f);
-                    rmColor = new Color((1-rmFill)<0.66?(byte)255:(byte)128, 
-                                        (1-rmFill)>0.33?(byte)255:(byte)128,
-                                        127);
-                    spritebatch.Draw(texRockMeterLogoStem, new Vector2(rex + (rockMeterScale.X / 2), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * 3, new SpriteEffects(), 0);
-                    int tnum = numhere;
-                    for (int k = 3; k >= 0; k--)
+                    if (song.percentBeat > 0.5)
                     {
-                        
-                        if ((logoslots[i] & bits[k]) != 0)
+                        spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 3) * 0.95f)), new Color((byte)((song.percentBeat - 0.5) * 255 + 128), 0, 0));
+                    }
+                    else
+                    {
+                        spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 3) * 0.95f)), new Color((byte)((0.5 - song.percentBeat) * 255 + 128), 0, 0));
+                    }
+                }
+                else
+                {
+                    if (rmFill <= 0.33)
+                        spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 0, 0f, 0.8f)));
+                    else if (rmFill <= 0.67)
+                        spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(1f, 1f, 0f, 0.8f)));
+                    else
+                        spritebatch.Draw(texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - rmFill) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * rmFill * 0.95f)), new Color(new Vector4(0f, 1f, 0f, 0.8f)));
+                }
+                spritebatch.Draw(texRockMeterOutline, new Rectangle((int)rex, (int)rockMeterLoc.Y, (int)rockMeterScale.X, (int)rockMeterScale.Y), rmColor);
+
+                for (int i = 0; i < 10; i++)
+                    logoslots[i] = (byte)0;
+                for (int i = 0; i < 4; i++)
+                    if (instruments[i])
+                        logoslots[(int)Math.Min(Math.Round(Math.Max(0, rockMeterLevel[i]) / 10f), 10)] |= bits[i];
+
+                for (int i = 0; i < 11; i++)
+                {
+                    int logoscale = 4;
+                    if (logoslots[i] != 0)
+                    {
+                        int numhere = 0;
+                        for (int k = 0; k < 4; k++)
+                            if ((logoslots[i] & bits[k]) != 0)
+                                numhere++;
+                        rmFill = ((10 - i) / 10f);
+                        rmColor = new Color((1 - rmFill) < 0.66 ? (byte)255 : (byte)128,
+                                            (1 - rmFill) > 0.33 ? (byte)255 : (byte)128,
+                                            127);
+                        spritebatch.Draw(texRockMeterLogoStem, new Vector2(rex + (rockMeterScale.X / 2), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), new Rectangle(0, 0, 256, 256), rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * 3, new SpriteEffects(), 0);
+                        int tnum = numhere;
+                        for (int k = 3; k >= 0; k--)
                         {
-                            rmFill = rockMeterLevel[k]/100f;
-                            rmColor = new Color(rmFill<0.66?(byte)255:(byte)128, 
-                                rmFill>0.33?(byte)255:(byte)128,
-                                127);
-                            switch (k)
+
+                            if ((logoslots[i] & bits[k]) != 0)
                             {
-                                case 0:
-                                    spritebatch.Draw(texRockMeterGuitarLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
-                                    break;
-                                case 1:
-                                    spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
-                                    break;
-                                case 2:
-                                    spritebatch.Draw(texRockMeterDrumLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
-                                    break;
-                                case 3:
-                                    spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
-                                    break;
+                                rmFill = rockMeterLevel[k] / 100f;
+                                rmColor = new Color(rmFill < 0.66 ? (byte)255 : (byte)128,
+                                    rmFill > 0.33 ? (byte)255 : (byte)128,
+                                    127);
+                                switch (k)
+                                {
+                                    case 0:
+                                        spritebatch.Draw(texRockMeterGuitarLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
+                                        break;
+                                    case 1:
+                                        spritebatch.Draw(texRockMeterSingerLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
+                                        break;
+                                    case 2:
+                                        spritebatch.Draw(texRockMeterDrumLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
+                                        break;
+                                    case 3:
+                                        spritebatch.Draw(texRockMeterBassLogo, new Vector2(rex + (rockMeterScale.X / 2) + (tnum * (210 * (rockMeterScale.X / 800f * logoscale))) - (128 * (rockMeterScale.X / 800f * logoscale)), rockMeterLoc.Y + (rockMeterScale.Y * ((10 - i) / 10f) * 0.92f) + (rockMeterScale.Y * 0.04f)), rect256, rmColor, 0, new Vector2(0, 128), rockMeterScale.X / 800f * logoscale, SpriteEffects.None, 0);
+                                        break;
+                                }
+                                tnum--;
                             }
-                            tnum--;
                         }
                     }
                 }

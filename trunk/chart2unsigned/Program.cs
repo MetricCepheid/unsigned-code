@@ -1140,6 +1140,32 @@ namespace chart2unsigned
 
 
                 Console.WriteLine("Beginning difficulty parsing");
+                //diff processing mebe
+
+                Console.WriteLine("Fixing Offset");
+
+                for (int i = 0; i < barlines.Count; i++)
+                    barlines[i].time += (uint)(offset * 1000);
+                for (int i = 0; i < newSPs.Length; i++)
+                    for (int k = 0; k < newSPs[i].Length; k++)
+                        for (int l = 0; l < newSPs[i][k].Length; l++)
+                            newSPs[i][k][l].time += (uint)(offset * 1000);
+                for (int i = 0; i < newnotes.Length; i++)
+                    for (int k = 0; k < newnotes[i].Length; k++)
+                        for (int l = 0; l < newnotes[i][k].Length; l++)
+                            newnotes[i][k][l].time += (uint)(offset * 1000);
+                for (int i = 0; i < newDFs.Length; i++)
+                    newDFs[i].time += (uint)(offset * 1000);
+                for (int i = 0; i < vocalPhrases.Count; i++)
+                {
+                    vocalPhrases[i].time += (uint)(offset * 1000);
+                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                        vocalPhrases[i].words[k].time += (uint)(offset * 1000);
+                }
+                for (int i = 0; i < cameraSwitches.Count; i++)
+                    cameraSwitches[i] += (uint)(offset * 1000);
+
+
 
 
                 Console.WriteLine("Finished Processing");
@@ -1178,7 +1204,7 @@ namespace chart2unsigned
                     fout.Write(barlines.Count);
                     for (int i = 0; i < barlines.Count; i++)
                     { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
-                    fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
+                    fout.Write(barlines[barlines.Length - 1] - barlines[barLines.Length - 2]);
 
                 }
                 catch (Exception e)
