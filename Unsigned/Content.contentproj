@@ -1544,6 +1544,23 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="graphics\roundmeterbg.png">
+      <Name>roundmeterbg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\roundmeterfg.png">
+      <Name>roundmeterfg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\scorestar.png">
+      <Name>scorestar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="charmodels\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

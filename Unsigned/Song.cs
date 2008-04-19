@@ -198,7 +198,7 @@ namespace Unsigned
 
         public bool IsOver(long currenttime)
         {
-            if ((long)currenttime/1000 > ((TimeH*360)+(TimeM*60)+(TimeS)))
+            if ((long)currenttime/1000 > ((TimeH*3600)+(TimeM*60)+(TimeS)))
                 return true;
             return false;
         }

@@ -333,7 +333,7 @@ namespace Unsigned
         private Vector2 rockMeterLoc, rockMeterScale;
         private enum GUIStyle { RB = 0, GH = 1, UN = 2 };
         private GUIStyle cGUIStyle = GUIStyle.RB;
-        private Model mdlMeter;
+        private Texture2D rmUNbg, rmUNfg, rmUNstar;
 
 #endregion
 
@@ -776,7 +776,6 @@ namespace Unsigned
         private const byte M_GAME = 1, M_FREESTYLE = 2;
         private byte screen = S_MAINMENU, mode=M_GAME;
         Texture2D tbgGreen, tbgRed, tbgYellow, tbgPedal;
-        RenderTarget2D rtSongFinished, rtRockMeter;
         static String songname;
         byte[] diff;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
@@ -932,7 +931,7 @@ namespace Unsigned
             totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
-            /*songname = "Master_of_Puppets";
+            songname = "dontstop";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
@@ -940,7 +939,7 @@ namespace Unsigned
             instruments[0] = true;
             instruments[1] = true;
             //instruments[2] = true;
-            instruments[3] = true;
+            //instruments[3] = true;
             contInput[0] = 4;
             rockerNames[0] = "default";
             contInput[2] = 0;
@@ -1181,8 +1180,6 @@ namespace Unsigned
                         }
                 }
 
-                rtRockMeter = new RenderTarget2D(graphics.GraphicsDevice, 8, 256, 1, SurfaceFormat.Color);
-                rtSongFinished = new RenderTarget2D(graphics.GraphicsDevice, 8, 256, 1, SurfaceFormat.Color);
 
                 for (int i = 0; i < spcircles.Length; i++)
                 {
@@ -1206,10 +1203,12 @@ namespace Unsigned
                 texRockMeterDrumLogo = content.Load<Texture2D>("graphics\\drums_logo");
                 texRockMeterSingerLogo = content.Load<Texture2D>("graphics\\vocal_logo");
                 texScoreBoard = content.Load<Texture2D>("graphics\\scoreboard");
-                mdlMeter = content.Load<Model>("meshes\\roundmeter");
                 texLine = content.Load<Texture2D>("graphics\\line");
                 texLineEnd = content.Load<Texture2D>("graphics\\linetaper");
                 texGlow = content.Load<Texture2D>("graphics\\triggerglow");
+                rmUNbg = content.Load<Texture2D>("graphics\\roundmeterbg");
+                rmUNfg = content.Load<Texture2D>("graphics\\roundmeterfg");
+                rmUNstar = content.Load<Texture2D>("graphics\\scorestar");
                 texMult = new Texture2D[8];
                 for (int i = 0; i <= 12; i++)
                     if(multToIndex[i]>=0)
@@ -1287,10 +1286,6 @@ namespace Unsigned
             failTime = -2;
             screenTarget.Dispose();
             screenTargetPre.Dispose();
-            rtRockMeter.Dispose();
-            rtRockMeter = null;
-            rtSongFinished.Dispose();
-            rtSongFinished = null;
             for(int i=0;i<4;i++)
             if(instruments[i])
             {rtBoard[i].Dispose();rtWaves[i].Dispose();}
@@ -1311,8 +1306,10 @@ namespace Unsigned
             texRockMeterBassLogo = null;
             texRockMeterDrumLogo = null;
             texRockMeterSingerLogo = null;
-            mdlMeter = null;
             texScoreBoard = null;
+            rmUNbg = null;
+            rmUNfg = null;
+            rmUNstar = null;
             texLine = null;
             texLineEnd = null;
             texGlow = null;
@@ -2193,7 +2190,7 @@ namespace Unsigned
                             return;
                         }
                         long songt = song.getTime();
-                        if (lastChange != songt && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) > 50)
+                        if (lastChange != songt && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) > 50 && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) < 5000)
                         {
                             CurrentTime = songt * (long)(TicksPerSecond / 1000);
                             lastChange = songt;
@@ -4487,6 +4484,8 @@ namespace Unsigned
                                     DrawGibs();
                                     DrawFlashes(i, fling);
                                 }
+                                if(cGUIStyle==GUIStyle.UN)
+                                    DrawRockMeter(currenttime);
                                 pass.End();
                             }
                             engine.End();
@@ -4581,16 +4580,15 @@ namespace Unsigned
                                 spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
                             //draw score/stars
                             DrawScoreStars(currenttime);
-                            spritebatch.End();
                             //draw rock meter
-                            DrawRockMeter(currenttime);
+                            if(cGUIStyle==GUIStyle.RB)
+                                DrawRockMeter(currenttime);
 
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
                             //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
                             //draw development info
                             {
-                                spritebatch.DrawString(DefaultFont, "" + (int)(1000f/gameTime.ElapsedRealTime.Milliseconds), new Vector2(windowwidth-40, windowheight-40), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + (int)(1000f/gameTime.ElapsedRealTime.Milliseconds), new Vector2(windowwidth-40, windowheight-40), Color.Red);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 0, 300, 600), Color.White);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
@@ -4621,6 +4619,7 @@ namespace Unsigned
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                             }
+                            //spritebatch.DrawString(DefaultFont, "" + ((currenttime / 1000) / 3600) + ":" + ((currenttime / 1000) / 60 % 3600) + ":" + (currenttime / 1000 % 60), new Vector2(0, 0), Color.Wheat);
 #if !DEBUG
                     }
                     catch(Exception e)
@@ -7746,62 +7745,16 @@ namespace Unsigned
 
         private byte[] logoslots = new byte[11];
         private Color rmColor;
-        private void PreRenderRockMeter()
-        {
-            float rmFill = GetRockMeterFill();
-            if (cGUIStyle == GUIStyle.UN)
-            {
-                graphics.GraphicsDevice.SetRenderTarget(0, rtSongFinished);
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
-                spritebatch.Draw(texWhite, new Rectangle(0, 256 - (int)(song.PercentSong() * 254), 8, (int)(song.PercentSong() * 254)), Color.White);
-                spritebatch.End();
-                graphics.GraphicsDevice.SetRenderTarget(0, rtRockMeter);
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                spritebatch.Draw(texWhite, new Rectangle(0, 0, 8, 256), Color.Black);
-                spritebatch.Draw(texWhite, new Rectangle(0, 1, 8, (int)(rmFill * 254)), Color.Green);
-                spritebatch.End();
-            }
-        }
-        private void RenderRockMeter()
-        {
-            if (cGUIStyle == GUIStyle.UN)
-            {
-                engine.Parameters["proj"].SetValue(Matrix.Identity);
-                engine.Parameters["view"].SetValue(Matrix.Identity);
-                engine.Parameters["viewInverse"].SetValue(Matrix.Identity);
-                engine.Parameters["world"].SetValue(Matrix.CreateRotationX(-MathHelper.PiOver2));
-                engine.Parameters["diffuseTexture"].SetValue(rtSongFinished.GetTexture());
-                engine.Parameters["fullbright"].SetValue(true);
-                engine.CommitChanges();
-                graphics.GraphicsDevice.VertexDeclaration = vd;
-                graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                foreach (ModelMesh mesh in mdlMeter.Meshes)
-                {
-                    foreach (ModelMeshPart part in mesh.MeshParts)
-                    {
-                        graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                    }
-                }
-                engine.Parameters["fullbright"].SetValue(false);
-            }
-        }
+
         private void DrawRockMeter(long currenttime)
         {
             float rmFill = GetRockMeterFill();
             if (cGUIStyle == GUIStyle.UN)
             {
-                
-
+            
             }
             else if (cGUIStyle == GUIStyle.RB)
             {
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                 rmColor = Color.Black;
                 
                 rmColor = new Color(rmFill < 0.66 ? (byte)255 : (byte)128,
@@ -7886,7 +7839,6 @@ namespace Unsigned
                         }
                     }
                 }
-                spritebatch.End();
             }
         }
 
