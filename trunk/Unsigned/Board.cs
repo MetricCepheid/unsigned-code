@@ -621,10 +621,10 @@ namespace Unsigned
                                 else
                                 {
                                     notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                                    index++;
                                     for (int i = 0; i < 5; i++)
                                     if ((notes[index].type & (1 << i)) != 0)
                                         popupSpeed[i] += 100;
+                                    index++;
                                     flashRot = (float)(Game1.r.Next() * Math.PI * 2);
                                     return notes[index - 1].type;
                                 }
