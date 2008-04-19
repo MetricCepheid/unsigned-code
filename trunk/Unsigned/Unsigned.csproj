@@ -100,6 +100,9 @@
     <Content Include="characters\dummy.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="irrKlang.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>
