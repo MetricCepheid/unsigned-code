@@ -819,7 +819,7 @@ namespace Unsigned
                 }
 
                 
-                if (StarPowerAmount >= 0.5)
+                /*if (StarPowerAmount >= 0.5)
                 {
                     if (SPMFVel == 0)
                         SPMFVel = 4f;
@@ -830,7 +830,7 @@ namespace Unsigned
                         SPMFVel = 4;
                 }
                 else
-                    SPMFlash = 0;
+                    SPMFlash = 0;*/
                 if (GetMultiplier() >= 2 && multSlide < 1)
                     multSlide += gameTime.ElapsedGameTime.Milliseconds / 1000f;
                 if (GetMultiplier() < 2 && multSlide > 0)

@@ -931,7 +931,7 @@ namespace Unsigned
             totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
-            songname = "dontstop";
+            /*songname = "dontstop";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
@@ -5764,7 +5764,7 @@ namespace Unsigned
                                 pressed |= bits[boards[i].IsLefty()?1:3];
                             if (controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                                 pressed |= bits[boards[i].IsLefty()?0:4];
-                            if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f)
+                            if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f || controllers[contInput[i]].Buttons.Back == ButtonState.Pressed)
                                 StarPowerAction(i);
                             if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
                                 TogglePause();
@@ -5786,7 +5786,8 @@ namespace Unsigned
                             if (Keyboard.GetState().IsKeyDown(Keys.Escape) || Keyboard.GetState().IsKeyDown(Keys.Back))
                                 TogglePause();
                         }
-                        er=boards[i].Update(gameTime,currenttime, this, i, pressed);
+                        if(!IsPaused)
+                            er=boards[i].Update(gameTime,currenttime, this, i, pressed);
                     }
                     else if (i == 2)
                     {
@@ -5803,6 +5804,8 @@ namespace Unsigned
                                 pressed |= 8;
                             if (controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                                 pressed |= 16;
+                            if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
+                                TogglePause();
                         }
                         else if (contInput[2] == 4)
                         {
@@ -5816,6 +5819,8 @@ namespace Unsigned
                                 pressed |= 8;
                             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                                 pressed |= 16;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Escape) || Keyboard.GetState().IsKeyDown(Keys.Back))
+                                TogglePause();
                         }
                         if (pressed != 0)
                         {
@@ -5840,9 +5845,10 @@ namespace Unsigned
                                     AddShards(e, 2);
                             }
                         }
-                        er=boards[i].Update(gameTime, currenttime, this, i, pressed);
+                        if(!IsPaused)
+                            er=boards[i].Update(gameTime, currenttime, this, i, pressed);
                     }
-                    else
+                    else if(!IsPaused)
                         er=boards[i].Update(gameTime,currenttime, this, i, 0);
                 }
 
@@ -5854,6 +5860,9 @@ namespace Unsigned
                     AddShards(er, 0);
                 
             }
+
+            if (IsPaused)
+                return;
 
             if (instruments[0])
             {
@@ -5873,6 +5882,7 @@ namespace Unsigned
                             pressed |= 8;
                         if (controllers[contInput[0]].Buttons.LeftShoulder == ButtonState.Pressed)
                             pressed |= 16;
+
 
                         byte e = boards[0].Strum(pressed, currenttime,this,0);
                         if (e > 0)
@@ -5918,7 +5928,7 @@ namespace Unsigned
                 }
                 else if (contInput[0] == 4)
                 {
-                    if (Keyboard.GetState().IsKeyDown(Keys.Down) && guitarStrum != 1)
+                    if (Keyboard.GetState().IsKeyDown(Keys.Down) && guitarStrum == 0)
                     {
                         guitarStrum = 1;
                         byte pressed = 0;
@@ -5945,7 +5955,7 @@ namespace Unsigned
                         else
                             Hurt(0);
                     }
-                    if (Keyboard.GetState().IsKeyDown(Keys.Up) && guitarStrum != 2)
+                    if (Keyboard.GetState().IsKeyDown(Keys.Up) && guitarStrum == 0)
                     {
                         guitarStrum = 2;
                         byte pressed = 0;
