@@ -44,10 +44,13 @@ namespace Unsigned
             LoadSong(FileName, game);
         }
 
-        private void LoadSong(String fn, IntPtr game)
+        private bool LoadSong(String fn, IntPtr game)
         {
-            if (!System.IO.File.Exists("songdata\\"+fn+".gba"))
-                return;
+            if (!System.IO.File.Exists("songdata\\" + fn + ".gba"))
+            {
+                System.Windows.Forms.MessageBox.Show("songdata not found");
+                return false;
+            }
             System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gba"));
             byte version = reader.ReadByte();
             SongName = reader.ReadString();
@@ -133,13 +136,14 @@ namespace Unsigned
             if (song==null || sound==null)
             {
                 System.Windows.Forms.MessageBox.Show("audio not found");
-                return;
+                return false;
             }
             sound.Volume = 0.75f;
             /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
             manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
             manager.StopOggFile(0);*/
 #endif
+            return true;
         }
 
         public void GetZVals(long currenttime)

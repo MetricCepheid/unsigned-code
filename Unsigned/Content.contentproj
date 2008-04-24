@@ -321,11 +321,6 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
-    <Compile Include="graphics\board_54.tga">
-      <Name>board_54</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
     <Compile Include="meshes\note.x">
       <Name>note</Name>
       <Importer>XImporter</Importer>
@@ -822,12 +817,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SkinnedModelPipeline\SkinnedModelPipeline.csproj">
-      <Project>{007DFB20-8DAF-4088-BB0A-C5EB0282E679}</Project>
-      <Name>SkinnedModelPipeline</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="shaders\HFPS_Shader_XNA.fx">
       <Name>HFPS_Shader_XNA</Name>
       <Importer>EffectImporter</Importer>
@@ -1163,6 +1152,36 @@
       <Name>Wave Bank</Name>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="fonts\smallfont.spritefont">
+      <Name>smallfont</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_00.tga">
+      <Name>board_00</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_47.tga">
+      <Name>board_47</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_49.tga">
+      <Name>board_49</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_57.tga">
+      <Name>board_57</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\board_59.tga">
+      <Name>board_59</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
     <Compile Include="fonts\bigfont.spritefont">
       <Name>bigfont</Name>
       <Importer>FontDescriptionImporter</Importer>
@@ -1556,6 +1575,34 @@
     </Compile>
     <Compile Include="graphics\scorestar.png">
       <Name>scorestar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\scorestaro.png">
+      <Name>scorestaro</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\board_54.png">
+      <Name>board_54</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\starglow.png">
+      <Name>starglow</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\header.png">
+      <Name>header</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
