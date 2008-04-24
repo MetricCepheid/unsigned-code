@@ -35,6 +35,7 @@ namespace Unsigned
     {
         public float X, Y;
         public byte Z;
+        public bool White;
     }
 
     public struct SongListEntry
@@ -110,7 +111,7 @@ namespace Unsigned
             setlist = new List<SongSet>();
             SongSet[] sets = new SongSet[20];
             for (int i = 0; i < 20; i++)
-                sets[i] = new SongSet((i<10?"19":"20") + (i%100) + "0s");
+                sets[i] = new SongSet((i<10?"19":"20") + (i%10) + "0s");
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
@@ -332,8 +333,8 @@ namespace Unsigned
         private Texture2D texRockMeterLogoStem;
         private Vector2 rockMeterLoc, rockMeterScale;
         private enum GUIStyle { RB = 0, GH = 1, UN = 2 };
-        private GUIStyle cGUIStyle = GUIStyle.RB;
-        private Texture2D rmUNbg, rmUNfg, rmUNstar;
+        private GUIStyle cGUIStyle = GUIStyle.UN;
+        private Texture2D rmUNbg, rmUNfg, rmUNstar, rmUNstaro;
 
 #endregion
 
@@ -392,7 +393,7 @@ namespace Unsigned
         public static Color[] FadedFretColors = { new Color(175,207,175), new Color(207,175,175), new Color(207,207,175), new Color(175,175,207), new Color(207,191,175) };
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
         private int started = 0;
-        public static SpriteFont DefaultFont, BigFont;
+        public static SpriteFont DefaultFont, BigFont, SmallFont;
         public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
         public static Texture2D texGlow, texDefaultBM;
@@ -820,6 +821,7 @@ namespace Unsigned
         VertexBuffer songlistVB;
         float SONGLIST_WAVE_SPEED=5, slCurrentWave, slWaveLength=50f, slWaveStrength=2, SONGLIST_LENGTH=170, SONGLIST_WIDTH=1;
         String[][] mMenuStr;
+        Color[][] mMenuCol;
         Vector2 menuShiftPos;
         SpriteFont sfMenu;
         int menuSnakeRotOffset;
@@ -827,6 +829,7 @@ namespace Unsigned
         float dialogscroll;
         Texture2D coolbg1, coolbg2;
         float waveM1, waveM2;
+        Texture2D texHeader;
 
         bool MenuLoading = false, MenuLoaded = false, GameLoading = false, GameLoaded = false;
 #endregion
@@ -916,6 +919,24 @@ namespace Unsigned
             mMenuStr[3][0] = "AUDIO OPTIONS";
             mMenuStr[3][1] = "VIDEO OPTIONS";
             mMenuStr[3][2] = "DATA OPTIONS";
+            mMenuCol = new Color[4][];
+            mMenuCol[0] = new Color[4];
+            mMenuCol[0][0] = Color.Red;
+            mMenuCol[0][1] = Color.White;
+            mMenuCol[0][2] = Color.Red;
+            mMenuCol[0][3] = Color.White;
+            mMenuCol[1] = new Color[2];
+            mMenuCol[1][0] = Color.Red;
+            mMenuCol[1][1] = Color.White;
+            mMenuCol[2] = new Color[4];
+            mMenuCol[2][0] = Color.White;
+            mMenuCol[2][1] = Color.Red;
+            mMenuCol[2][2] = Color.Red;
+            mMenuCol[2][3] = Color.Red;
+            mMenuCol[3] = new Color[3];
+            mMenuCol[3][0] = Color.Red;
+            mMenuCol[3][1] = Color.Red;
+            mMenuCol[3][2] = Color.Red;
 
             failStatus = new byte[4];
             failTime = -2;
@@ -931,7 +952,7 @@ namespace Unsigned
             totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
-            /*songname = "dontstop";
+            /*songname = "wheelsky";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
@@ -1067,6 +1088,7 @@ namespace Unsigned
             texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             DefaultFont = content.Load<SpriteFont>("BasicFont");
             BigFont = content.Load<SpriteFont>("fonts\\bigfont");
+            SmallFont = content.Load<SpriteFont>("fonts\\smallfont");
             gradient = content.Load<Texture2D>("graphics\\gradient");
             gradientMask = content.Load<Texture2D>("graphics\\gradientMask");
             tbgGreen = content.Load<Texture2D>("graphics\\large_face_a");
@@ -1209,6 +1231,7 @@ namespace Unsigned
                 rmUNbg = content.Load<Texture2D>("graphics\\roundmeterbg");
                 rmUNfg = content.Load<Texture2D>("graphics\\roundmeterfg");
                 rmUNstar = content.Load<Texture2D>("graphics\\scorestar");
+                rmUNstaro = content.Load<Texture2D>("graphics\\scorestaro");
                 texMult = new Texture2D[8];
                 for (int i = 0; i <= 12; i++)
                     if(multToIndex[i]>=0)
@@ -1226,6 +1249,7 @@ namespace Unsigned
                         Board.boardTexPlain[i][Board.boardBeatsIndex[Board.boardValidBPM[k]]] = content.Load<Texture2D>("graphics\\board_" + (i + 4) + "" + (Board.boardValidBPM[k]));
                     }
                 }
+                //Board.boardTexPlain[1][4] = content.Load<Texture2D>("graphics\\test");
                 Board.texTriggerBorder = content.Load<Texture2D>("graphics\\triggerborder");
                 Board.drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
                 Board.spMeterBG = content.Load<Texture2D>("graphics\\boardmeter");
@@ -1287,7 +1311,7 @@ namespace Unsigned
             screenTarget.Dispose();
             screenTargetPre.Dispose();
             for(int i=0;i<4;i++)
-            if(instruments[i])
+            if(instruments[i] && i!=1)
             {rtBoard[i].Dispose();rtWaves[i].Dispose();}
             screenTarget = null;
             screenTargetPre = null;
@@ -1310,6 +1334,7 @@ namespace Unsigned
             rmUNbg = null;
             rmUNfg = null;
             rmUNstar = null;
+            rmUNstaro = null;
             texLine = null;
             texLineEnd = null;
             texGlow = null;
@@ -1403,6 +1428,7 @@ namespace Unsigned
                 concrBM = content.Load<Texture2D>("graphics\\concrBM");
                 waves = content.Load<Texture2D>("graphics\\waves");
                 wave = content.Load<Texture2D>("graphics\\wave");
+                texHeader = content.Load<Texture2D>("graphics\\header");
                 glassboxTex = content.Load<Texture2D>("graphics\\glasscase");
                 glassboxBM = content.Load<Texture2D>("graphics\\glasscasebm");
                 whitishTex = content.Load<Texture2D>("graphics\\whitish");
@@ -1532,12 +1558,30 @@ namespace Unsigned
             #region mainmenu
             if (screen == S_MAINMENU)
             {
+
                 if (!MenuLoaded)
                 {
+#if !DEBUG
+                    try
+                    {
+#endif
                     LoadMenuContent();
+#if !DEBUG
+                    }
+                    catch(Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Problem in Update/MM/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                        Exit();
+                        return;
+                    }
+#endif
                 }
                 else
                 {
+#if !DEBUG
+                    try
+                    {
+#endif
                     waveM1 += gameTime.ElapsedGameTime.Milliseconds / 50f;
                     waveM2 -= gameTime.ElapsedGameTime.Milliseconds / 25f;
                     if (waveM1 >= windowwidth)
@@ -1639,11 +1683,24 @@ namespace Unsigned
                     menuShiftPos.Y *= 0.9f;
                     menuShiftPos.X *= 0.9f;
                 }
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
             }
             #endregion
             #region diffscreen
             else if (screen == S_CHOOSEDIFF)
             {
+#if !DEBUG
+                try
+                {
+#endif
                 if (mmenu_ticker <= 0)
                 {
                     bool green = false, red = false;
@@ -1719,11 +1776,24 @@ namespace Unsigned
                 }
                 else
                     mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/CD/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
             }
             #endregion
             #region songscreen
             else if (screen == S_CHOOSESONG)
             {
+#if !DEBUG
+                try
+                {
+#endif
                 bool chgd = SongListTex==null;
 
                 SetList setlist = setLists[slIndex];
@@ -1784,6 +1854,8 @@ namespace Unsigned
                             slIndex = 0;
                         chgd = true;
                         mmenu_ticker = 200;
+                        songIndex = 0;
+                        setIndex = 0;
                     }
                     if (red)
                     {screen = S_CHOOSECONT; mmenu_ticker = 200; }
@@ -1792,6 +1864,17 @@ namespace Unsigned
                 }
                 else
                     mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/SS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+                try
+                {
+#endif
                 if (chgd)
                 {
                     setlist = setLists[slIndex];
@@ -1802,9 +1885,11 @@ namespace Unsigned
                     spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
                     if (setlist.setlist.Count > 0)
                     {
-                        int NUM_DRAWN = 7;
+                        int NUM_DRAWN = 9;
                         String[] drawList = new string[20];
-                        drawList[9] = setlist.setlist[setIndex].songs[songIndex].displayName;
+                        String[] drawList2 = new string[20];
+                        drawList[9] = setlist.setlist[setIndex].songs[songIndex].displayName  + "(" + setlist.setlist[setIndex].songs[songIndex].len + ")";
+                        drawList2[9] = setlist.setlist[setIndex].songs[songIndex].artistName;
                         int j = setIndex, k = songIndex;
                         for (int i = 8; i > 0; i--)
                         {
@@ -1818,7 +1903,10 @@ namespace Unsigned
                             else
                                 k--;
                             if (k >= 0)
-                                drawList[i] = setlist.setlist[j].songs[k].displayName;
+                            {
+                                drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
+                                drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                            }
                             else
                                 drawList[i] = "@@@" + setlist.setlist[j].name;
                         }
@@ -1836,7 +1924,10 @@ namespace Unsigned
                             else
                                 k++;
                             if (k >= 0)
-                                drawList[i] = setlist.setlist[j].songs[k].displayName;
+                            {
+                                drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
+                                drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                            }
                             else
                                 drawList[i] = "@@@" + setlist.setlist[j].name;
                         }
@@ -1859,35 +1950,65 @@ namespace Unsigned
                         }
                         if (max - 9 < NUM_DRAWN / 2)
                         {
-                            for (; min > max - NUM_DRAWN; min--)
-                                if (drawList[min - 1] == null)
+                            for (; min > max - NUM_DRAWN + 1; min--)
+                                if (drawList[min-1] == null)
                                     break;
                         }
                         spritebatch.Draw(SongHiLi, new Rectangle(20, (9 - min) * 40 + 55, SongListRT.Width - 40, 50), Color.White);
                         for (int i = min; i < max; i++)
-                            spritebatch.DrawString(DefaultFont, drawList[i].StartsWith("@@@")?drawList[i].Substring(3):drawList[i], new Vector2(10 + (drawList[i].StartsWith("@@@") ? 20 : 50), (i - min) * 40 + 60), drawList[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                        {
+                            spritebatch.DrawString(DefaultFont, drawList[i].StartsWith("@@@") ? drawList[i].Substring(3) : drawList[i], new Vector2(10 + (drawList[i].StartsWith("@@@") ? 20 : 50), (i - min) * 40 + 60), drawList[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                            if(drawList2[i]!=null)
+                                spritebatch.DrawString(SmallFont, drawList2[i], new Vector2(70, (i - min) * 40 + 85), Color.Black);
+                        }
                         //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
                     }
                     spritebatch.End();
                     graphics.GraphicsDevice.SetRenderTarget(0, null);
                     SongListTex = SongListRT.GetTexture();
-
+                    
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/SS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
                 }
             }
             #endregion
             #region contchoosescreen
             else if (screen == S_CHOOSECONT)
             {
+#if !DEBUG
+                try
+                {
+#endif
                 if (Keyboard.GetState().GetPressedKeys().Length <= 0)
                     idleTime += gameTime.ElapsedGameTime.Milliseconds / 1000f;
                 else
                     idleTime = 0;
 
                 GetGamepadStates(false);
-
+                
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
                 //charNameSelected[i] < charNames[i < 3 ? i : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f)
                 if (mmenu_ticker <= 0)
                 {
+#if !DEBUG
+                    try
+                    {
+#endif
                     for (int i = 0; i < 8; i++)
                     {
                         if (arrowTimer[i] <= 0)
@@ -1919,6 +2040,19 @@ namespace Unsigned
                         else
                             arrowTimer[i] -= gameTime.ElapsedGameTime.Milliseconds;
                     }
+                    
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+                    try
+                    {
+#endif
+
 
                     /* if ((kblev > 0.5 && !finalized[kblev == 1 ? 0 : (int)(kblev + 0.5)]) || kblev <= 0.5)
                      {
@@ -1984,6 +2118,17 @@ namespace Unsigned
                                             flames[k][i] = new Vector3((-96 + ((int)(contguis[j].loc - 1) * 64)) + (-24 + (float)(r.NextDouble() * 48)), 180 + (-24 + (float)(r.NextDouble() * 48)), 1);
                                             break;
                                         }
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+                    try
+                    {
+#endif
                     /*if (Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.Enter))
                         if ((int)kblev == kblev && kblev > 0)
                             if (wait <= 0)
@@ -2128,6 +2273,15 @@ namespace Unsigned
                         if (contguis[i].index >= 0)
                             if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && controllers[(int)contguis[i].index].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
                             { screen = S_MAINMENU; mmenu_ticker = 200; }
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt3\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
                     /*for (int i = 0; i < 4; i++)
                     contInput[i] = 100;
 
@@ -2170,6 +2324,11 @@ namespace Unsigned
                 {
                     if (!IsPaused)
                     {
+                        
+#if !DEBUG
+                    try
+                    {
+#endif
                         //start song TEMPORARY CODE? probably not...
                         if (started == 0)
                         {
@@ -2187,6 +2346,8 @@ namespace Unsigned
                             }
                             else
                                 CurrentTime -= (long)gameTime.ElapsedGameTime.Ticks;
+
+                            song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
                             return;
                         }
                         long songt = song.getTime();
@@ -2213,7 +2374,20 @@ namespace Unsigned
                             }
                         }
 
-                        long currenttime = CurrentTime / (long)(TicksPerSecond / 1000);
+                        
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+                        try
+                        {
+#endif
+
+                        long currenttime = (CurrentTime+((TicksPerSecond / 1000)/2)) / (long)(TicksPerSecond / 1000);
 
                         if (song.IsOver(currenttime))
                             screen = S_RESULTS;
@@ -2264,6 +2438,30 @@ namespace Unsigned
                             boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime);
                         else if (instruments[3] && contInput[3] == 4)
                             boards[3].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime);
+
+                        song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
+                        for(int i=0;i<4;i++)
+                            if (instruments[i] && i != 1)
+                            {
+                                boards[i].GetNotes(CurrentTime, (long)(Board.eFade * Game1.TicksPerSecond));
+                                if (1 != 2)
+                                    boards[i].getWaves(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000)));
+                            }
+                        for (int i = 0; i < 4; i++)
+                            if (rockMeterLevel[i] < 0)
+                                rockMeterLevel[i] = 0;
+                            else if (rockMeterLevel[i] > 100)
+                                rockMeterLevel[i] = 100;
+                        
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt1\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
                     }
                     else
                     {
@@ -2279,6 +2477,10 @@ namespace Unsigned
             {
                 if (GameLoaded)
                 {
+#if !DEBUG
+                    try
+                    {
+#endif
                     //CurrentTime += (long)gameTime.ElapsedGameTime.Ticks;
                     UpdateGibs(gameTime);
 
@@ -2289,6 +2491,15 @@ namespace Unsigned
                     }
 
                     ProcessInputFS();
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/FS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
 
                     /*if (instruments[0] && contInput[0] < 4)
                         boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime);
@@ -2300,7 +2511,10 @@ namespace Unsigned
             #region results
             else if (screen == S_RESULTS)
             {
-                
+#if !DEBUG
+                try
+                {
+#endif
                 if (totalresults.Length == 0)
                 {
                     totalresults = new Results[5];
@@ -2337,11 +2551,25 @@ namespace Unsigned
                         red = true;
                     if (green)
                     { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = 0; mmenu_ticker = 200; mmenu_select = 0; contguis = new ContGUIData[5]; UnloadGameContent(); MenuLoaded = false; }
+                
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/R/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
             }
             #endregion
             #region fail
             else if (screen == S_FAIL)
             {
+#if !DEBUG
+                try
+                {
+#endif
                 if (totalresults.Length == 0)
                 {
                     totalresults = new Results[5];
@@ -2386,6 +2614,16 @@ namespace Unsigned
                     { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = 0; mmenu_ticker = 200; mmenu_select = 0; contguis = new ContGUIData[5]; UnloadGameContent(); MenuLoaded = false; }
                     if(green)
                     { totalresults = new Results[0]; screen = S_INGAME; CurrentTime = -5000; song = null; boards = null; boardsTarget = null; started = 0; UnloadGameContent(); LoadGameContent(); }
+                
+#if !DEBUG
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem in Update/F/Pt0\n"+e.Message+"\n"+e.StackTrace);
+                    Exit();
+                    return;
+                }
+#endif
             }
             #endregion
             else
@@ -2503,42 +2741,42 @@ namespace Unsigned
                             if (menuShiftPos.Y >= 0)
                             {
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
-                                spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), Color.Black);
+                                spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)]);
                                 if (mmenu_select / 10 - 2 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 3)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 3)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), Color.Black, 0, new Vector2(0, 0), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 3)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 3)], 0, new Vector2(0, 0), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 if (mmenu_select / 10 - 1 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), Color.Black);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)]);
                                 }
                                 if (mmenu_select / 10 - 1 < mMenuStr[0].Length - 1)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), Color.Black, 0, new Vector2(0, meas.Y), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[0][Math.Max(0, mmenu_select / 10)], 0, new Vector2(0, meas.Y), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                             }
                             else
                             {
                                 menuShiftPos.Y = -menuShiftPos.Y;
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
-                                spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.29589f)))), Color.Black);
+                                spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.29589f)))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)]);
                                 if (mmenu_select / 10 - 1 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), Color.Black, 0, new Vector2(0, 0), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)], 0, new Vector2(0, 0), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 if (mmenu_select / 10 - 1 < mMenuStr[0].Length - 1)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.69727f) - (meas.Y))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), Color.Black);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.69727f) - (meas.Y))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), mMenuCol[0][Math.Max(0, mmenu_select / 10)]);
                                 }
                                 if (mmenu_select / 10 - 1 < mMenuStr[0].Length - 2)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 + 1)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), Color.Black, 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[0][Math.Max(0, mmenu_select / 10 + 1)], 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 menuShiftPos.Y = -menuShiftPos.Y;
                             }
@@ -2548,42 +2786,42 @@ namespace Unsigned
                             if (menuShiftPos.Y >= 0)
                             {
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
-                                spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), Color.Black);
+                                spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
                                 if (mmenu_select % 10 - 2 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 3)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select / 10 - 3)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), Color.Black, 0, new Vector2(0, 0), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select / 10 - 3)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select / 10 - 3)], 0, new Vector2(0, 0), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 if (mmenu_select % 10 - 1 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), Color.Black);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)]);
                                 }
                                 if (mmenu_select % 10 - 1 < mMenuStr[mmenu_select / 10].Length - 1)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), Color.Black, 0, new Vector2(0, meas.Y), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10)], 0, new Vector2(0, meas.Y), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                             }
                             else
                             {
                                 menuShiftPos.Y = -menuShiftPos.Y;
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
-                                spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.29589f)))), Color.Black);
+                                spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.29589f)))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
                                 if (mmenu_select % 10 - 1 > 0)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), Color.Black, 0, new Vector2(0, 0), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.29589f))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 2)], 0, new Vector2(0, 0), new Vector2(1, 1 - menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 if (mmenu_select % 10 - 1 < mMenuStr[mmenu_select / 10].Length - 1)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.69727f) - (meas.Y))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), Color.Black);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (.69727f) - (meas.Y))) + (menuShiftPos.Y * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10)]);
                                 }
                                 if (mmenu_select % 10 - 1 < mMenuStr[mmenu_select / 10].Length - 2)
                                 {
                                     meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)]);
-                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), Color.Black, 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
+                                    spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)], 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 menuShiftPos.Y = -menuShiftPos.Y;
                             }
@@ -2592,70 +2830,70 @@ namespace Unsigned
                     else if (menuShiftPos.X > 0)
                     {
                         Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
-                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)));
-                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)));
+                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         if (mmenu_select / 10 - 1 > 0)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), rtSnake.Height*.29589f), new Color(0,0,0,(byte)(255*menuShiftPos.X)));
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((meas.Y/2)*(.29589f/(.69727f - .29589f)))),new Color(0,0,0,(byte)(255*menuShiftPos.X)),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), rtSnake.Height*.29589f), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].B,(byte)(255*menuShiftPos.X)));
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((meas.Y/2)*(.29589f/(.69727f - .29589f)))),new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].B,(byte)(255*menuShiftPos.X)),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         }
                         if (mmenu_select / 10 - 1 < mMenuStr[0].Length - 1)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
                         }
 
                         meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)]);
-                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))));
-                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((rtSnake.Height * ((1-.69727f) / 2 + .69727f)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].B,(byte)(255*(1-menuShiftPos.X))));
+                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((rtSnake.Height * ((1-.69727f) / 2 + .69727f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         if (mmenu_select % 10 - 1 > 0)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, rtSnake.Height*.29589f), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))));
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))),new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, rtSnake.Height*.29589f), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].B,(byte)(255*(1-menuShiftPos.X))));
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))),new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].B,(byte)(255*(1-menuShiftPos.X))),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         }
                         if (mmenu_select % 10 - 1 < mMenuStr[mmenu_select/10].Length - 1)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select / 10)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
                         }
                     }
                     else if (menuShiftPos.X < 0)
                     {
                         menuShiftPos.X = (1 + menuShiftPos.X);
                         Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
-                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)));
-                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)));
+                        spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         if (mmenu_select / 10 - 1 > 0)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), rtSnake.Height*.29589f), new Color(0,0,0,(byte)(255*menuShiftPos.X)));
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((meas.Y/2)*(.29589f/(.69727f - .29589f)))),new Color(0,0,0,(byte)(255*menuShiftPos.X)),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), rtSnake.Height*.29589f), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].B,(byte)(255*menuShiftPos.X)));
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((meas.Y/2)*(.29589f/(.69727f - .29589f)))),new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 2)].B,(byte)(255*menuShiftPos.X)),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         }
                         if (mmenu_select / 10 - 1 < mMenuStr[0].Length - 1)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
-                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
                         }
 
                         meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)]);
-                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))));
-                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((rtSnake.Height * ((1-.69727f) / 2 + .69727f)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].B,(byte)(255*(1-menuShiftPos.X))));
+                        spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((rtSnake.Height * ((1-.69727f) / 2 + .69727f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 1)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         if (mmenu_select % 10 - 1 > 0)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, rtSnake.Height*.29589f), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))));
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))),new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, rtSnake.Height*.29589f), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].B,(byte)(255*(1-menuShiftPos.X))));
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))),new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10 - 2)].B,(byte)(255*(1-menuShiftPos.X))),0,new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         }
                         if (mmenu_select % 10 - 1 < mMenuStr[mmenu_select/10].Length - 1)
                         {
                             meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select / 10)]);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
-                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(0,0,0,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
+                            spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
                         }
                         menuShiftPos.X = -(1 - menuShiftPos.X);
                     }
@@ -2666,7 +2904,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt0\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt0\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -2726,7 +2964,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -2795,12 +3033,14 @@ namespace Unsigned
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                         }
+                        spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth*0.1f), (int)(windowheight*0.1f), (int)(windowwidth*0.8f), (int)(windowheight*.2f)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Menus in Red are not yet implemented.\nMultiplayer->Quickplay allows for Single Player play", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Menus in Red are not yet implemented.\nMultiplayer->Quickplay allows for Single Player play").X / 2), windowheight * 0.8f), Color.White);
                         spritebatch.End();
 #if !DEBUG
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt2\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt2\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -2919,7 +3159,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt1\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt1\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -3689,7 +3929,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt2\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt2\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -3699,8 +3939,10 @@ namespace Unsigned
                 #region songscreen
                 else if (screen == S_CHOOSESONG)
                 {
+#if !DEBUG
                     try
                     {
+#endif
                         graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                         graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
                         graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
@@ -3856,13 +4098,15 @@ namespace Unsigned
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                         }
                         spritebatch.End();
+#if !DEBUG
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/SS/Pt1\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/SS/Pt1\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
+#endif
 
                 }
                 #endregion
@@ -3935,7 +4179,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt1\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4292,7 +4536,7 @@ namespace Unsigned
                     }
                     catch (Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt2\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4331,7 +4575,7 @@ namespace Unsigned
                     }
                     catch (Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt3\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt3\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4404,7 +4648,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4412,7 +4656,7 @@ namespace Unsigned
                     try
                     {
 #endif
-                    song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
+                    
                         for (int i = 0; i < boards.Length; i++)
                         {
                             if (!instruments[i])
@@ -4484,8 +4728,6 @@ namespace Unsigned
                                     DrawGibs();
                                     DrawFlashes(i, fling);
                                 }
-                                if(cGUIStyle==GUIStyle.UN)
-                                    DrawRockMeter(currenttime);
                                 pass.End();
                             }
                             engine.End();
@@ -4497,7 +4739,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4534,7 +4776,7 @@ namespace Unsigned
 
                                 ppEngine.Parameters["gradientTex"].SetValue(gradient);
 
-                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                                 ppEngine.CurrentTechnique = ppEngine.Techniques["Gamma"];
 
                                 //ppEngine.Begin();
@@ -4551,21 +4793,21 @@ namespace Unsigned
                             {
                                 graphics.GraphicsDevice.SetRenderTarget(0, null);
                                 graphics.GraphicsDevice.Clear(Color.Black);
-                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                                 spritebatch.Draw(screenTarget.GetTexture(), new Rectangle(0, 0, windowwidth, windowheight), Color.White);
                             }
                         }
                         else
                         {
                             graphics.GraphicsDevice.SetRenderTarget(0, null);
-                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+                            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                             graphics.GraphicsDevice.Clear(Color.Black);
                         }
 #if !DEBUG
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4579,10 +4821,9 @@ namespace Unsigned
                             if (instruments[i])
                                 spritebatch.Draw(boardsTarget[i].GetTexture(), new Rectangle(boards[i].xOffset, 0, windowwidth, windowheight), Color.White);
                             //draw score/stars
+                            DrawRockMeter(currenttime);
                             DrawScoreStars(currenttime);
                             //draw rock meter
-                            if(cGUIStyle==GUIStyle.RB)
-                                DrawRockMeter(currenttime);
 
                             //spritebatch.Draw(boards[0].SPMRTex, new Rectangle(0, 0, 256, 128), Color.White);
 
@@ -4609,9 +4850,9 @@ namespace Unsigned
                                     alpha = 1;
                                 Color aColor = new Color(new Vector4(1, 1, 1, alpha));
                                 for (int i = 0; i < 2; i++)
-                                    spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 150 + (40 * i)), aColor);
+                                    spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 180 + (40 * i)), aColor);
                                 for (int i = 2; i < song.songInfo.Length; i++)
-                                    spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 190 + (40 * i)), aColor);
+                                    spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 220 + (40 * i)), aColor);
                             }
                             if (DemoMode)
                             {
@@ -4624,7 +4865,7 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message);
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message+"\n"+e.StackTrace);
                         Exit();
                         return;
                     }
@@ -4920,7 +5161,7 @@ namespace Unsigned
                         spritebatch.Draw(resultsScroller, new Rectangle((int)((dialogscroll * (windowwidth / (float)numRS)) + (i * (windowwidth / (float)numRS))), (int)((128f / 768) * windowheight), (int)(windowwidth / (float)numRS + 1), (int)((64f / 768) * windowheight)), Color.White);
                     for (int i = 0; i < numRS+1; i++)
                         spritebatch.Draw(resultsScroller, new Rectangle((int)((-dialogscroll * (windowwidth / (float)numRS)) + (i * (windowwidth / (float)numRS))), windowheight-(int)((192f / 768) * windowheight), (int)(windowwidth / (float)numRS + 1), (int)((64f / 768) * windowheight)), Color.White);
-                    spritebatch.DrawString(DefaultFont, "Song Passed", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Failed").X / 2), windowheight * 0.3f), Color.Green);
+                    spritebatch.DrawString(DefaultFont, "Song Passed", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Song Passed").X / 2), windowheight * 0.3f), Color.Green);
                     if (totalresults.Length != 0)
                         for (int i = 0; i < 5; i++)
                         {
@@ -4932,7 +5173,7 @@ namespace Unsigned
                                                        str1,
                                                        new Vector2((windowwidth/2)-(DefaultFont.MeasureString(str1).X/2), (windowheight*0.4f) + (40 * i)), Color.Wheat);
                                 spritebatch.DrawString(DefaultFont,
-                                                       str2,
+                                                        str2,
                                                        new Vector2((windowwidth/2)-(DefaultFont.MeasureString(str2).X/2), (windowheight*0.4f) + 20 + (40 * i)), Color.Wheat);
                             }
                                 /*
@@ -5025,7 +5266,7 @@ namespace Unsigned
         {
             float total=0, count=0;
             for(int i=0;i<4;i++)
-                if (boards[i] != null)
+                if (instruments[i])
                 {
                     int adddiff;
                     if (boards[i].GetDifficulty() == D_EASY)
@@ -5850,16 +6091,17 @@ namespace Unsigned
                     }
                     else if(!IsPaused)
                         er=boards[i].Update(gameTime,currenttime, this, i, 0);
+                    if (er > 0)
+                    {
+                        if ((er & bits[7]) != 0)
+                            AddSparks(er, i);
+                        else
+                            AddShards(er, i);
+                        
+                    }
                 }
 
-            if (er > 0)
-            {
-                if ((er & bits[7]) != 0)
-                    AddSparks(er, 0);
-                else
-                    AddShards(er, 0);
-                
-            }
+            
 
             if (IsPaused)
                 return;
@@ -6460,7 +6702,7 @@ namespace Unsigned
             graphics.GraphicsDevice.SetRenderTarget(0, rtWaves[i]);
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
-            if (boards[i].getWaves(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000))))
+            if (boards[i].wavesLen>0)
             {
                 for (int p = 0; p < boards[i].wavesLen; p++)
                 {
@@ -6493,8 +6735,8 @@ namespace Unsigned
                                         {
                                             if ((note & 64) != 0)
                                             {
-                                                spritebatch.Draw(texLine, new Vector2((boards[i].waves[p][q].X * xscale) + (boards[i].IsLefty() ? noteLanePos[4 - k] * rtBoard[i].Width : noteLanePos[k] * rtBoard[i].Width), (rtBoard[i].Height * ratio) - ((rtBoard[i].Height * ratio) * ((boards[i].waves[p][q].Y / 1000f) / Board.eFade))), null, FretColors[k], (float)Math.Atan2(((-rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)), (boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale, ((rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
-                                                spritebatch.Draw(texLine, new Vector2((boards[i].waves[p][q].X * -xscale) + (boards[i].IsLefty() ? noteLanePos[4 - k] * rtBoard[i].Width : noteLanePos[k] * rtBoard[i].Width), (rtBoard[i].Height * ratio) - ((rtBoard[i].Height * ratio) * ((boards[i].waves[p][q].Y / 1000f) / Board.eFade))), null, FretColors[k], (float)Math.Atan2(((-rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)), (boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale, ((rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                                spritebatch.Draw(texLine, new Vector2((boards[i].waves[p][q].X * xscale) + (boards[i].IsLefty() ? noteLanePos[4 - k] * rtBoard[i].Width : noteLanePos[k] * rtBoard[i].Width), (rtBoard[i].Height * ratio) - ((rtBoard[i].Height * ratio) * ((boards[i].waves[p][q].Y / 1000f) / Board.eFade))), null, boards[i].waves[p][q].White?Color.White:FretColors[k], (float)Math.Atan2(((-rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)), (boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale, ((rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                                spritebatch.Draw(texLine, new Vector2((boards[i].waves[p][q].X * -xscale) + (boards[i].IsLefty() ? noteLanePos[4 - k] * rtBoard[i].Width : noteLanePos[k] * rtBoard[i].Width), (rtBoard[i].Height * ratio) - ((rtBoard[i].Height * ratio) * ((boards[i].waves[p][q].Y / 1000f) / Board.eFade))), null, boards[i].waves[p][q].White?Color.White:FretColors[k], (float)Math.Atan2(((-rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)), (boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((boards[i].waves[p][q + 1].X - boards[i].waves[p][q].X) * xscale, ((rtBoard[i].Height * ratio) * (((boards[i].waves[p][q + 1].Y - boards[i].waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
                                             }
                                             else
                                             {
@@ -6595,9 +6837,14 @@ namespace Unsigned
             float scale = rtBoard[i].Height / (Board.eFade * (1/ratio));
 
             
-            graphics.GraphicsDevice.Clear(new Color(255, 255, 255, 0));
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
             //graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+            spritebatch.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            spritebatch.GraphicsDevice.RenderState.SourceBlend = Blend.SourceColor;
+            spritebatch.GraphicsDevice.RenderState.DestinationBlend = Blend.DestinationColor;
+            spritebatch.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+            spritebatch.GraphicsDevice.RenderState.AlphaSourceBlend = Blend.SourceAlpha;
             float bgyscale = 2.0f;
             for (int k = -4; k < 8; k++)
             {
@@ -6622,6 +6869,7 @@ namespace Unsigned
 
             int fiver = i == 0 || i == 3 ? 1 : 0;
             int lowestPoint = 0;
+            spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard[i].Width,rtBoard[i].Height),null,Color.White);// (int)y, rtBoard[i].Width, (int)height), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.9f);
             for (int k = 0; k < songtimes.Length - 1; k++)
             {
                 if (started < 2 && CurrentTime < 30 * TicksPerSecond)
@@ -6629,7 +6877,19 @@ namespace Unsigned
                     if ((int)(rtBoard[i].Height * ratio) - (int)(songtimes[k].X * scale) > lowestPoint)
                         lowestPoint = (int)(rtBoard[i].Height * ratio) - (int)(songtimes[k].X * scale);
                 }
-                spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[(int)songtimes[k].Y]], new Rectangle(0, (int)(rtBoard[i].Height * ratio) - (int)(songtimes[k].X * scale) - (int)((songtimes[k + 1].X - songtimes[k].X) * scale), rtBoard[i].Width, (int)((songtimes[k + 1].X - songtimes[k].X) * scale)),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);
+
+                {
+                    float height = (songtimes[k + 1].X - songtimes[k].X) * scale;
+                    float y = (rtBoard[i].Height * ratio) - (int)(songtimes[k].X * scale) - (int)((songtimes[k + 1].X - songtimes[k].X) * scale);
+                    
+                    for (int j = 0; j < (int)(songtimes[k].Y + 0.5); j++)
+                    {
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + ((j / songtimes[k].Y) * height))-1, rtBoard[i].Width, 3), Color.White);
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((j+0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 1), Color.White);
+                    }
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 1), Color.White);
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)y-2, rtBoard[i].Width, 5), Color.White);
+                }
             }
             if (started < 2 && CurrentTime < 30 * TicksPerSecond)
                 if (lowestPoint < rtBoard[i].Height * .99)
@@ -7063,7 +7323,7 @@ namespace Unsigned
                 int lefty = 1;
                 if (boards[i].IsLefty() && boards[i].GetBoardType() != PERCUSSIONIST)
                     lefty = -1;
-                boards[i].GetNotes(currenttime, (long)(Board.eFade*Game1.TicksPerSecond));
+                
                 for (int p = 0; p < boards[i].notesLen; p++)
                 {
                     if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
@@ -7758,10 +8018,19 @@ namespace Unsigned
 
         private void DrawRockMeter(long currenttime)
         {
+            
+
             float rmFill = GetRockMeterFill();
             if (cGUIStyle == GUIStyle.UN)
             {
-            
+                rmColor = new Color(rmFill < 0.66 ? (byte)255 : (byte)0,
+                                    rmFill > 0.33 ? (byte)255 : (byte)0,
+                                    0);
+                int height = (int)(windowheight*0.2f);
+                spritebatch.Draw(rmUNbg, new Rectangle(0, (windowheight / 2) - (int)(height * 0.75f), (int)(height * 0.5f), (int)(height*1.5f)), Color.White);
+                spritebatch.Draw(rmUNfg, new Rectangle(0, (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi-(rmFill*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNbg, new Rectangle(windowwidth, (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNfg, new Rectangle(windowwidth, (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
             }
             else if (cGUIStyle == GUIStyle.RB)
             {
@@ -7854,61 +8123,102 @@ namespace Unsigned
 
         private void DrawScoreStars(long currenttime)
         {
-            float xers;
-            if (CurrentTime/1000f > -2.5)
-                xers = rockstarLoc.X;
-            else if (currenttime / 1000f > -3)
-                xers = (Window.ClientBounds.Width - ((((currenttime/1000f) + 3f) * 2) * (Window.ClientBounds.Width - rockstarLoc.X)));
-            else
-                xers = Window.ClientBounds.Width;
-            for (int i = 0; i < 5; i++)
+            if (cGUIStyle == GUIStyle.UN)
             {
-                float scale = (GetRockstarAmount() > i + 1) ? 1 : GetRockstarAmount() - i;
-                if (scale < 0)
-                    scale = 0;
-                scale *= 0.9f;
-                
-                spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), new Color(new Vector3(0.1f, 0.1f, 0.1f)), rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256), new SpriteEffects(), 0);
-                if (GetRockstarAmount() >= i + 1)
-                    spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256) * scale, new SpriteEffects(), 0);
-                else
-                    spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.Gray, rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256) * scale, new SpriteEffects(), 0);
-                spritebatch.Draw(texRockstarCover, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), (rockstarScale.X / 5) / 256, new SpriteEffects(), 0);
-                spritebatch.Draw(texRockstarRing, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), (rockstarScale.X / 5) / 256, new SpriteEffects(), 0);
-                if (GetRockstarAmount() >= i + 0.25)
-                    spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, 0, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                else if (GetRockstarAmount() > i)
-                    spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - i) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, 0, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                if (GetRockstarAmount() >= i + 0.5)
-                    spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) / 2, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                else if (GetRockstarAmount() > i + 0.25)
-                    spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.25f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) / 2, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                if (GetRockstarAmount() >= i + 0.75)
-                    spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI), new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                else if (GetRockstarAmount() > i + 0.5)
-                    spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.5f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI), new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                if (GetRockstarAmount() >= i + 1)
-                    spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) * 1.5f, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-                else if (GetRockstarAmount() > i + 0.75f)
-                    spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.75f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) * 1.5f, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
-            }
-            spritebatch.Draw(texScoreBoard, new Rectangle((int)xers, (int)rockstarLoc.Y - (int)(rockstarScale.Y / 2), (int)rockstarScale.X, (int)(rockstarScale.Y / 2)), Color.White);
-            String scr = GetScore().ToString();
-            char[] scrarr = scr.ToCharArray();
-            String scr2 = "";
-            int count = 0;
-            for (int l = scr.Length - 1; l >= 0; l--)
-            {
-                scr2 = scrarr[l] + scr2;
-                if (count >= 2)
+                float height=(windowheight*0.15f);
+                int ct = 0;
+                for (int i = 0; i < 4; i++)
+                    if (instruments[i])
+                        ct++;
+                spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstaro, new Vector2(0, windowheight / 2), null, GetRockstarAmount()<4?FretColors[(int)GetRockstarAmount()+1]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+                //if (ct <= 1)
                 {
-                    count = 0;
-                    scr2 = "," + scr2;
+                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth, windowheight / 2), null, GetRockstarAmount()<4?FretColors[(int)GetRockstarAmount()+1]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+                }
+                String scr = GetScore().ToString();
+                char[] scrarr = scr.ToCharArray();
+                String scr2 = "";
+                int count = 0;
+                for (int l = scr.Length - 1; l >= 0; l--)
+                {
+                    scr2 = scrarr[l] + scr2;
+                    if (count >= 2)
+                    {
+                        count = 0;
+                        scr2 = "," + scr2;
+                    }
+                    else
+                        count++;
+                }
+                if (scr2.StartsWith(","))
+                    scr2 = scr2.Substring(1);
+                if (instruments[1])
+                {
+                    spritebatch.DrawString(DefaultFont, scr2, new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(scr2).X / 2), Board.vocaly+Board.vocalheight), Color.White);
                 }
                 else
-                    count++;
+                    spritebatch.DrawString(DefaultFont, scr2, new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(scr2).X / 2), 0), Color.White);
             }
-            spritebatch.DrawString(DefaultFont, scr2, new Vector2(xers+(rockstarScale.X*0.95f)-DefaultFont.MeasureString(scr2).X, rockstarLoc.Y - (rockstarScale.Y / 2)), Color.White);
+            else if (cGUIStyle == GUIStyle.RB)
+            {
+                float xers;
+                if (CurrentTime / 1000f > -2.5)
+                    xers = rockstarLoc.X;
+                else if (currenttime / 1000f > -3)
+                    xers = (Window.ClientBounds.Width - ((((currenttime / 1000f) + 3f) * 2) * (Window.ClientBounds.Width - rockstarLoc.X)));
+                else
+                    xers = Window.ClientBounds.Width;
+                for (int i = 0; i < 5; i++)
+                {
+                    float scale = (GetRockstarAmount() > i + 1) ? 1 : GetRockstarAmount() - i;
+                    if (scale < 0)
+                        scale = 0;
+                    scale *= 0.9f;
+
+                    spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), new Color(new Vector3(0.1f, 0.1f, 0.1f)), rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256), new SpriteEffects(), 0);
+                    if (GetRockstarAmount() >= i + 1)
+                        spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256) * scale, new SpriteEffects(), 0);
+                    else
+                        spritebatch.Draw(texRockstarRed, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.Gray, rockstarDir, new Vector2(128, 128), ((rockstarScale.X / 5) / 256) * scale, new SpriteEffects(), 0);
+                    spritebatch.Draw(texRockstarCover, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), (rockstarScale.X / 5) / 256, new SpriteEffects(), 0);
+                    spritebatch.Draw(texRockstarRing, new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 256, 256), Color.White, rockstarDir, new Vector2(128, 128), (rockstarScale.X / 5) / 256, new SpriteEffects(), 0);
+                    if (GetRockstarAmount() >= i + 0.25)
+                        spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, 0, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    else if (GetRockstarAmount() > i)
+                        spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - i) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, 0, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    if (GetRockstarAmount() >= i + 0.5)
+                        spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) / 2, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    else if (GetRockstarAmount() > i + 0.25)
+                        spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.25f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) / 2, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    if (GetRockstarAmount() >= i + 0.75)
+                        spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI), new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    else if (GetRockstarAmount() > i + 0.5)
+                        spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.5f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI), new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    if (GetRockstarAmount() >= i + 1)
+                        spritebatch.Draw(texRockstarRingHiLi[10], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) * 1.5f, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                    else if (GetRockstarAmount() > i + 0.75f)
+                        spritebatch.Draw(texRockstarRingHiLi[(int)Math.Floor((GetRockstarAmount() - (i + 0.75f)) / 0.25f * 11)], new Vector2((int)(xers + (rockstarScale.X / 5 * (i + 0.5f))), (int)(rockstarLoc.Y + (rockstarScale.X / 5 * 0.5f))), new Rectangle(0, 0, 128, 128), Color.White, (float)(Math.PI) * 1.5f, new Vector2(128, 0), ((rockstarScale.X / 5) / 280), new SpriteEffects(), 0);
+                }
+                spritebatch.Draw(texScoreBoard, new Rectangle((int)xers, (int)rockstarLoc.Y - (int)(rockstarScale.Y / 2), (int)rockstarScale.X, (int)(rockstarScale.Y / 2)), Color.White);
+                String scr = GetScore().ToString();
+                char[] scrarr = scr.ToCharArray();
+                String scr2 = "";
+                int count = 0;
+                for (int l = scr.Length - 1; l >= 0; l--)
+                {
+                    scr2 = scrarr[l] + scr2;
+                    if (count >= 2)
+                    {
+                        count = 0;
+                        scr2 = "," + scr2;
+                    }
+                    else
+                        count++;
+                }
+                spritebatch.DrawString(DefaultFont, scr2, new Vector2(xers + (rockstarScale.X * 0.95f) - DefaultFont.MeasureString(scr2).X, rockstarLoc.Y - (rockstarScale.Y / 2)), Color.White);
+            }
         }
 
         private void DrawGibs()

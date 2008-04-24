@@ -53,10 +53,19 @@ namespace Unsigned
     {
         public float X;
         public long Y;
+        public bool White;
         public WaveVector2(float X, long Y)
         {
             this.X = X;
             this.Y = Y;
+            White = false;
+        }
+
+        public WaveVector2(float X, long Y, bool w)
+        {
+            this.X = X;
+            this.Y = Y;
+            White = w;
         }
     }
 
@@ -75,8 +84,8 @@ namespace Unsigned
         public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
         public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
         public float SPMFlash=0, SPMFVel=0;
-        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 8, };
-        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 6, 6, -1, 7, };
+        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
+        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
         public static GBVertexFormat[] arrBoard;
         public static VertexBuffer mdlBoard, mdlSPM;
         public static VertexBuffer mdlTrigger, mdlTriggerBorder;
@@ -586,6 +595,7 @@ namespace Unsigned
         {
             if (GetBoardType() != Game1.VOCALS)
             {
+
                 for (int i = 0; i < 5; i++)
                 {
                     if (popup[i] > 20 && popupSpeed[i] > 0)
@@ -660,6 +670,9 @@ namespace Unsigned
                                             scre -= 1;
                                             scre *= (int)(100 * multiplier);
                                             score += scre;
+                                            for(int i=0;i<5;i++)
+                                                if((notes[index].type & (1<<i)) != 0)
+                                                    popupSpeed[i] += 100f;
                                             multiplier += 0.1f;
                                             notes[index].visible[0] = NoteSet.VIS_STATE.HOPOED;
                                             reff.AddShards(notes[index].type, ind);
@@ -852,6 +865,10 @@ namespace Unsigned
 
             }
 
+            if (StarPowerAmount < 0)
+                StarPowerAmount = 0;
+            else if (StarPowerAmount > 1)
+                StarPowerAmount = 1;
             if (Math.Abs(StarPowerAmount - SPADisplay) > 0.001f)
             {
                 SPADisplay = (StarPowerAmount*0.25f)+(SPADisplay*0.75f);
@@ -885,48 +902,114 @@ namespace Unsigned
                 return 0;
             if (Math.Abs(notes[index].time - (long)currenttime) < 100)
             {
-                if (IsValidFrettage(notes[index].type, pressed))
+                if (!(notes[index].burning && index + 1 < notes.Length && Math.Abs(notes[index + 1].time - (long)currenttime) < 100))
                 {
-                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                    if (IsValidFrettage(notes[index].type, pressed))
                     {
-                        int scre = 0;
-                        for (int i = 0; i < 5; i++)
-                            if ((notes[index].type & Game1.bits[i]) > 0)
-                            {
-                                scre++;
-                                popupSpeed[i] += 100f;
-                            }
-                        scre *= 100 * (int)(multiplier);
-                        score += scre;
-                        multiplier += .1f;
-                    }
-                    notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                    if (notes[index].burning)
-                    {
-                        notes[index].burning = false;
-                        game.Hurt(ind);
-                        if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                            SPGood = false;
-                        multiplier = 1;
-                        return 0;
-                    }
-                    if (notes[index].length > 0)
-                    {
-                        notes[index].burning = true;
+                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        {
+                            int scre = 0;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                {
+                                    scre++;
+                                    popupSpeed[i] += 100f;
+                                }
+                            scre *= 100 * (int)(multiplier);
+                            score += scre;
+                            multiplier += .1f;
+                        }
+                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (notes[index].burning)
+                        {
+                            notes[index].burning = false;
+                            game.Hurt(ind);
+                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                                SPGood = false;
+                            multiplier = 1;
+                            return 0;
+                        }
+                        if (notes[index].length > 0)
+                        {
+                            notes[index].burning = true;
+                            myResults.hitNotes++;
+                            return notes[index].type;
+                        }
+                        //else
                         myResults.hitNotes++;
-                        return notes[index].type;
+                        index++;
+                        return notes[index - 1].type;
                     }
-                    //else
-                    myResults.hitNotes++;
+                }
+                else
+                {
                     index++;
-                    return notes[index - 1].type;
+                    if (IsValidFrettage(notes[index].type, pressed))
+                    {
+                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        {
+                            int scre = 0;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                {
+                                    scre++;
+                                    popupSpeed[i] += 100f;
+                                }
+                            scre *= 100 * (int)(multiplier);
+                            score += scre;
+                            multiplier += .1f;
+                        }
+                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (notes[index].length > 0)
+                        {
+                            notes[index].burning = true;
+                            myResults.hitNotes++;
+                            return notes[index].type;
+                        }
+                        //else
+                        myResults.hitNotes++;
+                        index++;
+                        return notes[index - 1].type;
+                    }
                 }
             }
-            else if (currenttime > (long)notes[index].time && currenttime < ((long)notes[index].time+(long)notes[index].length))
+            else if (notes[index].burning && index + 1 < notes.Length && Math.Abs(notes[index + 1].time - (long)currenttime) < 100)
+            {
+                index++;
+                    if (IsValidFrettage(notes[index].type, pressed))
+                    {
+                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        {
+                            int scre = 0;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                {
+                                    scre++;
+                                    popupSpeed[i] += 100f;
+                                }
+                            scre *= 100 * (int)(multiplier);
+                            score += scre;
+                            multiplier += .1f;
+                        }
+                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (notes[index].length > 0)
+                        {
+                            notes[index].burning = true;
+                            myResults.hitNotes++;
+                            return notes[index].type;
+                        }
+                        //else
+                        myResults.hitNotes++;
+                        index++;
+                        return notes[index - 1].type;
+                    }
+            }
+            else if (currenttime > (long)notes[index].time && currenttime < ((long)notes[index].time + (long)notes[index].length))
             {
                 notes[index].burning = false; multiplier = 1; game.Hurt(ind);
-            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                            SPGood = false; return 0; }
+                if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                    SPGood = false; return 0;
+            }
             
             if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
                             SPGood = false;
@@ -1047,6 +1130,9 @@ namespace Unsigned
             {
                 if (notes[i].length > 0)
                 {
+                    bool white = false;
+                    if (SPIndex < SPStart.Length && SPGood && notes[i].time >= SPStart[SPIndex] && notes[i].time < SPEnd[SPIndex])
+                        white = true;
                     if (notes[i].burning)
                     {
                         
@@ -1058,9 +1144,11 @@ namespace Unsigned
                         waves[count][0].X = 0f;
                         waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
                         waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
+                        waves[count][0].White = white;
                         float varyPower;
                         for (int n = 0; n < num - 1; n++)
                         {
+                            waves[count][n].White = white;
                             waves[count][n].Y = ((notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime)) + (WaveDetail * n);
                             varyPower = GetWhammy(waves[count][n].Y,currenttime);
                             if(varyPower<0.1)
@@ -1069,7 +1157,7 @@ namespace Unsigned
                                 waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
                             waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
                         }
-
+                        waves[count][num-1].White = white;
                         waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
                         //waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
                         waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
@@ -1081,10 +1169,12 @@ namespace Unsigned
                         if (wavesSubLen[count] < 2)
                         { waves[count] = new WaveNode[2]; }
                          wavesSubLen[count] = 2;
+                        waves[count][0].White = white;
                         waves[count][0].X = 0.2f;
                         waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
                         waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
 
+                        waves[count][1].White = white;
                         waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), (eFade * 1000f));
                         waves[count][1].X = 0.2f;
                         waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
