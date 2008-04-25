@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+#if WINDOWS
 using IrrKlang;
+#endif
 
 namespace Unsigned
 {
@@ -25,7 +28,7 @@ namespace Unsigned
         public float percentBeat;
 
 
-#if ! XBOX
+#if WINDOWS
 
         
         //OggPlayManager manager;
@@ -34,21 +37,37 @@ namespace Unsigned
         ISound sound;
 #else
 
-        
+        AudioEngine engine;
+        SoundBank sB;
+        WaveBank wB;
+        Cue cue;
 
 #endif
 
-        public Song(int bpm, float mps, String FileName, IntPtr game)
+#if WINDOWS
+        public Song(String FileName, IntPtr game)
+#else
+        public Song(String FileName, AudioEngine eng, SoundBank sb, WaveBank wb)
+#endif
         {
             this.FileName = FileName;
-            LoadSong(FileName, game);
+#if !WINDOWS
+            engine = eng;
+            sB = sb;
+            wB = wb;
+#endif
+
+            LoadSong(FileName, (IntPtr)null);
         }
 
         private bool LoadSong(String fn, IntPtr game)
         {
+
             if (!System.IO.File.Exists("songdata\\" + fn + ".gba"))
             {
+#if WINDOWS
                 System.Windows.Forms.MessageBox.Show("songdata not found");
+#endif
                 return false;
             }
             System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gba"));
@@ -128,7 +147,7 @@ namespace Unsigned
                 Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
             }
             endLength = reader.ReadInt32();
-#if ! XBOX
+#if WINDOWS
 
             sEngine = new ISoundEngine();
             song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.NoStreaming, true);
@@ -142,6 +161,10 @@ namespace Unsigned
             /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
             manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
             manager.StopOggFile(0);*/
+#else
+            cue = sB.GetCue(fn);
+            cue.Play();
+            cue.Pause();
 #endif
             return true;
         }
@@ -168,14 +191,22 @@ namespace Unsigned
 
         public void play()
         {
+#if WINDOWS
             sound.Paused = false; 
                 //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
                 playing = true;
+#else
+            cue.Resume();
+#endif
         }
 
         public long getTime()
         {
+#if WINDOWS
             return sound.PlayPosition;  
+#else
+            return 0;
+#endif
         }
 
         public void Update(long currenttime)
@@ -183,12 +214,13 @@ namespace Unsigned
             if (currenttime >= 0 && !playing)
             {
                 
-#if ! XBOX
+#if WINDOWS
 
                 
 #else
 
-                asb.PlayCue(cues[cueindex]);
+                //asb.PlayCue(cues[cueindex]);
+                
 
 #endif
             }
@@ -233,18 +265,30 @@ namespace Unsigned
 
         internal void pause()
         {
+#if WINDOWS
             sound.Paused = true;
+#else
+
+#endif
         }
 
         internal void resume(long p)
         {
+#if WINDOWS
             sound.PlayPosition = (uint)p;
             sound.Paused = false;
+#else
+
+#endif
         }
 
         public float PercentSong()
         {
+#if WINDOWS
             return sound.PlayPosition / (float)sound.PlayLength;
+#else
+            return 0.0f;
+#endif
         }
     }
 }

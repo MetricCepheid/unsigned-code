@@ -485,7 +485,7 @@ if(!fullbright)
 
   return float4((diffuseTex * saturate(ambientColor + diffuseCol) + specularCol).xyz,diffuseTex.w*wAlpha*input.alpha);
 }
-
+//#if !XBOX
 EngineVertexToPixel MenuVertexShadert(EngineVertexInput input)
 {
   EngineVertexToPixel output = (EngineVertexToPixel)0;
@@ -520,7 +520,7 @@ float4 MenuPixelShadert(EnginePixelIn input) : COLOR
   
   float4 diffuseCol = diffuseColor;
   
-  //float3 viewVector = normalize(input.viewVec);
+  //float3 viewVector = normalize(input.viewVec);    
   
   {// Directional Light
 	diffuseCol = saturate(dot(normalVector, normalize(dLightDir)))*diffuseColor*dLDiffuseColor;
@@ -544,6 +544,7 @@ float4 MenuPixelShadert(EnginePixelIn input) : COLOR
 
   return float4((diffuseTex.xyz * saturate(ambientColor.xyz + diffuseCol.xyz)),diffuseTex.w*wAlpha);
 }
+//#endif
 
 technique menutechnique {
 	pass pass0 {
@@ -552,9 +553,11 @@ technique menutechnique {
 	}
 }
 
+//#if !XBOX
 technique menutechniquet {
 	pass pass0 {
 		VertexShader = compile vs_2_0 MenuVertexShadert();
 		PixelShader  = compile ps_2_0 MenuPixelShadert();
 	}
 }
+//#endif

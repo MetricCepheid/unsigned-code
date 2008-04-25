@@ -456,7 +456,7 @@ namespace Unsigned
             drumsetM[DS_TOMTOMS] = content.Load<Model>("meshes\\tomtoms01");
             drumsetT[DS_TOMTOMS] = content.Load<Texture2D>("graphics\\tomtoms01");
 
-            System.IO.BinaryReader fin = new System.IO.BinaryReader(System.IO.File.Open(Filename,System.IO.FileMode.Open));
+            System.IO.BinaryReader fin = new System.IO.BinaryReader(System.IO.File.Open(Filename,System.IO.FileMode.Open,System.IO.FileAccess.Read));
 
             char[] header = fin.ReadChars(8);
 
