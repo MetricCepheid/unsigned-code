@@ -279,8 +279,6 @@
     <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.XImporter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="graphics\blankbm.PNG">
@@ -311,82 +309,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="graphics\board_44.tga">
-      <Name>board_44</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_50.tga">
-      <Name>board_50</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
     <Compile Include="meshes\note.x">
       <Name>note</Name>
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="graphics\board_01.tga">
-      <Name>board_01</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_40.tga">
-      <Name>board_40</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_41.tga">
-      <Name>board_41</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_42.tga">
-      <Name>board_42</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_43.tga">
-      <Name>board_43</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_46.tga">
-      <Name>board_46</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_48.tga">
-      <Name>board_48</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_51.tga">
-      <Name>board_51</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_52.tga">
-      <Name>board_52</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_53.tga">
-      <Name>board_53</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_56.tga">
-      <Name>board_56</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_58.tga">
-      <Name>board_58</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -810,20 +736,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="meshes\char.fbx">
-      <Name>char</Name>
-      <Importer>FbxImporter</Importer>
-      <Processor>SkinnedModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="shaders\HFPS_Shader_XNA.fx">
-      <Name>HFPS_Shader_XNA</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="shaders\PP_Shader_XNA.fx">
       <Name>PP_Shader_XNA</Name>
       <Importer>EffectImporter</Importer>
@@ -963,18 +875,6 @@
     </Compile>
     <Compile Include="graphics\metalRodTex.png">
       <Name>metalRodTex</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="graphics\board_45.tga">
-      <Name>board_45</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_55.tga">
-      <Name>board_55</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -1140,18 +1040,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="audio\Win\Sound Bank.xsb">
-      <Name>Sound Bank</Name>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="audio\Win\Unsigned.xgs">
-      <Name>Unsigned</Name>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="audio\Win\Wave Bank.xwb">
-      <Name>Wave Bank</Name>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Compile Include="meshes\char.x">
+      <Name>char</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
     <Compile Include="fonts\smallfont.spritefont">
       <Name>smallfont</Name>
       <Importer>FontDescriptionImporter</Importer>
@@ -1159,26 +1052,6 @@
     </Compile>
     <Compile Include="graphics\board_00.tga">
       <Name>board_00</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_47.tga">
-      <Name>board_47</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_49.tga">
-      <Name>board_49</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_57.tga">
-      <Name>board_57</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="graphics\board_59.tga">
-      <Name>board_59</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -1587,13 +1460,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="graphics\board_54.png">
-      <Name>board_54</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="graphics\starglow.png">
       <Name>starglow</Name>
       <Importer>TextureImporter</Importer>
@@ -1601,10 +1467,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="audio\Unsigned.xap">
+      <Name>Unsigned</Name>
+      <Importer>XactImporter</Importer>
+      <Processor>XactProcessor</Processor>
+    </Compile>
     <Compile Include="graphics\header.png">
       <Name>header</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="shaders\HFPS_Shader_XNA_360.fx">
+      <Name>HFPS_Shader_XNA_360</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>

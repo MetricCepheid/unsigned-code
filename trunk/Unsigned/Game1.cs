@@ -399,7 +399,7 @@ namespace Unsigned
         public static Texture2D texGlow, texDefaultBM;
         public static VertexDeclaration vd;
         private RenderTarget2D ort;
-        int windowheight, windowwidth;
+        int windowheight, windowwidth, windowyoffset, windowxoffset;
         public static Random r;
         static String loadingText = "Loading";
         public static bool DemoMode = false;
@@ -409,7 +409,7 @@ namespace Unsigned
         float failTime;
         bool IsPaused = false;
         int pausetimer;
-
+        float UIHScale, UIVScale;
 #endregion
 
 #region boards
@@ -862,6 +862,7 @@ namespace Unsigned
             Configurate();
             InitXNAApp();
 
+#if WINDOWS
             String[] rFiles = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory());
             bool gblExists = false;
             for (int i = 0; i < rFiles.Length; i++)
@@ -889,6 +890,12 @@ namespace Unsigned
             setLists[3] = new SetList();
             setLists[3].LoadByArtist();
             setLists[3].name = "By Artist";
+#else
+            setLists = new SetList[1];
+            setLists[0] = new SetList();
+            setLists[0].LoadCustom("songlist.txt");
+            setLists[0].name = "Custom";
+#endif
 
             instruments = new bool[4];
             glass = new ShatterGlass[100];
@@ -992,7 +999,7 @@ namespace Unsigned
             if(fullScreen)
                 graphics.ToggleFullScreen();
 
-            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
+            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA_360");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
             fader = content.Load<Effect>("shaders\\BoardFade");
 
@@ -1017,7 +1024,9 @@ namespace Unsigned
             }
             catch (Exception)
             {
+#if WINDOWS
                 System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
+#endif
                 Exit();
                 return;
             }
@@ -1058,11 +1067,15 @@ namespace Unsigned
             }
             catch (FormatException)
             {
+#if WINDOWS
                 System.Windows.Forms.MessageBox.Show("config.cfg number was not a number!");
+#endif
             }
             catch (Exception)
             {
+#if WINDOWS
                 System.Windows.Forms.MessageBox.Show("config.cfg general error");
+#endif
             }
 #endif
         }
@@ -1076,9 +1089,15 @@ namespace Unsigned
         
         protected override void LoadContent()
         {
+#if WINDOWS
             audioEngine = new AudioEngine("audio\\Win\\Unsigned.xgs");
             audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
             audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
+#else
+            audioEngine = new AudioEngine("audio\\Unsigned360.xgs");
+            audioSoundBank = new SoundBank(audioEngine, "audio\\Sound Bank.xsb");
+            audioWaveBank = new WaveBank(audioEngine, "audio\\Wave Bank.xwb");
+#endif
             sfBassist = content.Load<SpriteFont>("fonts\\bassist");
             sfGuitarist = content.Load<SpriteFont>("fonts\\guitarist");
             sfDrummer = content.Load<SpriteFont>("fonts\\drummer");
@@ -1241,14 +1260,14 @@ namespace Unsigned
                     texShard[k] = content.Load<Texture2D>("graphics\\glassshard0" + (k + 1));
                 texSpark = content.Load<Texture2D>("graphics\\spark");
                 Board.boardTexPlain = new Texture2D[2][];
-                for (int i = 0; i < 2; i++)
+                /*for (int i = 0; i < 2; i++)
                 {
                     Board.boardTexPlain[i] = new Texture2D[Board.boardValidBPM.Length];
                     for (int k = 0; k < Board.boardValidBPM.Length; k++)
                     {
                         Board.boardTexPlain[i][Board.boardBeatsIndex[Board.boardValidBPM[k]]] = content.Load<Texture2D>("graphics\\board_" + (i + 4) + "" + (Board.boardValidBPM[k]));
                     }
-                }
+                }*/
                 //Board.boardTexPlain[1][4] = content.Load<Texture2D>("graphics\\test");
                 Board.texTriggerBorder = content.Load<Texture2D>("graphics\\triggerborder");
                 Board.drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
@@ -1296,7 +1315,11 @@ namespace Unsigned
             };
             GameLoading = true;
             if(mode==M_GAME)
-                song = new Song(4, 2, songname,this.Window.Handle);
+#if WINDOWS
+                song = new Song(songname,this.Window.Handle);
+#else
+                song = new Song(songname,audioEngine,audioSoundBank,audioWaveBank);
+#endif
             Thread myThread = new Thread(ThreadStarter);
             myThread.Start();
         }
@@ -1344,13 +1367,13 @@ namespace Unsigned
             for (int k = 0; k < 8; k++)
                 texShard[k] = null;
             texSpark = null;
-            for (int i = 0; i < 2; i++)
+            /*for (int i = 0; i < 2; i++)
             {
                 for (int k = 0; k < Board.boardValidBPM.Length; k++)
                 {
                     Board.boardTexPlain[i][Board.boardBeatsIndex[Board.boardValidBPM[k]]] = null;
                 }
-            }
+            }*/
             Board.texTriggerBorder = null;
             Board.drumfillTex = null;
             Board.spMeterBG = null;
@@ -1543,8 +1566,8 @@ namespace Unsigned
         {
             if (pausetimer > 0)
                 pausetimer -= gameTime.ElapsedGameTime.Milliseconds;
-            windowheight = Window.ClientBounds.Height;
-            windowwidth = Window.ClientBounds.Width;
+            windowheight = graphics.GraphicsDevice.Viewport.Height;
+            windowwidth = graphics.GraphicsDevice.Viewport.Width;
             audioEngine.Update();
 
             if (demomodepress != Keyboard.GetState().IsKeyDown(Keys.O))
@@ -1570,7 +1593,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Update/MM/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -1682,16 +1707,19 @@ namespace Unsigned
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                     menuShiftPos.Y *= 0.9f;
                     menuShiftPos.X *= 0.9f;
-                }
+                
 #if !DEBUG
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
 #endif
+                }
             }
             #endregion
             #region diffscreen
@@ -1780,7 +1808,10 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+                    
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CD/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -1790,13 +1821,15 @@ namespace Unsigned
             #region songscreen
             else if (screen == S_CHOOSESONG)
             {
+                bool chgd;
+                SetList setlist;
 #if !DEBUG
                 try
                 {
 #endif
-                bool chgd = SongListTex==null;
+                chgd = SongListTex==null;
 
-                SetList setlist = setLists[slIndex];
+                setlist = setLists[slIndex];
 
                 if (mmenu_ticker <= 0)
                 {
@@ -1868,115 +1901,119 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/SS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
                 try
                 {
 #endif
-                if (chgd)
-                {
-                    setlist = setLists[slIndex];
-                    graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                    graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-                    spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
-                    if (setlist.setlist.Count > 0)
+                    if (chgd)
                     {
-                        int NUM_DRAWN = 9;
-                        String[] drawList = new string[20];
-                        String[] drawList2 = new string[20];
-                        drawList[9] = setlist.setlist[setIndex].songs[songIndex].displayName  + "(" + setlist.setlist[setIndex].songs[songIndex].len + ")";
-                        drawList2[9] = setlist.setlist[setIndex].songs[songIndex].artistName;
-                        int j = setIndex, k = songIndex;
-                        for (int i = 8; i > 0; i--)
+                        setlist = setLists[slIndex];
+                        graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                        graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+                        spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
+                        if (setlist.setlist.Count > 0)
                         {
-                            if (k <= -1)
+                            int NUM_DRAWN = 7;
+                            String[] drawList = new string[20];
+                            String[] drawList2 = new string[20];
+                            drawList[9] = setlist.setlist[setIndex].songs[songIndex].displayName + "(" + setlist.setlist[setIndex].songs[songIndex].len + ")";
+                            drawList2[9] = setlist.setlist[setIndex].songs[songIndex].artistName;
+                            int j = setIndex, k = songIndex;
+                            for (int i = 8; i > 0; i--)
                             {
-                                if (j <= 0)
-                                    break;
-                                j--;
-                                k = setlist.setlist[j].songs.Count - 1;
+                                if (k <= -1)
+                                {
+                                    if (j <= 0)
+                                        break;
+                                    j--;
+                                    k = setlist.setlist[j].songs.Count - 1;
+                                }
+                                else
+                                    k--;
+                                if (k >= 0)
+                                {
+                                    drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
+                                    drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                                }
+                                else
+                                    drawList[i] = "@@@" + setlist.setlist[j].name;
                             }
-                            else
-                                k--;
-                            if (k >= 0)
+                            j = setIndex;
+                            k = songIndex;
+                            for (int i = 10; i < 20; i++)
                             {
-                                drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
-                                drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                                if (k >= setlist.setlist[j].songs.Count - 1)
+                                {
+                                    k = -1;
+                                    j++;
+                                    if (j >= setlist.setlist.Count)
+                                        break;
+                                }
+                                else
+                                    k++;
+                                if (k >= 0)
+                                {
+                                    drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
+                                    drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                                }
+                                else
+                                    drawList[i] = "@@@" + setlist.setlist[j].name;
                             }
-                            else
-                                drawList[i] = "@@@" + setlist.setlist[j].name;
-                        }
-                        j = setIndex;
-                        k = songIndex;
-                        for (int i = 10; i < 20; i++)
-                        {
-                            if (k >= setlist.setlist[j].songs.Count - 1)
+                            int min = 9, max = 9;
+                            for (int i = 9; i > 9 - (NUM_DRAWN / 2); i--)
+                                if (drawList[i - 1] != null)
+                                    min--;
+                                else
+                                    break;
+                            for (int i = 9; i < 9 + (NUM_DRAWN / 2); i++)
+                                if (drawList[i] != null)
+                                    max++;
+                                else
+                                    break;
+                            if (9 - min < NUM_DRAWN / 2)
                             {
-                                k = -1;
-                                j++;
-                                if (j >= setlist.setlist.Count)
-                                    break;
+                                for (; max < min + NUM_DRAWN; max++)
+                                    if (drawList[max] == null)
+                                        break;
                             }
-                            else
-                                k++;
-                            if (k >= 0)
+                            if (max - 9 < NUM_DRAWN / 2)
                             {
-                                drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
-                                drawList2[i] = setlist.setlist[j].songs[k].artistName;
+                                for (; min > max - NUM_DRAWN + 1; min--)
+                                    if (drawList[min - 1] == null)
+                                        break;
                             }
-                            else
-                                drawList[i] = "@@@" + setlist.setlist[j].name;
+                            spritebatch.Draw(SongHiLi, new Rectangle(20, (9 - min) * 40 + 95, SongListRT.Width - 40, 50), Color.White);
+                            for (int i = min; i < max; i++)
+                            {
+                                spritebatch.DrawString(DefaultFont, drawList[i].StartsWith("@@@") ? drawList[i].Substring(3) : drawList[i], new Vector2(10 + (drawList[i].StartsWith("@@@") ? 20 : 50), (i - min) * 40 + 100), drawList[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                                if (drawList2[i] != null)
+                                    spritebatch.DrawString(SmallFont, drawList2[i], new Vector2(70, (i - min) * 40 + 125), Color.Black);
+                            }
+                            //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
                         }
-                        int min = 9, max = 9;
-                        for (int i = 9; i > 9 - (NUM_DRAWN / 2); i--)
-                            if (drawList[i - 1] != null)
-                                min--;
-                            else
-                                break;
-                        for (int i = 9; i < 9 + (NUM_DRAWN / 2); i++)
-                            if (drawList[i] != null)
-                                max++;
-                            else
-                                break;
-                        if (9 - min < NUM_DRAWN / 2)
-                        {
-                            for (; max < min + NUM_DRAWN; max++)
-                                if (drawList[max] == null)
-                                    break;
-                        }
-                        if (max - 9 < NUM_DRAWN / 2)
-                        {
-                            for (; min > max - NUM_DRAWN + 1; min--)
-                                if (drawList[min-1] == null)
-                                    break;
-                        }
-                        spritebatch.Draw(SongHiLi, new Rectangle(20, (9 - min) * 40 + 55, SongListRT.Width - 40, 50), Color.White);
-                        for (int i = min; i < max; i++)
-                        {
-                            spritebatch.DrawString(DefaultFont, drawList[i].StartsWith("@@@") ? drawList[i].Substring(3) : drawList[i], new Vector2(10 + (drawList[i].StartsWith("@@@") ? 20 : 50), (i - min) * 40 + 60), drawList[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
-                            if(drawList2[i]!=null)
-                                spritebatch.DrawString(SmallFont, drawList2[i], new Vector2(70, (i - min) * 40 + 85), Color.Black);
-                        }
-                        //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                        spritebatch.End();
+                        graphics.GraphicsDevice.SetRenderTarget(0, null);
+                        SongListTex = SongListRT.GetTexture();
                     }
-                    spritebatch.End();
-                    graphics.GraphicsDevice.SetRenderTarget(0, null);
-                    SongListTex = SongListRT.GetTexture();
-                    
 #if !DEBUG
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/SS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
 #endif
-                }
+                
             }
             #endregion
             #region contchoosescreen
@@ -1997,7 +2034,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2045,7 +2084,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2122,7 +2163,10 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+                    
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2277,7 +2321,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt3\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2379,7 +2425,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2457,7 +2505,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2495,7 +2545,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/FS/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2556,7 +2608,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/R/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2619,7 +2673,9 @@ namespace Unsigned
                 }
                 catch(Exception e)
                 {
+#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/F/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                     Exit();
                     return;
                 }
@@ -2904,7 +2960,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt0\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -2964,7 +3022,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -3017,7 +3077,9 @@ namespace Unsigned
                             pass.End();
                         }
                         engine.End();
-
+                        
+                        
+                        
                         spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                         spritebatch.Draw(waves,new Rectangle((int)waveM1,windowheight*6/8,windowwidth,windowheight*2/8),Color.White);
                         spritebatch.Draw(waves,new Rectangle(-windowwidth+(int)waveM1,windowheight*6/8,windowwidth,windowheight*2/8),Color.White);
@@ -3025,22 +3087,25 @@ namespace Unsigned
                         spritebatch.Draw(waves, new Rectangle(-windowwidth+(int)waveM2, windowheight * 7 / 8, windowwidth, windowheight * 2 / 8), Color.White);
                         spritebatch.Draw(songchoosetop, new Rectangle(0, (int)(-songchoosetop.Height * 0.26f), windowwidth, songchoosetop.Height), Color.White);
                         spritebatch.Draw(songchoosetop, new Rectangle(0, (int)(windowheight-songchoosetop.Height *.74f), windowwidth, songchoosetop.Height),null, Color.White,0,new Vector2(0,0),SpriteEffects.FlipVertically,0);
-                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
+                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.1f * windowwidth), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.1f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
                         if (DemoMode)
                         {
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                         }
-                        spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth*0.1f), (int)(windowheight*0.1f), (int)(windowwidth*0.8f), (int)(windowheight*.2f)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Menus in Red are not yet implemented.\nMultiplayer->Quickplay allows for Single Player play", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Menus in Red are not yet implemented.\nMultiplayer->Quickplay allows for Single Player play").X / 2), windowheight * 0.8f), Color.White);
+                        spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth*0.1f), (int)(windowheight*0.2f), (int)(windowwidth*0.8f), (int)(windowheight*.2f)), Color.White);
+                        //spritebatch.DrawString(DefaultFont, "Multiplayer->Quickplay allows for Single Player play", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Multiplayer->Quickplay allows for Single Player play").X / 2), windowheight * 0.8f), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Menus in Red are not yet implemented.", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Menus in Red are not yet implemented.").X / 2), windowheight * 0.75f), Color.White);
                         spritebatch.End();
 #if !DEBUG
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt2\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -3159,7 +3224,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -3914,10 +3981,10 @@ namespace Unsigned
                         engine.End();
 
                         spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
-                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.99f * windowwidth)-(int)(0.09f * windowheight), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
+                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.1f * windowwidth), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.1f * windowwidth) + (0.10f * windowheight), (0.80f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
+                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.9f * windowwidth)-(int)(0.09f * windowheight), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.9f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.80f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
                         if (DemoMode)
                         {
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
@@ -3929,7 +3996,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt2\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4087,10 +4156,10 @@ namespace Unsigned
                         engine.End();
                         spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                         spritebatch.Draw(songchoosetop, new Rectangle(0, 0, windowwidth, (int)((windowheight / 768f) * 256)), Color.White);
-                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
-                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.99f * windowwidth)-(int)(0.09f * windowheight), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
+                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.1f * windowwidth), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.1f * windowwidth) + (0.10f * windowheight), (0.80f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
+                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.9f * windowwidth)-(int)(0.09f * windowheight), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.9f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.80f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
                         if (DemoMode)
                         {
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
@@ -4102,7 +4171,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/SS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4179,7 +4250,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4536,7 +4609,9 @@ namespace Unsigned
                     }
                     catch (Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4554,13 +4629,13 @@ namespace Unsigned
                             spritebatch.Draw(hairr, new Rectangle(20 + (int)Window.ClientBounds.Width - (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), 0, (int)((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * (Window.ClientBounds.Height * 2) : (1 - ((idleTime * hmul) % .5f * 2)) * Window.ClientBounds.Height), (int)Window.ClientBounds.Height), Color.White);
                         }
 
-                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.01f * windowwidth), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.Draw(tbgGreen, new Rectangle((int)(0.1f * windowwidth), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
                         if (leader >= 0 && contguis[leader].status == 2)
-                            spritebatch.DrawString(DefaultFont, "Continue", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Continue").Y)), Color.White);
+                            spritebatch.DrawString(DefaultFont, "Continue", new Vector2((0.10f * windowwidth)+(int)(0.1f * windowheight), (0.90f * windowheight) - (DefaultFont.MeasureString("Continue").Y)), Color.White);
                         else
-                            spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.01f * windowwidth) + (0.10f * windowheight), (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
-                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.99f * windowwidth)-(int)(0.09f * windowheight), (int)(0.90f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
-                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
+                            spritebatch.DrawString(DefaultFont, "Select", new Vector2((0.10f * windowwidth)+(int)(0.1f * windowheight), (0.90f * windowheight) - (DefaultFont.MeasureString("Select").Y)), Color.White);
+                        spritebatch.Draw(tbgRed, new Rectangle((int)(0.80f * windowwidth), (int)(0.80f * windowheight), (int)(0.09f * windowheight), (int)(0.09f * windowheight)), Color.White);
+                        spritebatch.DrawString(DefaultFont, "Back", new Vector2((0.80f * windowwidth) - DefaultFont.MeasureString("Back").X, (0.90f * windowheight) - (DefaultFont.MeasureString("Back").Y)), Color.White);
                         //spritebatch.DrawString(DefaultFont, "" + contguis[0].type+","+GamePad.GetState(PlayerIndex.One).IsConnected + ","+ GamePad.GetCapabilities(PlayerIndex.One).GamePadType, new Vector2(100, 100), Color.Red);
 
                         //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
@@ -4575,7 +4650,9 @@ namespace Unsigned
                     }
                     catch (Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt3\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4648,7 +4725,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4739,7 +4818,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4807,7 +4888,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4865,7 +4948,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message+"\n"+e.StackTrace);
+#endif
                         Exit();
                         return;
                     }
@@ -4894,7 +4979,9 @@ namespace Unsigned
                             renderLevel = 0;
                         else
                         {
+#if WINDOWS
                             System.Windows.Forms.MessageBox.Show("Problem in Draw\nYour graphics card does not support at least SM2.0");
+#endif
                             Exit();
                         }
                         if (renderLevel > 0)
@@ -4941,7 +5028,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message);
+#endif
                         Exit();
                         return;
                     }
@@ -5021,7 +5110,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message);
+#endif
                         Exit();
                         return;
                     }
@@ -5089,7 +5180,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message);
+#endif
                         Exit();
                         return;
                     }
@@ -5141,7 +5234,9 @@ namespace Unsigned
                     }
                     catch(Exception e)
                     {
+#if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message);
+#endif
                         Exit();
                         return;
                     }
@@ -6869,7 +6964,7 @@ namespace Unsigned
 
             int fiver = i == 0 || i == 3 ? 1 : 0;
             int lowestPoint = 0;
-            spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard[i].Width,rtBoard[i].Height),null,Color.White);// (int)y, rtBoard[i].Width, (int)height), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.9f);
+            //spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard[i].Width,rtBoard[i].Height),null,Color.White);// (int)y, rtBoard[i].Width, (int)height), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.9f);
             for (int k = 0; k < songtimes.Length - 1; k++)
             {
                 if (started < 2 && CurrentTime < 30 * TicksPerSecond)
@@ -6891,9 +6986,9 @@ namespace Unsigned
                     spritebatch.Draw(texWhite, new Rectangle(0, (int)y-2, rtBoard[i].Width, 5), Color.White);
                 }
             }
-            if (started < 2 && CurrentTime < 30 * TicksPerSecond)
+            /*if (started < 2 && CurrentTime < 30 * TicksPerSecond)
                 if (lowestPoint < rtBoard[i].Height * .99)
-                    spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[1]], new Rectangle(0, lowestPoint, rtBoard[i].Width, rtBoard[i].Height - lowestPoint),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);
+                    spritebatch.Draw(Board.boardTexPlain[fiver][Board.boardBeatsIndex[1]], new Rectangle(0, lowestPoint, rtBoard[i].Width, rtBoard[i].Height - lowestPoint),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);*/
             if (!DemoMode)
             {
                 int spheight = (int)((rtBoard[i].Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.spMeterYScale);
@@ -8027,10 +8122,17 @@ namespace Unsigned
                                     rmFill > 0.33 ? (byte)255 : (byte)0,
                                     0);
                 int height = (int)(windowheight*0.2f);
+#if WINDOWS
                 spritebatch.Draw(rmUNbg, new Rectangle(0, (windowheight / 2) - (int)(height * 0.75f), (int)(height * 0.5f), (int)(height*1.5f)), Color.White);
-                spritebatch.Draw(rmUNfg, new Rectangle(0, (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi-(rmFill*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNfg, new Rectangle(0, (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi - (rmFill * MathHelper.Pi), new Vector2(0, rmUNfg.Height / 2), SpriteEffects.None, 0);
                 spritebatch.Draw(rmUNbg, new Rectangle(windowwidth, (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
                 spritebatch.Draw(rmUNfg, new Rectangle(windowwidth, (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
+#else
+                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*0.1f), (windowheight / 2) - (int)(height * 0.75f), (int)(height * 0.5f), (int)(height*1.5f)), Color.White);
+                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth * 0.1f), (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi - (rmFill * MathHelper.Pi), new Vector2(0, rmUNfg.Height / 2), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*0.9f), (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth*0.9f), (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
+#endif
             }
             else if (cGUIStyle == GUIStyle.RB)
             {
@@ -8130,13 +8232,23 @@ namespace Unsigned
                 for (int i = 0; i < 4; i++)
                     if (instruments[i])
                         ct++;
-                spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
-                spritebatch.Draw(rmUNstaro, new Vector2(0, windowheight / 2), null, GetRockstarAmount()<4?FretColors[(int)GetRockstarAmount()+1]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+#if WINDOWS
+                spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstaro, new Vector2(0, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
                 //if (ct <= 1)
                 {
                     spritebatch.Draw(rmUNstar, new Vector2(windowwidth, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
-                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth, windowheight / 2), null, GetRockstarAmount()<4?FretColors[(int)GetRockstarAmount()+1]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
                 }
+#else
+                spritebatch.Draw(rmUNstar, new Vector2(windowwidth*0.1f, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstaro, new Vector2(windowwidth * 0.1f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
+                //if (ct <= 1)
+                {
+                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth*0.9f, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth*0.9f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+                }
+#endif
                 String scr = GetScore().ToString();
                 char[] scrarr = scr.ToCharArray();
                 String scr2 = "";
