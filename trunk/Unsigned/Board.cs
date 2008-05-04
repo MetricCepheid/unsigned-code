@@ -620,20 +620,29 @@ namespace Unsigned
                             {
                                 if (notes[index].length > 0)
                                 {
-                                    notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                                    for(int i=0;i<notes[index].visible.Length;i++)
+                                        notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                                     notes[index].burning = true;
                                     for (int i = 0; i < 5; i++)
-                                    if ((notes[index].type & (1 << i)) != 0)
-                                        popupSpeed[i] += 100;
+                                        if ((notes[index].type & (1 << i)) != 0)
+                                            if (ind == 0 || ind == 3)
+                                                popupSpeed[i] += 100;
+                                            else
+                                                popupSpeed[guitarToDrums[i]] += 100;
                                     flashRot = (float)(Game1.r.Next() * Math.PI * 2);
                                     return notes[index].type;
+
                                 }
                                 else
                                 {
-                                    notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                                    for (int i = 0; i < notes[index].visible.Length; i++)
+                                        notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                                     for (int i = 0; i < 5; i++)
-                                    if ((notes[index].type & (1 << i)) != 0)
-                                        popupSpeed[i] += 100;
+                                        if ((notes[index].type & (1 << i)) != 0)
+                                            if (ind == 0 || ind == 3)
+                                                popupSpeed[i] += 100;
+                                            else
+                                                popupSpeed[guitarToDrums[i]] += 100;
                                     index++;
                                     flashRot = (float)(Game1.r.Next() * Math.PI * 2);
                                     return notes[index - 1].type;
