@@ -419,8 +419,8 @@ namespace Unsigned
         private int[] multToIndex = { -1, -1, 0, 1, 2, 3, 4, -1, 5, -1, 6, -1, 7 };
         private Texture2D texSpark;
         private Texture2D gradientMask;
-        private ShatterGlass[] glass;
-        private ShatterSpark[] sparks;
+        private ShatterGlass[][] glass;
+        private ShatterSpark[][] sparks;
         private RenderTarget2D[] rtBoard, rtWaves;
         struct SPCircle
         {
@@ -435,7 +435,7 @@ namespace Unsigned
 #region song
 
         private static Song song;
-        private long CurrentTime, lastChange;
+        private double CurrentTime, lastChange;
         private SetList[] setLists;
 
 #endregion
@@ -779,6 +779,7 @@ namespace Unsigned
         Texture2D tbgGreen, tbgRed, tbgYellow, tbgPedal;
         static String songname;
         byte[] diff;
+	bool[] diffConfirm;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
         Texture2D stratTex, whitishTex, whitishBM, glassboxTex, glassboxBM;
         Texture2D[] greyishTex;
@@ -898,8 +899,12 @@ namespace Unsigned
 #endif
 
             instruments = new bool[4];
-            glass = new ShatterGlass[100];
-            sparks = new ShatterSpark[100];
+            glass = new ShatterGlass[4][];
+            for(int i=0;i<4;i++)
+                glass[i] = new ShatterGlass[100];
+            sparks = new ShatterSpark[4][];
+            for(int i=0;i<4;i++)
+                sparks[i] = new ShatterSpark[100];
 
             contInput = new byte[4];
             controllers = new GamePadState[4];
@@ -907,6 +912,7 @@ namespace Unsigned
             contCapabilities = new GamePadCapabilities[4];
 
             diff = new byte[4];
+	    diffConfirm = new bool[4];
 
             mMenuStr = new string[4][];
             mMenuStr[0] = new string[4];
@@ -1094,7 +1100,7 @@ namespace Unsigned
             audioSoundBank = new SoundBank(audioEngine, "audio\\Win\\Sound Bank.xsb");
             audioWaveBank = new WaveBank(audioEngine, "audio\\Win\\Wave Bank.xwb");
 #else
-            audioEngine = new AudioEngine("audio\\Unsigned360.xgs");
+            audioEngine = new AudioEngine("audio\\Unsigned.xgs");
             audioSoundBank = new SoundBank(audioEngine, "audio\\Sound Bank.xsb");
             audioWaveBank = new WaveBank(audioEngine, "audio\\Wave Bank.xwb");
 #endif
@@ -1636,9 +1642,9 @@ namespace Unsigned
                                 if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
                                 {
                                     if (controllers[i].Buttons.Y == ButtonState.Pressed)
-                                        collective--;
-                                    if (controllers[i].Buttons.X == ButtonState.Pressed)
                                         collective++;
+                                    if (controllers[i].Buttons.X == ButtonState.Pressed)
+                                        collective--;
                                 }
                             }
                         if (Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -1707,6 +1713,8 @@ namespace Unsigned
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
                     menuShiftPos.Y *= 0.9f;
                     menuShiftPos.X *= 0.9f;
+		for(int i=0;i<4;i++)
+			diffConfirm[i]=false;
                 
 #if !DEBUG
                 }
@@ -1734,15 +1742,25 @@ namespace Unsigned
                     bool green = false, red = false;
                     GetGamepadStates(true);
                     for (int i = 0; i < 4; i++)
-                        if (controllers[i].IsConnected)
+                        if (contInput[i]<4 && controllers[contInput[i]].IsConnected)
                         {
-                            if (controllers[i].Buttons.A == ButtonState.Pressed)
-                                green = true;
-                            if (controllers[i].Buttons.B == ButtonState.Pressed)
-                                red = true;
+                            if (controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
+                            {
+                                if (diffConfirm[i])
+                                    green = true;
+                                else
+                                    diffConfirm[i] = true;
+                            }
+                            if (controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
+                            {
+                                if (diffConfirm[i])
+                                    diffConfirm[i] = false;
+                                else
+                                    red = true;
+                            }
                         }
                     for(int i=0;i<4;i++)
-                    if(instruments[i])
+                    if(instruments[i] && !diffConfirm[i])
                     {
                         if (contInput[i] >= 4)
                         {
@@ -1781,8 +1799,12 @@ namespace Unsigned
                         green = true;
                     if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
                         red = true;
-                    
-                    if (green)
+
+                    bool allconfirmed = true;
+                    for (int i = 0; i < 4; i++)
+                        if (instruments[i] && !diffConfirm[i])
+                            allconfirmed = false;
+                    if (green && allconfirmed)
                     {
                         if (mode == M_GAME)
                             screen = S_INGAME;
@@ -1840,6 +1862,10 @@ namespace Unsigned
                     for (int i = 0; i < 4; i++)
                         if (controllers[i].IsConnected)
                         {
+                            if (contCapabilities[i].GamePadType == GamePadType.DrumKit && controllers[i].Buttons.Y == ButtonState.Pressed)
+                                collective--;
+                            if (contCapabilities[i].GamePadType == GamePadType.DrumKit && controllers[i].Buttons.X == ButtonState.Pressed)
+                                collective++;
                             if (controllers[i].DPad.Down == ButtonState.Pressed)
                                 collective--;
                             if (controllers[i].DPad.Up == ButtonState.Pressed)
@@ -2384,18 +2410,20 @@ namespace Unsigned
                         }
                         else if (started == 1)
                         {
-                            if ((long)CurrentTime - gameTime.ElapsedGameTime.Ticks < 0)
+                            if ((long)CurrentTime - (long)(gameTime.ElapsedGameTime.TotalSeconds*TicksPerSecond) < 0)
                             {
                                 CurrentTime = 0;
                                 song.play();
                                 started = 2;
                             }
                             else
-                                CurrentTime -= (long)gameTime.ElapsedGameTime.Ticks;
+                                CurrentTime -= (long)(gameTime.ElapsedGameTime.TotalSeconds * TicksPerSecond);
 
                             song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
                             return;
                         }
+                        if (controllers[0].Buttons.Back == ButtonState.Pressed)
+                            DemoMode = !DemoMode;
                         long songt = song.getTime();
                         if (lastChange != songt && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) > 50 && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) < 5000)
                         {
@@ -2404,7 +2432,7 @@ namespace Unsigned
                         }
                         else if (lastChange != songt)
                             lastChange = songt;
-                        CurrentTime += (long)gameTime.ElapsedGameTime.Ticks;
+                        CurrentTime += (gameTime.ElapsedGameTime.TotalSeconds * TicksPerSecond);
                         UpdateGibs(gameTime);
 
                         for (int i = 0; i < spcircles.Length; i++)
@@ -2435,7 +2463,7 @@ namespace Unsigned
                         {
 #endif
 
-                        long currenttime = (CurrentTime+((TicksPerSecond / 1000)/2)) / (long)(TicksPerSecond / 1000);
+                        long currenttime = (long)(CurrentTime+((TicksPerSecond / 1000)/2)) / (long)(TicksPerSecond / 1000);
 
                         if (song.IsOver(currenttime))
                             screen = S_RESULTS;
@@ -2470,14 +2498,15 @@ namespace Unsigned
                             if (failStatus[i] == FS_FAILING)
                                 anyFail++;
                         }
-                        if (allFail)
+                        /*if (allFail)
                             screen = S_FAIL;
                         if (anyFail > 0)
                             failTime -= (gameTime.ElapsedGameTime.Milliseconds / 20000f) * anyFail;
                         else
                             failTime = -2;
                         if (failTime > -1 && failTime <= 0)
-                            screen = S_FAIL;
+                            screen = S_FAIL;*/
+
                         if (instruments[0] && contInput[0] < 4)
                             boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime);
                         else if (instruments[0] && contInput[0] == 4)
@@ -2491,9 +2520,9 @@ namespace Unsigned
                         for(int i=0;i<4;i++)
                             if (instruments[i] && i != 1)
                             {
-                                boards[i].GetNotes(CurrentTime, (long)(Board.eFade * Game1.TicksPerSecond));
+                                boards[i].GetNotes((long)CurrentTime, (long)(Board.eFade * Game1.TicksPerSecond));
                                 if (1 != 2)
-                                    boards[i].getWaves(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000)));
+                                    boards[i].getWaves((long)(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000))));
                             }
                         for (int i = 0; i < 4; i++)
                             if (rockMeterLevel[i] < 0)
@@ -2515,7 +2544,7 @@ namespace Unsigned
                     }
                     else
                     {
-                        long currenttime = CurrentTime / (long)(TicksPerSecond / 1000);
+                        long currenttime = (long)(CurrentTime / (long)(TicksPerSecond / 1000));
                         ProcessInput(gameTime, currenttime);
                         
                     }
@@ -3305,6 +3334,7 @@ namespace Unsigned
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
                                 engine.Parameters["diffuseTexture"].SetValue(!instruments[3]?greyishTex[0]:greyishTex[diff[3]+1]);
+				engine.Parameters["diffuseColor"].SetValue(diffConfirm[3]?new Vector4(0,0,1,1):new Vector4(0.8f,0.8f,0.8f,1));
                                 engine.Parameters["bumpTexture"].SetValue(whitishBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3319,6 +3349,7 @@ namespace Unsigned
                                 graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                                 graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+				engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f,0.8f,0.8f,1));
                             }
                             {//ssright
                                 matTranslate = Matrix.CreateTranslation(9, 101, -12);
@@ -3374,6 +3405,7 @@ namespace Unsigned
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
                                 engine.Parameters["diffuseTexture"].SetValue(!instruments[2]?greyishTex[0]:greyishTex[diff[2]+1]);
+				engine.Parameters["diffuseColor"].SetValue(diffConfirm[2]?new Vector4(0,0,1,1):new Vector4(0.8f,0.8f,0.8f,1));
                                 engine.Parameters["bumpTexture"].SetValue(whitishBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3388,6 +3420,7 @@ namespace Unsigned
                                 graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                                 graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+				engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f,0.8f,0.8f,1));
                             }
                             {//dsright
                                 matTranslate = Matrix.CreateTranslation(2, 101, -16);
@@ -3444,6 +3477,7 @@ namespace Unsigned
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
                                 engine.Parameters["diffuseTexture"].SetValue(!instruments[0]?greyishTex[0]:greyishTex[diff[0]+1]);
+				engine.Parameters["diffuseColor"].SetValue(diffConfirm[0]?new Vector4(0,0,1,1):new Vector4(0.8f,0.8f,0.8f,1));
                                 engine.Parameters["bumpTexture"].SetValue(whitishBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3458,6 +3492,7 @@ namespace Unsigned
                                 graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                                 graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                                 graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+				engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f,0.8f,0.8f,1));
                             }
                             {//psright
                                 matTranslate = Matrix.CreateTranslation(-9, 101, -8);
@@ -4662,7 +4697,7 @@ namespace Unsigned
                 #region ingame
                 else if (screen == S_INGAME)
                 {
-                    long currenttime = CurrentTime / (long)(TicksPerSecond / 1000);
+                    long currenttime = (long)(CurrentTime / (long)(TicksPerSecond / 1000));
 #if !DEBUG
 
                     try
@@ -4796,15 +4831,15 @@ namespace Unsigned
                                 Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
 
                                 //draw each boards
-                                DrawBoard(i, fling, false, CurrentTime, matTransl);
+                                DrawBoard(i, fling, false, (long)CurrentTime, matTransl);
                                 if(failStatus[i]==FS_GOOD)
-                                    DrawNotes(i, fling,started<2?-CurrentTime:CurrentTime);
+                                    DrawNotes(i, fling,(long)(started<2?-CurrentTime:CurrentTime));
                                 DrawBoardDetail(i, fling,matTransl);
                                 if (failStatus[i] == FS_GOOD)
                                 {
                                     DrawWaves(i, fling, matTransl);
                                     //draw the non-world gibs (glass shards sparks)
-                                    DrawGibs();
+                                    DrawGibs(i);
                                     DrawFlashes(i, fling);
                                 }
                                 pass.End();
@@ -4926,9 +4961,9 @@ namespace Unsigned
                             {
                                 float alpha;
                                 if (CurrentTime > 4 * TicksPerSecond)
-                                    alpha = 1 - ((CurrentTime - (4 * TicksPerSecond)) / (float)TicksPerSecond);
+                                    alpha = 1 - (((float)CurrentTime - (4 * TicksPerSecond)) / (float)TicksPerSecond);
                                 else if (CurrentTime < TicksPerSecond)
-                                    alpha = CurrentTime / (float)TicksPerSecond;
+                                    alpha = (float)CurrentTime / (float)TicksPerSecond;
                                 else
                                     alpha = 1;
                                 Color aColor = new Color(new Vector4(1, 1, 1, alpha));
@@ -5093,12 +5128,12 @@ namespace Unsigned
                                 Matrix matTransl = Matrix.CreateTranslation(0f, Board.height, 0f);
 
                                 //draw each boards
-                                DrawBoard(i,Matrix.CreateRotationX(Board.rotate), false, CurrentTime, matTransl);
+                                DrawBoard(i,Matrix.CreateRotationX(Board.rotate), false, (long)CurrentTime, matTransl);
                                 //DrawNotes(i, fling,started<2?-CurrentTime:CurrentTime);
                                 DrawBoardDetailFS(i, Matrix.CreateRotationX(Board.rotate),matTransl);
                                 //DrawWaves(i, fling,matTransl);
                                 //draw the non-world gibs (glass shards sparks)
-                                DrawGibsFS();
+                                DrawGibsFS(i);
                                 pass.End();
                             }
                             engine.End();
@@ -5339,21 +5374,24 @@ namespace Unsigned
 
         private void UpdateGibs(GameTime gameTime)
         {
-            for (int i = 0; i < glass.Length; i++)
+            for (int k = 0; k < glass.Length; k++)
             {
-                if (glass[i].scale > 0)
+                for (int i = 0; i < glass[k].Length; i++)
                 {
-                    glass[i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
-                    glass[i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                    glass[i].loc += glass[i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                    if (glass[k][i].scale > 0)
+                    {
+                        glass[k][i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
+                        glass[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                        glass[k][i].loc += glass[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                    }
                 }
-            }
-            for (int i = 0; i < sparks.Length; i++)
-            {
-                sparks[i].scale = Math.Min(sparks[i].dir.Y,1)*4;
-                sparks[i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
-                if (sparks[i].scale > 0)
-                    sparks[i].loc += sparks[i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                for (int i = 0; i < sparks[k].Length; i++)
+                {
+                    sparks[k][i].scale = Math.Min(sparks[k][i].dir.Y, 1) * 4;
+                    sparks[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
+                    if (sparks[k][i].scale > 0)
+                        sparks[k][i].loc += sparks[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                }
             }
         }
 
@@ -5481,11 +5519,11 @@ namespace Unsigned
             {
                 //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
-                boards[0].xOffset = -250;
+                boards[0].xOffset = -300;
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
                 boards[2].xOffset = 0;
                 boards[3] = new Board(BASS, 0, song, difficulty[3]);
-                boards[3].xOffset = 250;
+                boards[3].xOffset = 300;
                 Board.height = -1.5f;
                 Board.length = 2.0f;
                 Board.width = 0.3f;
@@ -5652,10 +5690,10 @@ namespace Unsigned
             {
                 //song = new Song(4, 2, songname,gameRef.Window.Handle);
                 boards[0] = new Board(GUITAR, 0, song, difficulty[0]);
-                boards[0].xOffset = -175;
+                boards[0].xOffset = -200;
                 boards[0].yRotate = -0.15f;
                 boards[2] = new Board(DRUMS, 0, song, difficulty[2]);
-                boards[2].xOffset = 175;
+                boards[2].xOffset = 200;
                 boards[2].yRotate = 0.15f;
                 Board.curveHeight = 0.02f;
                 Board.height = -1.5f;
@@ -5864,7 +5902,7 @@ namespace Unsigned
             else
             {
                 IsPaused = false;
-                song.resume(CurrentTime / (TicksPerSecond / 1000));
+                song.resume((long)(CurrentTime / (TicksPerSecond / 1000)));
             }
             pausetimer = 200;
         }
@@ -5872,11 +5910,11 @@ namespace Unsigned
         public void Hurt(int ind)
         {
             if (rockMeterLevel[ind] > 80)
-                rockMeterLevel[ind] -= 1f;
+                rockMeterLevel[ind] -= 0.5f;//1f;
             else if (rockMeterLevel[ind] > 20)
-                rockMeterLevel[ind] -= 0.75f;
+                rockMeterLevel[ind] -= 0.25f;//0.75f;
             else
-                rockMeterLevel[ind] -= 0.5f;
+                rockMeterLevel[ind] -= 0.1f;// 0.5f;
         }
 
         public void Help(int ind)
@@ -5910,40 +5948,42 @@ namespace Unsigned
                 if((note&bits[noteage])>0)
                     break;
             Random r = new Random((int)(DateTime.Now.Ticks/1000));
-
-            for (int i = 0; i < glass.Length; i++)
-            {
-                if (noteage >= 4 && boards[board].GetBoardType() == PERCUSSIONIST)
-                    break;
-                if (glass[i].scale <= 0)
+            int k=board;
+            
+                for (int i = 0; i < glass[k].Length; i++)
                 {
-                    glass[i].scale = 0.5f;
-                    glass[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 1.5f) - 1, (float)(r.NextDouble() * 15))*0.2f;
-                    glass[i].rot = new Vector3((float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2));
-                    glass[i].col = noteage;
-                    glass[i].frame = r.Next(5);
-                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
-                    if (boards[board].GetBoardType() != PERCUSSIONIST)
-                        glass[i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - boards[board].GetXOffset();
-                    else
-                        glass[i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - boards[board].GetXOffset();
-                    glass[i].loc.Y = Board.height + rval.Y;
-                    glass[i].loc.Z = rval.Z;
-                    glass[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
-                    glass[i].loc.Y += (float)(r.NextDouble() - 0.5)*0.3f;
-                    count++;
-                    if (count >= 16)
+                    if (noteage >= 4 && boards[board].GetBoardType() == PERCUSSIONIST)
+                        break;
+                    if (glass[k][i].scale <= 0)
                     {
-                        count = 0;
-                        noteage++;
-                        for (; noteage < 5; noteage++)
-                            if ((note & bits[noteage]) > 0)
-                                break;
-                        if (noteage >= 5)
-                            return;
+                        glass[k][i].scale = 0.5f;
+                        glass[k][i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 1.5f) - 1, (float)(r.NextDouble() * 15)) * 0.2f;
+                        glass[k][i].rot = new Vector3((float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2));
+                        glass[k][i].col = noteage;
+                        glass[k][i].frame = r.Next(5);
+                        Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
+                        if (boards[board].GetBoardType() != PERCUSSIONIST)
+                            glass[k][i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - boards[board].GetXOffset();
+                        else
+                            glass[k][i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - boards[board].GetXOffset();
+                        glass[k][i].loc.Y = Board.height + rval.Y;
+                        glass[k][i].loc.Z = rval.Z;
+                        glass[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
+                        glass[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                        count++;
+                        if (count >= 16)
+                        {
+                            count = 0;
+                            noteage++;
+                            for (; noteage < 5; noteage++)
+                                if ((note & bits[noteage]) > 0)
+                                    break;
+                            if (noteage >= 5)
+                                return;
+                        }
                     }
                 }
-            }
+            
         }
         public void AddSparks(byte note, int board)
         {
@@ -5956,25 +5996,25 @@ namespace Unsigned
                 if ((note & bits[noteage]) > 0)
                     break;
             Random r = new Random((int)(DateTime.Now.Ticks / 1000));
-
-            for (int i = 0; i < sparks.Length; i++)
+            int k = board;
+            for (int i = 0; i < sparks[k].Length; i++)
             {
                 if (noteage >= 4 && boards[board].GetBoardType() == PERCUSSIONIST)
                     break;
-                if (sparks[i].scale <= 0)
+                if (sparks[k][i].scale <= 0)
                 {
-                    sparks[i].scale = 0.25f+(float)r.NextDouble();
-                    sparks[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f)+15f, (float)(r.NextDouble() * 15)) * 0.2f;
-                    sparks[i].col = noteage;
+                    sparks[k][i].scale = 0.25f + (float)r.NextDouble();
+                    sparks[k][i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f) + 15f, (float)(r.NextDouble() * 15)) * 0.2f;
+                    sparks[k][i].col = noteage;
                     Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
                     if (boards[board].GetBoardType() != PERCUSSIONIST)
-                        sparks[i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty;
+                        sparks[k][i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty;
                     else
-                        sparks[i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width;
-                    sparks[i].loc.Y = Board.height + rval.Y;
-                    sparks[i].loc.Z = rval.Z;
-                    sparks[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
-                    sparks[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                        sparks[k][i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width;
+                    sparks[k][i].loc.Y = Board.height + rval.Y;
+                    sparks[k][i].loc.Z = rval.Z;
+                    sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
+                    sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= 16)
                     {
@@ -6000,25 +6040,25 @@ namespace Unsigned
                 if ((note & bits[noteage]) > 0)
                     break;
             Random r = new Random((int)(DateTime.Now.Ticks / 1000));
-
-            for (int i = 0; i < sparks.Length; i++)
+            int k = board;
+            for (int i = 0; i < sparks[k].Length; i++)
             {
                 if (noteage >= 4 && board==2)
                     break;
-                if (sparks[i].scale <= 0)
+                if (sparks[k][i].scale <= 0)
                 {
-                    sparks[i].scale = 0.25f+(float)r.NextDouble();
-                    sparks[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f)+15f, (float)(r.NextDouble() * 15)) * 0.2f;
-                    sparks[i].col = noteage;
+                    sparks[k][i].scale = 0.25f + (float)r.NextDouble();
+                    sparks[k][i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f) + 15f, (float)(r.NextDouble() * 15)) * 0.2f;
+                    sparks[k][i].col = noteage;
                     Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
                     if (board!=2)
-                        sparks[i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - FSxOffset[board];
+                        sparks[k][i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - FSxOffset[board];
                     else
-                        sparks[i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - FSxOffset[board];
-                    sparks[i].loc.Y = Board.height + rval.Y;
-                    sparks[i].loc.Z = rval.Z;
-                    sparks[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (board==2 ? 4 : 5));
-                    sparks[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                        sparks[k][i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - FSxOffset[board];
+                    sparks[k][i].loc.Y = Board.height + rval.Y;
+                    sparks[k][i].loc.Z = rval.Z;
+                    sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (board == 2 ? 4 : 5));
+                    sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= 16)
                     {
@@ -6044,25 +6084,25 @@ namespace Unsigned
                 if ((note & bits[noteage]) > 0)
                     break;
             Random r = new Random((int)(DateTime.Now.Ticks / 1000));
-
+            int k = board;
             for (int i = 0; i < sparks.Length; i++)
             {
                 if (noteage >= 4 && boards[board].GetBoardType() == PERCUSSIONIST)
                     break;
-                if (sparks[i].scale <= 0)
+                if (sparks[k][i].scale <= 0)
                 {
-                    sparks[i].scale = 0.25f+(float)r.NextDouble();
-                    sparks[i].dir = new Vector3(((float)(r.NextDouble()) * 4) - 2, ((float)(r.NextDouble()) * 15f)+5f, (float)(r.NextDouble()*4)) * 0.2f;
-                    sparks[i].col = noteage;
+                    sparks[k][i].scale = 0.25f + (float)r.NextDouble();
+                    sparks[k][i].dir = new Vector3(((float)(r.NextDouble()) * 4) - 2, ((float)(r.NextDouble()) * 15f) + 5f, (float)(r.NextDouble() * 4)) * 0.2f;
+                    sparks[k][i].col = noteage;
                     Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
                     if (boards[board].GetBoardType() != PERCUSSIONIST)
-                        sparks[i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - boards[board].GetXOffset();
+                        sparks[k][i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty - boards[board].GetXOffset();
                     else
-                        sparks[i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - boards[board].GetXOffset();
-                    sparks[i].loc.Y = Board.height + rval.Y;
-                    sparks[i].loc.Z = rval.Z;
-                    sparks[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
-                    sparks[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                        sparks[k][i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width - boards[board].GetXOffset();
+                    sparks[k][i].loc.Y = Board.height + rval.Y;
+                    sparks[k][i].loc.Z = rval.Z;
+                    sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
+                    sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= 1)
                     {
@@ -8128,10 +8168,10 @@ namespace Unsigned
                 spritebatch.Draw(rmUNbg, new Rectangle(windowwidth, (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
                 spritebatch.Draw(rmUNfg, new Rectangle(windowwidth, (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
 #else
-                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*0.1f), (windowheight / 2) - (int)(height * 0.75f), (int)(height * 0.5f), (int)(height*1.5f)), Color.White);
-                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth * 0.1f), (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi - (rmFill * MathHelper.Pi), new Vector2(0, rmUNfg.Height / 2), SpriteEffects.None, 0);
-                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*0.9f), (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
-                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth*0.9f), (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*0), (windowheight / 2) - (int)(height * 0.75f), (int)(height * 0.5f), (int)(height*1.5f)), Color.White);
+                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth * 0), (windowheight / 2), height / 2, height), null, rmColor, MathHelper.Pi - (rmFill * MathHelper.Pi), new Vector2(0, rmUNfg.Height / 2), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNbg, new Rectangle((int)(windowwidth*1f), (windowheight / 2), (int)(height * 0.5f), (int)(height*1.5f)), null, Color.White, MathHelper.Pi, new Vector2(0,rmUNbg.Height/2),SpriteEffects.None,0);
+                spritebatch.Draw(rmUNfg, new Rectangle((int)(windowwidth*1f), (windowheight / 2), height / 2, height), null, Color.Wheat, (song.PercentSong()*MathHelper.Pi),new Vector2(0,rmUNfg.Height/2),SpriteEffects.None,0);
 #endif
             }
             else if (cGUIStyle == GUIStyle.RB)
@@ -8241,12 +8281,12 @@ namespace Unsigned
                     spritebatch.Draw(rmUNstaro, new Vector2(windowwidth, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
                 }
 #else
-                spritebatch.Draw(rmUNstar, new Vector2(windowwidth*0.1f, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
-                spritebatch.Draw(rmUNstaro, new Vector2(windowwidth * 0.1f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstar, new Vector2(windowwidth*0f, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstaro, new Vector2(windowwidth * 0f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
                 //if (ct <= 1)
                 {
-                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth*0.9f, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
-                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth*0.9f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth*1f, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstaro, new Vector2(windowwidth*1f, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
                 }
 #endif
                 String scr = GetScore().ToString();
@@ -8271,7 +8311,7 @@ namespace Unsigned
                     spritebatch.DrawString(DefaultFont, scr2, new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(scr2).X / 2), Board.vocaly+Board.vocalheight), Color.White);
                 }
                 else
-                    spritebatch.DrawString(DefaultFont, scr2, new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(scr2).X / 2), 0), Color.White);
+                    spritebatch.DrawString(DefaultFont, scr2, new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(scr2).X / 2), 20), Color.White);
             }
             else if (cGUIStyle == GUIStyle.RB)
             {
@@ -8333,17 +8373,17 @@ namespace Unsigned
             }
         }
 
-        private void DrawGibs()
+        private void DrawGibs(int board)
         {
-
-            for (int i = 0; i < glass.Length; i++)
-                if (glass[i].scale > 0)
+            int k = board;
+            for (int i = 0; i < glass[k].Length; i++)
+                if (glass[k][i].scale > 0)
                 {
                     Matrix matIdentity, matTransl, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(glass[i].loc);
-                    matOrbit = Matrix.CreateRotationX(glass[i].rot.X) * Matrix.CreateRotationY(glass[i].rot.Y) * Matrix.CreateRotationZ(glass[i].rot.Z);
-                    matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[i].scale);
+                    matTransl = Matrix.CreateTranslation(glass[k][i].loc);
+                    matOrbit = Matrix.CreateRotationX(glass[k][i].rot.X) * Matrix.CreateRotationY(glass[k][i].rot.Y) * Matrix.CreateRotationZ(glass[k][i].rot.Z);
+                    matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[k][i].scale);
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
@@ -8351,8 +8391,8 @@ namespace Unsigned
                     engine.Parameters["proj"].SetValue(matProj);
 
 
-                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[i].frame]);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[i].col]);
+                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[k][i].frame]);
+                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8364,19 +8404,19 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            for (int i = 0; i < sparks.Length; i++)
-                if (sparks[i].scale > 0)
+            for (int i = 0; i < sparks[k].Length; i++)
+                if (sparks[k][i].scale > 0)
                 {
                     Matrix matRot, matTransl, matScale;
                     matRot = Matrix.CreateRotationX(MathHelper.PiOver2) * Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI)+MathHelper.PiOver2);
-                    matTransl = Matrix.CreateTranslation(sparks[i].loc);
-                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[i].scale);
+                    matTransl = Matrix.CreateTranslation(sparks[k][i].loc);
+                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[k][i].scale);
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
 
                     engine.Parameters["diffuseTexture"].SetValue(texSpark);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[i].col]);
+                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8431,17 +8471,17 @@ namespace Unsigned
                 }
             engine.Parameters["diffuseColor"].SetValue(new Vector4(1,1,1,1));
         }
-        private void DrawGibsFS()
+        private void DrawGibsFS(int board)
         {
-
-            for (int i = 0; i < glass.Length; i++)
-                if (glass[i].scale > 0)
+            int k = board;
+            for (int i = 0; i < glass[k].Length; i++)
+                if (glass[k][i].scale > 0)
                 {
                     Matrix matIdentity, matTransl, matScale, matOrbit;
                     matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(glass[i].loc);
-                    matOrbit = Matrix.CreateRotationX(glass[i].rot.X) * Matrix.CreateRotationY(glass[i].rot.Y) * Matrix.CreateRotationZ(glass[i].rot.Z);
-                    matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[i].scale);
+                    matTransl = Matrix.CreateTranslation(glass[k][i].loc);
+                    matOrbit = Matrix.CreateRotationX(glass[k][i].rot.X) * Matrix.CreateRotationY(glass[k][i].rot.Y) * Matrix.CreateRotationZ(glass[k][i].rot.Z);
+                    matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[k][i].scale);
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
@@ -8449,8 +8489,8 @@ namespace Unsigned
                     engine.Parameters["proj"].SetValue(matProj);
 
 
-                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[i].frame]);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[i].col]);
+                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[k][i].frame]);
+                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8462,19 +8502,19 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            for (int i = 0; i < sparks.Length; i++)
-                if (sparks[i].scale > 0)
+            for (int i = 0; i < sparks[k].Length; i++)
+                if (sparks[k][i].scale > 0)
                 {
                     Matrix matRot, matTransl, matScale;
                     matRot = Matrix.CreateRotationX(MathHelper.PiOver2) * Matrix.CreateRotationY((float)(hvdistTOdir(Vector3.Forward.X, Vector3.Forward.Z) / 180 * Math.PI)+MathHelper.PiOver2);
-                    matTransl = Matrix.CreateTranslation(sparks[i].loc);
-                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[i].scale);
+                    matTransl = Matrix.CreateTranslation(sparks[k][i].loc);
+                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[k][i].scale);
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
 
                     engine.Parameters["diffuseTexture"].SetValue(texSpark);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[i].col]);
+                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives

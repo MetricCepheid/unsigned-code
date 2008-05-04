@@ -228,7 +228,9 @@ namespace Unsigned
             {
                 currentBar++;
             }
-
+            if (currentBar >= Bars.Length)
+                percentBeat = 0;
+            else
             percentBeat = ((currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X))%(1/Bars[currentBar].Y);
         }
 
@@ -268,7 +270,7 @@ namespace Unsigned
 #if WINDOWS
             sound.Paused = true;
 #else
-
+            cue.Pause();
 #endif
         }
 
@@ -278,7 +280,7 @@ namespace Unsigned
             sound.PlayPosition = (uint)p;
             sound.Paused = false;
 #else
-
+            cue.Resume();
 #endif
         }
 
