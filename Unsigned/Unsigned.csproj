@@ -112,6 +112,10 @@
     <Content Include="irrKlang.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="irrKlang.NET.dll" />
+    <Content Include="msvcr71.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>

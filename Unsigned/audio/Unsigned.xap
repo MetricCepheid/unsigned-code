@@ -16,8 +16,8 @@ Global Settings
     Header File = Unsigned.h;
     Exclude Category Names = 0;
     Exclude Variable Names = 0;
-    Last Modified Low = 120459572;
-    Last Modified High = 29925243;
+    Last Modified Low = 1427896650;
+    Last Modified High = 29930100;
 
     Category
     {
@@ -227,10 +227,8 @@ Wave Bank
     Compression Preset Name = <none>;
     Xbox Bank Last Modified Low = 0;
     Xbox Bank Last Modified High = 0;
-    PC Bank Last Modified Low = 562748258;
-    PC Bank Last Modified High = 29924152;
-    Header Last Modified Low = 0;
-    Header Last Modified High = 0;
+    PC Bank Last Modified Low = 1429771650;
+    PC Bank Last Modified High = 29930100;
     Bank Last Revised Low = 562592008;
     Bank Last Revised High = 29924152;
 
@@ -252,8 +250,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 664891918;
-            Last Modified High = 29923692;
+            Last Modified Low = 1306791654;
+            Last Modified High = 29929426;
         }
     }
 
@@ -275,8 +273,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 208685758;
-            Last Modified High = 29924152;
+            Last Modified Low = 1306479154;
+            Last Modified High = 29929426;
         }
     }
 
@@ -298,8 +296,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 345037252;
-            Last Modified High = 29923663;
+            Last Modified Low = 1306635404;
+            Last Modified High = 29929426;
         }
     }
 
@@ -321,8 +319,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 912079418;
-            Last Modified High = 29923692;
+            Last Modified Low = 1306322904;
+            Last Modified High = 29929426;
         }
     }
 
@@ -344,8 +342,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 1925037252;
-            Last Modified High = 29923663;
+            Last Modified Low = 1306635404;
+            Last Modified High = 29929426;
         }
     }
 
@@ -367,8 +365,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 2443296714;
-            Last Modified High = 29923691;
+            Last Modified Low = 1306322904;
+            Last Modified High = 29929426;
         }
     }
 
@@ -390,8 +388,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 285048168;
-            Last Modified High = 29923692;
+            Last Modified Low = 1306479154;
+            Last Modified High = 29929426;
         }
     }
 
@@ -413,8 +411,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 44278140;
-            Last Modified High = 29895910;
+            Last Modified Low = 1306947904;
+            Last Modified High = 29929426;
         }
     }
 
@@ -436,8 +434,8 @@ Wave Bank
             Loop Region Offset = 0;
             Loop Region Length = 0;
             File Type = 1;
-            Last Modified Low = 487235668;
-            Last Modified High = 29923692;
+            Last Modified Low = 1306791654;
+            Last Modified High = 29929426;
         }
     }
 }
@@ -449,8 +447,8 @@ Sound Bank
     Windows File = Win\Sound Bank.xsb;
     Xbox Bank Path Edited = 0;
     Windows Bank Path Edited = 0;
-    Bank Last Modified Low = 120459572;
-    Bank Last Modified High = 29925243;
+    Bank Last Modified Low = 1432584150;
+    Bank Last Modified High = 29930100;
     Header Last Modified High = 0;
     Header Last Modified Low = 0;
 

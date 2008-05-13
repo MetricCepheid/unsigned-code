@@ -57,7 +57,7 @@ namespace Unsigned
             wB = wb;
 #endif
 
-            LoadSong(FileName, (IntPtr)null);
+            LoadSong(FileName, game);
         }
 
         private bool LoadSong(String fn, IntPtr game)
