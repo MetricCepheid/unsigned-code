@@ -1445,18 +1445,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="shaders\HFPS_Shader_XNA_360.fx">
-      <Name>HFPS_Shader_XNA_360</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="audio\Unsigned_360.xap">
-      <Name>Unsigned_360</Name>
-      <Importer>XactImporter</Importer>
-      <Processor>XactProcessor</Processor>
-    </Compile>
     <Compile Include="fonts\bassist.spritefont">
       <Name>bassist</Name>
       <Importer>FontDescriptionImporter</Importer>
@@ -1484,6 +1472,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="shaders\HFPS_Shader_XNA.fx">
+      <Name>HFPS_Shader_XNA</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="audio\" />
     <Folder Include="charmodels\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

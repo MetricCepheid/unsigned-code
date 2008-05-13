@@ -1005,7 +1005,7 @@ namespace Unsigned
             if(fullScreen)
                 graphics.ToggleFullScreen();
 
-            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA_360");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
+            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
             fader = content.Load<Effect>("shaders\\BoardFade");
 
@@ -1759,6 +1759,23 @@ namespace Unsigned
                                     red = true;
                             }
                         }
+                        else if (contInput[i] == 4)
+                        {
+                            if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                            {
+                                if (diffConfirm[i])
+                                    green = true;
+                                else
+                                    diffConfirm[i] = true;
+                            }
+                            if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                            {
+                                if (diffConfirm[i])
+                                    diffConfirm[i] = false;
+                                else
+                                    red = true;
+                            }
+                        }
                     for(int i=0;i<4;i++)
                     if(instruments[i] && !diffConfirm[i])
                     {
@@ -1768,6 +1785,22 @@ namespace Unsigned
                             { diff[i]++; mmenu_ticker = 200; }
                             else if (Keyboard.GetState().IsKeyDown(Keys.Up) && diff[i] > 0)
                             { diff[i]--; mmenu_ticker = 200; }
+
+                            bool up = false, down = false;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                                down = true;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                                up = true;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                                down = true;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                                up = true;
+                            if (up && diff[i] > 0)
+                                diff[i]--;
+                            if (down && diff[i] < 3)
+                                diff[i]++;
+                            if (up || down)
+                                mmenu_ticker = 200;
                         }
                         else
                         {
@@ -1795,10 +1828,6 @@ namespace Unsigned
                                 mmenu_ticker = 200;
                         }
                     }
-                    if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
-                        green = true;
-                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                        red = true;
 
                     bool allconfirmed = true;
                     for (int i = 0; i < 4; i++)

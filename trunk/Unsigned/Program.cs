@@ -11,7 +11,18 @@ namespace Unsigned
         {
             using (Game1 game = new Game1())
             {
-                game.Run();
+#if !DEBUG
+                try
+                {
+#endif
+                    game.Run();
+#if !DEBUG
+                }
+                catch (Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Problem: " + e.Message + "\n" + e.StackTrace);
+                }
+#endif
             }
         }
     }
