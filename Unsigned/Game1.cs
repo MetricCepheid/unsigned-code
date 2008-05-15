@@ -2499,7 +2499,7 @@ namespace Unsigned
                         {
 #endif
 
-                        long currenttime = (long)(CurrentTime+((TicksPerSecond / 1000)/2)) / (long)(TicksPerSecond / 1000);
+                        long currenttime = (long)((CurrentTime+((TicksPerSecond / 1000)/2)) / (TicksPerSecond / 1000));
 
                         if (song.IsOver(currenttime))
                             screen = S_RESULTS;
@@ -4995,7 +4995,7 @@ namespace Unsigned
                                     fps += lastframes[i];
                                 fps /= lastframes.Length;
                                 fps = 1 / fps;
-                                spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
+                                //spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 0, 300, 600), Color.White);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
@@ -5020,7 +5020,7 @@ namespace Unsigned
                                 for (int i = 2; i < song.songInfo.Length; i++)
                                     spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 220 + (40 * i)), aColor);
                             }
-                            if (DemoMode)
+                            if (false)//(DemoMode)
                             {
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
