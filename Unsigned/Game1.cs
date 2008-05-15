@@ -2544,13 +2544,13 @@ namespace Unsigned
                             screen = S_FAIL;*/
 
                         if (instruments[0] && contInput[0] < 4)
-                            boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime);
+                            boards[0].Whammy(controllers[contInput[0]].ThumbSticks.Right.X, currenttime,gameTime,song.GetBeatLength());
                         else if (instruments[0] && contInput[0] == 4)
-                            boards[0].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime);
+                            boards[0].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime, gameTime, song.GetBeatLength());
                         if (instruments[3] && contInput[3] < 4)
-                            boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime);
+                            boards[3].Whammy(controllers[contInput[3]].ThumbSticks.Right.X, currenttime, gameTime, song.GetBeatLength());
                         else if (instruments[3] && contInput[3] == 4)
-                            boards[3].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime);
+                            boards[3].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime, gameTime, song.GetBeatLength());
 
                         song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
                         for(int i=0;i<4;i++)

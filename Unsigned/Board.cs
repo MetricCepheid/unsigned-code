@@ -347,7 +347,7 @@ namespace Unsigned
             for (int i = k; i < notes.Length && (long)notes[i].time*(Game1.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
                 float sp = 0f;
-                if (SPIndex<SPStart.Length && notes[i].time >= SPStart[SPIndex] && notes[i].time < SPEnd[SPIndex] && SPGood)
+                if (SPIndex<SPStart.Length && i >= SPStart[SPIndex] && i <= SPEnd[SPIndex] && SPGood)
                     sp = 1f;
 
                 if (GetBoardType() != Game1.PERCUSSIONIST)
@@ -574,6 +574,26 @@ namespace Unsigned
                         notes[i].late = notes[i].time + PILLOW;
                 }
             }
+            for (int i = 0; i < SPStart.Length; i++)
+            {
+                int k;
+                for (k = 0; k < notes.Length; k++)
+                {
+                    if (notes[k].time >= SPStart[i] && notes[k].time <= SPEnd[i])
+                    {
+                        SPStart[i] = k;
+                        break;
+                    }
+                }
+                for (k = 0; k < notes.Length; k++)
+                {
+                    if (notes[k].time > SPEnd[i])
+                    {
+                        SPEnd[i] = k;
+                        break;
+                    }
+                }
+            }
         }
 
         public static bool IsValidFrettage(byte note, byte pressed)
@@ -729,7 +749,7 @@ namespace Unsigned
                 }
                 waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
-                if (notes[index].time - PILLOW < currenttime)
+                if (index< notes.Length && notes[index].time - PILLOW < currenttime)
                 {
                     byte newPressed = (byte)((pressed^lastPressed)&pressed);
                     lastPressed = pressed;
@@ -757,27 +777,65 @@ namespace Unsigned
                     }
                     else
                     {
-                        notes[index].addPressedGuitar(pressed);
-                        if (notes[index].IsGood(index>0&&notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                        if (notes[index].burning)
                         {
-                            notes[index].Kill();
-                            for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & (1 << i)) != 0)
-                                    popupSpeed[i] += 100f;
-                            multiplier += 0.1f;
-                            for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & (1 << i)) != 0)
-                                { score += 100 * (int)multiplier; }
-                            myResults.hitNotes++;
-                            reff.Help(ind);
-                            index++;
-                            return notes[index-1].type;
+                            if (notes[index].time + notes[index].length <= currenttime)
+                                index++;
+                            else
+                            {
+                                Burn(gameTime, notes[index].type);
+                                reff.Burn(gameTime, notes[index].type, ind);
+                            }
+                        }
+                        else
+                        {
+                            notes[index].addPressedGuitar(pressed);
+                            if (notes[index].IsGood(index > 0 && notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                            {
+                                notes[index].Kill();
+                                for (int i = 0; i < 5; i++)
+                                    if ((notes[index].type & (1 << i)) != 0)
+                                        popupSpeed[i] += 100f;
+                                multiplier += 0.1f;
+                                for (int i = 0; i < 5; i++)
+                                    if ((notes[index].type & (1 << i)) != 0)
+                                    { score += 100 * (int)multiplier; }
+                                myResults.hitNotes++;
+                                reff.Help(ind);
+                                index++;
+                                return notes[index - 1].type;
+                            }
                         }
                     }
 
                     if (notes[index].late <= currenttime)
-                    { index++; multiplier = 1; reff.Hurt(ind); myResults.missedNotes++; }
+                    {
+                        if (SPIndex < SPStart.Length && index >= SPStart[SPIndex] && index <= SPEnd[SPIndex])
+                            SPGood = false;
+                        index++; 
+                        multiplier = 1; 
+                        reff.Hurt(ind); 
+                        myResults.missedNotes++;
+                    }
                 }
+
+                if (SPIndex < SPStart.Length && index > SPEnd[SPIndex])
+                {
+                    if (SPGood)
+                    {
+                        StarPowerAmount += 0.25f;
+                        myResults.hitSPPH++;
+                    }
+                    else 
+                        myResults.missedSPPH++;
+                    SPGood = true;
+                    SPIndex++;
+                }
+
+                if (GetBoardType() != Game1.BASS && multiplier > 4)
+                    multiplier = 4;
+                if (GetBoardType() == Game1.BASS && multiplier > 6)
+                    multiplier = 6;
 
                 /*if (GetBoardType() != Game1.PERCUSSIONIST)
                     if (index < notes.Length)
@@ -1145,7 +1203,7 @@ namespace Unsigned
         public byte Bang(byte pressed, long currenttime, Game1 game)
         {
             return 0;
-            byte newPressed = 0;
+            /*byte newPressed = 0;
             for (int i = 0; i < 5; i++)
             {
                 if ((lastPressed & Game1.bits[i]) == 0 && (pressed & Game1.bits[i]) != 0)
@@ -1188,7 +1246,7 @@ namespace Unsigned
             }
             game.Hurt(2);
             multiplier = 1;
-            return 0;
+            return 0;*/
         }
 
         public float GetStars()
@@ -1256,7 +1314,7 @@ namespace Unsigned
                 if (notes[i].length > 0)
                 {
                     bool white = false;
-                    if (SPIndex < SPStart.Length && SPGood && notes[i].time >= SPStart[SPIndex] && notes[i].time < SPEnd[SPIndex])
+                    if (SPIndex < SPStart.Length && SPGood && i >= SPStart[SPIndex] && i <= SPEnd[SPIndex])
                         white = true;
                     if (notes[i].burning)
                     {
@@ -1325,7 +1383,7 @@ namespace Unsigned
             return SPActivated;
         }
 
-        public void Whammy(float p,long currenttime)
+        public void Whammy(float p,long currenttime,GameTime gametime, int beatLength)
         {
             p = (p + 1) / 2f;
             if (index >= notes.Length)
@@ -1336,6 +1394,9 @@ namespace Unsigned
                 int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
                 while (whammyage.Last.Value.Y >= end)
                     whammyage.RemoveLast();
+                score += (int)(50 * ((gametime.ElapsedGameTime.TotalSeconds*1000) / beatLength));
+                if(SPIndex<SPStart.Length && index>=SPStart[SPIndex] && index<=SPEnd[SPIndex])
+                    StarPowerAmount += (float)(0.05f * ((gametime.ElapsedGameTime.TotalSeconds * 1000) / beatLength));
             }
             else if (whammyage.Count > 0)
                 whammyage.Clear();
