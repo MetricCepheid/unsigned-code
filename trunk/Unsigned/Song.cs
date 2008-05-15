@@ -292,5 +292,10 @@ namespace Unsigned
             return 0.0f;
 #endif
         }
+
+        public int GetBeatLength()
+        {
+            return (int)(Bars[currentBar].X / Bars[currentBar].Y);
+        }
     }
 }
