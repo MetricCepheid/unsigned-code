@@ -9,17 +9,57 @@ namespace Unsigned
 {
     class NoteSet : IComparable
     {
-        public int time;
+        public uint time;
         public byte type;
         public int length;
         public VIS_STATE[] visible;//0=visible,1=greyedout,2=invisible,3=invisibleButAvailable(HOPO)
         public bool burning;//for held notes
 
+        public uint late;
+
         public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, OVERDONE=4/*drums*/, };
+
+        private bool strummed;
+        private byte pressed;
+
+        public void Strum()
+        {
+            strummed = true;
+        }
+
+        public void addPressedGuitar(byte pressed)
+        {
+            if(Board.IsValidFrettage(type,pressed))
+                 this.pressed = type;
+        }
+
+        public void addPressedDrums(byte pressed)
+        {
+            this.pressed |= pressed;
+        }
+
+
+        public bool IsGood(bool HOPOable)
+        {
+            if ((HOPOable && (type&(1<<5))!=0) || strummed)
+                return pressed == type;
+            return false;
+        }
+
+        public bool IsGood()
+        {
+            return (pressed & 0x1F) == (type & 0x1F);
+        }
 
         public int CompareTo(object other)
         {
             return time.CompareTo(((NoteSet)other).time);
+        }
+
+        internal void Kill()
+        {
+            for(int i=0;i<visible.Length;i++)
+                visible[i] = VIS_STATE.INVISIBLE;
         }
     }
 
@@ -113,11 +153,13 @@ namespace Unsigned
         private float[] dfA;
         private bool SPGood = true;
         private bool SPActivated = false;
-        public static int[] guitarToDrums = { 1, 2, 3, 0, -1 };
+        public static int[] guitarToDrums = { 1, 2, 3, 0, 4 };
         public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
         public LinkedList<WaveVector2> whammyage;
         float waveoffset=0;
         Results myResults;
+
+        private static uint PILLOW = 100;//padding in front of and behind note
 
         public Vector4[] OutNotes;
         public int notesLen;
@@ -450,14 +492,14 @@ namespace Unsigned
                             notes[i].type = reader.ReadByte();
                             if (GetBoardType() != Game1.DRUMS)
                             {
-                                notes[i].time = reader.ReadInt32();
+                                notes[i].time = reader.ReadUInt32();
                                 notes[i].length = reader.ReadInt32();
                                 notes[i].visible = new NoteSet.VIS_STATE[1];
                             }
                             else
                             {
                                 notes[i].visible = new NoteSet.VIS_STATE[5];
-                                notes[i].time = reader.ReadInt32();
+                                notes[i].time = reader.ReadUInt32();
                                 notes[i].length = 0;
                             }
                         }
@@ -466,7 +508,7 @@ namespace Unsigned
                         for (int i = 1; i <= 5; i++)
                             starPts[i] = reader.ReadInt32();
                         int numrep = 0;
-                        int curtm = 0;
+                        uint curtm = 0;
                         for (int i = 0; i < notes.Length; i++)
                         {
                             if (notes[i].time < curtm)
@@ -512,9 +554,29 @@ namespace Unsigned
             }
 
             reader.Close();
+
+            if (GetBoardType() == Game1.VOCALIST)
+            {
+
+                return;
+            }
+
+            //post processing
+            for (int i = 0; i < notes.Length; i++)
+            {
+                if (i == notes.Length - 1)
+                    notes[i].late = notes[i].time + PILLOW;
+                else
+                {
+                    if (notes[i + 1].time - notes[i].time < PILLOW * 2)
+                        notes[i].late = notes[i].time+((notes[i + 1].time - notes[i].time) / 2);
+                    else
+                        notes[i].late = notes[i].time + PILLOW;
+                }
+            }
         }
 
-        public bool IsValidFrettage(byte note, byte pressed)
+        public static bool IsValidFrettage(byte note, byte pressed)
         {
             note &= (byte)(~NS_HOPO & 255);
             int numNotes = 0;
@@ -667,7 +729,57 @@ namespace Unsigned
                 }
                 waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
-                if (GetBoardType() != Game1.PERCUSSIONIST)
+                if (notes[index].time - PILLOW < currenttime)
+                {
+                    byte newPressed = (byte)((pressed^lastPressed)&pressed);
+                    lastPressed = pressed;
+
+                    if (GetBoardType() == Game1.DRUMS)
+                    {
+                        notes[index].addPressedDrums(newPressed);
+                        if (notes[index].IsGood())
+                        {
+                            notes[index].Kill();
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & (1 << i)) != 0)
+                                    popupSpeed[i] += 100f;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & (1 << i)) != 0)
+                                { multiplier += 0.1f; }
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & (1 << i)) != 0)
+                                { score += 100 * (int)multiplier; }
+                            reff.Help(ind);
+                            myResults.hitNotes++;
+                            index++;
+                            return notes[index-1].type;
+                        }
+                    }
+                    else
+                    {
+                        notes[index].addPressedGuitar(pressed);
+                        if (notes[index].IsGood(index>0&&notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                        {
+                            notes[index].Kill();
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & (1 << i)) != 0)
+                                    popupSpeed[i] += 100f;
+                            multiplier += 0.1f;
+                            for (int i = 0; i < 5; i++)
+                                if ((notes[index].type & (1 << i)) != 0)
+                                { score += 100 * (int)multiplier; }
+                            myResults.hitNotes++;
+                            reff.Help(ind);
+                            index++;
+                            return notes[index-1].type;
+                        }
+                    }
+
+                    if (notes[index].late <= currenttime)
+                    { index++; multiplier = 1; reff.Hurt(ind); myResults.missedNotes++; }
+                }
+
+                /*if (GetBoardType() != Game1.PERCUSSIONIST)
                     if (index < notes.Length)
                         if (multiplier > 1)
                             if ((notes[index].type & NS_HOPO) != 0)
@@ -852,7 +964,7 @@ namespace Unsigned
                         SPMFVel = 4;
                 }
                 else
-                    SPMFlash = 0;*/
+                    SPMFlash = 0;
                 if (GetMultiplier() >= 2 && multSlide < 1)
                     multSlide += gameTime.ElapsedGameTime.Milliseconds / 1000f;
                 if (GetMultiplier() < 2 && multSlide > 0)
@@ -867,7 +979,7 @@ namespace Unsigned
                 if (multiplier > 6 && type == Game1.BASS)
                     multiplier = 6;
                 else if (multiplier > 4 && type != Game1.BASS)
-                    multiplier = 4;
+                    multiplier = 4;*/
             }
             else
             {
@@ -907,7 +1019,10 @@ namespace Unsigned
 
         public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
         {
-            if (index >= notes.Length)
+            if (notes[index].time - PILLOW < currenttime)
+                notes[index].Strum();
+            return 0;
+            /*if (index >= notes.Length)
                 return 0;
             if (Math.Abs(notes[index].time - (long)currenttime) < 100)
             {
@@ -1024,11 +1139,12 @@ namespace Unsigned
                             SPGood = false;
             game.Hurt(ind);
             multiplier = 1;
-            return 0;
+            return 0;*/
         }
 
         public byte Bang(byte pressed, long currenttime, Game1 game)
         {
+            return 0;
             byte newPressed = 0;
             for (int i = 0; i < 5; i++)
             {
