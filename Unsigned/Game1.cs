@@ -291,6 +291,9 @@ namespace Unsigned
 
         public static bool TEST_SONG = false;
 
+        float[] lastframes = new float[60];
+        int frameIndex;
+
 #region enginestuff
 
         GraphicsDeviceManager graphics;
@@ -891,6 +894,10 @@ namespace Unsigned
             setLists[3] = new SetList();
             setLists[3].LoadByArtist();
             setLists[3].name = "By Artist";
+
+            for (int i = 0; i < lastframes.Length; i++)
+                lastframes[i] = 1 / 30f;
+            
 #else
             setLists = new SetList[1];
             setLists[0] = new SetList();
@@ -4742,9 +4749,14 @@ namespace Unsigned
                         if (SM.Major >= 3)
                             engine.CurrentTechnique = engine.Techniques["maintechnique"];
                         else if (SM.Major >= 2)
-                            renderLevel = 0;
+                            engine.CurrentTechnique = engine.Techniques["maintechniquet"];
                         else
+                        {
+#if !XBOX
+                            System.Windows.Forms.MessageBox.Show("Error. Must have minimum of Shader Model 2.0");
+#endif
                             Exit();
+                        }
                         if (renderLevel > 0)
                         {
                             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -4764,7 +4776,6 @@ namespace Unsigned
                             engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
  
-                            engine.CurrentTechnique = engine.Techniques["maintechnique"];
                             matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
                             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
                             engine.Begin();
@@ -4976,7 +4987,15 @@ namespace Unsigned
 
                             //draw development info
                             {
-                                //spritebatch.DrawString(DefaultFont, "" + (int)(1000f/gameTime.ElapsedRealTime.Milliseconds), new Vector2(windowwidth-40, windowheight-40), Color.Red);
+                                float fps = 0;
+                                lastframes[frameIndex%lastframes.Length] = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                
+                                frameIndex++;
+                                for (int i = 0; i < lastframes.Length; i++)
+                                    fps += lastframes[i];
+                                fps /= lastframes.Length;
+                                fps = 1 / fps;
+                                spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 0, 300, 600), Color.White);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
@@ -6016,6 +6035,10 @@ namespace Unsigned
         }
         public void AddSparks(byte note, int board)
         {
+            int sparksToAdd = 0;
+            for (int i = 0; i < 5; i++)
+                if ((note & (1 << i)) != 0)
+                    sparksToAdd += 16;
             int lefty = 1;
             if (boards[board].IsLefty())
                 lefty = -1;
@@ -6045,16 +6068,69 @@ namespace Unsigned
                     sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
                     sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
-                    if (count >= 16)
+                    if (count < sparksToAdd)
                     {
-                        count = 0;
-                        noteage++;
-                        for (; noteage < 5; noteage++)
+                        while(true)
+                        {
+                            noteage++;
+                            if (noteage >= 5)
+                                noteage = 0;
                             if ((note & bits[noteage]) > 0)
                                 break;
-                        if (noteage >= 5)
-                            return;
+                        }
                     }
+                    else return;
+                }
+            }
+        }
+        public void AddShortSparks(byte note, int board)
+        {
+            int sparksToAdd = 0;
+            for(int i=0;i<5;i++)
+                if((note&(1<<i))!=0)
+                    sparksToAdd+=8;
+            int lefty = 1;
+            if (boards[board].IsLefty())
+                lefty = -1;
+            int count = 0;
+            int noteage = 0;
+            for (noteage = 0; noteage < 5; noteage++)
+                if ((note & bits[noteage]) > 0)
+                    break;
+            Random r = new Random((int)(DateTime.Now.Ticks / 1000));
+            int k = board;
+            for (int i = 0; i < sparks[k].Length; i++)
+            {
+                if (noteage >= 4 && boards[board].GetBoardType() == PERCUSSIONIST)
+                    break;
+                if (sparks[k][i].scale <= 0)
+                {
+                    sparks[k][i].scale = 0.25f + (float)r.NextDouble();
+                    sparks[k][i].dir = new Vector3(((float)(r.NextDouble()) * 40) - 20, ((float)(r.NextDouble()) * 20f), ((float)(r.NextDouble()) * 20) - 10) * 0.05f;
+                    sparks[k][i].col = noteage;
+                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
+                    if (boards[board].GetBoardType() != PERCUSSIONIST)
+                        sparks[k][i].loc.X = (-.8f + (noteage * 0.4f)) * Board.width * lefty;
+                    else
+                        sparks[k][i].loc.X = (-.75f + (Board.drumsToGuitar[noteage] * 0.5f)) * Board.width;
+                    sparks[k][i].loc.Y = Board.height + rval.Y;
+                    sparks[k][i].loc.Z = rval.Z;
+                    sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
+                    sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                    count++;
+                    if (count < sparksToAdd)
+                    {
+                        while(true)
+                        {
+                            noteage++;
+                            if (noteage >= 5)
+                                noteage = 0;
+                            if ((note & bits[noteage]) > 0)
+                                break;
+                        }
+                    }
+                    else
+                        return;
                 }
             }
         }
@@ -6104,6 +6180,10 @@ namespace Unsigned
         }
         public void AddLesserSparks(byte note, int board)
         {
+            int sparksToAdd = 0;
+            for (int i = 0; i < 5; i++)
+                if ((note & (1 << i)) != 0)
+                    sparksToAdd += 8;
             int lefty = 1;
             if (boards[board].IsLefty())
                 lefty = -1;
@@ -6133,16 +6213,19 @@ namespace Unsigned
                     sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (boards[board].GetBoardType() == PERCUSSIONIST ? 4 : 5));
                     sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
-                    if (count >= 1)
+                    if (count < sparksToAdd)
                     {
-                        count = 0;
-                        noteage++;
-                        for (; noteage < 5; noteage++)
+                        while (true)
+                        {
+                            noteage++;
+                            if (noteage >= 5)
+                                noteage = 0;
                             if ((note & bits[noteage]) > 0)
                                 break;
-                        if (noteage >= 5)
-                            return;
+                        }
                     }
+                    else
+                        return;
                 }
             }
         }
@@ -8637,6 +8720,7 @@ namespace Unsigned
         public void Burn(GameTime gt, byte note, int i)
         {
             AddLesserSparks(note, i);
+            AddShortSparks(note, i);
         }
     }
 }

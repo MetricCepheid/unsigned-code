@@ -26,14 +26,14 @@ namespace Unsigned
 
         protected void LoadModel(Effect e)
         {
-            model = content.Load<Model>("meshes\\char");
+            model = content.Load<Model>("charmodels\\dude");
 
 
             foreach (ModelMesh mesh in model.Meshes)
                 foreach (ModelMeshPart mPart in mesh.MeshParts)
                     mPart.Effect = e;
 
-            tex = content.Load<Texture2D>("graphics\\rocker");
+            //tex = content.Load<Texture2D>("graphics\\rocker");
         }
 
         public void Draw(GameTime gameTime, GraphicsDeviceManager graphics)
