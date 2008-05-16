@@ -867,6 +867,8 @@ namespace Unsigned
             InitXNAApp();
 
 #if WINDOWS
+            this.IsFixedTimeStep = false;
+
             String[] rFiles = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory());
             bool gblExists = false;
             for (int i = 0; i < rFiles.Length; i++)
@@ -4995,7 +4997,7 @@ namespace Unsigned
                                     fps += lastframes[i];
                                 fps /= lastframes.Length;
                                 fps = 1 / fps;
-                                //spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
+                                spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 0, 300, 600), Color.White);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
@@ -5417,29 +5419,6 @@ namespace Unsigned
                 contCapabilities[1] = GamePad.GetCapabilities(PlayerIndex.Two);
                 contCapabilities[2] = GamePad.GetCapabilities(PlayerIndex.Three);
                 contCapabilities[3] = GamePad.GetCapabilities(PlayerIndex.Four);
-            }
-        }
-
-        private void UpdateGibs(GameTime gameTime)
-        {
-            for (int k = 0; k < glass.Length; k++)
-            {
-                for (int i = 0; i < glass[k].Length; i++)
-                {
-                    if (glass[k][i].scale > 0)
-                    {
-                        glass[k][i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
-                        glass[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                        glass[k][i].loc += glass[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
-                    }
-                }
-                for (int i = 0; i < sparks[k].Length; i++)
-                {
-                    sparks[k][i].scale = Math.Min(sparks[k][i].dir.Y, 1) * 4;
-                    sparks[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
-                    if (sparks[k][i].scale > 0)
-                        sparks[k][i].loc += sparks[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
-                }
             }
         }
 
@@ -6231,6 +6210,90 @@ namespace Unsigned
         }
         #endregion
 
+        private void UpdateGibs(GameTime gameTime)
+        {
+            for (int k = 0; k < glass.Length; k++)
+            {
+                for (int i = 0; i < glass[k].Length; i++)
+                {
+                    if (glass[k][i].scale > 0)
+                    {
+                        glass[k][i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
+                        glass[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                        glass[k][i].loc += glass[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                    }
+                }
+                for (int i = 0; i < sparks[k].Length; i++)
+                {
+                    sparks[k][i].scale = Math.Min(sparks[k][i].dir.Y, 1) * 4;
+                    sparks[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
+                    if (sparks[k][i].scale > 0)
+                        sparks[k][i].loc += sparks[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                }
+            }
+        }
+        private void DrawGibs(int board)
+        {
+            int k = board;
+            for (int r = 0; r < texShard.Length; r++)
+            {
+                engine.Parameters["diffuseTexture"].SetValue(texShard[r]);
+                for (int i = 0; i < glass[k].Length; i++)
+                    if (glass[k][i].scale > 0 && glass[k][i].frame==r)
+                    {
+                        Matrix matIdentity, matTransl, matScale, matOrbit;
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation(glass[k][i].loc);
+                        matOrbit = Matrix.CreateRotationX(glass[k][i].rot.X) * Matrix.CreateRotationY(glass[k][i].rot.Y) * Matrix.CreateRotationZ(glass[k][i].rot.Z);
+                        matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[k][i].scale);
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                        engine.Parameters["proj"].SetValue(matProj);
+
+
+                        
+                        engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
+                        engine.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }
+            }
+            engine.Parameters["diffuseTexture"].SetValue(texSpark);
+            for (int i = 0; i < sparks[k].Length; i++)
+                if (sparks[k][i].scale > 0)
+                {
+                    Matrix matRot, matTransl, matScale;
+                    matRot = Matrix.CreateRotationX(MathHelper.PiOver2) * Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
+                    matTransl = Matrix.CreateTranslation(sparks[k][i].loc);
+                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[k][i].scale);
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
+
+                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
+                    engine.CommitChanges();
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.VertexDeclaration = vd;
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+        }
+
         private void ProcessInput(GameTime gameTime, long currenttime)
         {
             byte er = 0;
@@ -6240,6 +6303,7 @@ namespace Unsigned
                     if (i == 0 || i==3)
                     {
                         byte pressed = 0;
+                        bool up = false, down = false;
                         if (contInput[i] < 4)
                         {
                             if (controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
@@ -6252,6 +6316,10 @@ namespace Unsigned
                                 pressed |= bits[boards[i].IsLefty()?1:3];
                             if (controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                                 pressed |= bits[boards[i].IsLefty()?0:4];
+                            if (controllers[contInput[i]].DPad.Down == ButtonState.Pressed)
+                                down = true;
+                            if (controllers[contInput[i]].DPad.Up == ButtonState.Pressed)
+                                up = true;
                             if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f || controllers[contInput[i]].Buttons.Back == ButtonState.Pressed)
                                 StarPowerAction(i);
                             if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
@@ -6259,23 +6327,36 @@ namespace Unsigned
                         }
                         else if (contInput[i] == 4)
                         {
-                            if (Keyboard.GetState().IsKeyDown(Keys.G))
+                            KeyboardState kbst = Keyboard.GetState();
+                            if (kbst.IsKeyDown(Keys.G))
                                 pressed |= bits[boards[i].IsLefty()?0:4];
-                            if (Keyboard.GetState().IsKeyDown(Keys.F))
+                            if (kbst.IsKeyDown(Keys.F))
                                 pressed |= bits[boards[i].IsLefty()?1:3];
-                            if (Keyboard.GetState().IsKeyDown(Keys.D))
+                            if (kbst.IsKeyDown(Keys.D))
                                 pressed |= bits[2];
-                            if (Keyboard.GetState().IsKeyDown(Keys.S))
+                            if (kbst.IsKeyDown(Keys.S))
                                 pressed |= bits[boards[i].IsLefty()?3:1];
-                            if (Keyboard.GetState().IsKeyDown(Keys.A))
+                            if (kbst.IsKeyDown(Keys.A))
                                 pressed |= bits[boards[i].IsLefty()?4:0];
-                            if (Keyboard.GetState().IsKeyDown(Keys.RightShift) || Keyboard.GetState().IsKeyDown(Keys.NumPad0) || Keyboard.GetState().IsKeyDown(Keys.Insert) || Keyboard.GetState().IsKeyDown(Keys.D0))
+                            if (kbst.IsKeyDown(Keys.Down))
+                                down = true;
+                            if (kbst.IsKeyDown(Keys.Up))
+                                up = true;
+                            if (kbst.IsKeyDown(Keys.RightShift) || kbst.IsKeyDown(Keys.NumPad0) || kbst.IsKeyDown(Keys.Insert) || kbst.IsKeyDown(Keys.D0))
                                 StarPowerAction(i);
-                            if (Keyboard.GetState().IsKeyDown(Keys.Escape) || Keyboard.GetState().IsKeyDown(Keys.Back))
+                            if (kbst.IsKeyDown(Keys.Escape) || kbst.IsKeyDown(Keys.Back))
                                 TogglePause();
                         }
-                        if(!IsPaused)
-                            er=boards[i].Update(gameTime,currenttime, this, i, pressed);
+                        if (!IsPaused)
+                        {
+                            if (down && guitarStrum != 1)
+                            { boards[i].Strum(0, currenttime, this, i); guitarStrum = 1; }
+                            else if (up && guitarStrum != 2)
+                            { boards[i].Strum(0, currenttime, this, i); guitarStrum = 2; }
+                            else if (!up && !down)
+                                guitarStrum = 0;
+                            er = boards[i].Update(gameTime, currenttime, this, i, pressed);
+                        }
                     }
                     else if (i == 2)
                     {
@@ -6297,17 +6378,18 @@ namespace Unsigned
                         }
                         else if (contInput[2] == 4)
                         {
-                            if (Keyboard.GetState().IsKeyDown(Keys.F))
+                            KeyboardState kbst = Keyboard.GetState();
+                            if (kbst.IsKeyDown(Keys.F))
                                 pressed |= 1;
-                            if (Keyboard.GetState().IsKeyDown(Keys.A))
+                            if (kbst.IsKeyDown(Keys.A))
                                 pressed |= 2;
-                            if (Keyboard.GetState().IsKeyDown(Keys.S))
+                            if (kbst.IsKeyDown(Keys.S))
                                 pressed |= 4;
-                            if (Keyboard.GetState().IsKeyDown(Keys.D))
+                            if (kbst.IsKeyDown(Keys.D))
                                 pressed |= 8;
-                            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                            if (kbst.IsKeyDown(Keys.Space))
                                 pressed |= 16;
-                            if (Keyboard.GetState().IsKeyDown(Keys.Escape) || Keyboard.GetState().IsKeyDown(Keys.Back))
+                            if (kbst.IsKeyDown(Keys.Escape) || kbst.IsKeyDown(Keys.Back))
                                 TogglePause();
                         }
                         if (pressed != 0)
@@ -6344,13 +6426,12 @@ namespace Unsigned
                             AddSparks(er, i);
                         else
                             AddShards(er, i);
-                        
                     }
                 }
 
             
 
-            if (IsPaused)
+            /*if (IsPaused)
                 return;
 
             if (instruments[0])
@@ -6595,7 +6676,7 @@ namespace Unsigned
                         !Keyboard.GetState().IsKeyDown(Keys.Down))
                         bassStrum = 0;
                 }
-            }
+            }*/
         }
 
         private void ProcessInputFS()
@@ -8485,63 +8566,6 @@ namespace Unsigned
             }
         }
 
-        private void DrawGibs(int board)
-        {
-            int k = board;
-            for (int i = 0; i < glass[k].Length; i++)
-                if (glass[k][i].scale > 0)
-                {
-                    Matrix matIdentity, matTransl, matScale, matOrbit;
-                    matIdentity = Matrix.Identity;
-                    matTransl = Matrix.CreateTranslation(glass[k][i].loc);
-                    matOrbit = Matrix.CreateRotationX(glass[k][i].rot.X) * Matrix.CreateRotationY(glass[k][i].rot.Y) * Matrix.CreateRotationZ(glass[k][i].rot.Z);
-                    matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[k][i].scale);
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                    engine.Parameters["proj"].SetValue(matProj);
-
-
-                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[k][i].frame]);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-            for (int i = 0; i < sparks[k].Length; i++)
-                if (sparks[k][i].scale > 0)
-                {
-                    Matrix matRot, matTransl, matScale;
-                    matRot = Matrix.CreateRotationX(MathHelper.PiOver2) * Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI)+MathHelper.PiOver2);
-                    matTransl = Matrix.CreateTranslation(sparks[k][i].loc);
-                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[k][i].scale);
-
-                    // identity, scale, rotate, orbit(translate & rotate), translate
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
-
-                    engine.Parameters["diffuseTexture"].SetValue(texSpark);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
-                    engine.CommitChanges();
-
-                    // 5: draw object - select vertex type, primitive type, # of primitives
-                    graphics.GraphicsDevice.VertexDeclaration = vd;
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f,0.8f,0.8f,1.0f));
-        }
         private void DrawFlashes(int index, Matrix fling)
         {
             int lefty = 1;
