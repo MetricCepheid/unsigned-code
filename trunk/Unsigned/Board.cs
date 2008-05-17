@@ -1077,7 +1077,7 @@ namespace Unsigned
 
         public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
         {
-            if (notes[index].time - PILLOW < currenttime)
+            if (index<notes.Length && notes[index].time - PILLOW < currenttime)
                 notes[index].Strum();
             return 0;
             /*if (index >= notes.Length)

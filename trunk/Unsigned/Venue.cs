@@ -680,6 +680,7 @@ namespace Unsigned
             {//Bassist
                 bassist.Draw(gameTime, graphics);
             }//Bassist
+            engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
             {//Drummer
 
                 drummer.Draw(gameTime, graphics);
@@ -700,7 +701,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_BASSDRUM]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_BASSDRUM].Meshes)
@@ -729,7 +729,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_CRASHCYMBAL]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_CRASHCYMBAL].Meshes)
@@ -756,7 +755,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_FLOORTOM]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_FLOORTOM].Meshes)
@@ -781,7 +779,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_TOMTOMS]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_TOMTOMS].Meshes)
@@ -807,7 +804,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_SNARE]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_SNARE].Meshes)
@@ -833,7 +829,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_RIDECYMBAL]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_RIDECYMBAL].Meshes)
@@ -859,7 +854,6 @@ namespace Unsigned
                 engine.Parameters["world"].SetValue(mMatWorld);
                 engine.Parameters["wRot"].SetValue(Matrix.Identity);
                 engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_HIHATCYMBAL]);
-                engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
                 engine.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_HIHATCYMBAL].Meshes)
