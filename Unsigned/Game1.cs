@@ -868,6 +868,7 @@ namespace Unsigned
 
 #if WINDOWS
             this.IsFixedTimeStep = false;
+            graphics.SynchronizeWithVerticalRetrace = false;
 
             String[] rFiles = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory());
             bool gblExists = false;
@@ -1579,6 +1580,7 @@ namespace Unsigned
 
         protected override void Update(GameTime gameTime)
         {
+            //Thread.Sleep(1);
             if (pausetimer > 0)
                 pausetimer -= gameTime.ElapsedGameTime.Milliseconds;
             windowheight = graphics.GraphicsDevice.Viewport.Height;
@@ -4761,7 +4763,7 @@ namespace Unsigned
                         }
                         if (renderLevel > 0)
                         {
-                            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                            graphics.GraphicsDevice.Clear(Color.Black);
                             if (currentFES == FRAME_EFFECT_STYLE.CREST)
                             {
                                 if (countFES < 1)
@@ -4777,9 +4779,8 @@ namespace Unsigned
                             engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
                             engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
- 
                             matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
-                            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+                            graphics.GraphicsDevice.Clear(Color.Black);
                             engine.Begin();
                             foreach (EffectPass pass in engine.CurrentTechnique.Passes)
                             {
@@ -7646,6 +7647,8 @@ namespace Unsigned
         {
             if (i != 1)
             {
+                engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
+                engine.Parameters["BumpMappingEnabled"].SetValue(false);
                 engine.Parameters["fullbright"].SetValue(true);
                 engine.Parameters["vertexAlpha"].SetValue(false);
                 int lefty = 1;
@@ -7662,9 +7665,9 @@ namespace Unsigned
                     {
                         engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 0));
                         engine.Parameters["SpecularEnabled"].SetValue(false);
-                        engine.Parameters["BumpMappingEnabled"].SetValue(false);
                         engine.Parameters["fullbright"].SetValue(true);
                         Matrix matIdentity, matTransl, matRot, matScale, matOrbit;
+                        engine.Parameters["diffuseTexture"].SetValue(Board.drumfillTex);
                         for (int k = 0; k < 4; k++)
                         {
                             float height = 0;
@@ -7680,7 +7683,6 @@ namespace Unsigned
 
                             engine.Parameters["wAlpha"].SetValue(1);
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matRot * matOrbit * matTransl);
-                            engine.Parameters["diffuseTexture"].SetValue(Board.drumfillTex);
                             engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[k]]);
                             engine.CommitChanges();
 
@@ -7718,7 +7720,6 @@ namespace Unsigned
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                             engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                            engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                             engine.CommitChanges();
 
                             // 5: draw object - select vertex type, primitive type, # of primitives
@@ -7752,110 +7753,130 @@ namespace Unsigned
                         engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
                         engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
                         engine.Parameters["SpecularEnabled"].SetValue(true);
-                        engine.Parameters["BumpMappingEnabled"].SetValue(true);
                     }
+                }
+                bool whited = false;
+                for (int r = 0; r < 6; r++)
+                {
+                    if (r < 5)
+                        engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
                     else
+                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                    for (int p = 0; p < boards[i].notesLen; p++)
                     {
-                        Matrix matIdentity, matTransl, matScale, matOrbit;
-                        matIdentity = Matrix.Identity;
-                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
-                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        else
-                            matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF)+0.05f, 0f);
-                        matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
-                        if (boards[i].GetBoardType() != PERCUSSIONIST || Math.Abs(boards[i].OutNotes[p].X) > 0.01f)
-                            matOrbit = Matrix.CreateRotationX(-boards[i].OutNotes[p].Y * MathHelper.Pi) * matOrbit;
-                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
-                            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
-                        else
-                            matScale = Matrix.CreateScale(new Vector3(((boards[i].OutNotes[p].Z > 0) ? 0.5f : 1.0f) * 0.125f * Board.width, 0.05f * Board.length, 0.05f * Board.length));
-
-                        float alpha;
-                        if (boards[i].OutNotes[p].Y < Board.sFade)
-                            alpha = 1;
-                        else if (boards[i].OutNotes[p].Y < Board.eFade)
-                            alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
-                        else
-                            alpha = 0;
-
-
-                        engine.Parameters["wAlpha"].SetValue(alpha);
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                        if (boards[i].GetBoardType() != PERCUSSIONIST)
-                        {
-                            if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                            else if (Math.Abs(boards[i].OutNotes[p].X - (-0.5)) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                            else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                            else if (Math.Abs(boards[i].OutNotes[p].X) - (0.5) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
-                            else
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[4]);
-                        }
-                        else
-                        {
-                            if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[1]);
-                            else if (Math.Abs(boards[i].OutNotes[p].X - (-1 / 3f)) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[2]);
-                            else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
-                            else if (Math.Abs(boards[i].OutNotes[p].X) - (1 / 3f) < 0.01)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[3]);
-                            else
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
-                        }
-                        if (boards[i].OutNotes[p].W > 0.5)
+                        if (boards[i].OutNotes[p].W > 0.5 && !whited)
                             engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                        engine.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                        else if (boards[i].OutNotes[p].W <= 0.5 && whited)
                         {
-                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            if (r < 5)
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                            else
+                                engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
                         }
+
+                        if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5) ;
+                        else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5) ;
                         else
                         {
-                            foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                            if (boards[i].GetBoardType() != PERCUSSIONIST)
                             {
-                                foreach (ModelMeshPart part in mesh.MeshParts)
-                                {
+                                if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01 && r != 0)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (-0.5)) < 0.01 && r != 1)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01 && r != 2)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (0.5)) < 0.01 && r != 3)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (1.0)) < 0.01 && r != 4)
+                                    continue;
+                            }
+                            else
+                            {
+                                if (Math.Abs(boards[i].OutNotes[p].X - (-1)) < 0.01 && r != 1)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (-1 / 3f)) < 0.01 && r != 2)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X) < 0.01 && r != 5)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (1 / 3f)) < 0.01 && r != 3)
+                                    continue;
+                                else if (Math.Abs(boards[i].OutNotes[p].X - (1)) < 0.01 && r != 0)
+                                    continue;
+                            }
 
-                                    //engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                    engine.CommitChanges();
-                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                            Matrix matIdentity, matTransl, matScale, matOrbit;
+                            matIdentity = Matrix.Identity;
+                            if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            else
+                                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.05f, 0f);
+                            matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
+                            if (boards[i].GetBoardType() != PERCUSSIONIST || Math.Abs(boards[i].OutNotes[p].X) > 0.01f)
+                                matOrbit = Matrix.CreateRotationX(-boards[i].OutNotes[p].Y * MathHelper.Pi) * matOrbit;
+                            if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                                matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
+                            else
+                                matScale = Matrix.CreateScale(new Vector3(((boards[i].OutNotes[p].Z > 0) ? 0.5f : 1.0f) * 0.125f * Board.width, 0.05f * Board.length, 0.05f * Board.length));
+
+                            float alpha;
+                            if (boards[i].OutNotes[p].Y < Board.sFade)
+                                alpha = 1;
+                            else if (boards[i].OutNotes[p].Y < Board.eFade)
+                                alpha = 1 - ((boards[i].OutNotes[p].Y - Board.sFade) / (Board.eFade - Board.sFade));
+                            else
+                                alpha = 0;
+
+
+                            engine.Parameters["wAlpha"].SetValue(alpha);
+
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+
+
+                            engine.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
+                            {
+                                graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                                graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                            }
+                            else
+                            {
+                                foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                                {
+                                    foreach (ModelMeshPart part in mesh.MeshParts)
+                                    {
+                                        //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                        engine.CommitChanges();
+                                        graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                    }
+                                }
+                                foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                                {
+                                    foreach (ModelMeshPart part in mesh.MeshParts)
+                                    {
+
+                                        //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                        engine.CommitChanges();
+                                        graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                    }
                                 }
                             }
-                            foreach (ModelMesh mesh in Board.mdlNote.Meshes)
-                            {
-                                foreach (ModelMeshPart part in mesh.MeshParts)
-                                {
-
-                                    //engine.Parameters["diffuseTexture"].SetValue(texWhite);
-                                    engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                    engine.CommitChanges();
-                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                                }
-                            }
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         }
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
                 }
                 engine.Parameters["wAlpha"].SetValue(1.0f);

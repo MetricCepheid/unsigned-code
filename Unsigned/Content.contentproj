@@ -174,31 +174,6 @@
       <Processor>TextureProcessor</Processor>
       <Name>garageshell</Name>
     </Compile>
-    <Compile Include="graphics\note0.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>note0</Name>
-    </Compile>
-    <Compile Include="graphics\note1.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>note1</Name>
-    </Compile>
-    <Compile Include="graphics\note2.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>note2</Name>
-    </Compile>
-    <Compile Include="graphics\note3.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>note3</Name>
-    </Compile>
-    <Compile Include="graphics\note4.PNG">
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Name>note4</Name>
-    </Compile>
     <Compile Include="graphics\trigger0.png">
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
