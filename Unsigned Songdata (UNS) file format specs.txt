@@ -1,0 +1,204 @@
+// File format specs for UNS songdata format
+// C# style
+
+// BINARY DATA
+
+// By Louis Ingenthron
+// 18.05.08
+
+
+//HEADER CHUNK
+
+
+char[] signature = {'U', 'N', 'S'};
+
+//offsets are in bytes
+int offsetToGBA, offsetToGBG, offsetToGBB,
+    offsetToGBD, offsetToGBV, offsetToGBE;
+
+
+//GBA CHUNK Song/FullBand
+
+
+byte Version
+
+String name, artist;
+
+int year;//year song was published (not charted)
+
+String genre, formatedTime; //time is formatted in HH:MM:SS format
+
+String[8] quotes;
+
+//charters
+String syncer, effecter, guitarer,
+       vocaler, drummer, basser;
+
+byte guitarDifficulty, vocalistDifficulty,
+     drumsDifficult, bassDifficulty;
+
+struct BarLine
+{
+	int time;
+	int numBeats;	
+}
+
+int barLinesCount;
+
+BarLine[] barLines
+
+int trailingBeatLen;
+
+byte HasBRE;//(bool) whether the song has a Big Rock Ending
+
+uint BREStart, BREEnd;//in MS from start of song
+
+int numHarmonies;
+
+struct Harmony
+{
+	uint start, end;
+	byte instruments;//bitwise 0=guitar,1=vocals,2=drums,3=bass
+}
+
+Harmony[numHarmonies] harmonies;
+
+
+//GBG CHUNK Guitar
+
+
+int numOverdrivePhrases
+
+struct OverdrivePhrase
+{
+	int time;
+	int len;
+}
+
+OverdrivePhrase[numOverdrivePhrases] spph;
+
+int numSolos;
+
+struct Solo
+{
+	int time;
+	int len;
+}
+
+Solo[numSolos] solos;
+
+struct Note
+{
+	byte value;//bitwise, bits 1-5=colors g-o, bit 6=HOPOable
+	int time;//in MS from beginning of song
+	int len;//0 for non-held notes
+}
+
+Struct DifficultySet
+{
+	int diff;//3=Expert, 0=Easy, etc
+	int numNotes;
+	Note[numNotes] notes;
+	int[5] starScoreLevels;
+}
+
+DifficultySet[4] notedata;
+
+
+//GBB CHUNK bass
+
+
+int numOverdrivePhrases
+
+OverdrivePhrase[numOverdrivePhrases] spph;
+
+DifficultySet[4] notedata;
+
+
+//GBD CHUNK drums
+
+
+int numOverdrivePhrases
+
+OverdrivePhrase[numOverdrivePhrases] spph;
+
+int numDrumFille;
+
+struct DrumFill
+{
+	int time;
+	int len;
+}
+
+DrumFill[numDrumFills] dFills;
+
+DifficultySet[4] notedata;
+
+
+//GBV CHUNK vocals
+
+
+int numVocalPhrases;
+
+struct VocalWord
+{
+	uint time;//in MS from start
+	uint len;//in MS
+	short startNote, endNote;
+	String value;//the text
+}
+
+struct VocalPhrase
+{
+	uint time;//in MS from start
+	byte type;//0=REGULAR,1=BLANK,2=RHYTHM
+	int wordsCount;
+	switch(type)
+	{
+		case REGULAR:
+			VocalWord[wordsCount] words;
+
+		case BLANK:
+
+		case RHYTHM:
+			byte rhythmType;
+			uint[wordsCount] rhythmHits;
+	}
+}
+
+VocalPhrase[numVocalPhrases] phrases;
+
+int[4][5] starlevels;
+
+
+//GBE CHUNK sfx
+
+
+int numCameraSwitches;
+
+uint[numCameraSwitches] camSwitches;//in MS from start
+
+int numEffects;
+
+struct Effect
+{
+	int time;
+	char[2] type;
+	int length;
+	...
+	//additional data based on type
+}
+
+Effect[numEffects] effects
+
+//additional data for each type:
+
+struct NormalLightingEffect : Effect
+{
+	int time;
+	char[2] type = {'l', 'n'};
+	int length;
+	Color32 color;
+}
+
+//EOF

@@ -11,8 +11,8 @@ The DirectX (specifically 9) Team for
 laying the groundwork
 
 Ziggy of http://www.ziggyware.com for
-numerous prerelease tests, a spot on
-his site, and technical advice
+numerous prerelease tests, a spot or 
+two on his site, and technical advice
 
 The helpful folks at irc.efnet.pl
 #xna and http://creators.xna.com
@@ -29,16 +29,18 @@ Krisc
 Mykre
 Xodus989
 Tiptup300
+Boki-
 
 Nikolaus Gebhardt / Ambiera of IrrKlang 
-for our easier audio. Fuck you, XACT!
+for our easier audio. Damn you, XACT!
 
 The friendly folks at 
 http://www.scorehero.com Thanks for
 all the hard work you do for the GH/RB
 community!
 
-feeqaz for helping me set up a base
-over at ScoreHero
+My moderators on the forum and all the
+people from my forums who have 
+contributed to Unsigned's development
 
 And many others
