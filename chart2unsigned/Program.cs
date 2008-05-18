@@ -142,6 +142,9 @@ namespace chart2unsigned
                 List<SPPH> DFs = new List<SPPH>();
                 List<uint> cameraSwitches = new List<uint>();
                 List<Event> globalevents = new List<Event>();
+                SPPH[] solos = new SPPH[0];
+                Note[] harmonies = new Note[0];
+                uint BREstart=0, BREend=0;
                 String[] Quotes = new string[8];
                 for (int i = 0; i < 8; i++)
                     Quotes[i] = "";
@@ -1173,16 +1176,198 @@ namespace chart2unsigned
                 //OUTPUT
                 string[] strDiff = { "EASY", "MEDIUM", "HARD", "EXPERT", };
                 System.IO.BinaryWriter fout;
+
+                int GBAsize = 0, GBGsize = 0, GBBsize = 0, GBDsize = 0, GBVsize = 0, GBEsize = 0;
+
                 Console.Out.WriteLine("Writing...");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gba"));
+                    {
+                        GBAsize++;// fout.Write(VERSION);
+                        GBAsize += 4 + name.Length;// fout.Write(name);
+                        GBAsize += 4 + name.Length;// fout.Write(artist);
+                        GBAsize += 4;// fout.Write(yr);
+                        GBAsize += 4 + genre.Length;// fout.Write(genre);
+                        GBAsize += 4 + timeS.Length;// fout.Write(timeS);
+                        for (int i = 0; i < 8; i++)
+                            GBAsize += 4 + Quotes[i].Length;// fout.Write(Quotes[i]);
+                        GBAsize += 4 + cSync.Length;// fout.Write(cSync);
+                        GBAsize += 4 + cEffects.Length;// fout.Write(cEffects);
+                        GBAsize += 4 + cGuitar.Length;// fout.Write(cGuitar);
+                        GBAsize += 4 + cVocals.Length;// fout.Write(cVocals);
+                        GBAsize += 4 + cDrums.Length;// fout.Write(cDrums);
+                        GBAsize += 4 + cBass.Length;// fout.Write(cBass);
+                        for (int i = 0; i < 4; i++)
+                            GBAsize += 1;// fout.Write(totalDiffs[i]);
+                        GBAsize += 4;// fout.Write(barlines.Count);
+                        for (int i = 0; i < barlines.Count; i++)
+                            GBAsize += 8;// { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
+                        GBAsize += 4;// fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
+
+                    }
+                    {
+                        GBGsize += 4;//fout.Write(newSPs[0][3].Length);
+                        for (int i = 0; i < newSPs[0][3].Length; i++)
+                        {
+                            GBGsize += 4;//fout.Write(newSPs[0][3][i].time);
+                            GBGsize += 4;//fout.Write(newSPs[0][3][i].len - newSPs[0][3][i].time);
+                        }
+                        GBGsize += 4;//fout.Write(solos.Length);
+                        for (int i = 0; i < solos.Length; i++)
+                        {
+                            GBGsize += 4;//fout.Write(solos[i].time);
+                            GBGsize += 4;//fout.Write(solos[i].len - solos[i].time);
+                        }
+                        for (int i = 3; i >= 0; i--)
+                        {
+                            GBGsize += 4;//fout.Write(i);
+                            GBGsize += 4;//fout.Write(newnotes[0][i].Length);
+                            for (int k = 0; k < newnotes[0][i].Length; k++)
+                            {
+                                GBGsize += 9;/*fout.Write(newnotes[0][i][k].value);
+                                fout.Write(newnotes[0][i][k].time);
+                                fout.Write(newnotes[0][i][k].len);*/
+                            }
+                            for (int k = 0; k < 5; k++)
+                                GBGsize += 4;// fout.Write(starLevels[0][i][k]);
+                        }
+                    }
+                    {
+                        GBBsize += 4;//fout.Write(newSPs[3][3].Length);
+                        for (int i = 0; i < newSPs[3][3].Length; i++)
+                        {
+                            GBBsize += 8;/*fout.Write(newSPs[3][3][i].time);
+                            fout.Write(newSPs[3][3][i].len - newSPs[3][3][i].time);*/
+                        }
+                        for (int i = 3; i >= 0; i--)
+                        {
+                            GBBsize += 8;/*fout.Write(i);
+                            fout.Write(newnotes[3][i].Length);*/
+                            for (int k = 0; k < newnotes[3][i].Length; k++)
+                            {
+                                GBBsize += 9;/*fout.Write(newnotes[3][i][k].value);
+                                fout.Write(newnotes[3][i][k].time);
+                                fout.Write(newnotes[3][i][k].len);*/
+                            }
+                            for (int k = 0; k < 5; k++)
+                                GBBsize += 4;//fout.Write(starLevels[3][i][k]);
+                        }
+                    }
+                    {
+                        GBDsize += 4;//fout.Write(newSPs[2][3].Length);
+                        for (int i = 0; i < newSPs[2][3].Length; i++)
+                        {
+                            GBDsize += 8;/*fout.Write(newSPs[2][3][i].time);
+                            fout.Write(newSPs[2][3][i].len - newSPs[2][3][i].time);*/
+                        }
+                        GBDsize += 4;//fout.Write(newDFs.Length);
+                        for (int i = 0; i < newDFs.Length; i++)
+                        {
+                            GBDsize += 8;/*fout.Write(newDFs[i].time);
+                            fout.Write(newDFs[i].len);*/
+                        }
+                        for (int i = 3; i >= 0; i--)
+                        {
+                            GBDsize += 8;/*fout.Write(i);
+                            fout.Write(newnotes[2][i].Length);*/
+                            for (int k = 0; k < newnotes[2][i].Length; k++)
+                            {
+                                GBDsize += 5;/*fout.Write(newnotes[2][i][k].value);
+                                fout.Write(newnotes[2][i][k].time);*/
+                            }
+                            for (int k = 0; k < 5; k++)
+                                GBDsize += 4;//fout.Write(starLevels[2][i][k]);
+                        }
+                    }
+                    {
+                        GBVsize += 4;//fout.Write(vocalPhrases.Count);
+                        for (int i = 0; i < vocalPhrases.Count; i++)
+                        {
+                            GBVsize += 9;/*fout.Write(vocalPhrases[i].time);
+                            fout.Write((byte)vocalPhrases[i].type);
+                            fout.Write(vocalPhrases[i].words.Count);*/
+                            switch (vocalPhrases[i].type)
+                            {
+                                case VocalPhrase.TYPE.REGULAR:
+                                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                                    {
+                                        GBVsize += 12;/*fout.Write(vocalPhrases[i].words[k].time);
+                                        fout.Write(vocalPhrases[i].words[k].length);
+                                        fout.Write(vocalPhrases[i].words[k].startnote);
+                                        fout.Write(vocalPhrases[i].words[k].endnote);*/
+                                        GBVsize += 4 + vocalPhrases[i].words[k].value.Length;//fout.Write(vocalPhrases[i].words[k].value);
+                                    }
+                                    break;
+                                case VocalPhrase.TYPE.BLANK:
+                                    break;
+                                case VocalPhrase.TYPE.RHYTHM:
+                                    GBVsize += 1;//fout.Write((byte)vocalPhrases[i].rType);
+                                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                                    {
+                                        GBVsize += 4;//fout.Write(vocalPhrases[i].words[k].time);
+                                    }
+                                    break;
+                            }
+                        }
+                        for(int i=0;i<4;i++)
+                        for (int k = 0; k < 5; k++)
+                            GBVsize += 4;//fout.Write(starLevels[1][3][k]);
+                    }
+                    {
+                        GBEsize += 8;/*fout.Write(2 + newcameraSwitches.Length);
+                        fout.Write(0);*/
+                        for (int i = 0; i < newcameraSwitches.Length; i++)
+                            GBEsize += 4;//fout.Write(newcameraSwitches[i]);
+                        GBEsize += 22;/*fout.Write(sLength);
+                        fout.Write(1);
+                        fout.Write(0);
+                        fout.Write('n');
+                        fout.Write('r');
+                        fout.Write(sLength);
+                        fout.Write(100);*/
+                    }
+                }
+                catch (Exception e)
+                {
+                    Error("Unknown Error occured:\n" + e.Message);
+                    return;
+                }
+
+                Console.Out.WriteLine("Chunk Sizes Calculated");
+
+
+
+
+                try
+                {
+                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".uns"));
                 }
                 catch (Exception)
                 {
-                    Error("Problem opening GBA for writing");
+                    Error("Problem opening UNS for writing");
                     return;
                 }
+                uint HEADsize = 27;
+                try
+                {
+                    fout.Write('U');
+                    fout.Write('N');
+                    fout.Write('S');
+                    fout.Write(HEADsize);
+                    fout.Write(HEADsize + GBAsize);
+                    fout.Write(HEADsize + GBAsize + GBGsize);
+                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize);
+                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize + GBDsize);
+                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize + GBDsize + GBVsize);
+                }
+                catch (Exception e)
+                {
+                    //if this ever happens, i'll eat my own head... 
+                    // ...so nobody run this program with 0 bytes left on their hard drive, kay?
+                    Error("Unknown Error occured in CHUNK HEAD...eh? wtf mate?:\n" + e.Message);
+                    return;
+                }
+
                 try
                 {
                     fout.Write(VERSION);
@@ -1204,35 +1389,38 @@ namespace chart2unsigned
                     fout.Write(barlines.Count);
                     for (int i = 0; i < barlines.Count; i++)
                     { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
-                    fout.Write(beatTimes[beatTimes.Length-1] - beatTimes[beatTimes.Length - 2]);
+                    fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
+                    fout.Write((byte)0);
+                    fout.Write(BREstart);
+                    fout.Write(BREend);
+                    fout.Write(harmonies.Length);
+                    for (int i = 0; i < harmonies.Length; i++)
+                    {
+                        fout.Write(harmonies[i].time);
+                        fout.Write(harmonies[i].len - harmonies[i].time);
+                        fout.Write(harmonies[i].value);
+                    }
 
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBA:\n" + e.Message);
                     return;
-                }
-                finally
-                {
-                    fout.Close();
                 }
                 Console.Out.WriteLine("GBA written");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gbg"));
-                }
-                catch (Exception)
-                {
-                    Error("Problem opening GBG for writing");
-                }
-                try
-                {
-                    fout.Write(VERSION);
                     fout.Write(newSPs[0][3].Length);
                     for (int i = 0; i < newSPs[0][3].Length; i++)
                     {
                         fout.Write(newSPs[0][3][i].time);
                         fout.Write(newSPs[0][3][i].len - newSPs[0][3][i].time);
+                    }
+                    fout.Write(solos.Length);
+                    for (int i = 0; i < solos.Length; i++)
+                    {
+                        fout.Write(solos[i].time);
+                        fout.Write(solos[i].len - solos[i].time);
                     }
                     for (int i = 3; i >= 0; i--)
                     {
@@ -1250,25 +1438,12 @@ namespace chart2unsigned
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBG:\n" + e.Message);
                     return;
-                }
-                finally
-                {
-                    fout.Close();
                 }
                 Console.Out.WriteLine("GBG Written");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gbb"));
-                }
-                catch (Exception)
-                {
-                    Error("Problem opening GBB for writing");
-                }
-                try
-                {
-                    fout.Write(VERSION);
                     fout.Write(newSPs[3][3].Length);
                     for (int i = 0; i < newSPs[3][3].Length; i++)
                     {
@@ -1291,25 +1466,12 @@ namespace chart2unsigned
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBB:\n" + e.Message);
                     return;
-                }
-                finally
-                {
-                    fout.Close();
                 }
                 Console.Out.WriteLine("GBB Written");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gbd"));
-                }
-                catch (Exception)
-                {
-                    Error("Problem opening GBD for writing");
-                }
-                try
-                {
-                    fout.Write(VERSION);
                     fout.Write(newSPs[2][3].Length);
                     for (int i = 0; i < newSPs[2][3].Length; i++)
                     {
@@ -1337,25 +1499,12 @@ namespace chart2unsigned
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBD:\n" + e.Message);
                     return;
-                }
-                finally
-                {
-                    fout.Close();
                 }
                 Console.Out.WriteLine("GBD Written");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gbv"));
-                }
-                catch (Exception)
-                {
-                    Error("Problem opening GBV for writing");
-                }
-                try
-                {
-                    fout.Write(VERSION);
                     fout.Write(vocalPhrases.Count);
                     for (int i = 0; i < vocalPhrases.Count; i++)
                     {
@@ -1369,6 +1518,7 @@ namespace chart2unsigned
                                 {
                                     fout.Write(vocalPhrases[i].words[k].time);
                                     fout.Write(vocalPhrases[i].words[k].length);
+                                    fout.Write(vocalPhrases[i].words[k].note);
                                     fout.Write(vocalPhrases[i].words[k].note);
                                     fout.Write(vocalPhrases[i].words[k].value);
                                 }
@@ -1384,30 +1534,18 @@ namespace chart2unsigned
                                 break;
                         }
                     }
+                    for(int i=0;i<4;i++)
                     for (int k = 0; k < 5; k++)
-                        fout.Write(starLevels[1][3][k]);
+                        fout.Write(starLevels[1][i][k]);
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBV:\n" + e.Message);
                     return;
-                }
-                finally
-                {
-                    fout.Close();
                 }
                 Console.Out.WriteLine("GBV Written");
                 try
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".gbe"));
-                }
-                catch (Exception)
-                {
-                    Error("Problem opening GBE for writing");
-                }
-                try
-                {
-                    fout.Write(VERSION);
                     fout.Write(2 + newcameraSwitches.Length);
                     fout.Write(0);
                     for (int i = 0; i < newcameraSwitches.Length; i++)
@@ -1422,16 +1560,18 @@ namespace chart2unsigned
                 }
                 catch (Exception e)
                 {
-                    Error("Unknown Error occured:\n" + e.Message);
+                    Error("Unknown Error occured in CHUNK GBE:\n" + e.Message);
                     return;
                 }
-                finally
-                {
-                    fout.Close();
-                }
+
+                fout.Close();
+                
 
                 Console.Out.WriteLine("GBE Written");
-                Console.Out.WriteLine("COMPLETE!");
+
+
+
+                Console.Out.WriteLine("COMPLETED UNS WRITE!");
             }
         }
 
