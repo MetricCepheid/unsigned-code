@@ -113,7 +113,7 @@ namespace chart2unsigned
             for (int i = 0; i < args.Length; i++)
                 Console.WriteLine(args[i]);
 
-            byte VERSION = 12;
+            byte VERSION = 16;
 
             Console.WriteLine("Initial setup complete");
 
