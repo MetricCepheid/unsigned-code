@@ -21,6 +21,7 @@ namespace Unsigned
 
         private bool strummed;
         private byte pressed;
+        private bool good;
 
         public void Strum()
         {
@@ -30,7 +31,7 @@ namespace Unsigned
         public void addPressedGuitar(byte pressed)
         {
             if(Board.IsValidFrettage(type,pressed))
-                 this.pressed = type;
+                 good = true;
         }
 
         public void addPressedDrums(byte pressed)
@@ -42,7 +43,7 @@ namespace Unsigned
         public bool IsGood(bool HOPOable)
         {
             if ((HOPOable && (type&(1<<5))!=0) || strummed)
-                return pressed == type;
+                return good;
             return false;
         }
 
@@ -677,7 +678,6 @@ namespace Unsigned
         {
             if (GetBoardType() != Game1.VOCALS)
             {
-
                 for (int i = 0; i < 5; i++)
                 {
                     if (popup[i] > 20 && popupSpeed[i] > 0)
@@ -781,6 +781,8 @@ namespace Unsigned
                         {
                             if (notes[index].time + notes[index].length <= currenttime)
                                 index++;
+                            else if (!IsValidFrettage(notes[index].type, pressed))
+                                index++;
                             else
                             {
                                 Burn(gameTime, notes[index].type);
@@ -802,24 +804,28 @@ namespace Unsigned
                                     { score += 100 * (int)multiplier; }
                                 myResults.hitNotes++;
                                 reff.Help(ind);
-                                index++;
+                                if (notes[index].length > 0)
+                                    notes[index].burning = true;
+                                else
+                                    index++;
                                 return notes[index - 1].type;
+                            }
+                            if (notes[index].late <= currenttime)
+                            {
+                                if (SPIndex < SPStart.Length && index >= SPStart[SPIndex] && index <= SPEnd[SPIndex])
+                                    SPGood = false;
+                                index++;
+                                multiplier = 1;
+                                reff.Hurt(ind);
+                                myResults.missedNotes++;
                             }
                         }
                     }
 
-                    if (notes[index].late <= currenttime)
-                    {
-                        if (SPIndex < SPStart.Length && index >= SPStart[SPIndex] && index <= SPEnd[SPIndex])
-                            SPGood = false;
-                        index++; 
-                        multiplier = 1; 
-                        reff.Hurt(ind); 
-                        myResults.missedNotes++;
-                    }
+                    
                 }
 
-                if (SPIndex < SPStart.Length && index > SPEnd[SPIndex])
+                if (SPIndex < SPStart.Length && (index > SPEnd[SPIndex] || (index==SPEnd[SPIndex] && notes[index].burning)))
                 {
                     if (SPGood)
                     {
@@ -1388,7 +1394,7 @@ namespace Unsigned
             p = (p + 1) / 2f;
             if (index >= notes.Length)
                 return;
-            if (notes[index].burning && notes[index].time < (long)currenttime && notes[index].time + notes[index].length > (long)currenttime)
+            if (notes[index].burning && notes[index].time < currenttime && notes[index].time + notes[index].length > currenttime)
             {
                 whammyage.AddFirst(new WaveVector2(p, 0));
                 int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
