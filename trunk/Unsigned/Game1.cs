@@ -776,9 +776,9 @@ namespace Unsigned
                                     GUITAR_ICO_BLUR, GUITAR_ICO, DRUMS_ICO_BLUR, DRUMS_ICO,
                                     MICROPHONE_ICO_BLUR, MICROPHONE_ICO, GUITARX_ICO_BLUR, GUITARX_ICO;
         }
-        private const byte S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_CHOOSEDIFF=16, S_MAINMENU=2, S_RESULTS=32, S_FREESTYLE=64, S_FAIL=128;
-        private const byte M_GAME = 1, M_FREESTYLE = 2;
-        private byte screen = S_MAINMENU, mode=M_GAME;
+        private const short S_INGAME = 1, S_CHOOSECONT=8, S_CHOOSESONG=4, S_CHOOSEDIFF=16, S_MAINMENU=2, S_RESULTS=32, S_FREESTYLE=64, S_FAIL=128, S_FVLOGO=256;
+        private const short M_GAME = 1, M_FREESTYLE = 2;
+        private short screen = S_FVLOGO, mode=M_GAME;
         Texture2D tbgGreen, tbgRed, tbgYellow, tbgPedal;
         static String songname;
         byte[] diff;
@@ -834,6 +834,14 @@ namespace Unsigned
         Texture2D coolbg1, coolbg2;
         float waveM1, waveM2;
         Texture2D texHeader;
+        bool[][] diffExists;
+
+        Texture2D texBarrel, texGoo1, texGoo2, texPresser;
+        Model mBarrel, mGoo1, mGoo2, mPresser;
+        BasicEffect bEngine;
+        float logoTime;
+
+        float mmLogoTime;
 
         bool MenuLoading = false, MenuLoaded = false, GameLoading = false, GameLoaded = false;
 #endregion
@@ -900,6 +908,10 @@ namespace Unsigned
 
             for (int i = 0; i < lastframes.Length; i++)
                 lastframes[i] = 1 / 30f;
+
+            diffExists = new bool[4][];
+            for(int i=0;i<4;i++)
+                diffExists[i] = new bool[4];
             
 #else
             setLists = new SetList[1];
@@ -1129,6 +1141,19 @@ namespace Unsigned
             tbgGreen = content.Load<Texture2D>("graphics\\large_face_a");
             tbgRed = content.Load<Texture2D>("graphics\\large_face_b");
             tbgYellow = content.Load<Texture2D>("graphics\\large_face_y");
+            texWhite = content.Load<Texture2D>("graphics\\white");
+
+            texBarrel = content.Load<Texture2D>("graphics\\barrel");
+            texGoo1 = content.Load<Texture2D>("graphics\\goo1");
+            texGoo2 = content.Load<Texture2D>("graphics\\goo2");
+            texPresser = content.Load<Texture2D>("graphics\\presser");
+
+            mBarrel = content.Load<Model>("meshes\\barrel");
+            mGoo1 = content.Load<Model>("meshes\\goo1");
+            mGoo2 = content.Load<Model>("meshes\\goo2");
+            mPresser = content.Load<Model>("meshes\\presser");
+
+            bEngine = new BasicEffect(graphics.GraphicsDevice, new EffectPool());
         }
 
         /*private void LoadCustomSonglist()
@@ -1253,7 +1278,6 @@ namespace Unsigned
                 texRockstarRing = content.Load<Texture2D>("graphics\\ring");
                 texRockstarCover = content.Load<Texture2D>("graphics\\starcover");
                 texRockMeterOutline = content.Load<Texture2D>("graphics\\rockmeter");
-                texWhite = content.Load<Texture2D>("graphics\\white");
                 texRockMeterLogoStem = content.Load<Texture2D>("graphics\\logo_stem");
                 texRockMeterGuitarLogo = content.Load<Texture2D>("graphics\\guitar_logo");
                 texRockMeterBassLogo = content.Load<Texture2D>("graphics\\bass_logo");
@@ -1460,7 +1484,7 @@ namespace Unsigned
                 texNote = new Texture2D[4];
                 texSnakeSkin = content.Load<Texture2D>("graphics\\snake");
                 mSnake = content.Load<Model>("meshes\\snake");
-                rtSnake = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
+                rtSnake = new RenderTarget2D(graphics.GraphicsDevice, 512, 128, 1, SurfaceFormat.Color);
                 resultsScroller = content.Load<Texture2D>("graphics\\resultscroller");
                 failbg = content.Load<Texture2D>("graphics\\faildialog");
                 concrTex = content.Load<Texture2D>("graphics\\concr");
@@ -1595,31 +1619,25 @@ namespace Unsigned
             }
 
             GetGamepadStates(false);
+            #region fvlogo
+            if (screen == S_FVLOGO)
+            {
+                if (logoTime >= 35)
+                {
+                    if(MenuLoaded)
+                        screen = S_MAINMENU;
+                }
+                else if (!MenuLoaded && !MenuLoading)
+                    LoadMenuContent();
+                if(logoTime<35)
+                logoTime += (float)gameTime.ElapsedGameTime.TotalSeconds*8;
+            }
+            #endregion
             #region mainmenu
-            if (screen == S_MAINMENU)
+            else if (screen == S_MAINMENU)
             {
 
-                if (!MenuLoaded)
-                {
-#if !DEBUG
-                    try
-                    {
-#endif
-                    LoadMenuContent();
-#if !DEBUG
-                    }
-                    catch(Exception e)
-                    {
-#if WINDOWS
-                        System.Windows.Forms.MessageBox.Show("Problem in Update/MM/Pt0\n"+e.Message+"\n"+e.StackTrace);
-#endif
-                        Exit();
-                        return;
-                    }
-#endif
-                }
-                else
-                {
+                
 #if !DEBUG
                     try
                     {
@@ -1632,93 +1650,104 @@ namespace Unsigned
                         waveM2 += windowwidth;
                     if (mmenu_ticker <= 0)
                     {
-                        int collective = 0;
-                        bool green = false, red = false;
-                        GetGamepadStates(true);
-                        for (int i = 0; i < 4; i++)
-                            if (controllers[i].IsConnected)
-                            {
-                                if (controllers[i].DPad.Down == ButtonState.Pressed)
-                                    collective--;
-                                if (controllers[i].DPad.Up == ButtonState.Pressed)
-                                    collective++;
-                                if (controllers[i].DPad.Right == ButtonState.Pressed)
-                                    collective--;
-                                if (controllers[i].DPad.Left == ButtonState.Pressed)
-                                    collective++;
-                                if (controllers[i].Buttons.A == ButtonState.Pressed)
-                                    green = true;
-                                if (controllers[i].Buttons.B == ButtonState.Pressed)
-                                    red = true;
-                                if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
+                        if (mmLogoTime > 2)
+                        {
+                            int collective = 0;
+                            bool green = false, red = false;
+                            GetGamepadStates(true);
+                            for (int i = 0; i < 4; i++)
+                                if (controllers[i].IsConnected)
                                 {
-                                    if (controllers[i].Buttons.Y == ButtonState.Pressed)
-                                        collective++;
-                                    if (controllers[i].Buttons.X == ButtonState.Pressed)
+                                    if (controllers[i].DPad.Down == ButtonState.Pressed)
                                         collective--;
+                                    if (controllers[i].DPad.Up == ButtonState.Pressed)
+                                        collective++;
+                                    if (controllers[i].DPad.Right == ButtonState.Pressed)
+                                        collective--;
+                                    if (controllers[i].DPad.Left == ButtonState.Pressed)
+                                        collective++;
+                                    if (controllers[i].Buttons.A == ButtonState.Pressed)
+                                        green = true;
+                                    if (controllers[i].Buttons.B == ButtonState.Pressed)
+                                        red = true;
+                                    if (contCapabilities[i].GamePadType == GamePadType.DrumKit)
+                                    {
+                                        if (controllers[i].Buttons.Y == ButtonState.Pressed)
+                                            collective++;
+                                        if (controllers[i].Buttons.X == ButtonState.Pressed)
+                                            collective--;
+                                    }
                                 }
-                            }
-                        if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                            collective--;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                            collective++;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Right))
-                            collective--;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Left))
-                            collective++;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
-                            green = true;
-                        if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                            red = true;
-                        if (mmenu_select % 10 == 0)
-                        {
-                            mmenu_select -= 10 * collective;
-                            if (collective != 0)
+                            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                                collective--;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                                collective++;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                                collective--;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                                collective++;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
+                                green = true;
+                            if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                                red = true;
+                            if (mmenu_select % 10 == 0)
                             {
-                                menuShiftPos.Y = -1 * collective;
-                                menuSnakeRotOffset += collective;
-                            }
-                            while (mmenu_select < 10)
-                            { mmenu_select += 10; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective;}
-                            while (mmenu_select >= 50)
-                            { mmenu_select -= 10; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective;}
-
-                            if (green && mmenu_select == 20)
-                            {
-                                mmenu_select++;
-                                menuShiftPos.X = 1;
-                            }
-                            if (green && mmenu_select == 40)
-                                this.Exit();
-                        }
-                        else
-                        {
-                            if (mmenu_select > 20 && mmenu_select < 30)
-                            {
-                                mmenu_select -= collective;
+                                mmenu_select -= 10 * collective;
                                 if (collective != 0)
                                 {
                                     menuShiftPos.Y = -1 * collective;
                                     menuSnakeRotOffset += collective;
                                 }
-                                while (mmenu_select < 21)
-                                { mmenu_select += 1; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
-                                while (mmenu_select > 24)
-                                { mmenu_select -= 1; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
+                                while (mmenu_select < 10)
+                                { mmenu_select += 10; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
+                                while (mmenu_select >= 50)
+                                { mmenu_select -= 10; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
 
-                                if (green && mmenu_select == 21)
-                                    screen = S_CHOOSECONT;
+                                if (green && mmenu_select == 20)
+                                {
+                                    mmenu_select++;
+                                    menuShiftPos.X = 1;
+                                }
+                                if (green && mmenu_select == 40)
+                                    this.Exit();
                             }
-
-
-                            if (red)
+                            else
                             {
-                                mmenu_select = mmenu_select / 10 * 10;
-                                menuShiftPos.X = -1;
+                                if (mmenu_select > 20 && mmenu_select < 30)
+                                {
+                                    mmenu_select -= collective;
+                                    if (collective != 0)
+                                    {
+                                        menuShiftPos.Y = -1 * collective;
+                                        menuSnakeRotOffset += collective;
+                                    }
+                                    while (mmenu_select < 21)
+                                    { mmenu_select += 1; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
+                                    while (mmenu_select > 24)
+                                    { mmenu_select -= 1; menuShiftPos.Y = 0; menuSnakeRotOffset -= collective; }
+
+                                    if (green && mmenu_select == 21)
+                                        screen = S_CHOOSECONT;
+                                }
+
+
+                                if (red)
+                                {
+                                    mmenu_select = mmenu_select / 10 * 10;
+                                    menuShiftPos.X = -1;
+                                }
                             }
+                            if (collective != 0 || green || red)
+                                mmenu_ticker = 200;
                         }
-                        if (collective != 0 || green || red)
-                            mmenu_ticker = 200;
+                        else
+                        {
+                            mmLogoTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                            while (mmenu_select < 10)
+                            { mmenu_select += 10; menuShiftPos.Y = 0; }
+                            while (mmenu_select >= 50)
+                            { mmenu_select -= 10; menuShiftPos.Y = 0; }
+                        }
                     }
                     else
                         mmenu_ticker -= gameTime.ElapsedGameTime.Milliseconds;
@@ -1738,7 +1767,6 @@ namespace Unsigned
                     return;
                 }
 #endif
-                }
             }
             #endregion
             #region diffscreen
@@ -2503,7 +2531,7 @@ namespace Unsigned
                         {
 #endif
 
-                        long currenttime = (long)((CurrentTime+((TicksPerSecond / 1000)/2)) / (TicksPerSecond / 1000));
+                        long currenttime = (long)((CurrentTime) / (TicksPerSecond / 1000));
 
                         if (song.IsOver(currenttime))
                             screen = S_RESULTS;
@@ -2556,7 +2584,7 @@ namespace Unsigned
                         else if (instruments[3] && contInput[3] == 4)
                             boards[3].Whammy(Keyboard.GetState().IsKeyDown(Keys.Left) ? 1 : -1, currenttime, gameTime, song.GetBeatLength());
 
-                        song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
+                        song.GetZVals(started<2?-(long)currenttime:(long)currenttime);
                         for(int i=0;i<4;i++)
                             if (instruments[i] && i != 1)
                             {
@@ -2760,7 +2788,7 @@ namespace Unsigned
 
         protected override void Draw(GameTime gameTime)
         {
-            if (MenuLoading || GameLoading)
+            if (GameLoading)
             {
                 graphics.GraphicsDevice.Clear(Color.Black);
                 spritebatch.Begin();
@@ -2769,8 +2797,188 @@ namespace Unsigned
             }
             else
             {
+                #region fvlogo
+                if (screen == S_FVLOGO)
+                {
+                    graphics.GraphicsDevice.Clear(Color.Black);
+
+                    
+
+                    
+
+                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                    //graphics.PreferMultiSampling = true;
+                    graphics.ApplyChanges();
+
+                    vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                    graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                    graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                    graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+
+                    bEngine.DiffuseColor = new Vector3(1f, 1f, 1f);
+                    bEngine.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+                    bEngine.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(-1, -3, -1));
+                    bEngine.DirectionalLight0.Enabled = true;
+                    bEngine.DirectionalLight0.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
+                    bEngine.LightingEnabled = true;
+                    bEngine.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
+                    bEngine.SpecularPower = 12.0f;
+                    bEngine.TextureEnabled = true;
+                    bEngine.CommitChanges();
+#if !DEBUG
+                    }
+                    catch(Exception e)
+                    {
+#if WINDOWS
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
+                        Exit();
+                        return;
+                    }
+
+                    try
+                    {
+#endif
+                    bEngine.Begin();
+                    foreach (EffectPass pass in bEngine.CurrentTechnique.Passes)
+                    {
+                        pass.Begin();
+                        matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                          windowwidth / (float)windowheight,
+                          1f, 40.0f);
+                        Vector3 camPos = new Vector3(20, 8, 0);
+                        if (logoTime < 20)
+                            camPos.X = 20;
+                        else if (logoTime < 30)
+                            camPos.X = ((((logoTime - 20) / 10f)) * 12) + ((1 - ((logoTime - 20) / 10f)) * 20);
+                        else
+                            camPos.X = 12;
+                        if (logoTime < 20)
+                            camPos.Y = 8;
+                        else if (logoTime < 30)
+                            camPos.Y = ((((logoTime - 20) / 10f)) * 12) + ((1 - ((logoTime - 20) / 10f)) * 8);
+                        else
+                            camPos.Y = 12;
+
+                        camPos = Vector3.Transform(camPos, Matrix.CreateRotationY(logoTime<30?(float)(Math.PI * 3 / 4f) + (float)((logoTime / 30f) * (Math.PI * 3 / 4f)):(float)(Math.PI*1.5f)));
+
+                        Vector3 target = new Vector3(0, 0, 0);
+
+                        if (logoTime < 20)
+                            camPos.X -= 0;
+                        else if (logoTime < 30)
+                        { target.X -= ((((logoTime - 20) / 10f)) * 1); camPos.X -= ((((logoTime - 20) / 10f)) * 1); }
+                        else
+                        { target.X -= 1; camPos.X -= 1; }
+
+                        matView = Matrix.CreateLookAt(camPos, target, new Vector3(0, 1, 0));
+                        //render the background graphics
+                        bEngine.View = matView;
+                        bEngine.Projection = matProj;
+
+                        Matrix matRot, matScale, matTranslate;
+                        {//goo1
+                            matTranslate = Matrix.CreateTranslation(0, 0, 0);
+                            matRot = Matrix.Identity;// Matrix.CreateRotationX((float)Math.PI);
+                            matScale = Matrix.CreateScale(1, 1, 1);
+
+                            bEngine.World = matScale * matRot * matTranslate;
+                            if (logoTime < 17)
+                                bEngine.Texture = texGoo1;
+                            else
+                                bEngine.Texture = texGoo2;
+                            bEngine.CommitChanges();
+
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            if(logoTime<17)
+                                foreach (ModelMesh mesh in mGoo1.Meshes)
+                                {
+                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                    {
+                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                    }
+                                }
+                            else
+                                foreach (ModelMesh mesh in mGoo2.Meshes)
+                                {
+                                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                    {
+                                        graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                        graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                        graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                    }
+                                }
+                        }
+                        {//barrel
+                            matTranslate = Matrix.CreateTranslation(-10.2f, 0, -6.8f);
+                            matRot = Matrix.CreateRotationY((float)Math.PI*1.25f);
+                            matScale = Matrix.CreateScale(1, 1, 1);
+
+                            bEngine.World = matScale * matRot * matTranslate;
+                            bEngine.Texture = texBarrel;
+                            bEngine.CommitChanges();
+
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            foreach (ModelMesh mesh in mBarrel.Meshes)
+                            {
+                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                {
+                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                }
+                            }
+                        }
+                        {//presser
+                            float y = 30;
+                            if (logoTime > 5 && logoTime < 15)
+                                y = (10 - (logoTime - 5)) * 3;
+                            else if (logoTime >= 15 && logoTime < 20)
+                                y = 0;
+                            else if (logoTime >= 20 && logoTime < 30)
+                                y = (logoTime - 20) * 3;
+                            matTranslate = Matrix.CreateTranslation(0, y, 0);
+                            matRot = Matrix.Identity;//Matrix.CreateRotationY((float)Math.PI * 1.25f);
+                            matScale = Matrix.CreateScale(1, 1, 1);
+
+                            bEngine.World = matScale * matRot * matTranslate;
+                            bEngine.Texture = texPresser;
+                            bEngine.CommitChanges();
+
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            foreach (ModelMesh mesh in mPresser.Meshes)
+                            {
+                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                {
+                                    graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                                }
+                            }
+                        }
+                        pass.End();
+                    }
+                    bEngine.End();
+
+                    spritebatch.Begin();
+                    if(logoTime<5)
+                        spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), new Color(0, 0, 0, (byte)(255 * (1-((logoTime ) / 5f)))));
+                    if (logoTime > 30 && logoTime<35)
+                        spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), new Color(0, 0, 0, (byte)(255 * ( ((logoTime - 30) / 5f)))));
+                    else if(logoTime>=35)
+                        spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), Color.Black);
+                    spritebatch.End();
+                }
+                #endregion
                 #region mainmenu
-                if (screen == S_MAINMENU)
+                else if (screen == S_MAINMENU)
                 {
                     graphics.GraphicsDevice.Clear(Color.Black);
 
@@ -2789,9 +2997,16 @@ namespace Unsigned
                     
                     graphics.GraphicsDevice.SetRenderTarget(0, rtSnake);
                     graphics.GraphicsDevice.Clear(Color.Red);
-                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.BackToFront, SaveStateMode.SaveState);
+                    spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
                     //29.589 69.727
-                    if (menuShiftPos.X > 0.004)
+                    float xscale=128, yscale=48;
+                    float rotxscale = 128, rotyscale = 48;
+                    for (int i = -1; i < 5; i++)
+                    for (int k = -1;k < 4; k++)
+                    {
+                        spritebatch.Draw(texSnakeSkin,new Rectangle((int)(((menuShiftPos.X*2)*rotxscale)+(i*xscale)),(int)((menuShiftPos.Y*rotyscale)+(k*yscale)),(int)(xscale),(int)(yscale)),Color.White);
+                    }
+                    /*if (menuShiftPos.X > 0.004)
                     {
                         spritebatch.Draw(texSnakeSkin, new Rectangle((int)(rtSnake.Width*menuShiftPos.X), (int)(rtSnake.Height * (.29589/3) * (menuShiftPos.Y+1+(menuSnakeRotOffset%3))), rtSnake.Width, (int)(rtSnake.Height * (.29589))),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.2f);
                         spritebatch.Draw(texSnakeSkin, new Rectangle((int)(rtSnake.Width*menuShiftPos.X), (int)(rtSnake.Height * .29589)+(int)(rtSnake.Height * ((.69727 - .29589)/3) * (menuShiftPos.Y+1+(menuSnakeRotOffset%3))), rtSnake.Width, (int)(rtSnake.Height * (.69727 - .29589))),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.2f);
@@ -2858,12 +3073,17 @@ namespace Unsigned
                         spritebatch.Draw(texSnakeSkin, new Rectangle(0, (int)(rtSnake.Height * .69727)+(int)(rtSnake.Height * ((1 - .69727)/3) * (menuShiftPos.Y+1+(menuSnakeRotOffset%3))), rtSnake.Width, (int)(rtSnake.Height * (1 - .69727))),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.2f);
                         spritebatch.Draw(texSnakeSkin, new Rectangle(0, (int)(rtSnake.Height * .69727)+(int)(rtSnake.Height * ((1 - .69727)/3) * (menuShiftPos.Y+2+(menuSnakeRotOffset%3))), rtSnake.Width, (int)(rtSnake.Height * (1 - .69727))),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.3f);
                         spritebatch.Draw(texSnakeSkin, new Rectangle(0, (int)(rtSnake.Height * .69727)+(int)(rtSnake.Height * ((1 - .69727)/3) * (menuShiftPos.Y+3+(menuSnakeRotOffset%3))), rtSnake.Width, (int)(rtSnake.Height * (1 - .69727))),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.4f);
-                    }
+                    }*/
                     if (Math.Abs(menuShiftPos.X) <= 0.004)
                     {
                         if (mmenu_select % 10 == 0)
                         {
-                            if (menuShiftPos.Y >= 0)
+                            for (int i = 0; i < mMenuStr[0].Length; i++)
+                            {
+                                Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[0][i]);
+                                spritebatch.DrawString(DefaultFont, "" + mMenuStr[0][i], new Vector2((rtSnake.Width / 2)-(sz.X/2), (rtSnake.Height / 2) - (sz.Y/2) + (yscale * (i+menuShiftPos.Y-(mmenu_select/10)+1))), mMenuCol[0][i]);
+                            }
+                            /*if (menuShiftPos.Y >= 0)
                             {
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
                                 spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)]);
@@ -2904,11 +3124,16 @@ namespace Unsigned
                                     spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[0][Math.Max(0, mmenu_select / 10 + 1)], 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 menuShiftPos.Y = -menuShiftPos.Y;
-                            }
+                            }*/
                         }
                         else
                         {
-                            if (menuShiftPos.Y >= 0)
+                            for (int i = 0; i < mMenuStr[mmenu_select/10].Length; i++)
+                            {
+                                Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[mmenu_select/10][i]);
+                                spritebatch.DrawString(DefaultFont, "" + mMenuStr[mmenu_select / 10][i], new Vector2((rtSnake.Width / 2) - (sz.X / 2), (rtSnake.Height / 2) - (sz.Y / 2) + (yscale * (i + menuShiftPos.Y - (mmenu_select % 10) + 1))), mMenuCol[mmenu_select / 10][i]);
+                            }
+                            /*if (menuShiftPos.Y >= 0)
                             {
                                 Vector2 meas = sfMenu.MeasureString(mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
                                 spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2))) + (menuShiftPos.Y * (rtSnake.Height * (.69727f) - (meas.Y)))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 - 1)]);
@@ -2949,12 +3174,22 @@ namespace Unsigned
                                     spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)], new Vector2(rtSnake.Width / 2 - (meas.X / 2), (rtSnake.Height * (.69727f))), mMenuCol[mmenu_select / 10][Math.Max(0, mmenu_select % 10 + 1)], 0, new Vector2(0, meas.Y), new Vector2(1, menuShiftPos.Y), SpriteEffects.None, 0);
                                 }
                                 menuShiftPos.Y = -menuShiftPos.Y;
-                            }
+                            }*/
                         }
                     }
                     else if (menuShiftPos.X > 0)
                     {
-                        Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
+                        for (int i = 0; i < mMenuStr[0].Length; i++)
+                        {
+                            Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[0][i]);
+                            spritebatch.DrawString(DefaultFont, "" + mMenuStr[0][i], new Vector2((rtSnake.Width / 2) - (sz.X / 2) + (((menuShiftPos.X*2)-2)*xscale), (rtSnake.Height / 2) - (sz.Y / 2) + (yscale * (i + menuShiftPos.Y - (mmenu_select / 10) + 1))), new Color(mMenuCol[0][i].R,mMenuCol[0][i].G,mMenuCol[0][i].B,(byte)(255*menuShiftPos.X)));
+                        }
+                        for (int i = 0; i < mMenuStr[mmenu_select / 10].Length; i++)
+                        {
+                            Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[mmenu_select / 10][i]);
+                            spritebatch.DrawString(DefaultFont, "" + mMenuStr[mmenu_select / 10][i], new Vector2((rtSnake.Width / 2) - (sz.X / 2) + ((menuShiftPos.X * 2) * xscale), (rtSnake.Height / 2) - (sz.Y / 2) + (yscale * (i + menuShiftPos.Y - (mmenu_select % 10) + 1))), new Color(mMenuCol[mmenu_select / 10][i].R, mMenuCol[mmenu_select / 10][i].G, mMenuCol[mmenu_select / 10][i].B, (byte)(255 * (1 - menuShiftPos.X))));
+                        }
+                        /*Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
                         spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)));
                         spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
                         if (mmenu_select / 10 - 1 > 0)
@@ -2984,11 +3219,21 @@ namespace Unsigned
                             meas = sfMenu.MeasureString(mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select / 10)]);
                             spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
                             spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
-                        }
+                        }*/
                     }
                     else if (menuShiftPos.X < 0)
                     {
-                        menuShiftPos.X = (1 + menuShiftPos.X);
+                        for (int i = 0; i < mMenuStr[0].Length; i++)
+                        {
+                            Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[0][i]);
+                            spritebatch.DrawString(DefaultFont, "" + mMenuStr[0][i], new Vector2((rtSnake.Width / 2) - (sz.X / 2) + (((menuShiftPos.X * 2) ) * xscale), (rtSnake.Height / 2) - (sz.Y / 2) + (yscale * (i + menuShiftPos.Y - (mmenu_select / 10) + 1))), new Color(mMenuCol[0][i].R, mMenuCol[0][i].G, mMenuCol[0][i].B, (byte)(255 * menuShiftPos.X)));
+                        }
+                        for (int i = 0; i < mMenuStr[mmenu_select / 10].Length; i++)
+                        {
+                            Vector2 sz = DefaultFont.MeasureString("" + mMenuStr[mmenu_select / 10][i]);
+                            spritebatch.DrawString(DefaultFont, "" + mMenuStr[mmenu_select / 10][i], new Vector2((rtSnake.Width / 2) - (sz.X / 2) + (((menuShiftPos.X * 2)+2) * xscale), (rtSnake.Height / 2) - (sz.Y / 2) + (yscale * (i + menuShiftPos.Y - (mmenu_select % 10) + 1))), new Color(mMenuCol[mmenu_select / 10][i].R, mMenuCol[mmenu_select / 10][i].G, mMenuCol[mmenu_select / 10][i].B, (byte)(255 * (1 - menuShiftPos.X))));
+                        }
+                        /*menuShiftPos.X = (1 + menuShiftPos.X);
                         Vector2 meas = sfMenu.MeasureString(mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)]);
                         spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), ((1 - menuShiftPos.Y) * (rtSnake.Height * (((.69727f - .29589f) / 2) + .29589f) - (meas.Y / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)));
                         spritebatch.DrawString(sfMenu, mMenuStr[0][Math.Max(0, mmenu_select / 10 - 1)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, ((1 - menuShiftPos.Y) * (rtSnake.Height * (.29589f / 2)))), new Color(mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].R,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].G,mMenuCol[0][Math.Max(0, mmenu_select / 10 - 1)].B,(byte)(255*menuShiftPos.X)), 0, new Vector2(0,meas.Y / 2),new Vector2(1,.29589f/(.69727f - .29589f)),SpriteEffects.None,0);
@@ -3020,7 +3265,7 @@ namespace Unsigned
                             spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X))+rtSnake.Width, (rtSnake.Height * (.69727f))-((meas.Y/2)*(.29589f/(.69727f - .29589f)))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, 1), SpriteEffects.None, 0);
                             spritebatch.DrawString(sfMenu, mMenuStr[mmenu_select/10][Math.Max(0, mmenu_select % 10)], new Vector2((rtSnake.Width / 2 - (meas.X / 2))-(rtSnake.Width*(1-menuShiftPos.X)), (rtSnake.Height * (.29589f))-((meas.Y/2)*(.29589f/(.69727f - .29589f) + .69727f))), new Color(mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].R,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].G,mMenuCol[mmenu_select/10][Math.Max(0, mmenu_select % 10)].B,(byte)(255*(1-menuShiftPos.X))), 0, new Vector2(0, meas.Y/2), new Vector2(1, .29589f/(.69727f - .29589f)), SpriteEffects.None, 0);
                         }
-                        menuShiftPos.X = -(1 - menuShiftPos.X);
+                        menuShiftPos.X = -(1 - menuShiftPos.X);*/
                     }
                     spritebatch.End();
                     graphics.GraphicsDevice.SetRenderTarget(0, null);
@@ -3164,9 +3409,21 @@ namespace Unsigned
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
                             spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
                         }
-                        spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth*0.1f), (int)(windowheight*0.2f), (int)(windowwidth*0.8f), (int)(windowheight*.2f)), Color.White);
+                        //spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth*0.1f), (int)(windowheight*0.2f), (int)(windowwidth*0.8f), (int)(windowheight*.2f)), Color.White);
                         //spritebatch.DrawString(DefaultFont, "Multiplayer->Quickplay allows for Single Player play", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Multiplayer->Quickplay allows for Single Player play").X / 2), windowheight * 0.8f), Color.White);
                         spritebatch.DrawString(DefaultFont, "Menus in Red are not yet implemented.", new Vector2((windowwidth / 2) - (DefaultFont.MeasureString("Menus in Red are not yet implemented.").X / 2), windowheight * 0.75f), Color.White);
+
+                        if (mmLogoTime < 1)
+                            spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), Color.Black);
+                        else if (mmLogoTime < 2)
+                            spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), new Color(0, 0, 0, (byte)(255*(1 - (mmLogoTime - 1)))));
+                        if(mmLogoTime<1)
+                            spritebatch.Draw(texHeader, (new Rectangle((int)(windowwidth * -0.2f * (mmLogoTime))+(int)((1 - mmLogoTime) * windowwidth * 0.4f), (int)(windowheight * .1f * (mmLogoTime))+(int)((1 - mmLogoTime) * windowheight * -0.3f), (int)(windowwidth * 1.4f * (mmLogoTime))+(int)((1 - mmLogoTime) * windowwidth * 0.2f), (int)(windowheight * 0.4f * (mmLogoTime)))), Color.White);
+                        else if (mmLogoTime < 2)
+                            spritebatch.Draw(texHeader, (new Rectangle((int)((mmLogoTime - 1) * windowwidth * 0.1f)+(int)((1 - (mmLogoTime - 1)) * -windowwidth * 0.2f), (int)((mmLogoTime - 1) * windowheight * 0.2f)+(int)((1 - (mmLogoTime - 1)) * windowheight * 0.1f), (int)((mmLogoTime - 1) * windowwidth * 0.8f)+(int)((1 - (mmLogoTime - 1)) * windowwidth * 1.4f), (int)((mmLogoTime - 1) * windowheight * 0.2f)+(int)((1 - (mmLogoTime - 1)) * windowheight * .4f))), Color.White);
+                        else
+                            spritebatch.Draw(texHeader, new Rectangle((int)(windowwidth * 0.1f), (int)(windowheight * 0.2f), (int)(windowwidth * 0.8f), (int)(windowheight * .2f)), Color.White);
+
                         spritebatch.End();
 #if !DEBUG
                     }
@@ -6325,6 +6582,7 @@ namespace Unsigned
                                 StarPowerAction(i);
                             if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
                                 TogglePause();
+                            boards[i].Whammy(controllers[contInput[i]].ThumbSticks.Right.X, currenttime, gameTime, song.GetBeatLength());
                         }
                         else if (contInput[i] == 4)
                         {
@@ -6347,6 +6605,7 @@ namespace Unsigned
                                 StarPowerAction(i);
                             if (kbst.IsKeyDown(Keys.Escape) || kbst.IsKeyDown(Keys.Back))
                                 TogglePause();
+                            boards[i].Whammy(kbst.IsKeyDown(Keys.Left)?1.0f:-1.0f, currenttime, gameTime, song.GetBeatLength());
                         }
                         if (!IsPaused)
                         {
@@ -7810,7 +8069,7 @@ namespace Unsigned
                             if (boards[i].GetBoardType() == PERCUSSIONIST && Math.Abs(boards[i].OutNotes[p].X) < 0.01f)
                                 matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                             else
-                                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.05f, 0f);
+                                matTransl = Matrix.CreateTranslation(0f, Board.height + (boards[i].GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.02f, 0f);
                             matOrbit = Matrix.CreateTranslation(boards[i].OutNotes[p].X * lefty * Board.width * 0.8f, 0f, -(Board.length * boards[i].OutNotes[p].Y) - Board.zeroZ) * fling;
                             if (boards[i].GetBoardType() != PERCUSSIONIST || Math.Abs(boards[i].OutNotes[p].X) > 0.01f)
                                 matOrbit = Matrix.CreateRotationX(-boards[i].OutNotes[p].Y * MathHelper.Pi) * matOrbit;

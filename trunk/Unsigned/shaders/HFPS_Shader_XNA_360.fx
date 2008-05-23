@@ -1,17 +1,12 @@
 /*
 
-% Unsigned Shader for XNA
+% Unsigned Shader for XNA (XBOX360)
 
 */
 
 /* *** *** *** **
    Variables
 ** *** *** *** */
-
-#define MAX_BONES 49
-
-Matrix Bones[MAX_BONES];
-bool skinned = false;
 
 bool fullbright;
 bool vertexAlpha=true;
@@ -212,24 +207,10 @@ EngineVertexToPixel EngineVertexShader(EngineVertexInput input)
   EngineVertexToPixel output = (EngineVertexToPixel)0;
   float4x4 rRot;
 
-  if(skinned)
-  {
-    float4x4 skinTransform = 0;
-
-    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
-    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
-    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
-    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
-
-    output.pos = mul(float4(input.pos,1), skinTransform);
-    
-    rRot = skinTransform*wRot;
-  }
-  else
-  {
+  
     rRot = wRot;
     output.pos = float4(input.pos,1);
-  }
+  
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
   
@@ -324,24 +305,10 @@ EngineVertexToPixel EngineVertexShadert(EngineVertexInput input)
   EngineVertexToPixel output = (EngineVertexToPixel)0;
   float4x4 rRot;
 
-  if(skinned)
-  {
-    float4x4 skinTransform = 0;
-
-    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
-    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
-    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
-    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
-
-    output.pos = mul(float4(input.pos,1), skinTransform);
-    
-    rRot = skinTransform*wRot;
-  }
-  else
-  {
+  
     rRot = wRot;
     output.pos = float4(input.pos,1);
-  }
+  
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
   
@@ -456,24 +423,10 @@ EngineVertexToPixel MenuVertexShader(EngineVertexInput input)
   EngineVertexToPixel output = (EngineVertexToPixel)0;
   float4x4 rRot;
 
-  if(skinned)
-  {
-    float4x4 skinTransform = 0;
-
-    skinTransform += Bones[input.BoneIndices.x] * input.BoneWeights.x;
-    skinTransform += Bones[input.BoneIndices.y] * input.BoneWeights.y;
-    skinTransform += Bones[input.BoneIndices.z] * input.BoneWeights.z;
-    skinTransform += Bones[input.BoneIndices.w] * input.BoneWeights.w;
-
-    output.pos = mul(float4(input.pos,1), skinTransform);
-    
-    rRot = skinTransform*wRot;
-  }
-  else
-  {
+  
     rRot = wRot;
     output.pos = float4(input.pos,1);
-  }
+  
   output.pos = TransformPosition(output.pos);
   output.texCoord = float3(input.texCoord.xy,0);
   float3x3 worldToTangentSpace = ComputeTangentMatrix(input.tangent, input.normal);

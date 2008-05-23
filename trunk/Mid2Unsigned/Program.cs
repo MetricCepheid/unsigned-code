@@ -139,6 +139,7 @@ namespace Mid2Unsigned
                 ushort MIDI_numTracks = 0;
 
                 ushort MIDI_timeDivision = 0;
+                int[] info = new int[15];
 
                 Console.WriteLine("Variables initialised");
 
@@ -166,6 +167,8 @@ namespace Mid2Unsigned
                         throw new Exception("MIDI type 0 should not have more than one track");
 
                     MIDI_timeDivision = Endian.Invert(bin.ReadUInt16()); cBO += 2;
+
+                    String trackName = "";
 
                     float time = 0;
                     //read the tracks
@@ -204,18 +207,21 @@ namespace Mid2Unsigned
                                     ReadVLengthInt(bin); i += VLengthSize;
                                     bin.ReadChars(VLengthValue);
                                     i += VLengthValue;
+                                    info[0]++;
                                 }
                                 else if (meta_type == 0x03)//track name
                                 {
                                     ReadVLengthInt(bin); i += VLengthSize;
-                                    songInternalName = new string(bin.ReadChars(VLengthValue));
+                                    trackName = new string(bin.ReadChars(VLengthValue));
                                     i += VLengthValue;
+                                    info[1]++;
                                 }
                                 else if (meta_type == 0x05)//lyrics
                                 {
                                     ReadVLengthInt(bin); i += VLengthSize;
                                     bin.ReadChars(VLengthValue);
                                     i += VLengthValue;
+                                    info[2]++;
                                 }
                                 else if (meta_type == 0x51)//tempo
                                 {
@@ -223,18 +229,21 @@ namespace Mid2Unsigned
                                     if (VLengthValue != 3)
                                         Error("Tempo should be 3 bytes long");
                                     bin.ReadBytes(3); i += 3;
+                                    info[3]++;
                                 }
                                 else if (meta_type == 0x58)//time signature
                                 {
                                     ReadVLengthInt(bin); i += VLengthSize;
                                     if (VLengthValue != 4)
                                         Error("Time sig should be 4 bytes long");
+                                    info[4]++;
                                 }
                                 else if (meta_type == 0x2F)//end of track
                                 {
                                     ReadVLengthInt(bin); i += VLengthSize;
                                     if (VLengthValue != 0)
                                         Error("EoT should be 0 bytes long");
+                                    info[5]++;
                                 }
                                 else
                                     Console.Write("?");
@@ -249,43 +258,64 @@ namespace Mid2Unsigned
                                 //Console.Write("E");
                                 byte ev = (byte)(evchan >> 4);
                                 byte ch = (byte)(evchan & 0x0F);
-
+                                ev = (byte)(ev << 1);
 
                                 switch (ev)
                                 {
                                     case 0x08://note off
                                         bin.ReadInt16(); i += 2;
-
+                                        info[6]++;
                                         break;
                                     case 0x09://note on
                                         bin.ReadInt16(); i += 2;
-
+                                        info[7]++;
                                         break;
                                     case 0x0A://note aftertouch
                                         bin.ReadInt16(); i += 2;
-
+                                        info[8]++;
                                         break;
                                     case 0x0B://controller value
                                         bin.ReadInt16(); i += 2;
-
+                                        info[9]++;
                                         break;
                                     case 0x0C://program change
                                         bin.ReadByte(); i += 1;
-
+                                        info[10]++;
                                         break;
                                     case 0x0D://channel aftertouch
                                         bin.ReadByte(); i += 1;
-
+                                        info[11]++;
                                         break;
                                     case 0x0E://pitch bend
                                         bin.ReadInt16(); i += 2;
-
+                                        info[12]++;
+                                        break;
+                                    default:
+                                        info[13]++;
                                         break;
                                 }
                             }
                         }
                         cBO += (ulong)i;
                         Console.WriteLine("Done!");
+                        Console.WriteLine("\nTrack Name: " + trackName + "\n");
+                        Console.WriteLine("Text Events: "+info[0]);
+                        Console.WriteLine("Track Names: "+info[1]);
+                        Console.WriteLine("Lyrics     : "+info[2]);
+                        Console.WriteLine("Tempo      : "+info[3]);
+                        Console.WriteLine("Time Signat: "+info[4]);
+                        Console.WriteLine("End of Trck: "+info[5]);
+                        Console.WriteLine("Note Off   : "+info[6]);
+                        Console.WriteLine("Note On    : "+info[7]);
+                        Console.WriteLine("Note Afrtch: "+info[8]);
+                        Console.WriteLine("Controllers: "+info[9]);
+                        Console.WriteLine("Prgm Change: "+info[10]);
+                        Console.WriteLine("Chnl Afrtch: "+info[11]);
+                        Console.WriteLine("Pitch Bend : "+info[12]);
+                        Console.WriteLine("Unknown    : " + info[13]);
+                        Console.WriteLine("\n");
+                        for (int y = 0; y < 15; y++)
+                            info[y] = 0;
                     }
                     Console.WriteLine("\n\n\nComplete!\nPress any key to continue");
 

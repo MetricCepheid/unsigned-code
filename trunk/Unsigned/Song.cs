@@ -173,7 +173,7 @@ namespace Unsigned
         {
             int k;
             for (k = 0; k < Bars.Length; k++)
-                if (Bars[k].X > (currenttime/(float)(Game1.TicksPerSecond/1000)))
+                if (Bars[k].X > (currenttime))
                     break;
             k -= 3;
             if (k < 0)
@@ -186,7 +186,7 @@ namespace Unsigned
                     zVals[i] = Bars[i + k];
             }
             for (int i = 0; i < 12; i++)
-                zVals[i].X = ((zVals[i].X)-(currenttime/(float)(Game1.TicksPerSecond/1000)))/1000f;
+                zVals[i].X = ((zVals[i].X)-(currenttime))/1000f;
         }
 
         public void play()
