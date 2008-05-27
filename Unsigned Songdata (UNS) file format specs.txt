@@ -122,7 +122,7 @@ int numOverdrivePhrases
 
 OverdrivePhrase[numOverdrivePhrases] spph;
 
-int numDrumFille;
+int numDrumFills;
 
 struct DrumFill
 {
@@ -132,7 +132,21 @@ struct DrumFill
 
 DrumFill[numDrumFills] dFills;
 
-DifficultySet[4] notedata;
+struct DNote
+{
+	byte value;//bitwise, bits 1-5=colors g-o, bit 6=HOPOable
+	int time;//in MS from beginning of song
+}
+
+Struct DDifficultySet
+{
+	int diff;//3=Expert, 0=Easy, etc
+	int numNotes;
+	DNote[numNotes] notes;
+	int[5] starScoreLevels;
+}
+
+DDifficultySet[4] notedata;
 
 
 //GBV CHUNK vocals
@@ -152,6 +166,7 @@ struct VocalPhrase
 {
 	uint time;//in MS from start
 	byte type;//0=REGULAR,1=BLANK,2=RHYTHM
+	bool overdrive;
 	int wordsCount;
 	switch(type)
 	{

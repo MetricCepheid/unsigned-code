@@ -92,30 +92,7 @@ namespace Unsigned
         };
     }
 
-    public struct SEffect
-    {
-        public uint begin, end;
-        public EFFECT_TYPE type;
-        public int data;
-        public enum EFFECT_TYPE 
-        { 
-            LIGHTING_NORMAL = 0, 
-            LIGHTING_STROBE = 1, 
-            LIGHTING_SLOWSTROBE = 2, 
-            LIGHTING_BLACKOUT = 3, 
-            LIGHTING_CHASE_G = 4, 
-            LIGHTING_CHASE_B = 5, 
-            LIGHTING_CHASE_D = 6, 
-            LIGHTING_CHASE_V = 7, 
-            LIGHTING_SWEEP = 8, 
-            EFFECT_SMOKE = 9, 
-            EFFECT_FLARE = 10 
-        };
-        public static String[] EF_TP_STR = 
-        {
-            "nr", "sb", "ss", "bo", "cg", "cb", "cd", "cv", "sw", "sk", "fl",
-        };
-    }
+    
 
     class Venue
     {
@@ -249,6 +226,17 @@ namespace Unsigned
             else//interpolation math:
                 camblendvalue = ((long)songtime - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
 
+
+            for (int i = 0; i < Entities.Count; i++)
+            {//updates the entities
+                Entities[i].Update(gameTime);
+            }
+
+            
+        }
+
+        public void SetLights(Effect engine, Song song, uint songtime)
+        {
             //Dynamic light init
             Vector3[] plPos = new Vector3[16];
             bool[] plOn = new bool[16];
@@ -256,12 +244,6 @@ namespace Unsigned
             float[] plFar = new float[16];
             Vector3[] plDif = new Vector3[16];
             Vector3[] plSpc = new Vector3[16];
-
-
-            for (int i = 0; i < Entities.Count; i++)
-            {//updates the entities
-                Entities[i].Update(gameTime);
-            }
 
             int lt = 0;
 
@@ -601,8 +583,15 @@ namespace Unsigned
             fin.ReadChars(1);// }
             fin.Close();
 
-            System.IO.BinaryReader sr = new System.IO.BinaryReader(System.IO.File.OpenRead(Songname + ".gbe"));
-            byte ver = sr.ReadByte();
+            System.IO.BinaryReader sr = new System.IO.BinaryReader(System.IO.File.OpenRead(Songname + ".uns"));
+            sr.ReadChars(3);//UNS
+
+            int[] offsets = new int[6];
+            for (int i = 0; i < 6; i++)
+                offsets[i] = sr.ReadInt32();
+
+            sr.ReadBytes(offsets[Board.OFFSET_TO_GBE] - offsets[Board.OFFSET_TO_GBA]);
+
             int nTransitions = sr.ReadInt32();
             camtimes = new int[nTransitions];
             for (int i = 0; i < nTransitions; i++)
