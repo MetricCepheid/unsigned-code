@@ -3048,7 +3048,11 @@ namespace Unsigned
                     graphics.GraphicsDevice.Clear(Color.Black);
 
                     
+#if !DEBUG
 
+                    try
+                    {
+#endif
                     
 
                     graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
@@ -3220,6 +3224,18 @@ namespace Unsigned
                     else if(logoTime>=35)
                         spritebatch.Draw(texWhite, new Rectangle(0, 0, windowwidth, windowheight), Color.Black);
                     spritebatch.End();
+#if !DEBUG
+                    }
+                    catch(Exception e)
+                    {
+#if WINDOWS
+                        System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
+#endif
+                        Exit();
+                        return;
+                    }
+
+#endif
                 }
                 #endregion
                 #region mainmenu
