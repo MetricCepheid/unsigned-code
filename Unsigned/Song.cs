@@ -11,6 +11,12 @@ namespace Unsigned
 {
     class Song
     {
+        private struct Harmony
+        {
+            public uint start, end;
+            public byte instruments;
+        }
+
         private String FileName;
         private Vector2[] Bars;
         private int endLength;
@@ -24,6 +30,11 @@ namespace Unsigned
         public int[] diffs = new int[4];
         public string[] songInfo;
         public string[] quotes = new string[8];
+
+        public bool BREon;
+        public uint BREstart, BREend;
+
+        Harmony[] harmonies;
 
         public float percentBeat;
 
@@ -57,21 +68,44 @@ namespace Unsigned
             wB = wb;
 #endif
 
-            LoadSong(FileName, game);
+            LoadSongUNS(FileName, game);
         }
 
-        private bool LoadSong(String fn, IntPtr game)
+        private bool LoadSongUNS(String fn, IntPtr game)
         {
-
-            if (!System.IO.File.Exists("songdata\\" + fn + ".gba"))
+            if (!System.IO.File.Exists("songdata\\" + fn + ".uns"))
             {
+                if (!SongConverter.ConvertSong(fn))
+                {
 #if WINDOWS
-                System.Windows.Forms.MessageBox.Show("songdata not found");
+                    System.Windows.Forms.MessageBox.Show("Unknown Error, could not process/find SongData");
+#endif
+                    return false;
+                }
+            }
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".uns"));
+            char[] arr = reader.ReadChars(3);//UNS
+            if (arr[0] != 'U' || arr[1] != 'N' || arr[2] != 'S')
+            {
+
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("SongData Header Incorrect");
 #endif
                 return false;
             }
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gba"));
+            int[] offsets = new int[6];
+            for (int i = 0; i < 6; i++)
+                offsets[i] = reader.ReadInt32();
             byte version = reader.ReadByte();
+
+            if (version < 17)// 17 is the first UNS
+            {
+
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("SongData Version too old");
+#endif
+                return false;
+            }
             SongName = reader.ReadString();
             ArtistName = reader.ReadString();
             int year = reader.ReadInt32();
@@ -80,9 +114,9 @@ namespace Unsigned
             TimeH = Int32.Parse(z.Substring(0, z.IndexOf(':')));
             z = z.Substring(z.IndexOf(':') + 1);
             TimeM = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-            TimeS = Int32.Parse(z.Substring(z.IndexOf(':')+1));
+            TimeS = Int32.Parse(z.Substring(z.IndexOf(':') + 1));
 
-            for (int i = 0; i < quotes.Length; i++)
+            for (int i = 0; i < 8; i++)
                 quotes[i] = reader.ReadString();
 
             int numCharters = 6;
@@ -97,7 +131,7 @@ namespace Unsigned
             for (int i = 1; i < numCharters; i++)
             {
                 int k;
-                for(k=0;k<nC2;k++)
+                for (k = 0; k < nC2; k++)
                     if (charters[i].Equals(charters2[k]))
                     {
                         numC[k]++;
@@ -138,7 +172,7 @@ namespace Unsigned
             for (int i = 0; i < nC2; i++)
                 songInfo[i + 3] = charters2[i];
 
-            for(int i=0;i<4;i++)
+            for (int i = 0; i < 4; i++)
                 diffs[i] = reader.ReadByte();
             int rks = reader.ReadInt32();
             Bars = new Vector2[rks];
@@ -147,12 +181,26 @@ namespace Unsigned
                 Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
             }
             endLength = reader.ReadInt32();
+
+            BREon = reader.ReadBoolean();
+            BREstart = reader.ReadUInt32();
+            BREend = reader.ReadUInt32();
+
+            harmonies = new Harmony[reader.ReadUInt32()];
+            for (int i = 0; i < harmonies.Length; i++)
+            {
+                harmonies[i].start = reader.ReadUInt32();
+                harmonies[i].end = reader.ReadUInt32();
+                harmonies[i].instruments = reader.ReadByte();
+            }
+
+            reader.Close();
 #if WINDOWS
 
             sEngine = new ISoundEngine();
             song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.NoStreaming, true);
             sound = sEngine.Play2D(song, false, true, true);
-            if (song==null || sound==null)
+            if (song == null || sound == null)
             {
                 System.Windows.Forms.MessageBox.Show("audio not found");
                 return false;

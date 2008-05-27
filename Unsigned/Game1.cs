@@ -85,20 +85,37 @@ namespace Unsigned
                 }
                 else
                 {
-                    String songfilename = "songdata\\" + z + ".gba";
-                    if (!System.IO.File.Exists(songfilename))
-                    { CurrentSet.songs.Add(new SongListEntry("DNE-" + z,"DNE","NULL","00:00:00")); continue; }
-                    System.IO.BinaryReader r2 = new System.IO.BinaryReader(System.IO.File.OpenRead(songfilename));
-                    byte version = r2.ReadByte();
-                    if (version != Game1.SONGDATA_VERSION)
-                    { CurrentSet.songs.Add(new SongListEntry("INV-" + z,"DNE","UNKNOWN","00:00:00")); continue; }
-                    String name = r2.ReadString();
-                    String artist = r2.ReadString();
-                    r2.ReadUInt32();
-                    r2.ReadString();
-                    String length = r2.ReadString();
-                    CurrentSet.songs.Add(new SongListEntry(name,z,artist, length));
-                    r2.Close();
+                    String songfilename = "songdata\\" + z;
+                    if (!System.IO.File.Exists(songfilename + ".uns"))
+                    {
+                        if (!System.IO.File.Exists(songfilename + ".gba"))
+                            CurrentSet.songs.Add(new SongListEntry("DNE-" + z, "DNE", "NULL", "00:00:00")); continue;
+                        System.IO.BinaryReader r2 = new System.IO.BinaryReader(System.IO.File.OpenRead(songfilename));
+                        byte version = r2.ReadByte();
+                        if (version != 12)
+                        { CurrentSet.songs.Add(new SongListEntry("INV-" + z, "DNE", "UNKNOWN", "00:00:00")); continue; }
+                        String name = r2.ReadString();
+                        String artist = r2.ReadString();
+                        r2.ReadUInt32();
+                        r2.ReadString();
+                        String length = r2.ReadString();
+                        CurrentSet.songs.Add(new SongListEntry(name, z, artist, length));
+                        r2.Close();
+                    }
+                    else
+                    {
+                        System.IO.BinaryReader r2 = new System.IO.BinaryReader(System.IO.File.OpenRead(songfilename + ".uns"));
+                        byte version = r2.ReadByte();
+                        if (version != Game1.SONGDATA_VERSION)
+                        { CurrentSet.songs.Add(new SongListEntry("INV-" + z, "DNE", "UNKNOWN", "00:00:00")); continue; }
+                        String name = r2.ReadString();
+                        String artist = r2.ReadString();
+                        r2.ReadUInt32();
+                        r2.ReadString();
+                        String length = r2.ReadString();
+                        CurrentSet.songs.Add(new SongListEntry(name, z, artist, length));
+                        r2.Close();
+                    }
                 }
             }
             if (CurrentSet != null && CurrentSet.songs.Count > 0 && !CurrentSet.name.Equals(""))
@@ -115,11 +132,13 @@ namespace Unsigned
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
-                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("uns"))
                 {
-                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
                     String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
                     songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
+                    bin.ReadBytes(3);//UNS
+                    bin.ReadBytes(4 * 6);//lengths
                     byte ver = bin.ReadByte();
                     bool inv = false;
                     if (ver != Game1.SONGDATA_VERSION)
@@ -139,6 +158,36 @@ namespace Unsigned
                     sets[yr].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
                     bin.Close();
                 }
+            for (int i = 0; i < files.Length; i++)
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                {
+                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
+                    String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
+                    songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    byte ver = bin.ReadByte();
+                    bool inv = false;
+                    if (ver != 12)
+                    { inv = true; }
+                    String name = bin.ReadString();
+                    String arts = bin.ReadString();
+                    int yr = bin.ReadInt32();
+                    if (yr < 0)
+                    { bin.Close(); continue; }
+                    else
+                    {
+                        yr -= 1900;
+                        yr /= 10;
+                    }
+                    bin.ReadString();
+                    String len = bin.ReadString();
+                    bool contains = false;
+                    for (int r = 0; r < sets[yr].songs.Count; r++)
+                        if (sets[yr].songs[r].fileName.ToLower().Equals(songname2.ToLower()))
+                            contains = true;
+                    if(contains==false)
+                        sets[yr].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                    bin.Close();
+                }
             for (int i = 0; i < 20; i++)
                 if (sets[i].songs.Count > 0)
                     setlist.Add(sets[i]);
@@ -150,11 +199,13 @@ namespace Unsigned
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
-                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("uns"))
                 {
                     System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
                     String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
                     songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    bin.ReadBytes(3);//UNS
+                    bin.ReadBytes(4 * 6);//lengths
                     byte ver = bin.ReadByte();
                     bool inv = false;
                     if (ver != Game1.SONGDATA_VERSION)
@@ -165,16 +216,58 @@ namespace Unsigned
                     String genre = bin.ReadString();
                     String len = bin.ReadString();
                     bool went = false;
-                    for(int k=0;k<setlist.Count;k++)
+                    for (int k = 0; k < setlist.Count; k++)
                         if (setlist[k].name.ToLower().Equals(genre.ToLower().Trim()))
-                        { setlist[k].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len)); went = true; }
+                        {
+                            setlist[k].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                            went = true;
+                        }
                     if (!went)
                     {
                         SongSet s = new SongSet(genre);
                         s.songs = new List<SongListEntry>();
-                        s.songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
+                        s.songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
                         setlist.Add(s);
                     }
+                    bin.Close();
+                }
+            for (int i = 0; i < files.Length; i++)
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                {
+                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
+                    String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
+                    songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    byte ver = bin.ReadByte();
+                    bool inv = false;
+                    if (ver != 12)
+                    { bin.Close(); continue; }
+                    String name = bin.ReadString();
+                    String arts = bin.ReadString();
+                    int yr = bin.ReadInt32();
+                    String genre = bin.ReadString();
+                    String len = bin.ReadString();
+                    bool went = false;
+                    bool contains = false;
+                    
+                    
+                        for (int k = 0; k < setlist.Count; k++)
+                            if (setlist[k].name.ToLower().Equals(genre.ToLower().Trim()))
+                            {
+                                for (int r = 0; r < setlist[k].songs.Count; r++)
+                                    if (setlist[k].songs[r].fileName.ToLower().Equals(songname2.ToLower()))
+                                        contains = true;
+                                if (contains == false)
+                                setlist[k].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                                went = true;
+                            }
+                        if (!went)
+                        {
+                            SongSet s = new SongSet(genre);
+                            s.songs = new List<SongListEntry>();
+                            s.songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                            setlist.Add(s);
+                        }
+                    
                     bin.Close();
                 }
 
@@ -188,11 +281,13 @@ namespace Unsigned
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
-                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("uns"))
                 {
                     System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
                     String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
                     songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    bin.ReadBytes(3);//UNS
+                    bin.ReadBytes(4 * 6);//lengths
                     byte ver = bin.ReadByte();
                     bool inv = false;
                     if (ver != Game1.SONGDATA_VERSION)
@@ -202,7 +297,30 @@ namespace Unsigned
                     int yr = bin.ReadInt32();
                     bin.ReadString();
                     String len = bin.ReadString();
-                    sets[(int)(name.ToUpper().ToCharArray()[0]-65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
+                        sets[(int)(name.ToUpper().ToCharArray()[0]-65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
+                    bin.Close();
+                }
+            for (int i = 0; i < files.Length; i++)
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                {
+                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
+                    String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
+                    songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    byte ver = bin.ReadByte();
+                    bool inv = false;
+                    if (ver != 12)
+                    { inv = true; }
+                    String name = bin.ReadString();
+                    String arts = bin.ReadString();
+                    int yr = bin.ReadInt32();
+                    bin.ReadString();
+                    String len = bin.ReadString();
+                    bool contains = false;
+                    for (int r = 0; r < sets[(int)(name.ToUpper().ToCharArray()[0] - 65)].songs.Count; r++)
+                        if (sets[(int)(name.ToUpper().ToCharArray()[0] - 65)].songs[r].fileName.ToLower().Equals(songname2.ToLower()))
+                            contains = true;
+                    if (contains == false)
+                        sets[(int)(name.ToUpper().ToCharArray()[0] - 65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
                     bin.Close();
                 }
             for (int i = 0; i < 20; i++)
@@ -220,11 +338,13 @@ namespace Unsigned
 
             String[] files = System.IO.Directory.GetFiles("songdata\\");
             for(int i=0;i<files.Length;i++)
-                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("uns"))
                 {
                     System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
                     String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
                     songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    bin.ReadBytes(3);//UNS
+                    bin.ReadBytes(4 * 6);//lengths
                     byte ver = bin.ReadByte();
                     bool inv = false;
                     if (ver != Game1.SONGDATA_VERSION)
@@ -234,10 +354,49 @@ namespace Unsigned
                     int yr = bin.ReadInt32();
                     bin.ReadString();
                     String len = bin.ReadString();
-                    if(arts.Equals("Unknown Artist"))
-                        sets[26].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
-                    else 
-                        sets[(int)(arts.ToUpper().ToCharArray()[0]-65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2,arts,len));
+                    if (arts.Equals("Unknown Artist"))
+                    {
+                            sets[26].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                    }
+                    else
+                    {
+                            sets[(int)(arts.ToUpper().ToCharArray()[0] - 65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                    }
+                    bin.Close();
+                }
+            for (int i = 0; i < files.Length; i++)
+                if (files[i].Length > 3 && files[i].Substring(files[i].Length - 3).ToLower().Equals("gba"))
+                {
+                    System.IO.BinaryReader bin = new System.IO.BinaryReader(System.IO.File.OpenRead(files[i]));
+                    String songname2 = files[i].Substring(files[i].LastIndexOf('\\') + 1);
+                    songname2 = songname2.Substring(0, songname2.LastIndexOf('.'));
+                    byte ver = bin.ReadByte();
+                    bool inv = false;
+                    if (ver != 12)
+                    { inv = true; }
+                    String name = bin.ReadString();
+                    String arts = bin.ReadString();
+                    int yr = bin.ReadInt32();
+                    bin.ReadString();
+                    String len = bin.ReadString();
+                    if (arts.Equals("Unknown Artist"))
+                    {
+                        bool contains = false;
+                        for (int r = 0; r < sets[26].songs.Count; r++)
+                            if (sets[26].songs[r].fileName.ToLower().Equals(songname2.ToLower()))
+                                contains = true;
+                        if (contains == false)
+                            sets[26].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                    }
+                    else
+                    {
+                        bool contains = false;
+                        for (int r = 0; r < sets[(int)(arts.ToUpper().ToCharArray()[0] - 65)].songs.Count; r++)
+                            if (sets[(int)(arts.ToUpper().ToCharArray()[0] - 65)].songs[r].fileName.ToLower().Equals(songname2.ToLower()))
+                                contains = true;
+                        if (contains == false)
+                            sets[(int)(arts.ToUpper().ToCharArray()[0] - 65)].songs.Add(new SongListEntry((inv ? "INV-" : "") + name, inv ? "DNE" : songname2, arts, len));
+                    }
                     bin.Close();
                 }
             for (int i = 0; i < 27; i++)
@@ -287,7 +446,7 @@ namespace Unsigned
 
     public class Game1 : Microsoft.Xna.Framework.Game
     {
-        public static byte SONGDATA_VERSION = 12;
+        public static byte SONGDATA_VERSION = 17;
 
         public static bool TEST_SONG = false;
 
@@ -392,7 +551,7 @@ namespace Unsigned
         public const byte GUITAR_B = 1, BASS_B = 2, DRUMS_B = 4, VOCALS_B = 8;
         public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
         public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
-        public static Color[] FretColors = { new Color(0,255,0), new Color(255,0,0), new Color(255,255,0), new Color(0,0,255), new Color(255,128,0) };
+        public static Color[] FretColors = { new Color(0,255,0), new Color(255,0,0), new Color(255,255,0), new Color(0,0,255), new Color(255,128,0),};
         public static Color[] FadedFretColors = { new Color(175,207,175), new Color(207,175,175), new Color(207,207,175), new Color(175,175,207), new Color(207,191,175) };
         private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
         private int started = 0;
@@ -413,6 +572,7 @@ namespace Unsigned
         bool IsPaused = false;
         int pausetimer;
         float UIHScale, UIVScale;
+        bool ShowFPS;
 #endregion
 
 #region boards
@@ -782,7 +942,7 @@ namespace Unsigned
         Texture2D tbgGreen, tbgRed, tbgYellow, tbgPedal;
         static String songname;
         byte[] diff;
-	bool[] diffConfirm;
+	    bool[] diffConfirm;
         Texture2D concrTex, concrBM, arrowTex, rustyTex;
         Texture2D stratTex, whitishTex, whitishBM, glassboxTex, glassboxBM;
         Texture2D[] greyishTex;
@@ -840,6 +1000,9 @@ namespace Unsigned
         Model mBarrel, mGoo1, mGoo2, mPresser;
         BasicEffect bEngine;
         float logoTime;
+
+        Model mCurtain;
+        Texture2D texCurtainLeft, texCurtainRight;
 
         float mmLogoTime;
 
@@ -919,6 +1082,16 @@ namespace Unsigned
             setLists[0].LoadCustom("songlist.txt");
             setLists[0].name = "Custom";
 #endif
+            currentFE = FRAME_EFFECT.CONSTANT;
+            countFE = 0;
+            currentFES = FRAME_EFFECT_STYLE.BLINK;
+            countFES=1;
+            postProcessEffects = 0;
+            hue_shift=0;
+            blur_strength = 0;
+            blur_passes = 0;
+            grain_strength = 0;
+
 
             instruments = new bool[4];
             glass = new ShatterGlass[4][];
@@ -987,18 +1160,18 @@ namespace Unsigned
             totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
-            /*songname = "wheelsky";
+            /*songname = "sepways";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
             { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
-            instruments[0] = true;
-            instruments[1] = true;
-            //instruments[2] = true;
+            //instruments[0] = true;
+            //instruments[1] = true;
+            instruments[2] = true;
             //instruments[3] = true;
             contInput[0] = 4;
             rockerNames[0] = "default";
-            contInput[2] = 0;
+            contInput[2] = 4;
             rockerNames[2] = "default";
             contInput[3] = 0;
             rockerNames[3] = "default";
@@ -1006,7 +1179,7 @@ namespace Unsigned
             rockerNames[1] = "default";
             screen = S_INGAME;
             for (int i = 0; i < 4; i++)
-                diff[i] = D_MEDIUM;
+                diff[i] = D_EASY;
             rtNote = new RenderTarget2D[4];
             SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 1, 1, 1, SurfaceFormat.Color);
             LoadMenuContent();
@@ -1088,6 +1261,15 @@ namespace Unsigned
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("halfrender"))
                     {
                         HALF_RENDER = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("iguihasfps"))
+                    {
+                        ShowFPS = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("igguistyle"))
+                    {
+                        String strn = str.Substring(str.IndexOf('=') + 1).Trim();
+                        cGUIStyle = strn.ToLower().Equals("rockband") ? GUIStyle.RB : GUIStyle.UN;
                     }
 
                 } while (!fin.EndOfStream);
@@ -1474,6 +1656,9 @@ namespace Unsigned
                 rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
                 rtNote[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
                 rtNote[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                mCurtain = content.Load<Model>("meshes\\curtain");
+                texCurtainLeft = content.Load<Texture2D>("graphics\\leftcurtain");
+                texCurtainRight = content.Load<Texture2D>("graphics\\rightcurtain");
                 nPadTex = new Texture2D[4];
                 nPadTex[0] = content.Load<Texture2D>("graphics\\paper1");
                 nPadTex[1] = content.Load<Texture2D>("graphics\\paper2");
@@ -1820,10 +2005,6 @@ namespace Unsigned
                     {
                         if (contInput[i] >= 4)
                         {
-                            if (Keyboard.GetState().IsKeyDown(Keys.Down) && diff[i] < 3)
-                            { diff[i]++; mmenu_ticker = 200; }
-                            else if (Keyboard.GetState().IsKeyDown(Keys.Up) && diff[i] > 0)
-                            { diff[i]--; mmenu_ticker = 200; }
 
                             bool up = false, down = false;
                             if (Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -1971,6 +2152,7 @@ namespace Unsigned
                         songname = setlist.setlist[setIndex].songs[songIndex].fileName;
                         for (int k = 0; k < 4; k++)
                             diff[k] = 1;
+                        FillSongDiffs(songname);
                         screen = S_CHOOSEDIFF;
                         mmenu_ticker = 200;
                     }
@@ -2006,7 +2188,12 @@ namespace Unsigned
 #endif
                     if (chgd)
                     {
+                        
                         setlist = setLists[slIndex];
+
+                        if(SongListRT==null)
+                            SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
+
                         graphics.GraphicsDevice.SetRenderTarget(0, SongListRT);
                         spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                         graphics.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
@@ -2014,81 +2201,41 @@ namespace Unsigned
                         spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
                         if (setlist.setlist.Count > 0)
                         {
-                            int NUM_DRAWN = 7;
-                            String[] drawList = new string[20];
-                            String[] drawList2 = new string[20];
-                            drawList[9] = setlist.setlist[setIndex].songs[songIndex].displayName + "(" + setlist.setlist[setIndex].songs[songIndex].len + ")";
-                            drawList2[9] = setlist.setlist[setIndex].songs[songIndex].artistName;
-                            int j = setIndex, k = songIndex;
-                            for (int i = 8; i > 0; i--)
+                            List<String> drawnS = new List<string>();
+                            List<String> drawnA = new List<string>();
+                            int popper = -1;//a nice random Kuntz reference
+                            for (int i = 0; i < setlist.setlist.Count; i++)
                             {
-                                if (k <= -1)
+                                drawnS.Add("@@@" + setlist.setlist[i].name);
+                                drawnA.Add("");
+                                for (int k = 0; k < setlist.setlist[i].songs.Count; k++)
                                 {
-                                    if (j <= 0)
-                                        break;
-                                    j--;
-                                    k = setlist.setlist[j].songs.Count - 1;
+                                    String s = "";
+                                    s = setlist.setlist[i].songs[k].displayName;
+                                    drawnS.Add(s);
+                                    drawnA.Add(setlist.setlist[i].songs[k].artistName);
+                                    if (setIndex == i && songIndex == k)
+                                        popper = drawnS.Count - 1;
                                 }
-                                else
-                                    k--;
-                                if (k >= 0)
-                                {
-                                    drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
-                                    drawList2[i] = setlist.setlist[j].songs[k].artistName;
-                                }
-                                else
-                                    drawList[i] = "@@@" + setlist.setlist[j].name;
                             }
-                            j = setIndex;
-                            k = songIndex;
-                            for (int i = 10; i < 20; i++)
+                            int low = popper;
+                            int high = popper;
+                            int avail = 8;
+                            while (avail > 0)
                             {
-                                if (k >= setlist.setlist[j].songs.Count - 1)
-                                {
-                                    k = -1;
-                                    j++;
-                                    if (j >= setlist.setlist.Count)
-                                        break;
-                                }
-                                else
-                                    k++;
-                                if (k >= 0)
-                                {
-                                    drawList[i] = setlist.setlist[j].songs[k].displayName + "(" + setlist.setlist[j].songs[k].len + ")";
-                                    drawList2[i] = setlist.setlist[j].songs[k].artistName;
-                                }
-                                else
-                                    drawList[i] = "@@@" + setlist.setlist[j].name;
-                            }
-                            int min = 9, max = 9;
-                            for (int i = 9; i > 9 - (NUM_DRAWN / 2); i--)
-                                if (drawList[i - 1] != null)
-                                    min--;
-                                else
+                                if (low == 0 && high == drawnS.Count - 1)
                                     break;
-                            for (int i = 9; i < 9 + (NUM_DRAWN / 2); i++)
-                                if (drawList[i] != null)
-                                    max++;
-                                else
-                                    break;
-                            if (9 - min < NUM_DRAWN / 2)
-                            {
-                                for (; max < min + NUM_DRAWN; max++)
-                                    if (drawList[max] == null)
-                                        break;
+                                if (low > 0)
+                                { low--; avail--; }
+                                if (high < drawnS.Count - 1)
+                                { high++; avail--; }
                             }
-                            if (max - 9 < NUM_DRAWN / 2)
+                            spritebatch.Draw(SongHiLi, new Rectangle(20, (popper-low) * 40 + 95, SongListRT.Width - 40, 50), Color.White);
+                            for (int i = low; i <= high; i++)
                             {
-                                for (; min > max - NUM_DRAWN + 1; min--)
-                                    if (drawList[min - 1] == null)
-                                        break;
-                            }
-                            spritebatch.Draw(SongHiLi, new Rectangle(20, (9 - min) * 40 + 95, SongListRT.Width - 40, 50), Color.White);
-                            for (int i = min; i < max; i++)
-                            {
-                                spritebatch.DrawString(DefaultFont, drawList[i].StartsWith("@@@") ? drawList[i].Substring(3) : drawList[i], new Vector2(10 + (drawList[i].StartsWith("@@@") ? 20 : 50), (i - min) * 40 + 100), drawList[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
-                                if (drawList2[i] != null)
-                                    spritebatch.DrawString(SmallFont, drawList2[i], new Vector2(70, (i - min) * 40 + 125), Color.Black);
+                                spritebatch.DrawString(DefaultFont, drawnS[i].StartsWith("@@@") ? drawnS[i].Substring(3) : drawnS[i], new Vector2(10 + (drawnS[i].StartsWith("@@@") ? 20 : 50), (i - low) * 40 + 100), drawnS[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                                if (!drawnS[i].StartsWith("@@@"))
+                                    spritebatch.DrawString(SmallFont, drawnA[i], new Vector2(70, (i - low) * 40 + 125), Color.Black);
                             }
                             //spritebatch.DrawString(DefaultFont, vSongNames[j][k], new Vector2(10 + (k == 0 ? 20 : 50), (ii + songoffset) * 40 + 60), k == 0 ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
                         }
@@ -2113,6 +2260,26 @@ namespace Unsigned
             #region contchoosescreen
             else if (screen == S_CHOOSECONT)
             {
+                if (rtNote == null)
+                {
+                    rtNote = new RenderTarget2D[4];
+                    rtNote[0] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtNote[1] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtNote[2] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+                    rtNote[3] = new RenderTarget2D(graphics.GraphicsDevice, 256, 256, 1, SurfaceFormat.Color);
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
+                        graphics.GraphicsDevice.SetRenderTarget(0, rtNote[i]);
+                        spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                        spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                        spritebatch.DrawString(sfManager, musicianNames[i], new Vector2(70, 20), Color.Black);
+                        spritebatch.End();
+                        graphics.GraphicsDevice.SetRenderTarget(0, ort);
+                        texNote[i] = rtNote[i].GetTexture();
+                    }
+                }
 #if !DEBUG
                 try
                 {
@@ -2308,7 +2475,9 @@ namespace Unsigned
                     if (wait > 0)
                         wait--;*/
 
-
+                    for (int i = 1; i < contguis.Length; i++)
+                        if (contguis[i].type == ContGUIData.CONT_TYPE.KEYBOARD)
+                            contguis[i] = ContGUIData.INVALID;
                     GetContGUIData();
                     if (counterer > 10)
                     {
@@ -2396,7 +2565,7 @@ namespace Unsigned
                                 ort = (RenderTarget2D)graphics.GraphicsDevice.GetRenderTarget(0);
                                 graphics.GraphicsDevice.SetRenderTarget(0, rtNote[(int)contguis[i].loc - 1]);
                                 spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-                                spritebatch.Draw(nPadTex[i], new Rectangle(0, 0, 256, 256), Color.White);
+                                spritebatch.Draw(nPadTex[(int)contguis[i].loc - 1], new Rectangle(0, 0, 256, 256), Color.White);
                                 spritebatch.DrawString(sfManager, musicianNames[(int)contguis[i].loc - 1], new Vector2(70, 20), Color.Black);
                                 if (contguis[i].status == 1)
                                     spritebatch.DrawString((int)contguis[i].loc - 1 == 0 || (int)contguis[i].loc - 1 == 3 ? sfGuitarist : (int)contguis[i].loc - 1 == 1 ? sfSinger : sfDrummer, (charNameSelected[(int)contguis[i].loc - 1]) >= 0 ? charNames[((int)contguis[i].loc - 1 < 3) ? (int)contguis[i].loc - 1 : 0][charNameSelected[(int)contguis[i].loc - 1]] : "New Rocker", new Vector2(100, 80), Color.Black, (float)Math.PI / 4 - 0.07f, new Vector2(0, 0), 1.4f, SpriteEffects.None, 0);
@@ -2684,20 +2853,16 @@ namespace Unsigned
                         }
                 }
 
-                bool green=false, red=false;//what should red be used for?
+                bool green=false;//what should red be used for?
                 GetGamepadStates(false);
                     for (int i = 0; i < 4; i++)
                         if (controllers[i].IsConnected)
                         {
                             if (controllers[i].Buttons.A == ButtonState.Pressed)
                                 green = true;
-                            if (controllers[i].Buttons.B == ButtonState.Pressed)
-                                red = true;
                         }
                     if (Keyboard.GetState().IsKeyDown(Keys.Enter) || Keyboard.GetState().IsKeyDown(Keys.Space) || Keyboard.GetState().IsKeyDown(Keys.A))
                         green = true;
-                    if (Keyboard.GetState().IsKeyDown(Keys.Back) || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                        red = true;
                     if (green)
                     { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = 0; mmenu_ticker = 200; mmenu_select = 0; contguis = new ContGUIData[5]; UnloadGameContent(); MenuLoaded = false; }
                 
@@ -2786,17 +2951,97 @@ namespace Unsigned
             base.Update(gameTime);
         }
 
+        private void FillSongDiffs(string songname)
+        {
+            
+        }
+
         protected override void Draw(GameTime gameTime)
         {
+                #region loadscreen
             if (GameLoading)
             {
                 graphics.GraphicsDevice.Clear(Color.Black);
-                spritebatch.Begin();
-                spritebatch.DrawString(DefaultFont, loadingText, new Vector2(100, 100), Color.White);
-                spritebatch.End();
+
+                graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                //graphics.PreferMultiSampling = true;
+                graphics.ApplyChanges();
+
+                vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+                graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+
+                bEngine.DiffuseColor = new Vector3(1f, 1f, 1f);
+                bEngine.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+                bEngine.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(-1, -3, -1));
+                bEngine.DirectionalLight0.Enabled = true;
+                bEngine.DirectionalLight0.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
+                bEngine.LightingEnabled = true;
+                bEngine.SpecularColor = new Vector3(0, 0, 0);
+                bEngine.SpecularPower = 12.0f;
+                bEngine.TextureEnabled = true;
+                bEngine.CommitChanges();
+                bEngine.Begin();
+                foreach (EffectPass pass in bEngine.CurrentTechnique.Passes)
+                {
+                    pass.Begin();
+
+                    matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                          windowwidth / (float)windowheight,
+                          1f, 40.0f);
+
+                    matView = Matrix.CreateLookAt(new Vector3(0,0,7), new Vector3(0,0,0), new Vector3(0, 1, 0));
+                    //render the background graphics
+                    bEngine.View = matView;
+                    bEngine.Projection = matProj;
+
+                    Matrix matRot, matScale, matTranslate;
+                    matTranslate = Matrix.CreateTranslation(-2, 0, 0);
+                    matRot = Matrix.Identity;// Matrix.CreateRotationX((float)Math.PI);
+                    matScale = Matrix.CreateScale(1, 2, 1);
+
+                    bEngine.World = matScale * matRot * matTranslate;
+                    bEngine.Texture = texCurtainLeft;
+                    bEngine.CommitChanges();
+
+                    foreach (ModelMesh mesh in mCurtain.Meshes)
+                    {
+                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                        {
+                            graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                        }
+                    }
+
+                    matTranslate = Matrix.CreateTranslation(2, 0, 0);
+                    matRot = Matrix.Identity;// Matrix.CreateRotationX((float)Math.PI);
+                    matScale = Matrix.CreateScale(1, 2, 1);
+
+                    bEngine.World = matScale * matRot * matTranslate;
+                    bEngine.Texture = texCurtainRight;
+                    bEngine.CommitChanges();
+
+                    foreach (ModelMesh mesh in mCurtain.Meshes)
+                    {
+                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                        {
+                            graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
+                            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
+                        }
+                    }
+                    pass.End();
+                }
+                bEngine.End();
             }
             else
             {
+                #endregion
                 #region fvlogo
                 if (screen == S_FVLOGO)
                 {
@@ -5255,7 +5500,8 @@ namespace Unsigned
                                     fps += lastframes[i];
                                 fps /= lastframes.Length;
                                 fps = 1 / fps;
-                                spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
+                                if(ShowFPS)
+                                    spritebatch.DrawString(DefaultFont, "" + (int)fps, new Vector2(windowwidth-40, windowheight-40), Color.Red);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 0, 300, 600), Color.White);
                                 //spritebatch.Draw(boards[0].texBoard, new Rectangle(0, 10, 100, 200), Color.White);
                                 //spritebatch.DrawString(DefaultFont, "" + venue.camindex, new Vector2(0,24), Color.Red);
@@ -5280,7 +5526,7 @@ namespace Unsigned
                                 for (int i = 2; i < song.songInfo.Length; i++)
                                     spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 220 + (40 * i)), aColor);
                             }
-                            if (false)//(DemoMode)
+                            if (DemoMode)
                             {
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
@@ -5659,8 +5905,8 @@ namespace Unsigned
                     spritebatch.DrawString(DefaultFont, "Main Menu", new Vector2((0.99f * windowwidth) - (0.10f * windowheight) - DefaultFont.MeasureString("Main Menu").X, (0.90f * windowheight)+(0.09f * windowheight) - (DefaultFont.MeasureString("Main Menu").Y)), Color.White);
                     spritebatch.End();
                 }
-                #endregion
             }
+                #endregion
 
             base.Draw(gameTime);
         }
@@ -6194,29 +6440,73 @@ namespace Unsigned
 
         public void Hurt(int ind)
         {
-            if (rockMeterLevel[ind] > 80)
-                rockMeterLevel[ind] -= 0.5f;//1f;
-            else if (rockMeterLevel[ind] > 20)
-                rockMeterLevel[ind] -= 0.25f;//0.75f;
-            else
-                rockMeterLevel[ind] -= 0.1f;// 0.5f;
+            if (boards[ind].GetDifficulty() == D_EASY)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] -= 1;//1f;
+                else if (rockMeterLevel[ind] > 20)
+                    rockMeterLevel[ind] -= 0.75f;//0.75f;
+                else
+                    rockMeterLevel[ind] -= 0.5f;// 0.5f;
+            }
+            else if (boards[ind].GetDifficulty() == D_MEDIUM)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] -= 2;//1f;
+                else if (rockMeterLevel[ind] > 20)
+                    rockMeterLevel[ind] -= 1f;//0.75f;
+                else
+                    rockMeterLevel[ind] -= 0.5f;// 0.5f;
+            }
+            else if (boards[ind].GetDifficulty() == D_HARD)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] -= 3;//1f;
+                else if (rockMeterLevel[ind] > 20)
+                    rockMeterLevel[ind] -= 1.5f;//0.75f;
+                else
+                    rockMeterLevel[ind] -= 1f;// 0.5f;
+            }
+            else if (boards[ind].GetDifficulty() == D_EXPERT)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] -= 4;//1f;
+                else if (rockMeterLevel[ind] > 20)
+                    rockMeterLevel[ind] -= 3f;//0.75f;
+                else
+                    rockMeterLevel[ind] -= 2f;// 0.5f;
+            }
         }
 
         public void Help(int ind)
         {
-            if (boards[ind].IsSPActivated())
+            if (boards[ind].GetDifficulty() == D_EASY)
             {
                 if (rockMeterLevel[ind] > 80)
-                    rockMeterLevel[ind] += .8f * (boards[ind].IsSPActivated() ? 10 : 1);
+                    rockMeterLevel[ind] += 1 * (boards[ind].IsSPActivated() ? 10 : 1);
                 else
-                    rockMeterLevel[ind] += 2.0f * (boards[ind].IsSPActivated() ? 10 : 1);
+                    rockMeterLevel[ind] += 4f * (boards[ind].IsSPActivated() ? 10 : 1);
             }
-            else
+            else if (boards[ind].GetDifficulty() == D_MEDIUM)
             {
                 if (rockMeterLevel[ind] > 80)
-                    rockMeterLevel[ind] += .5f * (boards[ind].IsSPActivated() ? 10 : 1);
+                    rockMeterLevel[ind] += 1 * (boards[ind].IsSPActivated() ? 10 : 1);
                 else
-                    rockMeterLevel[ind] += 1.2f * (boards[ind].IsSPActivated() ? 10 : 1);
+                    rockMeterLevel[ind] += 3f * (boards[ind].IsSPActivated() ? 10 : 1);
+            }
+            else if (boards[ind].GetDifficulty() == D_HARD)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] += 0.75f * (boards[ind].IsSPActivated() ? 10 : 1);
+                else
+                    rockMeterLevel[ind] += 2f * (boards[ind].IsSPActivated() ? 10 : 1);
+            }
+            if (boards[ind].GetDifficulty() == D_EXPERT)
+            {
+                if (rockMeterLevel[ind] > 80)
+                    rockMeterLevel[ind] += 0.25f * (boards[ind].IsSPActivated() ? 10 : 1);
+                else
+                    rockMeterLevel[ind] += 1f * (boards[ind].IsSPActivated() ? 10 : 1);
             }
         }
 
@@ -6609,12 +6899,24 @@ namespace Unsigned
                         }
                         if (!IsPaused)
                         {
-                            if (down && guitarStrum != 1)
-                            { boards[i].Strum(0, currenttime, this, i); guitarStrum = 1; }
-                            else if (up && guitarStrum != 2)
-                            { boards[i].Strum(0, currenttime, this, i); guitarStrum = 2; }
-                            else if (!up && !down)
-                                guitarStrum = 0;
+                            if (i == 0)
+                            {
+                                if (down && guitarStrum != 1)
+                                { boards[i].Strum(0, currenttime, this, i); guitarStrum = 1; }
+                                else if (up && guitarStrum != 2)
+                                { boards[i].Strum(0, currenttime, this, i); guitarStrum = 2; }
+                                else if (!up && !down)
+                                    guitarStrum = 0;
+                            }
+                            else
+                            {
+                                if (down && bassStrum != 1)
+                                { boards[i].Strum(0, currenttime, this, i); bassStrum = 1; }
+                                else if (up && bassStrum != 2)
+                                { boards[i].Strum(0, currenttime, this, i); bassStrum = 2; }
+                                else if (!up && !down)
+                                    bassStrum = 0;
+                            }
                             er = boards[i].Update(gameTime, currenttime, this, i, pressed);
                         }
                     }
@@ -7437,22 +7739,22 @@ namespace Unsigned
             for (int k = -4; k < 8; k++)
             {
                 if (boards[i].IsSPActivated())
-                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color(128, 128, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, 1+(int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color(128, 128, 0),0,new Vector2(0,0),SpriteEffects.None,1);
                 else if(failStatus[i]==FS_FAILING)
-                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)(255*failTime), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(255 * failTime), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                 else if (rockMeterLevel[i]<20)
                 {
                     if(song.percentBeat>0.5)
-                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((song.percentBeat-0.5)*255), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((song.percentBeat - 0.5) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                     else
-                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1/ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1/ratio) * bgyscale))),null, new Color((byte)((0.5-song.percentBeat)*255), 0, 0),0,new Vector2(0,0),SpriteEffects.None,1);
+                        spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((0.5 - song.percentBeat) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                 }
                 else if(rockMeterLevel[i]>80)
-                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, (byte)(30+((rockMeterLevel[i]-80)/20f)*50), 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, (byte)(30 + ((rockMeterLevel[i] - 80) / 20f) * 50), 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                 else if(rockMeterLevel[i]<40)
-                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(30+(1-((rockMeterLevel[i]-20)/20f))*50), 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(30 + (1 - ((rockMeterLevel[i] - 20) / 20f)) * 50), 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
                 else
-                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                    spritebatch.Draw(boardBackgrounds[i], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard[i].Height / (Board.eFade * (1 / ratio)))), rtBoard[i].Width, 1 + (int)(rtBoard[i].Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
             }
 
             int fiver = i == 0 || i == 3 ? 1 : 0;
@@ -7472,11 +7774,26 @@ namespace Unsigned
                     
                     for (int j = 0; j < (int)(songtimes[k].Y + 0.5); j++)
                     {
-                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + ((j / songtimes[k].Y) * height))-1, rtBoard[i].Width, 3), Color.White);
-                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((j+0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 1), Color.White);
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + ((j / songtimes[k].Y) * height)) - 1, rtBoard[i].Width, 5), Color.DarkGray);
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((j + 0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 3), Color.DarkGray);
                     }
-                    spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 1), Color.White);
-                    spritebatch.Draw(texWhite, new Rectangle(0, (int)y-2, rtBoard[i].Width, 5), Color.White);
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((0.5) / songtimes[k].Y) * height)), rtBoard[i].Width, 3), Color.DarkGray);
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)y - 2, rtBoard[i].Width, 5), Color.DarkGray);
+                }
+            }
+            if(i==2)
+            for (int k = 0; k < boards[i].OutDFs.Length; k++)
+            {
+                float halfMaxWidth = rtBoard[i].Width / 8f;
+                if (boards[i].OutDFs[k].W > 0.5)
+                {
+                    float height = (boards[i].OutDFs[k].Y - boards[i].OutDFs[k].X) * scale;
+                    float y = (rtBoard[i].Height * ratio) - (int)(boards[i].OutDFs[k].X * scale) - (int)((boards[i].OutDFs[k].Y - boards[i].OutDFs[k].X) * scale);
+                    for (int r = 0; r < 4; r++)
+                    {
+                        float center = ((r * 2 + 1)/8f)*rtBoard[i].Width;
+                        spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * boards[i].OutDFs[k].Z)), (int)y, (int)(2 * (halfMaxWidth * boards[i].OutDFs[k].Z)), (int)height), FretColors[Board.guitarToDrums[r]]);
+                    }
                 }
             }
             /*if (started < 2 && CurrentTime < 30 * TicksPerSecond)
@@ -7914,7 +8231,7 @@ namespace Unsigned
                 if (boards[i].IsLefty() && boards[i].GetBoardType() != PERCUSSIONIST)
                     lefty = -1;
                 
-                for (int p = 0; p < boards[i].notesLen; p++)
+                /*for (int p = 0; p < boards[i].notesLen; p++)
                 {
                     if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5)
                     {
@@ -8013,7 +8330,7 @@ namespace Unsigned
                         engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
                         engine.Parameters["SpecularEnabled"].SetValue(true);
                     }
-                }
+                }*/
                 bool whited = false;
                 for (int r = 0; r < 6; r++)
                 {
@@ -8021,21 +8338,21 @@ namespace Unsigned
                         engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
                     else
                         engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                    whited = false;
                     for (int p = 0; p < boards[i].notesLen; p++)
                     {
                         if (boards[i].OutNotes[p].W > 0.5 && !whited)
-                            engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                        { engine.Parameters["diffuseTexture"].SetValue(texWhite); whited = true; }
                         else if (boards[i].OutNotes[p].W <= 0.5 && whited)
                         {
                             if (r < 5)
                                 engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
                             else
                                 engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                            whited = false;
                         }
 
-                        if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 1.5) ;
-                        else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5) ;
-                        else
+                        if(boards[i].GetBoardType() != PERCUSSIONIST || boards[i].OutNotes[p].Z<=0.5)
                         {
                             if (boards[i].GetBoardType() != PERCUSSIONIST)
                             {
@@ -8745,12 +9062,17 @@ namespace Unsigned
                 for (int i = 0; i < 4; i++)
                     if (instruments[i])
                         ct++;
+                /*for (int i = 0; i < (int)GetRockstarAmount(); i++)
+                {
+                    spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2 + ((height / rmUNstaro.Height) * 0.5f * i)), null, GetRockstarAmount() < 5 ? FretColors[(int)GetRockstarAmount()] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), (height / rmUNstaro.Height) * 0.5f, SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth, windowheight / 2 + ((height / rmUNstaro.Height) * 0.5f * i)), null, GetRockstarAmount() < 5 ? FretColors[(int)GetRockstarAmount()] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), (height / rmUNstaro.Height) * 0.5f, SpriteEffects.None, 0);
+                }*/
 #if WINDOWS
-                spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                spritebatch.Draw(rmUNstar, new Vector2(0, windowheight / 2), null, GetRockstarAmount() < 5 ? FretColors[(int)GetRockstarAmount()] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), GetRockstarAmount() >= 5 ? (height / rmUNstaro.Height) : (GetRockstarAmount() % 1) * (height / rmUNstaro.Height), SpriteEffects.None, 0);
                 spritebatch.Draw(rmUNstaro, new Vector2(0, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
                 //if (ct <= 1)
                 {
-                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth, windowheight / 2), null, FretColors[(int)GetRockstarAmount()], rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
+                    spritebatch.Draw(rmUNstar, new Vector2(windowwidth, windowheight / 2), null, GetRockstarAmount()<5?FretColors[(int)GetRockstarAmount()]:Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2),GetRockstarAmount()>=5?(height/rmUNstaro.Height):(GetRockstarAmount()%1)*(height/rmUNstaro.Height), SpriteEffects.None, 0);
                     spritebatch.Draw(rmUNstaro, new Vector2(windowwidth, windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height/rmUNstaro.Height, SpriteEffects.None, 0);
                 }
 #else

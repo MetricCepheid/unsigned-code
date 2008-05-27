@@ -113,7 +113,7 @@ namespace chart2unsigned
             for (int i = 0; i < args.Length; i++)
                 Console.WriteLine(args[i]);
 
-            byte VERSION = 16;
+            byte VERSION = 17;
 
             Console.WriteLine("Initial setup complete");
 
@@ -1184,26 +1184,29 @@ namespace chart2unsigned
                 {
                     {
                         GBAsize++;// fout.Write(VERSION);
-                        GBAsize += 4 + name.Length;// fout.Write(name);
-                        GBAsize += 4 + name.Length;// fout.Write(artist);
+                        GBAsize += 1 + name.Length;// fout.Write(name);
+                        GBAsize += 1 + artist.Length;// fout.Write(artist);
                         GBAsize += 4;// fout.Write(yr);
-                        GBAsize += 4 + genre.Length;// fout.Write(genre);
-                        GBAsize += 4 + timeS.Length;// fout.Write(timeS);
+                        GBAsize += 1 + genre.Length;// fout.Write(genre);
+                        GBAsize += 1 + timeS.Length;// fout.Write(timeS);
                         for (int i = 0; i < 8; i++)
-                            GBAsize += 4 + Quotes[i].Length;// fout.Write(Quotes[i]);
-                        GBAsize += 4 + cSync.Length;// fout.Write(cSync);
-                        GBAsize += 4 + cEffects.Length;// fout.Write(cEffects);
-                        GBAsize += 4 + cGuitar.Length;// fout.Write(cGuitar);
-                        GBAsize += 4 + cVocals.Length;// fout.Write(cVocals);
-                        GBAsize += 4 + cDrums.Length;// fout.Write(cDrums);
-                        GBAsize += 4 + cBass.Length;// fout.Write(cBass);
+                            GBAsize += 1 + Quotes[i].Length;// fout.Write(Quotes[i]);
+                        GBAsize += 1 + cSync.Length;// fout.Write(cSync);
+                        GBAsize += 1 + cEffects.Length;// fout.Write(cEffects);
+                        GBAsize += 1 + cGuitar.Length;// fout.Write(cGuitar);
+                        GBAsize += 1 + cVocals.Length;// fout.Write(cVocals);
+                        GBAsize += 1 + cDrums.Length;// fout.Write(cDrums);
+                        GBAsize += 1 + cBass.Length;// fout.Write(cBass);
                         for (int i = 0; i < 4; i++)
                             GBAsize += 1;// fout.Write(totalDiffs[i]);
                         GBAsize += 4;// fout.Write(barlines.Count);
                         for (int i = 0; i < barlines.Count; i++)
                             GBAsize += 8;// { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
                         GBAsize += 4;// fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
-
+                        GBAsize += 1;// bre false
+                        GBAsize += 4;// bre start
+                        GBAsize += 4;// bre end
+                        GBAsize += 4;// numHarmonies
                     }
                     {
                         GBGsize += 4;//fout.Write(newSPs[0][3].Length);
@@ -1295,7 +1298,7 @@ namespace chart2unsigned
                                         fout.Write(vocalPhrases[i].words[k].length);
                                         fout.Write(vocalPhrases[i].words[k].startnote);
                                         fout.Write(vocalPhrases[i].words[k].endnote);*/
-                                        GBVsize += 4 + vocalPhrases[i].words[k].value.Length;//fout.Write(vocalPhrases[i].words[k].value);
+                                        GBVsize += 1 + vocalPhrases[i].words[k].value.Length;//fout.Write(vocalPhrases[i].words[k].value);
                                     }
                                     break;
                                 case VocalPhrase.TYPE.BLANK:
@@ -1347,7 +1350,7 @@ namespace chart2unsigned
                     Error("Problem opening UNS for writing");
                     return;
                 }
-                uint HEADsize = 27;
+                int HEADsize = 27;
                 try
                 {
                     fout.Write('U');
@@ -1510,6 +1513,7 @@ namespace chart2unsigned
                     {
                         fout.Write(vocalPhrases[i].time);
                         fout.Write((byte)vocalPhrases[i].type);
+                        fout.Write(false);//sp
                         fout.Write(vocalPhrases[i].words.Count);
                         switch (vocalPhrases[i].type)
                         {
