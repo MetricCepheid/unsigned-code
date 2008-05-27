@@ -1038,8 +1038,8 @@ namespace Unsigned
             InitXNAApp();
 
 #if WINDOWS
-            this.IsFixedTimeStep = false;
-            graphics.SynchronizeWithVerticalRetrace = false;
+            //this.IsFixedTimeStep = false;
+            //graphics.SynchronizeWithVerticalRetrace = false;
 
             String[] rFiles = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory());
             bool gblExists = false;
