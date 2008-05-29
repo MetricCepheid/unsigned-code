@@ -26,7 +26,7 @@ String name, artist;
 
 int year;//year song was published (not charted)
 
-String genre, formatedTime; //time is formatted in HH:MM:SS format
+String genre, formattedTime; //time is formatted in HH:MM:SS format
 
 String[8] quotes;
 
