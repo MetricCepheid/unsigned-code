@@ -119,6 +119,7 @@
     <Content Include="msvcr71.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="text\Unsigned_EN.txt" />
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>

@@ -36,6 +36,8 @@ namespace VocalEditor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "VocalPreviewer";
             this.Size = new System.Drawing.Size(1000, 256);
+            this.MouseLeave += new System.EventHandler(this.VocalPreviewer_MouseLeave);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.VocalPreviewer_MouseMove);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.VocalPreviewer_MouseDown);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.VocalPreviewer_MouseUp);
             this.ResumeLayout(false);

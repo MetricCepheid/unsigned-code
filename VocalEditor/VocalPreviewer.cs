@@ -15,13 +15,15 @@ namespace VocalEditor
         MainForm mf;
         public int NodeSize;//4-*, multiple of 2
         public Color NodeSelectColor, NodeColor;
-        int SelectedNode, SelectedNodePhrase, SelectedPhrase;
+        public int SelectedNode, SelectedNodePhrase, SelectedPhrase;
+        public bool SelectedNodeBegin;
         float HSCALE = 0;
-        int numNotes = 36;
+        public static int numNotes = 36;
         long mouseClickTime;
         Point mouseClickSpot;
         public int LineThickness=1;
         public float offset;
+        bool mouseDown = false;
 
         public VocalPreviewer()
         {
@@ -30,6 +32,9 @@ namespace VocalEditor
             NodeColor = Color.Aqua;
             NodeSelectColor = Color.Lime;
             NodeSize = 8;
+            SelectedNodePhrase = -1;
+            SelectedNode = -1;
+            SelectedPhrase = -1;
         }
 
         public void SetParentForm(MainForm m)
@@ -157,16 +162,16 @@ namespace VocalEditor
                 {
                     for (int k = 0; k < song.notes[i].words.Count; k++)
                     {
-                        Point pos1 = new Point((int)(song.notes[i].words[k].time / HSCALE) - xoffset, (int)((1 - (song.notes[i].words[k].startNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
+                        Point pos1 = new Point((int)(song.notes[i].words[k].time / HSCALE) - xoffset, (int)((1 - ((song.notes[i].words[k].startNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
                         if (song.notes[i].words[k].connected)
                         {
-                            Point pos2 = new Point((int)(song.notes[i].words[k + 1].time / HSCALE) - xoffset, (int)((1 - (song.notes[i].words[k + 1].startNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
+                            Point pos2 = new Point((int)(song.notes[i].words[k + 1].time / HSCALE) - xoffset, (int)((1 - ((song.notes[i].words[k + 1].startNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
                             for (int j = 2; j >= 0; j--)
                                 g.DrawLine(song.notes[i].overdrive ? lineYellow[j] : lineGreen[j], pos1, pos2);
                         }
                         else
                         {
-                            Point pos2 = new Point((int)((song.notes[i].words[k].len) / HSCALE) - xoffset, (int)((1 - (song.notes[i].words[k].endNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
+                            Point pos2 = new Point((int)((song.notes[i].words[k].len) / HSCALE) - xoffset, (int)((1 - ((song.notes[i].words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
                             for (int j = 2; j >= 0; j--)
                                 g.DrawLine(song.notes[i].overdrive ? lineYellow[j] : lineGreen[j], pos1, pos2);
                         }
@@ -176,8 +181,8 @@ namespace VocalEditor
                 {
                     for(int k=0;k<song.notes[i].words.Count;k++)
                     {
-                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - (song.notes[i].words[k].startNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
-                        if (i == SelectedNodePhrase && k == SelectedNode)
+                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].startNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        if (i == SelectedNodePhrase && k == SelectedNode && SelectedNodeBegin)
                             g.FillRectangle(new SolidBrush(NodeSelectColor), rect);
                         else
                             g.FillRectangle(new SolidBrush(NodeColor), rect);
@@ -187,31 +192,32 @@ namespace VocalEditor
                 {
                     for (int k = 0; k < song.notes[i].words.Count; k++)
                     {
+                        bool sel = i == SelectedNodePhrase && k == SelectedNode && !SelectedNodeBegin;
                         if (song.notes[i].words[k].connected)
                             continue;
-                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - (song.notes[i].words[k].endNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
-                        g.DrawRectangle(new Pen(NodeColor), rect);
+                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        g.DrawRectangle(sel?new Pen(NodeSelectColor):new Pen(NodeColor), rect);
                         if (NodeSize < 8)
                             continue;
                         rect.X++;
                         rect.Y++;
                         rect.Width -= 2;
                         rect.Height -= 2;
-                        g.DrawRectangle(new Pen(NodeColor), rect);
+                        g.DrawRectangle(sel ? new Pen(NodeSelectColor) : new Pen(NodeColor), rect);
                         if (NodeSize < 12)
                             continue;
                         rect.X++;
                         rect.Y++;
                         rect.Width -= 2;
                         rect.Height -= 2;
-                        g.DrawRectangle(new Pen(NodeColor), rect);
+                        g.DrawRectangle(sel ? new Pen(NodeSelectColor) : new Pen(NodeColor), rect);
                         if (NodeSize < 16)
                             continue;
                         rect.X++;
                         rect.Y++;
                         rect.Width -= 2;
                         rect.Height -= 2;
-                        g.DrawRectangle(new Pen(NodeColor), rect);
+                        g.DrawRectangle(sel ? new Pen(NodeSelectColor) : new Pen(NodeColor), rect);
                     }
                 }
             }
@@ -231,34 +237,75 @@ namespace VocalEditor
         {
             mouseClickTime = DateTime.Now.Ticks;
             mouseClickSpot = e.Location;
+            SelectedNodePhrase = -1;
+            SelectedNode = -1;
+            SelectedPhrase = -1;
+            mouseDown = true;
+            int width = (int)(song.bars[song.bars.Length - 1].time / HSCALE);
+            int xoffset = (int)(width * offset);
+            if (song != null && song.valid)
+            for (int i = 0; i < song.notes.Count; i++)
+            {
+                for (int k = 0; k < song.notes[i].words.Count; k++)
+                {
+                    Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2))-xoffset, (int)((1 - ((song.notes[i].words[k].startNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                    if (rect.Contains(e.Location))
+                    {
+                        SelectedNodePhrase = i;
+                        SelectedNode = k;
+                        SelectedNodeBegin = true;
+                    }
+                }
+            }
+            for (int i = 0; i < song.notes.Count; i++)
+            {
+                for (int k = 0; k < song.notes[i].words.Count; k++)
+                {
+                    if (song.notes[i].words[k].connected)
+                        continue;
+                    Rectangle rect = new Rectangle((int)(song.notes[i].words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].endNote + 1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                    if (rect.Contains(e.Location))
+                    {
+                        SelectedNodePhrase = i;
+                        SelectedNode = k;
+                        SelectedNodeBegin = false;
+                    }
+                }
+            }
+            mf.UpdateActivations();
             Refresh();
         }
 
         private void VocalPreviewer_MouseUp(object sender, MouseEventArgs e)
         {
-            if (System.DateTime.Now.Ticks - mouseClickTime < 100000000L)
+            mouseDown = false;
+            Refresh();
+        }
+
+        private void VocalPreviewer_MouseLeave(object sender, EventArgs e)
+        {
+            mouseDown = false;
+        }
+
+        private void VocalPreviewer_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (mouseDown)
             {
-                SelectedNodePhrase = -1;
-                SelectedNode = -1;
-                if(song!=null && song.valid)
-                for (int i = 0; i < song.notes.Count; i++)
+                if (SelectedNode >= 0)
                 {
-                    for (int k = 0; k < song.notes[i].words.Count; k++)
-                    {
-                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2)), (int)((1 - (song.notes[i].words[k].startNote / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
-                        if (rect.Contains(e.Location))
-                        {
-                            SelectedNodePhrase = i;
-                            SelectedNode = k;
-                        }
-                    }
+                    int y = (int)(e.Y / (Height / (float)numNotes));
+                    y = (numNotes) - y;
+                    y--;
+                    if (y >= numNotes)
+                        y = numNotes - 1;
+                    if (y < 0)
+                        y = 0;
+                    if(SelectedNodeBegin)
+                        song.notes[SelectedNodePhrase].words[SelectedNode].startNote = (short)y;
+                    else
+                        song.notes[SelectedNodePhrase].words[SelectedNode].endNote = (short)y;
                 }
             }
-            else
-            {
-
-            }
-            Refresh();
         }
     }
 }
