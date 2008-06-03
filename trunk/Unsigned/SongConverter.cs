@@ -212,9 +212,8 @@ namespace Unsigned
             offsetToGBG += 1 + 1 + 1 + 1 + 1 + 4;
             offsetToGBG += SongName.Length + ArtistName.Length
                         + genre.Length + songLength.Length;
-            offsetToGBG += 8 * 1;
             for (int i = 0; i < 8; i++)
-                offsetToGBG += quotes[i].Length;
+                offsetToGBG += ((quotes[i].Length/128)+1)+quotes[i].Length;
             offsetToGBG += 6 * 1;
             for (int i = 0; i < 6; i++)
                 offsetToGBG += charters[i].Length;

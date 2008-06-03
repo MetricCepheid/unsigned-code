@@ -2139,22 +2139,26 @@ namespace Unsigned
                     if (Keyboard.GetState().IsKeyDown(Keys.D))
                         yellow = true;
 
-                    if (collective > 0 && songIndex > 0)
-                    { songIndex--; chgd = true; }
-                    else if (collective > 0 && songIndex <= 0 && setIndex > 0)
-                    { setIndex--; songIndex = setlist.setlist[setIndex].songs.Count - 1; chgd = true; }
-                    else if (collective < 0 && songIndex < setlist.setlist[setIndex].songs.Count-1)
-                    { songIndex++; chgd = true; }
-                    else if (collective < 0 && songIndex >= setlist.setlist[setIndex].songs.Count - 1 && setIndex < setlist.setlist.Count-1)
-                    { songIndex = 0; setIndex++; chgd = true; }
-                    if (green)
+                    if (setlist.setlist.Count > 0)
                     {
-                        songname = setlist.setlist[setIndex].songs[songIndex].fileName;
-                        for (int k = 0; k < 4; k++)
-                            diff[k] = 1;
-                        FillSongDiffs(songname);
-                        screen = S_CHOOSEDIFF;
-                        mmenu_ticker = 200;
+                        if (collective > 0 && songIndex > 0)
+                        { songIndex--; chgd = true; }
+                        else if (collective > 0 && songIndex <= 0 && setIndex > 0)
+                        { setIndex--; songIndex = setlist.setlist[setIndex].songs.Count - 1; chgd = true; }
+                        else if (collective < 0 && songIndex < setlist.setlist[setIndex].songs.Count - 1)
+                        { songIndex++; chgd = true; }
+                        else if (collective < 0 && songIndex >= setlist.setlist[setIndex].songs.Count - 1 && setIndex < setlist.setlist.Count - 1)
+                        { songIndex = 0; setIndex++; chgd = true; }
+
+                        if (green)
+                        {
+                            songname = setlist.setlist[setIndex].songs[songIndex].fileName;
+                            for (int k = 0; k < 4; k++)
+                                diff[k] = 1;
+                            FillSongDiffs(songname);
+                            screen = S_CHOOSEDIFF;
+                            mmenu_ticker = 200;
+                        }
                     }
                     if (yellow)
                     {
@@ -2659,8 +2663,6 @@ namespace Unsigned
                             song.GetZVals(started<2?-(long)CurrentTime:(long)CurrentTime);
                             return;
                         }
-                        if (controllers[0].Buttons.Back == ButtonState.Pressed)
-                            DemoMode = !DemoMode;
                         long songt = song.getTime();
                         if (lastChange != songt && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) > 50 && Math.Abs((float)(CurrentTime / (long)(TicksPerSecond / 1000)) - songt) < 5000)
                         {
@@ -2762,10 +2764,15 @@ namespace Unsigned
                                     boards[i].getWaves((long)(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000))));
                             }
                         for (int i = 0; i < 4; i++)
+                        {
                             if (rockMeterLevel[i] < 0)
+                            {
+                                
                                 rockMeterLevel[i] = 0;
+                            }
                             else if (rockMeterLevel[i] > 100)
                                 rockMeterLevel[i] = 100;
+                        }
                         
 #if !DEBUG
                 }

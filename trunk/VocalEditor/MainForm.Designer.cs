@@ -75,9 +75,7 @@ namespace VocalEditor
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.nodeLengthNumUpDown = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
-            this.nodeTimeNumUpDown = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.nodeConnectedCheckbox = new System.Windows.Forms.CheckBox();
             this.nodeTextBox = new System.Windows.Forms.TextBox();
@@ -112,11 +110,11 @@ namespace VocalEditor
             this.editingNodesRadio = new System.Windows.Forms.RadioButton();
             this.editingPhrasesRadio = new System.Windows.Forms.RadioButton();
             this.previewScroll = new System.Windows.Forms.HScrollBar();
+            this.timeTextBox = new System.Windows.Forms.TextBox();
+            this.lengthTextBox = new System.Windows.Forms.TextBox();
             this.vocalPane = new VocalEditor.VocalPreviewer();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nodeLengthNumUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nodeTimeNumUpDown)).BeginInit();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -480,9 +478,9 @@ namespace VocalEditor
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.nodeLengthNumUpDown);
+            this.groupBox1.Controls.Add(this.lengthTextBox);
+            this.groupBox1.Controls.Add(this.timeTextBox);
             this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.nodeTimeNumUpDown);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.nodeConnectedCheckbox);
             this.groupBox1.Controls.Add(this.nodeTextBox);
@@ -495,13 +493,6 @@ namespace VocalEditor
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Node Controls";
             // 
-            // nodeLengthNumUpDown
-            // 
-            this.nodeLengthNumUpDown.Location = new System.Drawing.Point(271, 102);
-            this.nodeLengthNumUpDown.Name = "nodeLengthNumUpDown";
-            this.nodeLengthNumUpDown.Size = new System.Drawing.Size(120, 20);
-            this.nodeLengthNumUpDown.TabIndex = 6;
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -510,13 +501,6 @@ namespace VocalEditor
             this.label3.Size = new System.Drawing.Size(43, 13);
             this.label3.TabIndex = 5;
             this.label3.Text = "Length:";
-            // 
-            // nodeTimeNumUpDown
-            // 
-            this.nodeTimeNumUpDown.Location = new System.Drawing.Point(71, 102);
-            this.nodeTimeNumUpDown.Name = "nodeTimeNumUpDown";
-            this.nodeTimeNumUpDown.Size = new System.Drawing.Size(120, 20);
-            this.nodeTimeNumUpDown.TabIndex = 4;
             // 
             // label2
             // 
@@ -536,6 +520,7 @@ namespace VocalEditor
             this.nodeConnectedCheckbox.TabIndex = 2;
             this.nodeConnectedCheckbox.Text = "Connected";
             this.nodeConnectedCheckbox.UseVisualStyleBackColor = true;
+            this.nodeConnectedCheckbox.CheckedChanged += new System.EventHandler(this.nodeConnectedCheckbox_CheckedChanged);
             // 
             // nodeTextBox
             // 
@@ -846,6 +831,7 @@ namespace VocalEditor
             // editingNodesRadio
             // 
             this.editingNodesRadio.AutoSize = true;
+            this.editingNodesRadio.Checked = true;
             this.editingNodesRadio.Location = new System.Drawing.Point(2, 37);
             this.editingNodesRadio.Name = "editingNodesRadio";
             this.editingNodesRadio.Size = new System.Drawing.Size(56, 17);
@@ -862,7 +848,6 @@ namespace VocalEditor
             this.editingPhrasesRadio.Name = "editingPhrasesRadio";
             this.editingPhrasesRadio.Size = new System.Drawing.Size(63, 17);
             this.editingPhrasesRadio.TabIndex = 0;
-            this.editingPhrasesRadio.TabStop = true;
             this.editingPhrasesRadio.Text = "Phrases";
             this.editingPhrasesRadio.UseVisualStyleBackColor = true;
             this.editingPhrasesRadio.CheckedChanged += new System.EventHandler(this.editingPhrasesRadio_CheckedChanged);
@@ -876,6 +861,20 @@ namespace VocalEditor
             this.previewScroll.Size = new System.Drawing.Size(760, 17);
             this.previewScroll.TabIndex = 11;
             this.previewScroll.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewScroll_Scroll);
+            // 
+            // timeTextBox
+            // 
+            this.timeTextBox.Location = new System.Drawing.Point(71, 101);
+            this.timeTextBox.Name = "timeTextBox";
+            this.timeTextBox.Size = new System.Drawing.Size(120, 20);
+            this.timeTextBox.TabIndex = 4;
+            // 
+            // lengthTextBox
+            // 
+            this.lengthTextBox.Location = new System.Drawing.Point(271, 101);
+            this.lengthTextBox.Name = "lengthTextBox";
+            this.lengthTextBox.Size = new System.Drawing.Size(120, 20);
+            this.lengthTextBox.TabIndex = 6;
             // 
             // vocalPane
             // 
@@ -909,8 +908,6 @@ namespace VocalEditor
             this.menuStrip1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nodeLengthNumUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nodeTimeNumUpDown)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -978,9 +975,7 @@ namespace VocalEditor
         public System.Windows.Forms.RadioButton nodeTypeTalkyRadio;
         public System.Windows.Forms.RadioButton nodeTypeVocalRadio;
         private System.Windows.Forms.Label label2;
-        public System.Windows.Forms.NumericUpDown nodeLengthNumUpDown;
         private System.Windows.Forms.Label label3;
-        public System.Windows.Forms.NumericUpDown nodeTimeNumUpDown;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.GroupBox groupBox4;
         public System.Windows.Forms.RadioButton phraseTypeRhythmRadio;
@@ -1015,6 +1010,8 @@ namespace VocalEditor
         private System.Windows.Forms.ToolStripMenuItem largeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hugeToolStripMenuItem;
         private System.Windows.Forms.HScrollBar previewScroll;
+        private System.Windows.Forms.TextBox lengthTextBox;
+        private System.Windows.Forms.TextBox timeTextBox;
     }
 }
 

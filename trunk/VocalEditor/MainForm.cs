@@ -36,14 +36,14 @@ namespace VocalEditor
             vocalPane.Invalidate();
         }
 
-        private void UpdateActivations()
+        public void UpdateActivations()
         {
             
             nodeTypeTalkyRadio.Enabled = false;
             nodeTypeVocalRadio.Enabled = false;
             nodeTextBox.Enabled = false;
-            nodeTimeNumUpDown.Enabled = false;
-            nodeLengthNumUpDown.Enabled = false;
+            timeTextBox.Enabled = false;
+            lengthTextBox.Enabled = false;
             nodeConnectedCheckbox.Enabled = false;
             phraseTypeEmptyRadio.Enabled = false;
             phraseTypeRhythmRadio.Enabled = false;
@@ -56,6 +56,9 @@ namespace VocalEditor
             editingNodesRadio.Enabled = false;
             editingPhrasesRadio.Enabled = false;
             vocalPane.Cursor = Cursors.Default;
+
+            
+
 
             if(song!=null)
             if (song.valid)
@@ -84,12 +87,76 @@ namespace VocalEditor
                 }
                 else if (editingNodesRadio.Checked)
                 {
-                    nodeTypeTalkyRadio.Enabled = true;
-                    nodeTypeVocalRadio.Enabled = true;
-                    nodeTextBox.Enabled = true;
-                    nodeTimeNumUpDown.Enabled = true;
-                    nodeLengthNumUpDown.Enabled = true;
-                    nodeConnectedCheckbox.Enabled = true;
+                    if (vocalPane.SelectedNode >= 0)
+                    {
+                        nodeTypeTalkyRadio.Enabled = true;
+                        nodeTypeVocalRadio.Enabled = true;
+                        nodeTextBox.Enabled = true;
+                        timeTextBox.Enabled = true;
+                        lengthTextBox.Enabled = true;
+                        nodeConnectedCheckbox.Enabled = true;
+                        VocalWord w = song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode];
+                        if (w.startNote < VocalPreviewer.numNotes)
+                            nodeTypeTalkyRadio.Checked = true;
+                        else
+                            nodeTypeVocalRadio.Checked = true;
+                        int timeint = 0, lenint = 0;
+                        float timefloat = 0, lenfloat = 0;
+                        for (int i = 1; i < song.bars.Length; i++)
+                            if (w.time < song.bars[i].time)
+                            {
+                                float f = ((w.time - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
+                                timefloat = f;
+                                f *= song.bars[i - 1].numBeats;
+                                f *= 16;
+                                f = ((int)(f + 0.5f)) / 16f;
+                                timeTextBox.Text = "" + i + " : " + (f + 1);
+                                timeint = i;
+                                break;
+                            }
+                        for (int i = 1; i < song.bars.Length; i++)
+                            if ((w.connected ? song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode + 1].time : w.len) < song.bars[i].time)
+                            {
+                                float f = (((w.connected ? song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode + 1].time : w.len) - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
+                                lenfloat = f;
+                                f *= song.bars[i - 1].numBeats;
+                                f *= 16;
+                                f = ((int)(f + 0.5f)) / 16f;
+                                lenint = i;
+                                break;
+                            }
+                        float lenpos = 0;
+                        if (lenint != timeint)
+                        {
+                            lenpos += (1 - timefloat) * song.bars[timeint].numBeats;
+                            for (int i = timeint + 1; i < lenint; i++)
+                            {
+                                lenpos += song.bars[i].numBeats;
+                            }
+                            lenpos += lenfloat * song.bars[lenint].numBeats;
+                        }
+                        else
+                        {
+                            lenpos += (lenfloat - timefloat) * song.bars[lenint].numBeats;
+                        }
+                        lenpos *= 16;
+                        lenpos = ((int)(lenpos + 0.5f)) / 16f;
+                        lengthTextBox.Text = "" + lenpos;
+                        nodeConnectedCheckbox.Checked = w.connected;
+                        nodeTextBox.Text = w.value;
+                    }
+                    else
+                    {
+                        nodeTypeTalkyRadio.Checked = false;
+                        nodeTypeVocalRadio.Checked = false;
+                        nodeTextBox.Text = "";
+                        timeTextBox.Text= "";
+                        lengthTextBox.Text = "";
+                        nodeConnectedCheckbox.Checked = false;
+                        phraseTypeEmptyRadio.Checked = false;
+                        phraseTypeRhythmRadio.Checked = false;
+                        phraseTypeVocalsRadio.Checked = false;
+                    }
                 }
             }
             consoleWindow.Update(song, vocalPane);
@@ -236,5 +303,16 @@ namespace VocalEditor
         {
             vocalPane.offset = (float)previewScroll.Value / previewScroll.Maximum;
         }
+
+        private void nodeConnectedCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (vocalPane.SelectedNode >= 0)
+            {
+                VocalWord w = song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode];
+                w.connected = nodeConnectedCheckbox.Checked;
+                UpdateActivations();
+            }
+        }
+
     }
 }
