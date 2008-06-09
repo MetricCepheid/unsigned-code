@@ -31,9 +31,7 @@ namespace VocalEditor
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
@@ -75,6 +73,10 @@ namespace VocalEditor
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.noteTextBox = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.lengthTextBox = new System.Windows.Forms.TextBox();
+            this.timeTextBox = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.nodeConnectedCheckbox = new System.Windows.Forms.CheckBox();
@@ -110,8 +112,6 @@ namespace VocalEditor
             this.editingNodesRadio = new System.Windows.Forms.RadioButton();
             this.editingPhrasesRadio = new System.Windows.Forms.RadioButton();
             this.previewScroll = new System.Windows.Forms.HScrollBar();
-            this.timeTextBox = new System.Windows.Forms.TextBox();
-            this.lengthTextBox = new System.Windows.Forms.TextBox();
             this.vocalPane = new VocalEditor.VocalPreviewer();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -142,9 +142,7 @@ namespace VocalEditor
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newToolStripMenuItem,
             this.openToolStripMenuItem,
-            this.toolStripSeparator,
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem,
             this.toolStripSeparator6,
@@ -159,49 +157,37 @@ namespace VocalEditor
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
             // 
-            // newToolStripMenuItem
-            // 
-            this.newToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("newToolStripMenuItem.Image")));
-            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.newToolStripMenuItem.Text = "&New";
-            // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openToolStripMenuItem.Image")));
             this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
-            // toolStripSeparator
-            // 
-            this.toolStripSeparator.Name = "toolStripSeparator";
-            this.toolStripSeparator.Size = new System.Drawing.Size(143, 6);
-            // 
             // saveToolStripMenuItem
             // 
+            this.saveToolStripMenuItem.Enabled = false;
             this.saveToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("saveToolStripMenuItem.Image")));
             this.saveToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "&Save";
             // 
             // saveAsToolStripMenuItem
             // 
+            this.saveAsToolStripMenuItem.Enabled = false;
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveAsToolStripMenuItem.Text = "Save &As";
             // 
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(143, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(149, 6);
             // 
             // importToolStripMenuItem
             // 
@@ -209,17 +195,19 @@ namespace VocalEditor
             this.feedBackChartToolStripMenuItem,
             this.mIDIToolStripMenuItem});
             this.importToolStripMenuItem.Name = "importToolStripMenuItem";
-            this.importToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.importToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.importToolStripMenuItem.Text = "Import";
             // 
             // feedBackChartToolStripMenuItem
             // 
+            this.feedBackChartToolStripMenuItem.Enabled = false;
             this.feedBackChartToolStripMenuItem.Name = "feedBackChartToolStripMenuItem";
             this.feedBackChartToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.feedBackChartToolStripMenuItem.Text = "FeedBack Chart";
             // 
             // mIDIToolStripMenuItem
             // 
+            this.mIDIToolStripMenuItem.Enabled = false;
             this.mIDIToolStripMenuItem.Name = "mIDIToolStripMenuItem";
             this.mIDIToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.mIDIToolStripMenuItem.Text = "MIDI";
@@ -230,17 +218,19 @@ namespace VocalEditor
             this.feedBackChartToolStripMenuItem1,
             this.mIDIToolStripMenuItem1});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // feedBackChartToolStripMenuItem1
             // 
+            this.feedBackChartToolStripMenuItem1.Enabled = false;
             this.feedBackChartToolStripMenuItem1.Name = "feedBackChartToolStripMenuItem1";
             this.feedBackChartToolStripMenuItem1.Size = new System.Drawing.Size(156, 22);
             this.feedBackChartToolStripMenuItem1.Text = "FeedBack Chart";
             // 
             // mIDIToolStripMenuItem1
             // 
+            this.mIDIToolStripMenuItem1.Enabled = false;
             this.mIDIToolStripMenuItem1.Name = "mIDIToolStripMenuItem1";
             this.mIDIToolStripMenuItem1.Size = new System.Drawing.Size(156, 22);
             this.mIDIToolStripMenuItem1.Text = "MIDI";
@@ -248,35 +238,38 @@ namespace VocalEditor
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(143, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
             // 
             // printToolStripMenuItem
             // 
+            this.printToolStripMenuItem.Enabled = false;
             this.printToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("printToolStripMenuItem.Image")));
             this.printToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.printToolStripMenuItem.Name = "printToolStripMenuItem";
             this.printToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-            this.printToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.printToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.printToolStripMenuItem.Text = "&Print";
             // 
             // printPreviewToolStripMenuItem
             // 
+            this.printPreviewToolStripMenuItem.Enabled = false;
             this.printPreviewToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("printPreviewToolStripMenuItem.Image")));
             this.printPreviewToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.printPreviewToolStripMenuItem.Name = "printPreviewToolStripMenuItem";
-            this.printPreviewToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.printPreviewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.printPreviewToolStripMenuItem.Text = "Print Pre&view";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(143, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -299,6 +292,7 @@ namespace VocalEditor
             this.undoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z)));
             this.undoToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.undoToolStripMenuItem.Text = "&Undo";
+            this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
             // 
             // redoToolStripMenuItem
             // 
@@ -306,6 +300,7 @@ namespace VocalEditor
             this.redoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y)));
             this.redoToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.redoToolStripMenuItem.Text = "&Redo";
+            this.redoToolStripMenuItem.Click += new System.EventHandler(this.redoToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
             // 
@@ -314,6 +309,7 @@ namespace VocalEditor
             // 
             // cutToolStripMenuItem
             // 
+            this.cutToolStripMenuItem.Enabled = false;
             this.cutToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("cutToolStripMenuItem.Image")));
             this.cutToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
@@ -323,6 +319,7 @@ namespace VocalEditor
             // 
             // copyToolStripMenuItem
             // 
+            this.copyToolStripMenuItem.Enabled = false;
             this.copyToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("copyToolStripMenuItem.Image")));
             this.copyToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
@@ -332,6 +329,7 @@ namespace VocalEditor
             // 
             // pasteToolStripMenuItem
             // 
+            this.pasteToolStripMenuItem.Enabled = false;
             this.pasteToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("pasteToolStripMenuItem.Image")));
             this.pasteToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
@@ -346,6 +344,7 @@ namespace VocalEditor
             // 
             // selectAllToolStripMenuItem
             // 
+            this.selectAllToolStripMenuItem.Enabled = false;
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
             this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.selectAllToolStripMenuItem.Text = "Select &All";
@@ -431,6 +430,7 @@ namespace VocalEditor
             // 
             // optionsToolStripMenuItem
             // 
+            this.optionsToolStripMenuItem.Enabled = false;
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.optionsToolStripMenuItem.Text = "&Options";
@@ -443,6 +443,7 @@ namespace VocalEditor
             this.searchToolStripMenuItem,
             this.toolStripSeparator5,
             this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Enabled = false;
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "&Help";
@@ -478,6 +479,8 @@ namespace VocalEditor
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.noteTextBox);
+            this.groupBox1.Controls.Add(this.label15);
             this.groupBox1.Controls.Add(this.lengthTextBox);
             this.groupBox1.Controls.Add(this.timeTextBox);
             this.groupBox1.Controls.Add(this.label3);
@@ -493,10 +496,40 @@ namespace VocalEditor
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Node Controls";
             // 
+            // noteTextBox
+            // 
+            this.noteTextBox.Location = new System.Drawing.Point(323, 101);
+            this.noteTextBox.Name = "noteTextBox";
+            this.noteTextBox.Size = new System.Drawing.Size(68, 20);
+            this.noteTextBox.TabIndex = 8;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(284, 104);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(33, 13);
+            this.label15.TabIndex = 7;
+            this.label15.Text = "Note:";
+            // 
+            // lengthTextBox
+            // 
+            this.lengthTextBox.Location = new System.Drawing.Point(188, 101);
+            this.lengthTextBox.Name = "lengthTextBox";
+            this.lengthTextBox.Size = new System.Drawing.Size(89, 20);
+            this.lengthTextBox.TabIndex = 6;
+            // 
+            // timeTextBox
+            // 
+            this.timeTextBox.Location = new System.Drawing.Point(44, 101);
+            this.timeTextBox.Name = "timeTextBox";
+            this.timeTextBox.Size = new System.Drawing.Size(89, 20);
+            this.timeTextBox.TabIndex = 4;
+            // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(197, 104);
+            this.label3.Location = new System.Drawing.Point(139, 104);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(43, 13);
             this.label3.TabIndex = 5;
@@ -528,6 +561,7 @@ namespace VocalEditor
             this.nodeTextBox.Name = "nodeTextBox";
             this.nodeTextBox.Size = new System.Drawing.Size(320, 20);
             this.nodeTextBox.TabIndex = 1;
+            this.nodeTextBox.TextChanged += new System.EventHandler(this.nodeTextBox_TextChanged);
             // 
             // label1
             // 
@@ -552,6 +586,7 @@ namespace VocalEditor
             // nodeTypeTalkyRadio
             // 
             this.nodeTypeTalkyRadio.AutoSize = true;
+            this.nodeTypeTalkyRadio.Enabled = false;
             this.nodeTypeTalkyRadio.Location = new System.Drawing.Point(65, 20);
             this.nodeTypeTalkyRadio.Name = "nodeTypeTalkyRadio";
             this.nodeTypeTalkyRadio.Size = new System.Drawing.Size(51, 17);
@@ -844,6 +879,7 @@ namespace VocalEditor
             // editingPhrasesRadio
             // 
             this.editingPhrasesRadio.AutoSize = true;
+            this.editingPhrasesRadio.Enabled = false;
             this.editingPhrasesRadio.Location = new System.Drawing.Point(2, 60);
             this.editingPhrasesRadio.Name = "editingPhrasesRadio";
             this.editingPhrasesRadio.Size = new System.Drawing.Size(63, 17);
@@ -861,20 +897,6 @@ namespace VocalEditor
             this.previewScroll.Size = new System.Drawing.Size(760, 17);
             this.previewScroll.TabIndex = 11;
             this.previewScroll.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewScroll_Scroll);
-            // 
-            // timeTextBox
-            // 
-            this.timeTextBox.Location = new System.Drawing.Point(71, 101);
-            this.timeTextBox.Name = "timeTextBox";
-            this.timeTextBox.Size = new System.Drawing.Size(120, 20);
-            this.timeTextBox.TabIndex = 4;
-            // 
-            // lengthTextBox
-            // 
-            this.lengthTextBox.Location = new System.Drawing.Point(271, 101);
-            this.lengthTextBox.Name = "lengthTextBox";
-            this.lengthTextBox.Size = new System.Drawing.Size(120, 20);
-            this.lengthTextBox.TabIndex = 6;
             // 
             // vocalPane
             // 
@@ -930,9 +952,7 @@ namespace VocalEditor
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
@@ -1012,6 +1032,8 @@ namespace VocalEditor
         private System.Windows.Forms.HScrollBar previewScroll;
         private System.Windows.Forms.TextBox lengthTextBox;
         private System.Windows.Forms.TextBox timeTextBox;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.TextBox noteTextBox;
     }
 }
 

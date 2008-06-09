@@ -575,6 +575,16 @@ namespace Unsigned
         bool ShowFPS;
 #endregion
 
+#region PauseMenu
+        
+        Vector2 pauseMenuPos, pauseMenuVel, pauseWingRot;
+        float pauseRot;
+        int pauseSelected;
+        int pauseSelectOwner;
+        String[] pauseTextDisp;
+        Texture2D texPauseBorder, texPauseWings, texPausePick;
+#endregion
+
 #region boards
 
         private static Board[] boards;
@@ -615,7 +625,9 @@ namespace Unsigned
         GamePadState[] controllers;
         GamePadCapabilities[] contCapabilities;
         byte[] contInput;// ...4==keyboard...? yea!
-        private byte guitarStrum=0, bassStrum=0;
+        private byte guitarStrum=0, bassStrum=0, drumsStrum=0, vocalStrum=0;
+        //vocal strum? drum strum? yep, its for the pause menu
+        private bool guitarGreen = false, bassGreen = false, drumsGreen = false, vocalGreen = false;
 
 #endregion
 
@@ -1160,15 +1172,15 @@ namespace Unsigned
             totalresults = new Results[0];
 
             //TEST CODE, takes you right into the action!
-            /*songname = "sepways";
+            songname = "War";
             contInput = new byte[4];
             rockerNames = new String[4];
             for (int k = 0; k < 4; k++)
             { contInput[k] = 255; instruments[k] = false; rockerNames[k] = null; }
-            //instruments[0] = true;
-            //instruments[1] = true;
+            instruments[0] = true;
+            instruments[1] = true;
             instruments[2] = true;
-            //instruments[3] = true;
+            instruments[3] = true;
             contInput[0] = 4;
             rockerNames[0] = "default";
             contInput[2] = 4;
@@ -1179,7 +1191,7 @@ namespace Unsigned
             rockerNames[1] = "default";
             screen = S_INGAME;
             for (int i = 0; i < 4; i++)
-                diff[i] = D_EASY;
+                diff[i] = D_EXPERT;
             rtNote = new RenderTarget2D[4];
             SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 1, 1, 1, SurfaceFormat.Color);
             LoadMenuContent();
@@ -1473,6 +1485,12 @@ namespace Unsigned
                 rmUNfg = content.Load<Texture2D>("graphics\\roundmeterfg");
                 rmUNstar = content.Load<Texture2D>("graphics\\scorestar");
                 rmUNstaro = content.Load<Texture2D>("graphics\\scorestaro");
+                texPauseBorder = content.Load<Texture2D>("graphics\\pauseborder");
+                texPauseWings = content.Load<Texture2D>("graphics\\pausewing");
+                texPausePick = content.Load<Texture2D>("graphics\\pickofselect");
+                pauseMenuPos = new Vector2(windowwidth / 2, windowheight / 2);
+                pauseMenuVel = new Vector2(10,0);
+                pauseWingRot.Y = 30;
                 texMult = new Texture2D[8];
                 for (int i = 0; i <= 12; i++)
                     if(multToIndex[i]>=0)
@@ -2790,7 +2808,19 @@ namespace Unsigned
                     {
                         long currenttime = (long)(CurrentTime / (long)(TicksPerSecond / 1000));
                         ProcessInput(gameTime, currenttime);
-                        
+                        pauseMenuPos += pauseMenuVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        if (pauseMenuPos.X > (windowwidth * 0.6f))
+                            pauseMenuVel.X = -Math.Abs(pauseMenuVel.X);
+                        if (pauseMenuPos.X < (windowwidth * 0.4f))
+                            pauseMenuVel.X = Math.Abs(pauseMenuVel.X);
+                        pauseMenuVel.Y = pauseWingRot.Y;
+                        pauseWingRot.X += (float)gameTime.ElapsedGameTime.TotalSeconds * pauseWingRot.Y * 0.1f;
+                        if (pauseWingRot.Y < 0)
+                            pauseRot += (pauseMenuVel.X * (float)gameTime.ElapsedGameTime.TotalSeconds * 0.01f) * (Math.Sign(pauseMenuVel.X) == Math.Sign(pauseRot) ? 1 : 3);
+                        if (pauseWingRot.Y > 0 && pauseWingRot.X > MathHelper.Pi / 4)
+                            pauseWingRot.Y = -160;
+                        else if (pauseWingRot.Y < 0 && pauseWingRot.X < -MathHelper.Pi / 2)
+                            pauseWingRot.Y = 30;
                     }
                 }
             }
@@ -5549,12 +5579,58 @@ namespace Unsigned
                                 for (int i = 2; i < song.songInfo.Length; i++)
                                     spritebatch.DrawString(DefaultFont, song.songInfo[i], new Vector2((windowwidth / 2) - (DefaultFont.MeasureString(song.songInfo[i]).X / 2), 220 + (40 * i)), aColor);
                             }
-                            if (DemoMode)
+                            if (IsPaused)
+                            {
+                                float scale = 1.5f;
+                                
+                                Vector2 origin = new Vector2(texPauseBorder.Width / 2, texPauseBorder.Height / 2);
+                                Vector3 wingPosR = new Vector3(455, 79, 0);
+                                Vector3 wingPosL = new Vector3(25, 59, 0);
+                                wingPosR -= new Vector3(origin, 0);
+                                wingPosL -= new Vector3(origin,0);
+                                wingPosR *= scale;
+                                wingPosL *= scale;
+                                wingPosR = Vector3.Transform(wingPosR, Matrix.CreateRotationZ(pauseRot));
+                                wingPosL = Vector3.Transform(wingPosL, Matrix.CreateRotationZ(pauseRot));
+
+                                Vector3[] textPos = new Vector3[pauseTextDisp.Length];
+
+                                for(int i=0;i<textPos.Length;i++)
+                                {
+                                    textPos[i] = new Vector3(texPauseBorder.Width/2,((350-68)*((i+1f)/(textPos.Length+1f)))+68,0);
+                                    textPos[i] -= new Vector3(origin, 0);
+                                    textPos[i] *= scale;
+                                    textPos[i] = Vector3.Transform(textPos[i], Matrix.CreateRotationZ(pauseRot));
+                                }
+
+                                Vector3 pickPosL, pickPosR;
+
+                                pickPosL = new Vector3(texPauseBorder.Width * 0.25f, ((350 - 68) * ((pauseSelected + 1f) / (textPos.Length + 1f))) + 68, 0);
+                                pickPosL -= new Vector3(origin, 0);
+                                pickPosL *= scale;
+                                pickPosL = Vector3.Transform(pickPosL, Matrix.CreateRotationZ(pauseRot));
+
+                                pickPosR = new Vector3(texPauseBorder.Width * 0.75f, ((350 - 68) * ((pauseSelected + 1f) / (textPos.Length + 1f))) + 68, 0);
+                                pickPosR -= new Vector3(origin, 0);
+                                pickPosR *= scale;
+                                pickPosR = Vector3.Transform(pickPosR, Matrix.CreateRotationZ(pauseRot));
+
+                                spritebatch.Draw(texPauseBorder, pauseMenuPos, null, Color.White, pauseRot, origin, scale, SpriteEffects.None, 0);
+                                spritebatch.Draw(texPauseWings, new Vector2(wingPosR.X, wingPosR.Y)+pauseMenuPos, null, Color.White, -pauseWingRot.X/2, new Vector2(32,69), scale, SpriteEffects.None, 0);
+                                spritebatch.Draw(texPauseWings, new Vector2(wingPosL.X, wingPosL.Y)+pauseMenuPos, null, Color.White, pauseWingRot.X/2, new Vector2(texPauseWings.Width-32, 69), scale, SpriteEffects.FlipHorizontally, 0);
+                                for (int i = 0; i < textPos.Length; i++)
+                                    spritebatch.DrawString(DefaultFont, pauseTextDisp[i], new Vector2(textPos[i].X, textPos[i].Y) + pauseMenuPos, pauseSelected == i ? Color.Red : new Color(100, 128, 100), pauseRot, DefaultFont.MeasureString(pauseTextDisp[i]) * 0.5f, scale * 2, SpriteEffects.None, 0);
+                                spritebatch.Draw(texPausePick, new Vector2(pickPosL.X, pickPosL.Y) + pauseMenuPos, null, Color.White, pauseRot, new Vector2(texPausePick.Width, texPausePick.Height/2), scale/3, SpriteEffects.None, 0);
+                                spritebatch.Draw(texPausePick, new Vector2(pickPosR.X, pickPosR.Y) + pauseMenuPos, null, Color.White, pauseRot+MathHelper.Pi, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale/3, SpriteEffects.None, 0);
+                            }
+                            /*if (DemoMode)
                             {
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.15f), new Color(255, 0, 0, 64));
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.4f), new Color(255, 0, 0, 64));
                                 spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), windowheight * 0.65f), new Color(255, 0, 0, 64));
-                            }
+                            }*/
+
+                        
                             //spritebatch.DrawString(DefaultFont, "" + ((currenttime / 1000) / 3600) + ":" + ((currenttime / 1000) / 60 % 3600) + ":" + (currenttime / 1000 % 60), new Vector2(0, 0), Color.Wheat);
 #if !DEBUG
                     }
@@ -6451,6 +6527,11 @@ namespace Unsigned
             if (!IsPaused)
             {
                 IsPaused = true;
+                pauseTextDisp = new String[4];
+                pauseTextDisp[0] = "Continue";
+                pauseTextDisp[1] = "Retry";
+                pauseTextDisp[2] = "Options";
+                pauseTextDisp[3] = "Exit";
                 song.pause();
             }
             else
@@ -6459,6 +6540,40 @@ namespace Unsigned
                 song.resume((long)(CurrentTime / (TicksPerSecond / 1000)));
             }
             pausetimer = 200;
+        }
+
+        private void ApplyPauseOption()
+        {
+            if (!IsPaused)
+                return;
+            if (pauseTextDisp[0].Equals("Continue"))
+            {
+                if (pauseSelected == 0)
+                    TogglePause();
+                else if (pauseSelected == 1)
+                { TogglePause(); }//RestartSong(); }
+                else if (pauseSelected == 2)
+                {
+                    pauseTextDisp = new string[2];
+                    pauseTextDisp[0] = "Lefty: " + (boards[pauseSelectOwner].IsLefty() ? "On" : "Off");
+                    pauseTextDisp[1] = "Back";
+                }
+                else if (pauseSelected == 3)
+                { totalresults = new Results[0]; screen = S_MAINMENU; songname = ""; song = null; boards = null; boardsTarget = null; started = 0; mmenu_ticker = 200; mmenu_select = 0; contguis = new ContGUIData[5]; UnloadGameContent(); MenuLoaded = false; }
+            }
+            else if (pauseTextDisp[1].Equals("Back"))
+            {
+                if (pauseSelected == 0)
+                { boards[pauseSelected].ToggleLefty(); pauseTextDisp[0] = "Lefty: " + (boards[pauseSelectOwner].IsLefty() ? "On" : "Off"); }
+                else if (pauseSelected == 1)
+                {
+                    pauseTextDisp = new String[4];
+                    pauseTextDisp[0] = "Continue";
+                    pauseTextDisp[1] = "Retry";
+                    pauseTextDisp[2] = "Options";
+                    pauseTextDisp[3] = "Exit";
+                }
+            }
         }
 
         public void Hurt(int ind)
@@ -6894,7 +7009,7 @@ namespace Unsigned
                             if (controllers[contInput[i]].ThumbSticks.Right.Y > 0.95f || controllers[contInput[i]].Buttons.Back == ButtonState.Pressed)
                                 StarPowerAction(i);
                             if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
-                                TogglePause();
+                            { TogglePause(); pauseSelectOwner = i; }
                             boards[i].Whammy(controllers[contInput[i]].ThumbSticks.Right.X, currenttime, gameTime, song.GetBeatLength());
                         }
                         else if (contInput[i] == 4)
@@ -6917,8 +7032,15 @@ namespace Unsigned
                             if (kbst.IsKeyDown(Keys.RightShift) || kbst.IsKeyDown(Keys.NumPad0) || kbst.IsKeyDown(Keys.Insert) || kbst.IsKeyDown(Keys.D0))
                                 StarPowerAction(i);
                             if (kbst.IsKeyDown(Keys.Escape) || kbst.IsKeyDown(Keys.Back))
-                                TogglePause();
+                            { TogglePause(); pauseSelectOwner = i; }
                             boards[i].Whammy(kbst.IsKeyDown(Keys.Left)?1.0f:-1.0f, currenttime, gameTime, song.GetBeatLength());
+                        }
+                        if ((pressed & 1) == 0)
+                        {
+                            if (i == 0)
+                                guitarGreen = false;
+                            else //if i==3
+                                bassGreen = false;
                         }
                         if (!IsPaused)
                         {
@@ -6942,6 +7064,35 @@ namespace Unsigned
                             }
                             er = boards[i].Update(gameTime, currenttime, this, i, pressed);
                         }
+                        else if(i==pauseSelectOwner)
+                        {
+                            if (i == 0)
+                            {
+                                if (down && guitarStrum != 1)
+                                { pauseSelected++; guitarStrum = 1; }
+                                else if (up && guitarStrum != 2)
+                                { pauseSelected--; guitarStrum = 2; }
+                                else if (!up && !down)
+                                    guitarStrum = 0;
+                            }
+                            else
+                            {
+                                if (down && bassStrum != 1)
+                                { pauseSelected++; bassStrum = 1; }
+                                else if (up && bassStrum != 2)
+                                { pauseSelected--; bassStrum = 2; }
+                                else if (!up && !down)
+                                    bassStrum = 0;
+                            }
+                            if (pauseSelected < 0)
+                                pauseSelected = 0;
+                            else if (pauseSelected >= pauseTextDisp.Length)
+                                pauseSelected = pauseTextDisp.Length - 1;
+                            if ((pressed & 1) != 0 && !guitarGreen && i == 0)
+                            { ApplyPauseOption(); guitarGreen = true; }
+                            if ((pressed & 1) != 0 && !bassGreen && i == 3)
+                            { ApplyPauseOption(); bassGreen = true; }
+                        }
                     }
                     else if (i == 2)
                     {
@@ -6959,7 +7110,7 @@ namespace Unsigned
                             if (controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
                                 pressed |= 16;
                             if (controllers[contInput[i]].Buttons.Start == ButtonState.Pressed)
-                                TogglePause();
+                            { TogglePause(); pauseSelectOwner = i; }
                         }
                         else if (contInput[2] == 4)
                         {
@@ -6975,7 +7126,7 @@ namespace Unsigned
                             if (kbst.IsKeyDown(Keys.Space))
                                 pressed |= 16;
                             if (kbst.IsKeyDown(Keys.Escape) || kbst.IsKeyDown(Keys.Back))
-                                TogglePause();
+                            { TogglePause(); pauseSelectOwner = i; }
                         }
                         if (pressed != 0)
                         {
@@ -7000,8 +7151,28 @@ namespace Unsigned
                                     AddShards(e, 2);
                             }
                         }
+                        if ((pressed & 2) == 0)
+                            drumsGreen = false;
+
                         if(!IsPaused)
                             er=boards[i].Update(gameTime, currenttime, this, i, pressed);
+                        else if (i == pauseSelectOwner)
+                        {
+                            bool up = (pressed & 4) != 0, down = (pressed & 8) != 0;
+                            if (down && drumsStrum != 1)
+                            { pauseSelected++; drumsStrum = 1; }
+                            else if (up && drumsStrum != 2)
+                            { pauseSelected--; drumsStrum = 2; }
+                            else if (!up && !down)
+                                drumsStrum = 0;
+                            if (pauseSelected < 0)
+                                pauseSelected = 0;
+                            else if (pauseSelected >= pauseTextDisp.Length)
+                                pauseSelected = pauseTextDisp.Length - 1;
+
+                            if ((pressed & 1) != 0 && !drumsGreen)
+                            { ApplyPauseOption(); drumsGreen = true; }
+                        }
                     }
                     else if(!IsPaused)
                         er=boards[i].Update(gameTime,currenttime, this, i, 0);

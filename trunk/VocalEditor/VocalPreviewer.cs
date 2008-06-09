@@ -12,7 +12,7 @@ namespace VocalEditor
     {
         public bool display;
         Song song;
-        MainForm mf;
+        public static MainForm mf;
         public int NodeSize;//4-*, multiple of 2
         public Color NodeSelectColor, NodeColor;
         public int SelectedNode, SelectedNodePhrase, SelectedPhrase;
@@ -23,7 +23,9 @@ namespace VocalEditor
         Point mouseClickSpot;
         public int LineThickness=1;
         public float offset;
-        bool mouseDown = false;
+        private short oldUndoNote;
+        private uint oldUndoTime;
+        byte mouseDown = 0;
 
         public VocalPreviewer()
         {
@@ -87,6 +89,22 @@ namespace VocalEditor
                     return;
                 int width = (int)(song.bars[song.bars.Length - 1].time / HSCALE);
                 int xoffset = (int)(width * offset);
+                int startPhr=-1, endPhr=-1;
+                for (int i = 0; i < song.notes.Count; i++)
+                    if ((song.notes[i].time / HSCALE) > xoffset)
+                    { startPhr = i - 1; break; }
+                for (int i = 0; i < song.notes.Count; i++)
+                    if ((song.notes[i].time / HSCALE) > xoffset + ClientRectangle.Width)
+                    { endPhr = i; break; }
+                if (startPhr < 0)
+                    startPhr = 0;
+                Brush bgBrush1 = new SolidBrush(Color.FromArgb(60,0,0)), bgBrush2 = new SolidBrush(Color.FromArgb(60,0,60));
+                for (int i = startPhr; i < endPhr; i++)
+                {
+                    g.FillRectangle(i % 2 == 0 ? bgBrush1 : bgBrush2, new Rectangle((int)(song.notes[i].time / HSCALE) - xoffset, 0, (int)((song.notes[i + 1].time / HSCALE) - (song.notes[i].time / HSCALE)), ClientRectangle.Height));
+                }
+                for (int i = 1; i < numNotes; i++)
+                    g.FillRectangle(hLineBrush, new Rectangle(0, (int)(ClientRectangle.Height * (i / (float)numNotes) + 0.5f), ClientRectangle.Width, 1));
                 //Size = new Size((int)(song.bars[song.bars.Length - 1].time * HSCALE),239);
                 for (int i = 0; i < song.bars.Length-1; i++)
                 {
@@ -120,37 +138,9 @@ namespace VocalEditor
                             continue;
                         if (mf.resTrackbar.Value >= MainForm.RES_EIGHT)
                             g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.5f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset - 1 + barsub, 0, 2 - (barsub), ClientRectangle.Height));
-                        if (mfxValue > 70)
-                            continue;
-                        if (mf.resTrackbar.Value >= MainForm.RES_SIXTEEN)
-                        {
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.75f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset - 1 + barsub, 0, 2 - (barsub), ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.25f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset - 1 + barsub, 0, 2 - (barsub), ClientRectangle.Height));
-                        }
-                        if (mfxValue > 65)
-                            continue;
-                        if (mf.resTrackbar.Value >= MainForm.RES_THIRTYTWO)
-                        {
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.125f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.375f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.875f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                        }
-                        if (mfxValue > 60)
-                            continue;
-                        if (mf.resTrackbar.Value >= MainForm.RES_SIXTYFOUR)
-                        {
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.125f + 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.375f + 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.625f + 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.875f + 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.125f - 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.375f - 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.625f - 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                            g.FillRectangle(dYellow, new Rectangle((int)((song.bars[i].time + (((k + 0.875f - 0.0625f) / (float)song.bars[i].numBeats) * (song.bars[i + 1].time - song.bars[i].time))) / HSCALE) - xoffset, 0, 1, ClientRectangle.Height));
-                        }
                     }
-                    g.FillRectangle(Brushes.Yellow, new Rectangle((int)(song.bars[i].time / HSCALE) - xoffset - 3 + barsub, 0, 6 - (barsub * 2), ClientRectangle.Height));
+                    //bar line
+                    g.FillRectangle(Brushes.Orange, new Rectangle((int)(song.bars[i].time / HSCALE) - xoffset - 3 + barsub, 0, 6 - (barsub * 2), ClientRectangle.Height));
                 }
                 Pen[] lineGreen = {new Pen(Color.FromArgb(255,0,255,0),LineThickness), 
                                    new Pen(Color.FromArgb(255,0,192,0),LineThickness+2),
@@ -235,40 +225,147 @@ namespace VocalEditor
 
         private void VocalPreviewer_MouseDown(object sender, MouseEventArgs e)
         {
+            float mfxValue = 100 - (mf.xScaleTrackBar.Value / 100f);
+            if (mfxValue <= 50)
+                HSCALE = (mfxValue / 100f + 0.5f) * (mfxValue / 100f + 0.5f);
+            else
+                HSCALE = (mfxValue - 49) / 2f + 0.5f;
             mouseClickTime = DateTime.Now.Ticks;
             mouseClickSpot = e.Location;
+            int oldSNP = SelectedNodePhrase;
+            int oldSN = SelectedNode;
+            int oldSP = SelectedPhrase;
+            bool oldSNB = SelectedNodeBegin;
             SelectedNodePhrase = -1;
             SelectedNode = -1;
             SelectedPhrase = -1;
-            mouseDown = true;
-            int width = (int)(song.bars[song.bars.Length - 1].time / HSCALE);
-            int xoffset = (int)(width * offset);
-            if (song != null && song.valid)
-            for (int i = 0; i < song.notes.Count; i++)
+            if (mouseDown != 0)
+                return;
+            if(e.Button== MouseButtons.Left)
+                mouseDown = 1;
+            if (e.Button == MouseButtons.Middle)
+                mouseDown = 2;
+            if (e.Button == MouseButtons.Right)
+                mouseDown = 4;
+            if (song == null)
+                return;
+            if (!song.valid)
+                return;
+            if (mf.Mode == MainForm.MODE.EDIT)
             {
-                for (int k = 0; k < song.notes[i].words.Count; k++)
+                int width = (int)(song.bars[song.bars.Length - 1].time / HSCALE);
+                int xoffset = (int)(width * offset);
+                for (int i = 0; i < song.notes.Count; i++)
                 {
-                    Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2))-xoffset, (int)((1 - ((song.notes[i].words[k].startNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
-                    if (rect.Contains(e.Location))
+                    for (int k = 0; k < song.notes[i].words.Count; k++)
                     {
-                        SelectedNodePhrase = i;
-                        SelectedNode = k;
-                        SelectedNodeBegin = true;
+                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].startNote + 1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        if (rect.Contains(e.Location))
+                        {
+                            SelectedNodePhrase = i;
+                            SelectedNode = k;
+                            SelectedNodeBegin = true;
+                            oldUndoNote = song.notes[SelectedNodePhrase].words[SelectedNode].startNote;
+                            oldUndoTime = song.notes[SelectedNodePhrase].words[SelectedNode].time;
+                        }
+                    }
+                }
+                for (int i = 0; i < song.notes.Count; i++)
+                {
+                    for (int k = 0; k < song.notes[i].words.Count; k++)
+                    {
+                        if (song.notes[i].words[k].connected)
+                            continue;
+                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].endNote + 1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        if (rect.Contains(e.Location))
+                        {
+                            SelectedNodePhrase = i;
+                            SelectedNode = k;
+                            SelectedNodeBegin = false;
+                            oldUndoNote = song.notes[SelectedNodePhrase].words[SelectedNode].endNote;
+                            oldUndoTime = song.notes[SelectedNodePhrase].words[SelectedNode].time + song.notes[SelectedNodePhrase].words[SelectedNode].len;
+                        }
+                    }
+                }
+                if (oldSN != SelectedNode || oldSNP != SelectedNodePhrase || oldSNB != SelectedNodeBegin || oldSP != SelectedPhrase)
+                {
+                    mf.undos.Push(new UndoNoteSelect(this, oldSNP, oldSN, oldSNB, oldSP));
+                    mf.redos.Clear();
+                }
+            }
+            else if (mf.Mode == MainForm.MODE.ADD)
+            {
+                int y = (int)(e.Y / (Height / (float)numNotes));
+                y = (numNotes) - y;
+                y--;
+                if (y >= numNotes)
+                    y = numNotes - 1;
+                if (y < 0)
+                    y = 0;
+
+                float x = (e.X + ((song.bars[song.bars.Length - 1].time / HSCALE) * offset)) * HSCALE;
+
+                float div = GetResDiv();
+                int selBar = -1;
+                for (int i = 0; i < song.bars.Length; i++)
+                {
+                    if (song.bars[i].time > x)
+                    { selBar = i - 1; break; }
+                }
+                div = (div * 4) / song.bars[selBar].numBeats;
+                uint time = 0;
+                for (int i = 0; i <= (1 / div); i++)
+                {
+                    if (((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time > x)
+                    {
+                        if (Math.Abs((((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time) - x) <
+                           Math.Abs((((song.bars[selBar + 1].time - song.bars[selBar].time) * div * (i - 1)) + song.bars[selBar].time) - x))
+                            time = (uint)(((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time);
+                        else
+                            time = (uint)(((song.bars[selBar + 1].time - song.bars[selBar].time) * div * (i - 1)) + song.bars[selBar].time);
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < song.notes.Count; i++)
+                {
+                    if (song.notes[i].time > time)
+                    {
+                        i--;
+                        if(song.notes[i].typ==VocalPhrase.REGULAR)
+                        {
+                            VocalWord w = new VocalWord();
+                            w.connected = false;
+                            w.endNote = (short)y;
+                            w.len = time;
+                            w.startNote = (short)y;
+                            w.time =time;
+                            w.value = "";
+                            song.notes[i].words.Add(w);
+                            SelectedNode = song.notes[i].words.IndexOf(w);
+                            SelectedNodePhrase = i;
+                            SelectedNodeBegin = false;
+                            SelectedPhrase = -1;
+                        }
+                        break;
                     }
                 }
             }
-            for (int i = 0; i < song.notes.Count; i++)
+            else if (mf.Mode == MainForm.MODE.REMOVE)
             {
-                for (int k = 0; k < song.notes[i].words.Count; k++)
+                int width = (int)(song.bars[song.bars.Length - 1].time / HSCALE);
+                int xoffset = (int)(width * offset);
+                for (int i = 0; i < song.notes.Count; i++)
                 {
-                    if (song.notes[i].words[k].connected)
-                        continue;
-                    Rectangle rect = new Rectangle((int)(song.notes[i].words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].endNote + 1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
-                    if (rect.Contains(e.Location))
+                    for (int k = 0; k < song.notes[i].words.Count; k++)
                     {
-                        SelectedNodePhrase = i;
-                        SelectedNode = k;
-                        SelectedNodeBegin = false;
+                        Rectangle rect = new Rectangle((int)(song.notes[i].words[k].time / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.notes[i].words[k].startNote + 1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        if (rect.Contains(e.Location))
+                        {
+                            mf.undos.Push(new UndoNoteRemove(song, song.notes[i].words[k]));
+                            mf.redos.Clear();
+                            song.notes[i].words.RemoveAt(k);
+                        }
                     }
                 }
             }
@@ -278,34 +375,152 @@ namespace VocalEditor
 
         private void VocalPreviewer_MouseUp(object sender, MouseEventArgs e)
         {
-            mouseDown = false;
+            if (mouseDown == 1 && e.Button != MouseButtons.Left)
+                return;
+            if (mouseDown == 2 && e.Button != MouseButtons.Middle)
+                return;
+            if (mouseDown == 4 && e.Button != MouseButtons.Right)
+                return;
+
+            if (SelectedNodePhrase >= 0)
+            {
+                if (mf.Mode == MainForm.MODE.EDIT)
+                {
+                    if (song.notes[SelectedNodePhrase].words[SelectedNode].time >= song.notes[SelectedNodePhrase].words[SelectedNode].len)
+                    {
+                        if (SelectedNodeBegin)
+                        {
+                            song.notes[SelectedNodePhrase].words[SelectedNode].time = oldUndoTime;
+                            song.notes[SelectedNodePhrase].words[SelectedNode].startNote = oldUndoNote;
+                        }
+                        else
+                        {
+                            song.notes[SelectedNodePhrase].words[SelectedNode].len = oldUndoTime;
+                            song.notes[SelectedNodePhrase].words[SelectedNode].endNote = oldUndoNote;
+                        }
+                    }
+                    else if (SelectedNodeBegin && song.notes[SelectedNodePhrase].words[SelectedNode].startNote != oldUndoNote)
+                    { mf.undos.Push(new UndoNoteMove(song, SelectedNodePhrase, SelectedNode, SelectedNodeBegin, oldUndoNote, oldUndoTime)); mf.redos.Clear(); }
+                    else if (!SelectedNodeBegin && song.notes[SelectedNodePhrase].words[SelectedNode].endNote != oldUndoNote)
+                    { mf.undos.Push(new UndoNoteMove(song, SelectedNodePhrase, SelectedNode, SelectedNodeBegin, oldUndoNote, oldUndoTime)); mf.redos.Clear(); }
+                }
+                else if (mf.Mode == MainForm.MODE.ADD)
+                {
+                    if (song.notes[SelectedNodePhrase].words[SelectedNode].time >= song.notes[SelectedNodePhrase].words[SelectedNode].len)
+                    {
+                        song.notes[SelectedNodePhrase].words.RemoveAt(SelectedNode);
+                    }
+                    else
+                    { mf.undos.Push(new UndoNoteCreate(song, song.notes[SelectedNodePhrase].words[SelectedNode])); mf.redos.Clear(); }
+                }
+            }
+            mouseDown = 0;
             Refresh();
         }
 
         private void VocalPreviewer_MouseLeave(object sender, EventArgs e)
         {
-            mouseDown = false;
+            if(mouseDown!=0)
+            if (SelectedNode >= 0)
+            {
+                if (SelectedNodeBegin)
+                {
+                    song.notes[SelectedNodePhrase].words[SelectedNode].time = oldUndoTime;
+                    song.notes[SelectedNodePhrase].words[SelectedNode].startNote = oldUndoNote;
+                }
+                else
+                {
+                    song.notes[SelectedNodePhrase].words[SelectedNode].len = oldUndoTime;
+                    song.notes[SelectedNodePhrase].words[SelectedNode].endNote = oldUndoNote;
+                }
+                SelectedNodePhrase = -1;
+                SelectedNode = -1;
+                SelectedPhrase = -1;
+            }
+            mouseDown = 0;
         }
 
         private void VocalPreviewer_MouseMove(object sender, MouseEventArgs e)
         {
-            if (mouseDown)
+            if (mouseDown!=0)
             {
                 if (SelectedNode >= 0)
                 {
-                    int y = (int)(e.Y / (Height / (float)numNotes));
-                    y = (numNotes) - y;
-                    y--;
-                    if (y >= numNotes)
-                        y = numNotes - 1;
-                    if (y < 0)
-                        y = 0;
-                    if(SelectedNodeBegin)
-                        song.notes[SelectedNodePhrase].words[SelectedNode].startNote = (short)y;
-                    else
-                        song.notes[SelectedNodePhrase].words[SelectedNode].endNote = (short)y;
+                    if (mouseDown == 1 || mouseDown == 2)
+                    {
+                        int y = (int)(e.Y / (Height / (float)numNotes));
+                        y = (numNotes) - y;
+                        y--;
+                        if (y >= numNotes)
+                            y = numNotes - 1;
+                        if (y < 0)
+                            y = 0;
+                        if (SelectedNodeBegin)
+                            song.notes[SelectedNodePhrase].words[SelectedNode].startNote = (short)y;
+                        else
+                            song.notes[SelectedNodePhrase].words[SelectedNode].endNote = (short)y;
+                    }
+
+                    if (mouseDown == 1 || mouseDown == 4)
+                    {
+                        float x = (e.X + ((song.bars[song.bars.Length - 1].time / HSCALE) * offset)) * HSCALE;
+                        float div = GetResDiv();
+                        int selBar = -1;
+                        for (int i = 0; i < song.bars.Length; i++)
+                        {
+                            if (song.bars[i].time > x)
+                            { selBar = i - 1; break; }
+                        }
+                        div = (div * 4) / song.bars[selBar].numBeats;
+                        for (int i = 0; i <= (1 / div); i++)
+                        {
+                            if (((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time > x)
+                            {
+                                uint val;
+                                if (Math.Abs((((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time) - x) <
+                                   Math.Abs((((song.bars[selBar + 1].time - song.bars[selBar].time) * div * (i - 1)) + song.bars[selBar].time) - x))
+                                    val = (uint)(((song.bars[selBar + 1].time - song.bars[selBar].time) * div * i) + song.bars[selBar].time);
+                                else
+                                    val = (uint)(((song.bars[selBar + 1].time - song.bars[selBar].time) * div * (i - 1)) + song.bars[selBar].time);
+
+                                if (SelectedNodeBegin)
+                                    song.notes[SelectedNodePhrase].words[SelectedNode].time = val;
+                                else
+                                    song.notes[SelectedNodePhrase].words[SelectedNode].len = val;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        public float GetResDiv()
+        {
+            switch (mf.resTrackbar.Value)
+            {
+                case MainForm.RES_ONE:
+                    return 1f / 1;
+                case MainForm.RES_TWO:
+                    return 1f / 2;
+                case MainForm.RES_THREE:
+                    return 1f / 3;
+                case MainForm.RES_FOUR:
+                    return 1f / 4;
+                case MainForm.RES_SIX:
+                    return 1f / 6;
+                case MainForm.RES_EIGHT:
+                    return 1f / 8;
+                case MainForm.RES_TWELVE:
+                    return 1f / 12;
+                case MainForm.RES_SIXTEEN:
+                    return 1f / 16;
+                case MainForm.RES_THIRTYTWO:
+                    return 1f / 32;
+                case MainForm.RES_SIXTYFOUR:
+                    return 1f / 64;
+            }
+            return 0;
         }
     }
 }

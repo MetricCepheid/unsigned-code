@@ -6,6 +6,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unsigned", "Unsigned\Unsign
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
+	ProjectSection(ProjectDependencies) = postProject
+		{031C781D-BE09-41E9-92A2-35934601AC8F} = {031C781D-BE09-41E9-92A2-35934601AC8F}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chart2unsigned", "chart2unsigned\chart2unsigned.csproj", "{2A253200-5922-4192-B803-87655EDAFFFF}"
 	ProjectSection(WebsiteProperties) = preProject
@@ -32,6 +35,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mid2Unsigned", "Mid2Unsigne
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VocalEditor", "VocalEditor\VocalEditor.csproj", "{1DCBC814-56CC-4256-873E-1839F9E5CECD}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XNAudioPlus", "XNAudioEnhanced\XNAudioPlus.csproj", "{031C781D-BE09-41E9-92A2-35934601AC8F}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -129,6 +138,7 @@ Global
 		{F465674E-FA58-4CC8-824C-58CD602446F0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F465674E-FA58-4CC8-824C-58CD602446F0}.Release|Win32.ActiveCfg = Release|Any CPU
 		{F465674E-FA58-4CC8-824C-58CD602446F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{F465674E-FA58-4CC8-824C-58CD602446F0}.Release|x86.Build.0 = Release|Any CPU
 		{F465674E-FA58-4CC8-824C-58CD602446F0}.Release|Xbox 360.ActiveCfg = Release|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
@@ -145,6 +155,7 @@ Global
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Release|x86.ActiveCfg = Release|Any CPU
+		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Release|x86.Build.0 = Release|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Release|Xbox 360.ActiveCfg = Release|Any CPU
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
@@ -156,6 +167,22 @@ Global
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Win32.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|x86.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Xbox 360.ActiveCfg = Release|x86
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|x86.Build.0 = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Debug|Xbox 360.ActiveCfg = Debug|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|x86.ActiveCfg = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|x86.Build.0 = Release|Any CPU
+		{031C781D-BE09-41E9-92A2-35934601AC8F}.Release|Xbox 360.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
