@@ -81,17 +81,13 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Song.cs" />
+    <Compile Include="Undo.cs" />
     <Compile Include="VocalPreviewer.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="VocalPreviewer.Designer.cs">
       <DependentUpon>VocalPreviewer.cs</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="CAdd.cur">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

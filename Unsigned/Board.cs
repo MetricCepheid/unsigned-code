@@ -1566,6 +1566,11 @@ namespace Unsigned
             StarPowerAmount -= 0.5f;
         }
 
-        
+
+
+        internal void ToggleLefty()
+        {
+            LeftySwitch = !LeftySwitch;
+        }
     }
 }
