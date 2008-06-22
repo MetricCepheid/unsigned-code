@@ -33,7 +33,6 @@ namespace VocalEditor
         public uint time;
         public byte typ;
         public bool overdrive;
-        public List<VocalWord> words;
         public byte rhythmType;
 
         public int CompareTo(Object other)
@@ -42,7 +41,6 @@ namespace VocalEditor
         }
         public VocalPhrase()
         {
-            words = new List<VocalWord>();
         }
     }
 
@@ -61,6 +59,7 @@ namespace VocalEditor
         public uint breStart, breEnd;
         public Harmony[] harmonies;
         public List<VocalPhrase> notes;
+        public List<VocalWord> words;
 
         public Song(String filename)
         {
@@ -140,9 +139,8 @@ namespace VocalEditor
                             w.endNote = bin.ReadInt16();
                             w.value = bin.ReadString();
                         }
-                        vp.words.Add(w);
+                        words.Add(w);
                     }
-                    vp.words.Sort();
                     notes.Add(vp);
                 }
                 notes.Sort();
