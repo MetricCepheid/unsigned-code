@@ -1,0 +1,38 @@
+Single Player
+Multiplayer
+Options
+Exit
+Quickplay
+Band Career
+Rock Off
+Score Krieg
+Guitarist
+Vocalist
+Drummer
+Vocalist
+Select
+Back
+Continue
+New Rocker
+Select Song
+Loading
+Charter
+Solo
+Perfect Solo
+Awesome Solo
+Great Solo
+Good Solo
+Solid Solo
+Poor Solo
+Harmony Section
+Easy
+Medium
+Hard
+Expert
+Most Energy
+Solo Master
+Groove Master
+Rhythmic Savant
+Band Savior
+Masterful Fretwork
+Vocal Perfection
