@@ -1021,8 +1021,8 @@ namespace VocalEditor
         private System.Windows.Forms.RadioButton controlModeEditRadio;
         private System.Windows.Forms.RadioButton controlModeAddRadio;
         private System.Windows.Forms.GroupBox groupBox7;
-        private System.Windows.Forms.RadioButton editingNodesRadio;
-        private System.Windows.Forms.RadioButton editingPhrasesRadio;
+        public System.Windows.Forms.RadioButton editingNodesRadio;
+        public System.Windows.Forms.RadioButton editingPhrasesRadio;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem nodeSizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem smallToolStripMenuItem;

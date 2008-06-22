@@ -13,7 +13,6 @@ namespace VocalEditor
         
         Song song;
         ConsoleInfo consoleWindow;
-        private bool changed;
         Timer t;
 
         public static String[] noteNames = {"C","Db","D","Eb","E","F","Gb","G","Ab","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"};
@@ -56,7 +55,6 @@ namespace VocalEditor
             consoleWindow = new ConsoleInfo(this);
             vocalPane.SetParentForm(this);
             UpdateActivations();
-            changed = false;
             undoList = new Stack<UndoCommand>();
             redoList = new Stack<UndoCommand>();
             t = new Timer();
@@ -92,6 +90,7 @@ namespace VocalEditor
             noteTextBox.Enabled = false;
             vocalPane.Cursor = Cursors.Default;
 
+
             if (undos==null || undos.Count <= 0)
                 undoToolStripMenuItem.Enabled = false;
             else
@@ -112,15 +111,18 @@ namespace VocalEditor
                 controlModeEditRadio.Enabled = true;
                 controlModeRemoveRadio.Enabled = true;
                 editingNodesRadio.Enabled = true;
-                //editingPhrasesRadio.Enabled = true;
-                if (controlModeAddRadio.Checked)
-                    vocalPane.Cursor = Cursors.UpArrow;
-                else if (controlModeEditRadio.Checked)
-                    vocalPane.Cursor = Cursors.NoMove2D;
-                else if (controlModeRemoveRadio.Checked)
-                    vocalPane.Cursor = Cursors.No;
-                else
-                    vocalPane.Cursor = Cursors.Default;
+                editingPhrasesRadio.Enabled = true;
+                if (editingNodesRadio.Checked)
+                {
+                    if (controlModeAddRadio.Checked)
+                        vocalPane.Cursor = Cursors.UpArrow;
+                    else if (controlModeEditRadio.Checked)
+                        vocalPane.Cursor = Cursors.NoMove2D;
+                    else if (controlModeRemoveRadio.Checked)
+                        vocalPane.Cursor = Cursors.No;
+                    else
+                        vocalPane.Cursor = Cursors.Default;
+                }
 
                 if (editingPhrasesRadio.Checked)
                 {
@@ -138,7 +140,7 @@ namespace VocalEditor
                         //timeTextBox.Enabled = true;
                         //lengthTextBox.Enabled = true;
                         nodeConnectedCheckbox.Enabled = true;
-                        VocalWord w = song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode];
+                        VocalWord w = song.words[vocalPane.SelectedNode];
                         if (w.startNote < VocalPreviewer.numNotes)
                             nodeTypeVocalRadio.Checked = true;
                         else
@@ -161,9 +163,9 @@ namespace VocalEditor
                         {
                             if (w.connected)
                             {
-                                if(song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode + 1].time < song.bars[i].time)
+                                if(song.words[vocalPane.SelectedNode + 1].time < song.bars[i].time)
                                 {
-                                    float f = (((w.connected ? song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode + 1].time : w.len) - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
+                                    float f = (((w.connected ? song.words[vocalPane.SelectedNode + 1].time : w.len) - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
                                     lenfloat = f;
                                     f *= song.bars[i - 1].numBeats;
                                     f *= 16;
@@ -176,7 +178,7 @@ namespace VocalEditor
                             {
                                 if (w.len < song.bars[i].time)
                                 {
-                                    float f = (((w.connected ? song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode + 1].time : w.len) - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
+                                    float f = (((w.connected ? song.words[vocalPane.SelectedNode + 1].time : w.len) - song.bars[i - 1].time) / (float)(song.bars[i].time - song.bars[i - 1].time));
                                     lenfloat = f;
                                     f *= song.bars[i - 1].numBeats;
                                     f *= 16;
@@ -375,9 +377,9 @@ namespace VocalEditor
         {
             if (vocalPane.SelectedNode >= 0)
             {
-                VocalWord w = song.notes[vocalPane.SelectedNodePhrase].words[vocalPane.SelectedNode];
+                VocalWord w = song.words[vocalPane.SelectedNode];
                 w.connected = nodeConnectedCheckbox.Checked;
-                if (vocalPane.SelectedNode<song.notes[vocalPane.SelectedNodePhrase].words.Count)
+                if (vocalPane.SelectedNode<song.words.Count)
                 {
                     w.connected = false;
                     nodeConnectedCheckbox.Checked = false;
