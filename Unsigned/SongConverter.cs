@@ -7,7 +7,7 @@ namespace Unsigned
 {
     class SongConverter
     {
-        public static bool ConvertSong(String fn)
+        public static bool ConvertSong12to17(String fn)
         {
 
             if (!System.IO.File.Exists("songdata\\" + fn + ".gba"))
@@ -22,7 +22,6 @@ namespace Unsigned
             byte version = reader.ReadByte();
             if (version < 12)
             {
-
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("SongData Version too old");
 #endif
@@ -440,6 +439,54 @@ namespace Unsigned
             writer.Close();
 
             return true;
+        }
+
+        public static bool ConvertSong17to18(String fn)
+        {
+
+            if (!System.IO.File.Exists("songdata\\" + fn + ".uns"))
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("songdata not found");
+#endif
+                return false;
+            }
+            //            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".uns"));
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".uns"));
+
+            reader.ReadBytes(3);//UNS
+
+            int offsetToGBA = reader.ReadInt32();
+            int offsetToGBG = reader.ReadInt32();
+            int offsetToGBB = reader.ReadInt32();
+            int offsetToGBD = reader.ReadInt32();
+            int offsetToGBV = reader.ReadInt32();
+            int offsetToGBE = reader.ReadInt32();
+
+            byte version = reader.ReadByte();
+            if (version < 17)
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("SongData Version too old");
+#endif
+                return false;
+            }
+
+            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".unstemp"));
+
+            writer.Write('U');
+            writer.Write('N');
+            writer.Write('S');
+
+            writer.Write(4);
+
+            writer.Write(offsetToGBA);
+
+            writer.Write(offsetToGBG);
+
+            writer.Write((offsetToGBB - offsetToGBG)+(8*4));
+
+
         }
     }
 }

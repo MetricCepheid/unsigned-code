@@ -122,7 +122,7 @@ namespace Unsigned
     class Board
     {
         private static Random random;
-        private int type;
+        private Instrument type;
         public int xOffset;
         public static float vocalheight, vocaly, vocalzerox, vocalwidth;
         public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
@@ -156,11 +156,11 @@ namespace Unsigned
         private bool LeftySwitch = false;
         private float[] popup, popupSpeed;
         private float StarPowerAmount = 0, SPADisplay = 0;
-        private int SPIndex, DFIndex;
+        private int SPIndex, FillIndex;
         private int[] SPStart, SPEnd;
-        private int[] DFStart, DFEnd;
+        private int[] FillStart, FillEnd;
         private bool[] DFHitGreen;
-        private float[] dfA;
+        private float[] FillAmount;
         private bool SPGood = true;
         private bool SPActivated = false;
         public static int[] guitarToDrums = { 1, 2, 3, 0, 4 };
@@ -173,7 +173,7 @@ namespace Unsigned
         public static int OFFSET_TO_GBA=0, OFFSET_TO_GBG=1, OFFSET_TO_GBB=2, OFFSET_TO_GBD=3, OFFSET_TO_GBV=4, OFFSET_TO_GBE=5;
 
         public Vector4[] OutNotes;
-        public Vector4[] OutDFs;
+        public Vector4[] OutFills;
         public int notesLen;
         public WaveNode[][] waves;
         public int wavesLen;
@@ -185,7 +185,7 @@ namespace Unsigned
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
 
-        public Board(int type, int xOffset, Song song, byte difficulty)
+        public Board(Instrument type, int xOffset, Song song, byte difficulty)
         {
             this.type = type;
             this.xOffset = xOffset;
@@ -193,11 +193,11 @@ namespace Unsigned
             this.difficulty = difficulty;
             LoadNotes(song.GetFilename(),difficulty,song);
             score = 0;
-            DFIndex = 0;
+            FillIndex = 0;
             SPIndex = 0;
             popup = new float[5];
             popupSpeed = new float[5];
-            if (type == 0 || type == 3)
+            if (type.CanWhammy)
             {
                 whammyage = new LinkedList<WaveVector2>();
                 waves = new WaveNode[5][];
@@ -205,12 +205,12 @@ namespace Unsigned
                     waves[i] = new WaveNode[50];
             }
             OutNotes = new Vector4[50];
-            OutDFs = new Vector4[4];
+            OutFills = new Vector4[4];
             random = new Random();
             
         }
 
-        public int GetBoardType()
+        public Instrument GetBoardType()
         {
             return type;
         }
@@ -304,46 +304,24 @@ namespace Unsigned
         {
             int k;
             for (k = 0; k < notes.Length; k++)
-                if ((long)notes[k].time*(Game1.TicksPerSecond/1000) > (currenttime) - (viewdistance / 3))
+                if ((long)notes[k].time*(Global.TicksPerSecond/1000) > (currenttime) - (viewdistance / 3))
                     break;
             int count = 0;
-            for (int i = k; i<notes.Length && (long)notes[i].time*(Game1.TicksPerSecond/1000) < currenttime + viewdistance; i++)
+            for (int i = k; i<notes.Length && (long)notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
-                if (GetBoardType() != Game1.PERCUSSIONIST)
-                {
-                    if (notes[i].visible[0]==NoteSet.VIS_STATE.INVISIBLE || notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
-                        continue;
-                    if ((notes[i].type & NS_GREEN) != 0)
+                if (notes[i].visible[0]==NoteSet.VIS_STATE.INVISIBLE)
+                    continue;
+                if (type.CanHOPO && notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
+                    continue;
+                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || notes[i].time < FillStart[FillIndex] || notes[i].time > FillEnd[FillIndex]))
+                    continue;
+                for (int r = 0; r < type.NumTracks;r++ )
+                    if ((notes[i].type & (1 << r)) != 0)
                         count++;
-                    if ((notes[i].type & NS_RED) != 0)
-                        count++;
-                    if ((notes[i].type & NS_YELLOW) != 0)
-                        count++;
-                    if ((notes[i].type & NS_BLUE) != 0)
-                        count++;
-                    if ((notes[i].type & NS_ORANGE) != 0)
-                        count++;
-                }
-                else
-                {
-                    if (SPActivated || StarPowerAmount < 0.5 || DFIndex >= DFStart.Length || notes[i].time < DFStart[DFIndex] || notes[i].time > DFEnd[DFIndex])
-                    {
-                        if ((notes[i].type & NS_GREEN) != 0 && notes[i].visible[0] == 0)
-                            count++;
-                        if ((notes[i].type & NS_RED) != 0 && notes[i].visible[1] == 0)
-                            count++;
-                        if ((notes[i].type & NS_YELLOW) != 0 && notes[i].visible[2] == 0)
-                            count++;
-                        if ((notes[i].type & NS_BLUE) != 0 && notes[i].visible[3] == 0)
-                            count++;
-                        if ((notes[i].type & NS_ORANGE) != 0 && notes[i].visible[4] == 0)
-                            count++;
-                    }
-                }
             }
-            if (GetBoardType() == Game1.DRUMS)
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
             {
-                if (!SPActivated && StarPowerAmount>=0.5 && DFIndex < DFStart.Length && (currenttime / (Game1.TicksPerSecond / 1000)) > DFStart[DFIndex] && (currenttime / (Game1.TicksPerSecond / 1000)) < DFEnd[DFIndex] && dfA[DFIndex] >= 1)
+                if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) > FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) < FillEnd[FillIndex] && FillAmount[FillIndex] >= 1)
                     count++;
             }
 
@@ -352,69 +330,54 @@ namespace Unsigned
             notesLen = count;
             int indx = 0;
             int plus = 0;
-            for (int i = k; i < notes.Length && (long)notes[i].time*(Game1.TicksPerSecond/1000) < currenttime + viewdistance; i++)
+            for (int i = k; i < notes.Length && (long)notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
                 float sp = 0f;
                 if (SPIndex<SPStart.Length && i >= SPStart[SPIndex] && i <= SPEnd[SPIndex] && SPGood)
                     sp = 1f;
 
-                if (GetBoardType() != Game1.PERCUSSIONIST)
-                {
-                    if (notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE || notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
-                        continue;
-                    for(int r=0;r<5;r++)
-                    if ((notes[i].type & (1<<r)) != 0)
+                if (notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE)
+                    continue;
+                if (type.CanHOPO && notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
+                    continue;
+                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || notes[i].time < FillStart[FillIndex] || notes[i].time > FillEnd[FillIndex]))
+                    continue;
+                for (int r = 0; r < type.NumTracks; r++)
+                    if ((notes[i].type & (1 << r)) != 0)
                     {
-                        OutNotes[indx].X=-1f+(0.5f*r);
-                        OutNotes[indx].Y=(long)notes[i].time*(Game1.TicksPerSecond/1000);
-                        OutNotes[indx].Z=((notes[i].type & NS_HOPO) != 0) ? 1f : -1f;
-                        OutNotes[indx].W=sp;
+                        OutNotes[indx].X = -1f + ((2.0f/(type.NumTracks-1)) * r);
+                        OutNotes[indx].Y = (long)notes[i].time * (Global.TicksPerSecond / 1000);
+                        OutNotes[indx].Z = ((notes[i].type & NS_HOPO) != 0 && type.CanHOPO) ? 1f : -1f;
+                        OutNotes[indx].W = sp;
                         indx++;
                     }
-                }
-                else
-                {
-                    if (SPActivated || StarPowerAmount < 0.5 || DFIndex >= DFStart.Length || notes[i].time < DFStart[DFIndex] || notes[i].time > DFEnd[DFIndex])
-                    {
-                        for (int r = 0; r < 5; r++)
-                            if ((notes[i].type & (1 << r)) != 0 && notes[i].visible[r] == 0)
-                            {
-                                OutNotes[indx].X = drumxvals[r];
-                                OutNotes[indx].Y = (long)notes[i].time * (Game1.TicksPerSecond / 1000);
-                                OutNotes[indx].Z = 0;
-                                OutNotes[indx].W = sp;
-                                indx++;
-                            }
-                    }
-                    
-                }
             }
 
-            if (GetBoardType() == Game1.DRUMS)
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
             {
-                if (!SPActivated && StarPowerAmount>=0.5 && DFIndex < DFStart.Length && (currenttime / (Game1.TicksPerSecond / 1000)) >= DFStart[DFIndex] && (currenttime / (Game1.TicksPerSecond / 1000)) <= DFEnd[DFIndex] && dfA[DFIndex] >= 0.95)
+                if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) >= FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) <= FillEnd[FillIndex] && FillAmount[FillIndex] >= 0.95)
                 {
                     OutNotes[indx].X = 1;
-                    OutNotes[indx].Y = (long)(DFEnd[DFIndex] - 50) * (Game1.TicksPerSecond / 1000);
+                    OutNotes[indx].Y = (long)(FillEnd[FillIndex] - 50) * (Global.TicksPerSecond / 1000);
                     OutNotes[indx].Z = 0;
                     OutNotes[indx].W = 0;
                 }
             }
             for (int i = 0; i < notesLen; i++)
-                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / (float)Game1.TicksPerSecond;
+                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / (float)Global.TicksPerSecond;
 
             for (int i = 0; i < 4; i++)
-                OutDFs[i] = new Vector4(0, 0, 0, 0);
-            if(GetBoardType()==Game1.DRUMS)
+                OutFills[i] = new Vector4(0, 0, 0, 0);
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
             if(!SPActivated && StarPowerAmount>=0.5)
             for (int i = 0; i < 4; i++)
             {
-                if (DFIndex + i >= DFStart.Length)
+                if (FillIndex + i >= FillStart.Length)
                     return;
-                OutDFs[i].X = (DFStart[DFIndex + i] - (currenttime/(Game1.TicksPerSecond/1000)))/1000f;
-                OutDFs[i].Y = (DFEnd[DFIndex + i] - (currenttime / (Game1.TicksPerSecond / 1000))) / 1000f;
-                OutDFs[i].Z = dfA[DFIndex + i] * 0.75f + 0.25f;
-                OutDFs[i].W = 100;
+                OutFills[i].X = (FillStart[FillIndex + i] - (currenttime/(Global.TicksPerSecond/1000)))/1000f;
+                OutFills[i].Y = (FillEnd[FillIndex + i] - (currenttime / (Global.TicksPerSecond / 1000))) / 1000f;
+                OutFills[i].Z = FillAmount[FillIndex + i] * 0.75f + 0.25f;
+                OutFills[i].W = 100;
             }
         }
 
@@ -433,7 +396,7 @@ namespace Unsigned
                 reader.ReadBytes(offsets[OFFSET_TO_GBB] - offsets[OFFSET_TO_GBA]);
             else if (GetBoardType() == Game1.GUITAR)
                 reader.ReadBytes(offsets[OFFSET_TO_GBG] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == Game1.DRUMS)
+            else if (GetBoardType() == Global.DRUMS)
                 reader.ReadBytes(offsets[OFFSET_TO_GBD] - offsets[OFFSET_TO_GBA]);
             else if (GetBoardType() == Game1.VOCALS)
                 reader.ReadBytes(offsets[OFFSET_TO_GBV] - offsets[OFFSET_TO_GBA]);
@@ -453,15 +416,15 @@ namespace Unsigned
                 if (GetBoardType() == Game1.PERCUSSIONIST)
                 {
                     int numDFP = reader.ReadInt32();
-                    DFStart = new int[numDFP];
-                    DFEnd = new int[numDFP];
-                    dfA = new float[numDFP];
+                    FillStart = new int[numDFP];
+                    FillEnd = new int[numDFP];
+                    FillAmount = new float[numDFP];
                     DFHitGreen = new bool[numDFP];
                     for (int i = 0; i < numDFP; i++)
                     {
-                        DFStart[i] = reader.ReadInt32();
-                        DFEnd[i] = reader.ReadInt32();
-                        dfA[i] = 0;
+                        FillStart[i] = reader.ReadInt32();
+                        FillEnd[i] = reader.ReadInt32();
+                        FillAmount[i] = 0;
                         DFHitGreen[i] = false;
                     }
                 }
@@ -490,7 +453,7 @@ namespace Unsigned
                         for (int i = 0; i < notesn; i++)
                         {
                             reader.ReadByte();
-                            if (GetBoardType() != Game1.DRUMS)
+                            if (GetBoardType() != Global.DRUMS)
                             {
                                 reader.ReadInt32();
                                 reader.ReadInt32();
@@ -511,7 +474,7 @@ namespace Unsigned
                         {
                             notes[i] = new NoteSet();
                             notes[i].type = reader.ReadByte();
-                            if (GetBoardType() != Game1.DRUMS)
+                            if (GetBoardType() != Global.DRUMS)
                             {
                                 notes[i].time = reader.ReadUInt32();
                                 notes[i].length = reader.ReadInt32();
@@ -773,39 +736,39 @@ namespace Unsigned
 
                 byte newPressed = (byte)((pressed ^ lastPressed) & pressed);
                 lastPressed = pressed;
-                if (GetBoardType() == Game1.DRUMS)
+                if (GetBoardType() == Global.DRUMS)
                 {
-                    if (DFIndex < DFStart.Length && currenttime > DFEnd[DFIndex])
+                    if (FillIndex < FillStart.Length && currenttime > FillEnd[FillIndex])
                     {
                         if (SPDelayStart)
                         {
                             SPActivated = true;
                             SPDelayStart = false;
                         }
-                        DFIndex++;
+                        FillIndex++;
                     }
-                    if (StarPowerAmount >= 0.5 && !SPActivated && DFIndex < DFStart.Length && currenttime >= DFStart[DFIndex] && currenttime <= DFEnd[DFIndex])
+                    if (StarPowerAmount >= 0.5 && !SPActivated && FillIndex < FillStart.Length && currenttime >= FillStart[FillIndex] && currenttime <= FillEnd[FillIndex])
                     {
                         reff.AddSparks(newPressed, ind);
                         for (int i = 0; i < 5; i++)
                             if ((newPressed & (1 << i)) != 0)
                             {
                                 popupSpeed[drumsToGuitar[i]] += 100f;
-                                dfA[DFIndex] += 1f / (((DFEnd[DFIndex] - DFStart[DFIndex]) / 1000f) * 7);
-                                dfA[DFIndex] = Math.Min(dfA[DFIndex], 1);
+                                FillAmount[FillIndex] += 1f / (((FillEnd[FillIndex] - FillStart[FillIndex]) / 1000f) * 7);
+                                FillAmount[FillIndex] = Math.Min(FillAmount[FillIndex], 1);
                             }
-                        while (notes[index].time <= DFEnd[DFIndex]+100)
+                        while (notes[index].time <= FillEnd[FillIndex]+100)
                         { index++; myResults.hitNotes++; }
-                        if (currenttime >= DFEnd[DFIndex] - 100 && currenttime <= DFEnd[DFIndex])
+                        if (currenttime >= FillEnd[FillIndex] - 100 && currenttime <= FillEnd[FillIndex])
                             if ((newPressed | 1) != 0)
-                                if (dfA[DFIndex] >= 1)
+                                if (FillAmount[FillIndex] >= 1)
                                     SPDelayStart = true;
                     }
                 }
                 if (index< notes.Length && notes[index].time - PILLOW < currenttime)
                 {
 
-                    if (GetBoardType() == Game1.DRUMS)
+                    if (GetBoardType() == Global.DRUMS)
                     {
                         
                         
@@ -893,7 +856,7 @@ namespace Unsigned
 
                     
                 }
-                else if (newPressed != 0 && GetBoardType() == Game1.DRUMS)
+                else if (newPressed != 0 && GetBoardType() == Global.DRUMS)
                 {
                     reff.Hurt(ind);
                     multiplier = 1;
@@ -962,7 +925,7 @@ namespace Unsigned
                                 notes[index].visible[i] = NoteSet.VIS_STATE.GREYED_OUT;
                             }
                         bool indf = false;
-                        if (index<notes.Length && DFIndex<DFStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time >= DFStart[DFIndex] && notes[index].time <= DFEnd[DFIndex])
+                        if (index<notes.Length && FillIndex<FillStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time >= FillStart[FillIndex] && notes[index].time <= FillEnd[FillIndex])
                             indf = true;
                         if (indf)
                         {
@@ -1025,7 +988,7 @@ namespace Unsigned
 
                         
                         bool indf = false;
-                        if (index<notes.Length && DFIndex<DFStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time > DFStart[DFIndex] && notes[index].time < DFEnd[DFIndex])
+                        if (index<notes.Length && FillIndex<FillStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time > FillStart[FillIndex] && notes[index].time < FillEnd[FillIndex])
                             indf = true;
                         if (indf)
                         {
@@ -1110,8 +1073,8 @@ namespace Unsigned
 
 
                 if (GetBoardType() == Game1.PERCUSSIONIST)
-                    if (DFIndex < DFEnd.Length && (long)currenttime > DFEnd[DFIndex])
-                        DFIndex++;
+                    if (FillIndex < FillEnd.Length && (long)currenttime > FillEnd[FillIndex])
+                        FillIndex++;
                 lastPressed = pressed;
 
                 if (multiplier > 6 && type == Game1.BASS)
@@ -1295,19 +1258,19 @@ namespace Unsigned
                 return 0;
             if (index >= notes.Length)
                 return 0;
-            if (StarPowerAmount>=0.5 && !SPActivated && DFIndex<DFEnd.Length && currenttime >= (long)DFStart[DFIndex] && currenttime <= (long)DFEnd[DFIndex])
+            if (StarPowerAmount>=0.5 && !SPActivated && FillIndex<FillEnd.Length && currenttime >= (long)FillStart[FillIndex] && currenttime <= (long)FillEnd[FillIndex])
             {
                 if ((newPressed & Game1.bits[0]) != 0)
-                    if (Math.Abs((DFEnd[DFIndex] - 100) - (long)currenttime) < 100)
-                    { SPActivated = true; DFHitGreen[DFIndex] = true; }
-                float numperfill = 4f * (DFEnd[DFIndex] - DFStart[DFIndex]) / 1000f;
+                    if (Math.Abs((FillEnd[FillIndex] - 100) - (long)currenttime) < 100)
+                    { SPActivated = true; DFHitGreen[FillIndex] = true; }
+                float numperfill = 4f * (FillEnd[FillIndex] - FillStart[FillIndex]) / 1000f;
                 int numhit = 0;
                 for (int i = 0; i < 5; i++)
                     if ((newPressed & Game1.bits[i]) != 0)
                         numhit++;
-                dfA[DFIndex] += numhit / numperfill;
-                if (dfA[DFIndex] > 1)
-                    dfA[DFIndex] = 1f;
+                FillAmount[FillIndex] += numhit / numperfill;
+                if (FillAmount[FillIndex] > 1)
+                    FillAmount[FillIndex] = 1f;
                 return (byte)(newPressed | Game1.bits[7]);
             }
             else if ((notes[index].time - (long)currenttime) < 100)
