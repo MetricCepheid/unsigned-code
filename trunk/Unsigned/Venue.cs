@@ -108,7 +108,7 @@ namespace Unsigned
 
         private float fast_strobe_on = 0f;
 
-        private SEffect[] effects;
+        private LightingEffect[] effects;
 
         #region DEBUG_VAR
 //#define DEBUG_CAM_CONTROL
@@ -259,7 +259,7 @@ namespace Unsigned
                 {
                     switch (effects[i].type)
                     {
-                        case SEffect.EFFECT_TYPE.LIGHTING_NORMAL:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_NORMAL:
                             for (int j = 0; j < lights.Length; j++)
                             {
                                 if (lights[j].type == DLight.LIGHT_TYPE.NORMAL)
@@ -276,7 +276,7 @@ namespace Unsigned
                                 }
                             }
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_STROBE:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_STROBE:
                             for (int j = 0; j < lights.Length; j++)
                             {
                                 if (lights[j].type == DLight.LIGHT_TYPE.STROBE)
@@ -296,7 +296,7 @@ namespace Unsigned
                             if (fast_strobe_on < 0)
                                 fast_strobe_on = 1f;
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_SLOWSTROBE:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_SLOWSTROBE:
                             for (int j = 0; j < lights.Length; j++)
                             {
                                 if (lights[j].type == DLight.LIGHT_TYPE.STROBE)
@@ -313,16 +313,16 @@ namespace Unsigned
                                 }
                             }
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_G:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_CHASE_G:
 
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_B:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_CHASE_B:
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_D:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_CHASE_D:
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_CHASE_V:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_CHASE_V:
                             break;
-                        case SEffect.EFFECT_TYPE.LIGHTING_SWEEP:
+                        case LightingEffect.EFFECT_TYPE.LIGHTING_SWEEP:
                             for (int j = 0; j < lights.Length; j++)
                             {
                                 if (lights[j].type == DLight.LIGHT_TYPE.SWEEP)
@@ -340,9 +340,9 @@ namespace Unsigned
                                 }
                             }
                             break;
-                        case SEffect.EFFECT_TYPE.EFFECT_SMOKE:
+                        case LightingEffect.EFFECT_TYPE.EFFECT_SMOKE:
                             break;
-                        case SEffect.EFFECT_TYPE.EFFECT_FLARE:
+                        case LightingEffect.EFFECT_TYPE.EFFECT_FLARE:
                             break;
                         default:
                             break;
@@ -597,17 +597,17 @@ namespace Unsigned
             for (int i = 0; i < nTransitions; i++)
                 camtimes[i] = sr.ReadInt32();
             int nEffects = sr.ReadInt32();
-            effects = new SEffect[nEffects];
+            effects = new LightingEffect[nEffects];
             for (int i = 0; i < nEffects; i++)
             {
-                effects[i] = new SEffect();
+                effects[i] = new LightingEffect();
                 effects[i].begin = sr.ReadUInt32();
                 String eftp = ""+sr.ReadChar()+sr.ReadChar();
                 effects[i].end = sr.ReadUInt32();
                 effects[i].data = sr.ReadInt32();
-                for (int k = 0; k < SEffect.EF_TP_STR.Length; k++)
-                    if (eftp.Equals(SEffect.EF_TP_STR[k]))
-                        effects[i].type = (SEffect.EFFECT_TYPE)k;
+                for (int k = 0; k < LightingEffect.EF_TP_STR.Length; k++)
+                    if (eftp.Equals(LightingEffect.EF_TP_STR[k]))
+                        effects[i].type = (LightingEffect.EFFECT_TYPE)k;
             }
 
             sr.Close();
@@ -669,7 +669,7 @@ namespace Unsigned
             {//Bassist
                 bassist.Draw(gameTime, graphics);
             }//Bassist
-            engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
+            engine.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
             {//Drummer
 
                 drummer.Draw(gameTime, graphics);

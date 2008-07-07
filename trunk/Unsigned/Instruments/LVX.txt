@@ -1,0 +1,9 @@
+NumTracks = 36
+RPEnableType = FILL
+Dimensions = TWO_DIMENSIONAL
+CodeName = LVX
+FullName = Lead Vocals
+TypesOfPhrases = BLANK_REGULAR_RHYTHM
+ContainsHeldNotes = true
+PitchShifts = true
+ContainsText = true

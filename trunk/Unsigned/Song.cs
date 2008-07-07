@@ -30,6 +30,8 @@ namespace Unsigned
         public int[] diffs = new int[4];
         public string[] songInfo;
         public string[] quotes = new string[8];
+        List<SpecialEffectsSettings> specialEffects;
+        List<LightingEffect> lightingEffects;
 
         public bool BREon;
         public uint BREstart, BREend;
@@ -66,23 +68,24 @@ namespace Unsigned
             engine = eng;
             sB = sb;
             wB = wb;
-#endif
+#else
 
             LoadSongUNS(FileName, game);
+#endif
         }
 
         private bool LoadSongUNS(String fn, IntPtr game)
         {
+#if WINDOWS
             if (!System.IO.File.Exists("songdata\\" + fn + ".uns"))
             {
                 if (!SongConverter.ConvertSong(fn))
                 {
-#if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Unknown Error, could not process/find SongData");
-#endif
                     return false;
                 }
             }
+#endif
             System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".uns"));
             char[] arr = reader.ReadChars(3);//UNS
             if (arr[0] != 'U' || arr[1] != 'N' || arr[2] != 'S')

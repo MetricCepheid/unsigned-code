@@ -24,6 +24,7 @@ namespace Unsigned
         public int col, frame;
         public float scale;
     }
+
     struct ShatterSpark
     {
         public Vector3 loc, dir;
@@ -405,55 +406,16 @@ namespace Unsigned
 
         }
     }
-
-    public struct GBVertexFormat
-    {
-        public Vector3 Position;
-        public Vector3 Normal;
-        public Vector2 TexCoord;
-        public Vector3 Tangent;
-        public float Alpha;
-
-
-        public GBVertexFormat(Vector3 Position, Vector3 Normal, Vector2 TexCoord)
-        {
-            this.Position = Position;
-            this.TexCoord = TexCoord;
-            this.Normal = Normal;
-            this.Tangent = Vector3.Transform(Normal, Matrix.CreateRotationZ((float)Math.PI / 2));
-            Alpha = 1.0f;
-        }
-        public GBVertexFormat(Vector3 Position, Vector3 Normal, Vector2 TexCoord, Vector3 Tangent)
-        {
-            this.Position = Position;
-            this.TexCoord = TexCoord;
-            this.Normal = Normal;
-            this.Tangent = Tangent;
-            Alpha = 1.0f;
-        }
-
-        public static VertexElement[] Elements =
-             {
-                 new VertexElement(0, 0, VertexElementFormat.Vector3, VertexElementMethod.Default, VertexElementUsage.Position, 0),
-                 new VertexElement(0, sizeof(float)*3, VertexElementFormat.Vector3, VertexElementMethod.Default, VertexElementUsage.Normal, 0),
-                 new VertexElement(0, sizeof(float)*6, VertexElementFormat.Vector2, VertexElementMethod.Default, VertexElementUsage.TextureCoordinate, 0),
-                 new VertexElement(0, sizeof(float)*8, VertexElementFormat.Vector3, VertexElementMethod.Default, VertexElementUsage.Tangent, 0),
-                 new VertexElement(0, sizeof(float)*11, VertexElementFormat.Single,VertexElementMethod.Default,VertexElementUsage.Fog,0),
-             };
-        public static int SizeInBytes = sizeof(float) * (3 + 2 + 3 + 3  + 1);
-    }
 #endregion
 
     public class Game1 : Microsoft.Xna.Framework.Game
     {
-        public static byte SONGDATA_VERSION = 17;
+        public static byte SONGDATA_VERSION = 18;
 
         public static bool TEST_SONG = false;
 
         float[] lastframes = new float[60];
         int frameIndex;
-
-#region enginestuff
 
         GraphicsDeviceManager graphics;
         ContentManager content;
@@ -461,118 +423,13 @@ namespace Unsigned
         AudioEngine audioEngine;
         SoundBank audioSoundBank;
         WaveBank audioWaveBank;
-        private Effect engine, ppEngine, fader;
-        private Matrix matView;
-        private Matrix matProj;
-        private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
-        private RenderTarget2D[] boardsTarget;
-
-        bool fullScreen = false;
-        bool render3D = true;
-        private int renderLevel = 10;
-
-        private Texture2D gradient;
-        public static bool HALF_RENDER = false;
-#endregion
-
-#region rockstars
-
-        private Vector2 rockstarLoc, rockstarScale;
-        private float rockstarDir;
-        private Texture2D texRockstarRed, texRockstarRing, texRockstarCover;
-        private Texture2D[] texRockstarRingHiLi;
-        private Texture2D texScoreBoard;
-        byte lastStar; //for ching after star gain
-
-#endregion
-
-#region rockmeter
-
-        public static float[] rockMeterLevel;
-        private Texture2D texRockMeterOutline;
-        private Texture2D texRockMeterGuitarLogo, texRockMeterBassLogo,
-                          texRockMeterDrumLogo, texRockMeterSingerLogo;
-        private Texture2D texRockMeterLogoStem;
-        private Vector2 rockMeterLoc, rockMeterScale;
-        private enum GUIStyle { RB = 0, GH = 2, UN = 1 };
-        private GUIStyle cGUIStyle = GUIStyle.UN;
-        private Texture2D rmUNbg, rmUNfg, rmUNstar, rmUNstaro;
-
-#endregion
-
-#region instrumental
-
-        private bool[] instruments;//whether or not someone is playing this
-        private String[] instrumentNames = { "Guitar", "Vocals", "Drums", "Bass" };
-        private String[] musicianNames = { "Guitarist", "Vocalist", "Drummer", "Bassist" };
-        public static int GUITAR = 0, BASS = 3, DRUMS = 2, VOCALS = 1,
-                                GUITARIST = 0, BASSIST = 3, PERCUSSIONIST = 2, VOCALIST = 1;
-
-#endregion
-
-#region specialeffects
-        Texture2D lastframe;
-        private enum FRAME_EFFECT
-        {
-            CONSTANT = 0, //this is normal
-            SLOW = 1,     //framerate 1/2
-            VERYSLOW = 2, //framerate 1/4
-            DEATHLY = 3,  //1 fps :O
-        };
-        private FRAME_EFFECT currentFE;
-        private int countFE;
-        private enum FRAME_EFFECT_STYLE
-        {//for FRAME_EFFECT.CONSTANT, use BLINK
-            BLINK = 0, //no fades
-            CREST = 1, //fade, flash
-            XFADE = 2, //Full fade
-        }
-        private FRAME_EFFECT_STYLE currentFES;
-        private float countFES=1;
-        const int DESATURATE = 1, //desaturate
-                         HUE_SHIFT = 2,  //hue-shift
-                         REDUCE = 4,     //reduce to 8-bit color
-                         BLUR = 8,       //gaussian blur
-                         GRAIN_DOT = 16, //dot grain
-                         GRAIN_XHSH = 32;//crosshash grain
-        private int postProcessEffects;//bitwise-or together ^
-        //following are used ONLY IF ppe is enabled
-        private float desaturate_value;//0-1 (0=B&W,1=full color)
-        private float hue_shift;//0-1 (0&1=no difference)
-        private float blur_strength;//strength of blur
-        private float blur_passes;//number of passes to the blur
-        private float grain_strength;//how strong the grain is (0=invisible,1=full-static)
-#endregion
 
 #region misc
 
-        public static Texture2D texWhite;
-        public static byte[] bits = { 1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, 1 << 6, 1 << 7 };
-        public const byte GUITAR_B = 1, BASS_B = 2, DRUMS_B = 4, VOCALS_B = 8;
-        public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
-        public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
-        public static Color[] FretColors = { new Color(0,255,0), new Color(255,0,0), new Color(255,255,0), new Color(0,0,255), new Color(255,128,0),};
-        public static Color[] FadedFretColors = { new Color(175,207,175), new Color(207,175,175), new Color(207,207,175), new Color(175,175,207), new Color(207,191,175) };
-        private static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
-        private int started = 0;
-        public static SpriteFont DefaultFont, BigFont, SmallFont;
-        public static long TicksPerSecond = 10000000;
-        public static VertexBuffer square;
-        public static Texture2D texGlow, texDefaultBM;
-        public static VertexDeclaration vd;
         private RenderTarget2D ort;
-        int windowheight, windowwidth, windowyoffset, windowxoffset;
+        int windowheight, windowwidth;
         public static Random r;
-        static String loadingText = "Loading";
-        public static bool DemoMode = false;
         private bool demomodepress = false;
-        byte[] failStatus;
-        public static byte FS_GOOD = 0, FS_FAILING = 1, FS_DNE=2;
-        float failTime;
-        bool IsPaused = false;
-        int pausetimer;
-        float UIHScale, UIVScale;
-        bool ShowFPS;
 #endregion
 
 #region PauseMenu
@@ -1222,12 +1079,12 @@ namespace Unsigned
             graphics.PreferredBackBufferWidth = windowwidth;
             graphics.PreferredBackBufferHeight = windowheight;
             graphics.ApplyChanges();
-            if(fullScreen)
+            if (GameSettings.fullScreen)
                 graphics.ToggleFullScreen();
 
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
-            fader = content.Load<Effect>("shaders\\BoardFade");
+            fader = content.Load<Effect>("shaders\\BoarFillAmountde");
 
             SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
@@ -1266,35 +1123,35 @@ namespace Unsigned
                     {
                         int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                         if (val == 0)
-                            renderLevel = 0;
+                            GameSettings.renderLevel = 0;
                         else
-                            renderLevel = 10;
+                            GameSettings.renderLevel = 10;
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("wavedetail"))
                     {
-                        WAVEDETAIL = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        GameSettings.WAVEDETAIL = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("resolution"))
                     {
-                        windowwidth = Int32.Parse(str.Substring(str.IndexOf('=') + 1,Math.Max(str.IndexOf('x'),str.IndexOf('X'))-(str.IndexOf('=') + 1)).Trim());
-                        windowheight = Int32.Parse(str.Substring(Math.Max(str.IndexOf('x'),str.IndexOf('X'))+1).Trim());
+                        GameSettings.windowwidth = Int32.Parse(str.Substring(str.IndexOf('=') + 1, Math.Max(str.IndexOf('x'), str.IndexOf('X')) - (str.IndexOf('=') + 1)).Trim());
+                        GameSettings.windowheight = Int32.Parse(str.Substring(Math.Max(str.IndexOf('x'), str.IndexOf('X')) + 1).Trim());
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("fullscreen"))
                     {
-                        fullScreen = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        GameSettings.fullScreen = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("halfrender"))
                     {
-                        HALF_RENDER = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        GameSettings.HALF_RENDER = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("iguihasfps"))
                     {
-                        ShowFPS = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        GameSettings.ShowFPS = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("igguistyle"))
                     {
                         String strn = str.Substring(str.IndexOf('=') + 1).Trim();
-                        cGUIStyle = strn.ToLower().Equals("rockband") ? GUIStyle.RB : GUIStyle.UN;
+                        GameSettings.cGUIStyle = strn.ToLower().Equals("rockband") ? GUIStyle.RB : GUIStyle.UN;
                     }
 
                 } while (!fin.EndOfStream);
@@ -2808,7 +2665,7 @@ namespace Unsigned
                         for(int i=0;i<4;i++)
                             if (instruments[i] && i != 1)
                             {
-                                boards[i].GetNotes((long)CurrentTime, (long)(Board.eFade * Game1.TicksPerSecond));
+                                boards[i].GetNotes((long)CurrentTime, (long)(Board.eFade * Global.TicksPerSecond));
                                 if (1 != 2)
                                     boards[i].getWaves((long)(started < 2 ? -(CurrentTime / (TicksPerSecond / 1000)) : (CurrentTime / (TicksPerSecond / 1000))));
                             }
@@ -8289,17 +8146,17 @@ namespace Unsigned
                 }
             }
             if(i==2)
-            for (int k = 0; k < boards[i].OutDFs.Length; k++)
+            for (int k = 0; k < boards[i].OutFills.Length; k++)
             {
                 float halfMaxWidth = rtBoard[i].Width / 8f;
-                if (boards[i].OutDFs[k].W > 0.5)
+                if (boards[i].OutFills[k].W > 0.5)
                 {
-                    float height = (boards[i].OutDFs[k].Y - boards[i].OutDFs[k].X) * scale;
-                    float y = (rtBoard[i].Height * ratio) - (int)(boards[i].OutDFs[k].X * scale) - (int)((boards[i].OutDFs[k].Y - boards[i].OutDFs[k].X) * scale);
+                    float height = (boards[i].OutFills[k].Y - boards[i].OutFills[k].X) * scale;
+                    float y = (rtBoard[i].Height * ratio) - (int)(boards[i].OutFills[k].X * scale) - (int)((boards[i].OutFills[k].Y - boards[i].OutFills[k].X) * scale);
                     for (int r = 0; r < 4; r++)
                     {
                         float center = ((r * 2 + 1)/8f)*rtBoard[i].Width;
-                        spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * boards[i].OutDFs[k].Z)), (int)y, (int)(2 * (halfMaxWidth * boards[i].OutDFs[k].Z)), (int)height), FretColors[Board.guitarToDrums[r]]);
+                        spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * boards[i].OutFills[k].Z)), (int)y, (int)(2 * (halfMaxWidth * boards[i].OutFills[k].Z)), (int)height), FretColors[Board.guitarToDrums[r]]);
                     }
                 }
             }

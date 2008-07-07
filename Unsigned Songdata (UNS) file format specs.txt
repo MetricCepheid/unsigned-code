@@ -4,7 +4,9 @@
 // BINARY DATA
 
 // By Louis Ingenthron
-// 18.05.08
+// 06.07.08
+
+// VERSION 18
 
 
 //HEADER CHUNK
@@ -12,9 +14,12 @@
 
 char[] signature = {'U', 'N', 'S'};
 
+int numInstruments;
+
 //offsets are in bytes
-int offsetToGBA, offsetToGBG, offsetToGBB,
-    offsetToGBD, offsetToGBV, offsetToGBE;
+int offsetToGBA;
+int offsetToInstruments[numInstruments];
+int offsetToGBE;
 
 
 //GBA CHUNK Song/FullBand
@@ -31,11 +36,8 @@ String genre, formattedTime; //time is formatted in HH:MM:SS format
 String[8] quotes;
 
 //charters
-String syncer, effecter, guitarer,
-       vocaler, drummer, basser;
-
-byte guitarDifficulty, vocalistDifficulty,
-     drumsDifficult, bassDifficulty;
+int numCharters;
+String[numCharters] charters;
 
 struct BarLine
 {
@@ -58,14 +60,15 @@ int numHarmonies;
 struct Harmony
 {
 	uint start, end;
-	byte instruments;//bitwise 0=guitar,1=vocals,2=drums,3=bass
+	int instruments;//bitwise instruments
 }
 
 Harmony[numHarmonies] harmonies;
 
 
-//GBG CHUNK Guitar
+//Instrument Chunk
 
+char[3] InstrumentType;
 
 int numOverdrivePhrases
 
@@ -77,113 +80,71 @@ struct OverdrivePhrase
 
 OverdrivePhrase[numOverdrivePhrases] spph;
 
-int numSolos;
-
-struct Solo
+if(instrument HasSolos)
 {
-	int time;
-	int len;
+	int numSolos;
+	
+	struct Solo
+	{
+		int time;
+		int len;
+	}
+	
+	Solo[numSolos] solos;
 }
 
-Solo[numSolos] solos;
+if((instrument RPEnableType)&FILLS != 0)
+{
+	int numDrumFills;
+	
+	struct DrumFill
+	{
+		int time;
+		int len;
+	}
+	
+	DrumFill[numDrumFills] dFills;
+}
 
 struct Note
 {
-	byte value;//bitwise, bits 1-5=colors g-o, bit 6=HOPOable
+	long value;//bitwise, bits 1-NumTracks=frets, bit NumTracks=HOPOable
+	if(instrument PitchShifts)
+	{
+		long endvalue;
+	}
 	int time;//in MS from beginning of song
-	int len;//0 for non-held notes
+	if(instrument ContainsHeldNotes)
+	{
+		int len;//0 for non-held notes
+	}
+	if(instrument ContainsText)
+	{
+		String text;
+	}
+}
+
+struct Phrase
+{
+	if(instrument TypesOfPhrases != NONE)
+	{
+		uint time;//in MS from start
+		byte type;
+		bool rockpower;
+	}
+	int numNotes;
+	Note[numNotes] notes;
 }
 
 Struct DifficultySet
 {
 	int diff;//3=Expert, 0=Easy, etc
-	int numNotes;
-	Note[numNotes] notes;
-	int[5] starScoreLevels;
+	int numPhrases;//if instrument TypesOfPhrases == NONE, it always = 1
+	Phrase[numPhrases] phrases;
+	int[6] starScoreLevels;
 }
 
 DifficultySet[4] notedata;
-
-
-//GBB CHUNK bass
-
-
-int numOverdrivePhrases
-
-OverdrivePhrase[numOverdrivePhrases] spph;
-
-DifficultySet[4] notedata;
-
-
-//GBD CHUNK drums
-
-
-int numOverdrivePhrases
-
-OverdrivePhrase[numOverdrivePhrases] spph;
-
-int numDrumFills;
-
-struct DrumFill
-{
-	int time;
-	int len;
-}
-
-DrumFill[numDrumFills] dFills;
-
-struct DNote
-{
-	byte value;//bitwise, bits 1-5=colors g-o, bit 6=HOPOable
-	int time;//in MS from beginning of song
-}
-
-Struct DDifficultySet
-{
-	int diff;//3=Expert, 0=Easy, etc
-	int numNotes;
-	DNote[numNotes] notes;
-	int[5] starScoreLevels;
-}
-
-DDifficultySet[4] notedata;
-
-
-//GBV CHUNK vocals
-
-
-int numVocalPhrases;
-
-struct VocalWord
-{
-	uint time;//in MS from start
-	uint len;//in MS
-	short startNote, endNote;
-	String value;//the text
-}
-
-struct VocalPhrase
-{
-	uint time;//in MS from start
-	byte type;//0=REGULAR,1=BLANK,2=RHYTHM
-	bool overdrive;
-	int wordsCount;
-	switch(type)
-	{
-		case REGULAR:
-			VocalWord[wordsCount] words;
-
-		case BLANK:
-
-		case RHYTHM:
-			byte rhythmType;
-			uint[wordsCount] rhythmHits;
-	}
-}
-
-VocalPhrase[numVocalPhrases] phrases;
-
-int[4][5] starlevels;
 
 
 //GBE CHUNK sfx

@@ -1,0 +1,92 @@
+// File format specs for Instrument Scripting
+// C# style
+
+// Text Data
+
+// By Louis Ingenthron
+// 06.07.08
+
+Filename format is:
+Unsigned\Instruments\[CodeName].txt
+
+Format is:
+[VariableName] = [Value]
+
+Note:
+No semicolons
+One statement per line
+no empty lines
+Unset vars will be set to their default value
+
+VariableName:		NumTracks
+Description:		The note tracks.  AKA: # of Frets
+Possible Values:	1-64
+Default Value:		1
+
+VariableName:		RPEnableType
+Description:		How Rock Power is activated
+			SELECT refers to the select button 
+			or guitar tipping
+			Multiple types mean you can enable
+			RP with either method
+Possible Values:	SELECT, FILLS, SELECT_FILLS
+Default Value:		SELECT
+
+VariableName:		Dimensions
+Description:		Whether the board is 2D horizontal
+			or 3D moving to the player
+Possible Values:	TWO_DIMENSIONAL, THREE_DIMENSIONAL
+Default Value:		THREE_DIMENSIONAL
+
+VariableName:		CodeName
+Description:		Three letter code for the instrument
+Possible Values:	Three alphabetic characters
+Default Value:		NONE-MUST BE SET!!!
+
+VariableName:		FullName
+Description:		The canonical name of the instrument
+			in plain english
+Possible Values:	Text, <255 characters in length
+Default Value:		NONE-MUST BE SET!!!
+
+VariableName:		ContainsHeldNotes
+Description:		whether notes can have a length value
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		CanWhammy
+Description:		Whether hold notes can be pitch bent
+			Only matters if ContainsHeldNotes=true
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		CanHOPO
+Description:		whether or not notes can be HOPOd
+			GH style
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		HasSolos
+Description:		Whether the instrument supports solos
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		Pitch Shifts
+Description:		Whether the end of the note can be a
+			different pitch from the beginning
+			Only matters if ContainsHeldNotes=true
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		ContainsText
+Description:		Whether the notes are attached to text
+Possible Values:	true, false
+Default Value:		false
+
+VariableName:		TypesOfPhrases
+Description:		Describes the phrases notes are organized
+			in.  Specify NONE for no phrase organization
+Possible Values:	NONE, BLANK, REGULAR, RHYTHM, 
+			BLANK_RHYTHM, BLANK_REGULAR, REGULAR_RHYTHM,
+			BLANK_REGULAR_RHYTHM
+Default Value:		NONE

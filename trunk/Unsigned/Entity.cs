@@ -97,7 +97,7 @@ namespace Unsigned
             engine.Parameters["world"].SetValue(matWorld);
             engine.Parameters["wRot"].SetValue(transform);
             engine.Parameters["diffuseTexture"].SetValue(Venue.StaticTexture[texture].tex);
-            engine.Parameters["bumpTexture"].SetValue(Game1.texDefaultBM);
+            engine.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
             engine.CommitChanges();
 
             foreach (ModelMesh mesh in Venue.Models[model].Meshes)
