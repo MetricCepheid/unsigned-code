@@ -13,10 +13,10 @@ namespace Unsigned
         public static bool HALF_RENDER = false;
         public static GameUIMaster.GUIStyle cGUIStyle = GameUIMaster.GUIStyle.UN;
         public static bool ShowFPS;
-    }
-
-    static class RenderData
-    {
-        public static Effect engine, ppEngine, fader;
+        public static int waveDetail;
+        public static int windowheight, windowwidth;
+        public static int[] resX = { 640, 800, 1024, };
+        public static int[] resY = { 480, 600, 768, };
+        public static int resIndex;
     }
 }

@@ -141,13 +141,13 @@ namespace Unsigned
 
         public static float SCALE = 1f;
 
-        public Venue(String Filename, String Songname, Game1 game, ContentManager content, GraphicsDeviceManager graphics, Effect e)
+        public Venue(String Filename, String Songname, UnsignedGame game, ContentManager content, GraphicsDeviceManager graphics, Effect e)
         {
             this.Filename = Filename;
             LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
         }
 
-        public void Update(GameTime gameTime, long songtime, Effect engine, Song song)
+        public void Update(GameTime gameTime, long songtime, Effect engine)
         {
 #if DEBUG_CAM_CONTROL
             KeyboardState kbs = Keyboard.GetState();
@@ -235,7 +235,7 @@ namespace Unsigned
             
         }
 
-        public void SetLights(Effect engine, Song song, uint songtime)
+        public void SetLights(Effect engine, uint songtime)
         {
             //Dynamic light init
             Vector3[] plPos = new Vector3[16];
@@ -304,7 +304,7 @@ namespace Unsigned
                                     ons[lt] = true;
                                     fars[lt] = lights[j].outerAngle;
                                     nears[lt] = lights[j].innerAngle;
-                                    powers[lt] = GetStrobe(effects[i].data, song,songtime);
+                                    powers[lt] = GetStrobe(effects[i].data,songtime);
                                     poss[lt] = lights[j].pos;
                                     dirs[lt] = lights[j].targs[0].dir;
                                     lt++;
@@ -361,7 +361,7 @@ namespace Unsigned
             engine.CommitChanges();
         }
 
-        private float GetStrobe(int spb, Song song, long currenttime)
+        private float GetStrobe(int spb, long currenttime)
         {
             float measure = song.GetMeasureProgress(currenttime);
             int bpm = song.GetBPMeasure(currenttime);
@@ -411,7 +411,7 @@ namespace Unsigned
                                                        cNear, cFar);
         }
 
-        private void LoadWorld(String Filename, String Songname, Game1 game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
+        private void LoadWorld(String Filename, String Songname, UnsignedGame game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
         {
             
             guitarist = new Rocker("rockers\\"+g,game,content,e);

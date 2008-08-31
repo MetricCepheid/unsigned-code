@@ -4,16 +4,16 @@ using System.Text;
 
 namespace Unsigned
 {
-    struct Instrument
+    class Instrument
     {
         //Rock Power Enable Types
         public enum RockPowerEnableTypes
         {
             SELECT = 1, // select button or guitar tilt
-            FILLS = 2, // same as HMX Rock Band drum fills
+            FILL = 2, // same as HMX Rock Band drum fills
 
             // mix types.  users can use either type
-            SELECT_FILLS = 3,
+            SELECT_FILL = 3,
         };
 
         public enum BoardDimensions

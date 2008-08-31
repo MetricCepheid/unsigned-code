@@ -9,199 +9,54 @@ using IrrKlang;
 
 namespace Unsigned
 {
-    class Song
+    class SongAudioMaster
     {
-        private struct Harmony
-        {
-            public uint start, end;
-            public byte instruments;
-        }
+        private static SongAudioMaster SINGLETON_SongAudioMaster = null;
 
         private String FileName;
-        private Vector2[] Bars;
-        private int endLength;
-        private int DefaultBPM = 4;
-        private String SongName, ArtistName;
-        private int TimeH, TimeM, TimeS;
-        private int currentBar = 0;
         bool playing = false;
-        String[] charters;
-        public Vector2[] zVals = new Vector2[12];
-        public int[] diffs = new int[4];
-        public string[] songInfo;
-        public string[] quotes = new string[8];
-        List<SpecialEffectsSettings> specialEffects;
-        List<LightingEffect> lightingEffects;
+        private String[] songInfo;
 
-        public bool BREon;
-        public uint BREstart, BREend;
-
-        Harmony[] harmonies;
-
-        public float percentBeat;
-
+        public String[] SongDisplayInfo
+        {
+            get { return songInfo; }
+        }
 
 #if WINDOWS
-
-        
-        //OggPlayManager manager;
+        private IntPtr WINDOW;
         ISoundEngine sEngine;
         ISoundSource song;
         ISound sound;
 #else
-
         AudioEngine engine;
         SoundBank sB;
         WaveBank wB;
         Cue cue;
-
 #endif
 
 #if WINDOWS
-        public Song(String FileName, IntPtr game)
-#else
-        public Song(String FileName, AudioEngine eng, SoundBank sb, WaveBank wb)
-#endif
+        private SongAudioMaster(IntPtr game)
         {
-            this.FileName = FileName;
-#if !WINDOWS
+            WINDOW = game;
+        }
+#else
+        private SongAudioMaster(AudioEngine eng, SoundBank sb, WaveBank wb)
+        {
             engine = eng;
             sB = sb;
             wB = wb;
-#else
-
-            LoadSongUNS(FileName, game);
-#endif
         }
+#endif
 
-        private bool LoadSongUNS(String fn, IntPtr game)
+        public bool InitSong(SongData songdata)
         {
-#if WINDOWS
-            if (!System.IO.File.Exists("songdata\\" + fn + ".uns"))
-            {
-                if (!SongConverter.ConvertSong(fn))
-                {
-                    System.Windows.Forms.MessageBox.Show("Unknown Error, could not process/find SongData");
-                    return false;
-                }
-            }
-#endif
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".uns"));
-            char[] arr = reader.ReadChars(3);//UNS
-            if (arr[0] != 'U' || arr[1] != 'N' || arr[2] != 'S')
-            {
-
-#if WINDOWS
-                System.Windows.Forms.MessageBox.Show("SongData Header Incorrect");
-#endif
+            if (songdata == null)
                 return false;
-            }
-            int[] offsets = new int[6];
-            for (int i = 0; i < 6; i++)
-                offsets[i] = reader.ReadInt32();
-            byte version = reader.ReadByte();
 
-            if (version < 17)// 17 is the first UNS
-            {
-
-#if WINDOWS
-                System.Windows.Forms.MessageBox.Show("SongData Version too old");
-#endif
-                return false;
-            }
-            SongName = reader.ReadString();
-            ArtistName = reader.ReadString();
-            int year = reader.ReadInt32();
-            String genre = reader.ReadString();
-            String z = reader.ReadString();
-            TimeH = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-            z = z.Substring(z.IndexOf(':') + 1);
-            TimeM = Int32.Parse(z.Substring(0, z.IndexOf(':')));
-            TimeS = Int32.Parse(z.Substring(z.IndexOf(':') + 1));
-
-            for (int i = 0; i < 8; i++)
-                quotes[i] = reader.ReadString();
-
-            int numCharters = 6;
-            charters = new String[numCharters];
-            for (int i = 0; i < numCharters; i++)
-                charters[i] = reader.ReadString();
-            int[] numC = new int[numCharters];
-            string[] charters2 = new string[numCharters];
-            charters2[0] = charters[0];
-            numC[0]++;
-            int nC2 = 1;
-            for (int i = 1; i < numCharters; i++)
-            {
-                int k;
-                for (k = 0; k < nC2; k++)
-                    if (charters[i].Equals(charters2[k]))
-                    {
-                        numC[k]++;
-                        break;
-                    }
-                if (k >= nC2)
-                {
-                    charters2[k] = charters[i];
-                    numC[k]++;
-                    nC2++;
-                }
-            }
-            if (nC2 > 2)
-            {
-                for (int i = 2; i < nC2; i++)
-                {
-                    for (int k = i - 1; k >= 1; k--)
-                    {
-                        if (numC[k] > numC[k + 1])
-                        {
-                            int t = numC[k];
-                            numC[k] = numC[k + 1];
-                            numC[k + 1] = t;
-                            string s = charters2[k];
-                            charters2[k] = charters2[k + 1];
-                            charters2[k + 1] = s;
-                        }
-                        else
-                            break;
-                    }
-                }
-            }
-
-            songInfo = new string[3 + nC2];
-            songInfo[0] = SongName;
-            songInfo[1] = ArtistName;
-            songInfo[2] = "Charter" + (nC2 > 1 ? "s:" : ":");
-            for (int i = 0; i < nC2; i++)
-                songInfo[i + 3] = charters2[i];
-
-            for (int i = 0; i < 4; i++)
-                diffs[i] = reader.ReadByte();
-            int rks = reader.ReadInt32();
-            Bars = new Vector2[rks];
-            for (int c = 0; c < Bars.Length; c++)
-            {
-                Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
-            }
-            endLength = reader.ReadInt32();
-
-            BREon = reader.ReadBoolean();
-            BREstart = reader.ReadUInt32();
-            BREend = reader.ReadUInt32();
-
-            harmonies = new Harmony[reader.ReadUInt32()];
-            for (int i = 0; i < harmonies.Length; i++)
-            {
-                harmonies[i].start = reader.ReadUInt32();
-                harmonies[i].end = reader.ReadUInt32();
-                harmonies[i].instruments = reader.ReadByte();
-            }
-
-            reader.Close();
 #if WINDOWS
 
             sEngine = new ISoundEngine();
-            song = sEngine.AddSoundSourceFromFile("audio\\" + FileName + ".ogg", StreamMode.NoStreaming, true);
+            song = sEngine.AddSoundSourceFromFile("audio\\" + songdata.info.filename + ".ogg", StreamMode.NoStreaming, true);
             sound = sEngine.Play2D(song, false, true, true);
             if (song == null || sound == null)
             {
@@ -209,9 +64,6 @@ namespace Unsigned
                 return false;
             }
             sound.Volume = 0.75f;
-            /*manager = new OggPlayManager(System.Windows.Forms.Form.FromHandle(game));
-            manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
-            manager.StopOggFile(0);*/
 #else
             cue = sB.GetCue(fn);
             cue.Play();
@@ -220,6 +72,9 @@ namespace Unsigned
             return true;
         }
 
+        /* 
+         * legacy.... still needed?
+         * 
         public void GetZVals(long currenttime)
         {
             int k;
@@ -239,13 +94,13 @@ namespace Unsigned
             for (int i = 0; i < 12; i++)
                 zVals[i].X = ((zVals[i].X)-(currenttime))/1000f;
         }
+         */
 
         public void play()
         {
 #if WINDOWS
             sound.Paused = false; 
-                //manager.PlayOggFile("audio\\" + FileName + ".ogg", 0);
-                playing = true;
+            playing = true;
 #else
             cue.Resume();
 #endif
@@ -260,48 +115,16 @@ namespace Unsigned
 #endif
         }
 
+        /*
+         * legacy again... but percent beat code :P
+         * 
         public void Update(long currenttime)
         {
-            if (currenttime >= 0 && !playing)
-            {
-                
-#if WINDOWS
-
-                
-#else
-
-                //asb.PlayCue(cues[cueindex]);
-                
-
-#endif
-            }
-            if (currentBar<Bars.Length-1 && currenttime >= Bars[currentBar + 1].X)
-            {
-                currentBar++;
-            }
-            if (currentBar >= Bars.Length)
-                percentBeat = 0;
-            else
-            percentBeat = ((currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X))%(1/Bars[currentBar].Y);
+            //percentBeat = ((currenttime - Bars[currentBar].X) / (Bars[currentBar + 1].X - Bars[currentBar].X))%(1/Bars[currentBar].Y);
         }
+         */
 
-        public bool IsOver(long currenttime)
-        {
-            if ((long)currenttime/1000 > ((TimeH*3600)+(TimeM*60)+(TimeS)))
-                return true;
-            return false;
-        }
-
-        public String GetFilename()
-        {
-            return FileName;
-        }
-
-        public Vector2[] GetAllBars()
-        {
-            return Bars;
-        }
-
+        /*
         internal float GetMeasureProgress(long currenttime)
         {
             if(currentBar<Bars.Length)
@@ -315,6 +138,7 @@ namespace Unsigned
                 return (int)Bars[currentBar].Y;
             return 1;
         }
+         */
 
         internal void pause()
         {
@@ -344,9 +168,26 @@ namespace Unsigned
 #endif
         }
 
+        /*
         public int GetBeatLength()
         {
             return (int)(Bars[currentBar].X / Bars[currentBar].Y);
+        }
+         */
+
+        public void CreateSingleton(IntPtr game)
+        {
+            SINGLETON_SongAudioMaster = new SongAudioMaster(game);
+        }
+
+        public SongAudioMaster GetSingleton()
+        {
+            return SINGLETON_SongAudioMaster;
+        }
+
+        public void DestroySingleton()
+        {
+            SINGLETON_SongAudioMaster = null;
         }
     }
 }

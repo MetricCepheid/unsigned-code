@@ -73,32 +73,6 @@ namespace Unsigned
         }
     }
 
-    struct Results
-    {
-        public int hitNotes, missedNotes;
-        public int totalNotes, totalSPPH;//temp
-        public int hitSPPH, missedSPPH;
-        public float percentSong;
-    }
-
-    struct VocalWord
-    {
-        public uint time,len;
-        public short sNote, eNote;
-        public string value;
-    }
-
-    struct VocalPhrase
-    {
-        public enum TYPE {REGULAR=0, BLANK=1, RHYTHM=2};
-        public enum RTYPE { TAMBOURINE = 0, COWBELL = 1, CLAP = 2 };
-        public TYPE type;
-        public RTYPE rType;
-        public bool SP;
-        public VocalWord[] words;
-        public uint time;
-    }
-
     class WaveVector2
     {
         public float X;
@@ -142,10 +116,10 @@ namespace Unsigned
         public static Model mdlNote, mdlNoteInside;
         public static Texture2D[] texNotes, texTriggers, texTriggersLit;
         public static Texture2D texTriggerBorder, texTriggerBorderLit;
+        private static Texture2D texLine, texLineEnd;
         public static float BOARD_BUMP_COEF = 0.002f;
         public static float spMeterYScale = 0.4f;
         public int spMeterShift = 7, spMeterShiftDrums=10;
-        private Song song;
         public float flashRot;
         private byte difficulty;
         private int index;
@@ -169,6 +143,15 @@ namespace Unsigned
         float waveoffset=0;
         Results myResults;
 
+        private struct SPCircle
+        {
+            public Vector2 pos;
+            public float rotation;
+            public bool rotDir;
+            public float alpha;
+        }
+        private static SPCircle[] spcircles = new SPCircle[50];
+
         private static uint PILLOW = 100;//padding in front of and behind note
         public static int OFFSET_TO_GBA=0, OFFSET_TO_GBG=1, OFFSET_TO_GBB=2, OFFSET_TO_GBD=3, OFFSET_TO_GBV=4, OFFSET_TO_GBE=5;
 
@@ -181,17 +164,16 @@ namespace Unsigned
         bool SPDelayStart;
 
         private NoteSet[] notes;
-        private VocalPhrase[] vNotes;
         public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
 
-        public Board(Instrument type, int xOffset, Song song, byte difficulty)
+        public Board(Instrument type, int xOffset, SongData song, byte difficulty)
         {
             this.type = type;
             this.xOffset = xOffset;
-            this.song = song;
             this.difficulty = difficulty;
-            LoadNotes(song.GetFilename(),difficulty,song);
+            myResults.instr = type;
+            LoadNotes(difficulty,song);
             score = 0;
             FillIndex = 0;
             SPIndex = 0;
@@ -220,8 +202,41 @@ namespace Unsigned
             return xOffset;
         }
 
-        public static void InitModel(GraphicsDeviceManager graphics, ContentManager content, Effect engine)
+        public static void Load(GraphicsDeviceManager graphics, ContentManager content)
         {
+            for (int i = 0; i < spcircles.Length; i++)
+            {
+                spcircles[i].alpha = (float)r.NextDouble();
+                spcircles[i].rotation = (float)r.NextDouble();
+                spcircles[i].pos = new Vector2((float)r.NextDouble(), (float)r.NextDouble());
+                spcircles[i].rotDir = r.Next() % 2 == 0;
+            }
+            texGlow = content.Load<Texture2D>("graphics\\triggerglow");
+            texLine = content.Load<Texture2D>("graphics\\line");
+            texLineEnd = content.Load<Texture2D>("graphics\\linetaper");
+            texTriggerBorder = content.Load<Texture2D>("graphics\\triggerborder");
+            drumfillTex = content.Load<Texture2D>("graphics\\drumfill");
+            spMeterBG = content.Load<Texture2D>("graphics\\boardmeter");
+            spMeterFill = content.Load<Texture2D>("graphics\\white");
+            spMeterLED = content.Load<Texture2D>("graphics\\bulb");
+            spMeterCurl = content.Load<Texture2D>("graphics\\curl");
+            texTriggerBorderLit = content.Load<Texture2D>("graphics\\triggerborderlit");
+            texBlast = content.Load<Texture2D>("graphics\\blast");
+            texTriggers = new Texture2D[5];
+            for (int i = 0; i < 5; i++)
+                texTriggers[i] = content.Load<Texture2D>("graphics\\trigger" + i);
+            texTriggersLit = new Texture2D[5];
+            for (int i = 0; i < 5; i++)
+                texTriggersLit[i] = content.Load<Texture2D>("graphics\\triggerlit" + i);
+            texNotes = new Texture2D[5];
+            for (int i = 0; i < 5; i++)
+                texNotes[i] = content.Load<Texture2D>("graphics\\notes" + i);
+            vBar = content.Load<Texture2D>("graphics\\vocalbar");
+            vBGExt = content.Load<Texture2D>("graphics\\vocalbg_ext");
+            vBGInt = content.Load<Texture2D>("graphics\\vocalbg_int");
+            vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
+            vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
+            vGlow = content.Load<Texture2D>("graphics\\vGlow");
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,};
                 float[] ys = {  0f,  0f,   .5f,   .5f,   .5f,  0f,       .5f,   .5f,  .85f,   .5f,  .85f,  .85f,      .85f,  .85f,    1f,  .85f,    1f,    1f,};
@@ -255,7 +270,7 @@ namespace Unsigned
                 mdlSPM = new VertexBuffer(graphics.GraphicsDevice, 2 * xs.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
                 mdlSPM.SetData<GBVertexFormat>(zmdlBoard);
             }
-            {
+            /*{
                 mdlNoteInside = content.Load<Model>("meshes\\noteinside");
                 foreach (ModelMesh mesh in mdlNoteInside.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
@@ -264,7 +279,7 @@ namespace Unsigned
                 foreach (ModelMesh mesh in mdlNote.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
                         part.Effect = engine;      
-            }
+            }*/
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     };
                 float[] ys = {  0f, .5f,   .5f,  1.5f,   .5f, .5f,       .5f,  1.5f,  .85f,  1.5f,  .85f, 1.85f,      .85f, 1.85f,    1f, 1.85f,    1f,    2f,     .5f,  1f,  .75f,  1.5f,  .75f,  1f,      1.5f,  1.5f, 1.85f,  1.5f, 1.85f, 1.85f,     1.85f, 1.85f,    2f, 1.85f,    2f,    2f,     .5f,  0f,  1.5f,   .5f,  1.5f,  0f,      1.5f,   .5f, 1.85f,   .5f, 1.85f,  .85f,     1.85f,  .85f,    2f,  .85f,    2f,    1f,     };
@@ -381,7 +396,7 @@ namespace Unsigned
             }
         }
 
-        private void LoadNotes(String filename, byte diff, Song song)
+        private void LoadNotes(String filename, byte diff)
         {
             Vector2[] bars = song.GetAllBars();
             System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + filename + ".uns"));
@@ -392,16 +407,16 @@ namespace Unsigned
             for (int i = 0; i < 6; i++)
                 offsets[i] = reader.ReadInt32();
 
-            if (GetBoardType() == Game1.BASS)
+            if (GetBoardType() == UnsignedGame.BASS)
                 reader.ReadBytes(offsets[OFFSET_TO_GBB] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == Game1.GUITAR)
+            else if (GetBoardType() == UnsignedGame.GUITAR)
                 reader.ReadBytes(offsets[OFFSET_TO_GBG] - offsets[OFFSET_TO_GBA]);
             else if (GetBoardType() == Global.DRUMS)
                 reader.ReadBytes(offsets[OFFSET_TO_GBD] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == Game1.VOCALS)
+            else if (GetBoardType() == UnsignedGame.VOCALS)
                 reader.ReadBytes(offsets[OFFSET_TO_GBV] - offsets[OFFSET_TO_GBA]);
 
-            if (GetBoardType() != Game1.VOCALIST)
+            if (GetBoardType() != UnsignedGame.VOCALIST)
             {
                 int numSPP = reader.ReadInt32();
                 myResults.totalSPPH = numSPP;
@@ -413,7 +428,7 @@ namespace Unsigned
                     SPEnd[i] = reader.ReadInt32() + SPStart[i];
                 }
 
-                if (GetBoardType() == Game1.PERCUSSIONIST)
+                if (GetBoardType() == UnsignedGame.PERCUSSIONIST)
                 {
                     int numDFP = reader.ReadInt32();
                     FillStart = new int[numDFP];
@@ -428,7 +443,7 @@ namespace Unsigned
                         DFHitGreen[i] = false;
                     }
                 }
-                else if (GetBoardType() == Game1.GUITAR)
+                else if (GetBoardType() == UnsignedGame.GUITAR)
                 {
                     int numSolos = reader.ReadInt32();
                     for (int i = 0; i < numSolos; i++)
@@ -438,13 +453,13 @@ namespace Unsigned
                 {
                     bool skip = true;
                     int difr = reader.ReadInt32();
-                    if (diff == Game1.D_EXPERT && difr == 3)
+                    if (diff == UnsignedGame.D_EXPERT && difr == 3)
                         skip = false;
-                    if (diff == Game1.D_HARD && difr == 2)
+                    if (diff == UnsignedGame.D_HARD && difr == 2)
                         skip = false;
-                    if (diff == Game1.D_MEDIUM && difr == 1)
+                    if (diff == UnsignedGame.D_MEDIUM && difr == 1)
                         skip = false;
-                    if (diff == Game1.D_EASY && difr == 0)
+                    if (diff == UnsignedGame.D_EASY && difr == 0)
                         skip = false;
 
                     if (skip)
@@ -541,7 +556,7 @@ namespace Unsigned
 
             reader.Close();
 
-            if (GetBoardType() == Game1.VOCALIST)
+            if (GetBoardType() == UnsignedGame.VOCALIST)
             {
 
                 return;
@@ -587,9 +602,9 @@ namespace Unsigned
             note &= (byte)(~NS_HOPO & 255);
             int numNotes = 0;
             for (int i = 0; i < 5; i++)
-                if ((note & Game1.bits[i]) != 0)
+                if ((note & UnsignedGame.bits[i]) != 0)
                     numNotes++;
-            if (numNotes > 1 && pressed == (note & (~Game1.bits[5])))
+            if (numNotes > 1 && pressed == (note & (~UnsignedGame.bits[5])))
                 return true;
             else if (numNotes > 1)
                 return false;
@@ -597,9 +612,9 @@ namespace Unsigned
                 return false;
             for (int i = 4; i >= 0; i--)
             {
-                if ((note & Game1.bits[i]) != 0)
+                if ((note & UnsignedGame.bits[i]) != 0)
                     return true;
-                if ((pressed & Game1.bits[i]) != 0)
+                if ((pressed & UnsignedGame.bits[i]) != 0)
                     return false;
             }
             return false;
@@ -659,9 +674,9 @@ namespace Unsigned
             return fair;*/
         }
 
-        public byte Update(GameTime gameTime, long currenttime,Game1 reff, int ind, byte pressed)
+        public byte Update(GameTime gameTime, long currenttime,UnsignedGame reff, int ind, byte pressed)
         {
-            if (GetBoardType() != Game1.VOCALS)
+            if (GetBoardType() != UnsignedGame.VOCALS)
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -678,7 +693,7 @@ namespace Unsigned
                     }
                     popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
                 }
-                if (Game1.DemoMode)
+                if (UnsignedGame.DemoMode)
                 {
                     if(index<notes.Length)
                         if (notes[index].time - currenttime < 0)
@@ -696,7 +711,7 @@ namespace Unsigned
                                                 popupSpeed[i] += 100;
                                             else
                                                 popupSpeed[guitarToDrums[i]] += 100;
-                                    flashRot = (float)(Game1.r.Next() * Math.PI * 2);
+                                    flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
                                     return notes[index].type;
 
                                 }
@@ -711,7 +726,7 @@ namespace Unsigned
                                             else
                                                 popupSpeed[guitarToDrums[i]] += 100;
                                     index++;
-                                    flashRot = (float)(Game1.r.Next() * Math.PI * 2);
+                                    flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
                                     return notes[index - 1].type;
                                 }
                             }
@@ -875,9 +890,9 @@ namespace Unsigned
                     SPIndex++;
                 }
 
-                if (GetBoardType() != Game1.BASS && multiplier > 4)
+                if (GetBoardType() != UnsignedGame.BASS && multiplier > 4)
                     multiplier = 4;
-                if (GetBoardType() == Game1.BASS && multiplier > 6)
+                if (GetBoardType() == UnsignedGame.BASS && multiplier > 6)
                     multiplier = 6;
 
                 /*if (GetBoardType() != Game1.PERCUSSIONIST)
@@ -1111,14 +1126,14 @@ namespace Unsigned
 
         public float GetBoardBump()//bass bump
         {
-            if (GetBoardType() == Game1.PERCUSSIONIST)
+            if (GetBoardType() == UnsignedGame.PERCUSSIONIST)
             {
                 return popup[4];
             }
             return 0;
         }
 
-        public byte Strum(byte pressed, long currenttime, Game1 game, int ind)
+        public byte Strum(byte pressed, long currenttime, UnsignedGame game, int ind)
         {
             if (index < notes.Length && notes[index].time - PILLOW < currenttime)
                 notes[index].Strum();
@@ -1245,7 +1260,7 @@ namespace Unsigned
             return 0;*/
         }
 
-        public byte Bang(byte pressed, long currenttime, Game1 game)
+        public byte Bang(byte pressed, long currenttime, UnsignedGame game)
         {
             return 0;
             /*byte newPressed = 0;
@@ -1296,7 +1311,7 @@ namespace Unsigned
 
         public float GetStars()
         {
-            if (GetBoardType() == Game1.VOCALIST)
+            if (GetBoardType() == UnsignedGame.VOCALIST)
                 return 5f;
             int i;
             for (i = 0; i < starPts.Length; i++)
@@ -1320,7 +1335,7 @@ namespace Unsigned
 
         public int GetMultiplierFraction()
         {
-            if (multiplier >= 4 && GetBoardType() != Game1.BASSIST)
+            if (multiplier >= 4 && GetBoardType() != UnsignedGame.BASSIST)
                 return 10;
             else if (multiplier >= 6)
                 return 10;
@@ -1340,7 +1355,7 @@ namespace Unsigned
             return LeftySwitch;
         }
 
-        public bool getWaves(long currenttime)
+        public bool GetWaves(long currenttime)
         {
             int count = 0;
             for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
@@ -1478,12 +1493,12 @@ namespace Unsigned
 
         public void Burn(GameTime gt, byte note)
         {
-            int num = Game1.AddBits((byte)(note & 31));
+            int num = UnsignedGame.AddBits((byte)(note & 31));
             float dt = gt.ElapsedGameTime.Milliseconds / 1000f;
             score += (int)(num * 100 * dt);
         }
 
-        public Results getResults()
+        public Results GetResults()
         {
             return myResults;
         }
@@ -1520,7 +1535,7 @@ namespace Unsigned
             
             for (int i = index; i < vNotes.Length; i++)
             for (int k = 0; k < vNotes[i].words.Length; k++)
-                    spritebatch.DrawString(Game1.DefaultFont, vNotes[i].words[k].value, new Vector2((vocalzerox + (vocalwidth * (vNotes[i].words[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
+                    spritebatch.DrawString(UnsignedGame.DefaultFont, vNotes[i].words[k].value, new Vector2((vocalzerox + (vocalwidth * (vNotes[i].words[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
             spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
         }
 
