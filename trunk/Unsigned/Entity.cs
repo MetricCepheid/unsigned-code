@@ -84,8 +84,8 @@ namespace Unsigned
         public override void Draw(Effect engine, GraphicsDeviceManager graphics, Vector3 CamPos)
         {
             Matrix matIdentity = Matrix.Identity;
-            float xval = (float)Game1.dirdistTOhdist(rotVal * 180 / Math.PI,swingAmt);
-            float yval = (float)Game1.dirdistTOvdist(rotVal * 180 / Math.PI, swingAmt);
+            float xval = (float)UnsignedGame.dirdistTOhdist(rotVal * 180 / Math.PI,swingAmt);
+            float yval = (float)UnsignedGame.dirdistTOvdist(rotVal * 180 / Math.PI, swingAmt);
             xval *= ovalish;
             Matrix transform = GetTransform();
             Matrix matScale = Matrix.CreateScale(Venue.SCALE);

@@ -14,48 +14,50 @@
 
 char[] signature = {'U', 'N', 'S'};
 
-int numInstruments;
-
-//offsets are in bytes
-int offsetToGBA;
-int offsetToInstruments[numInstruments];
-int offsetToGBE;
-
+byte[6*4] redundancy;
 
 //GBA CHUNK Song/FullBand
 
-
 byte Version
+
+uint numInstruments;
+
+//offsets are in bytes from start of file
+uint offsetToInstruments[numInstruments];
+uint offsetToGBE;
 
 String name, artist;
 
-int year;//year song was published (not charted)
+uint year;//year song was published (not charted)
 
 String genre, formattedTime; //time is formatted in HH:MM:SS format
 
 String[8] quotes;
 
 //charters
-int numCharters;
+uint numCharters;
 String[numCharters] charters;
+
+uint numDifficulties;
+byte[numDifficulties] difficulties;
 
 struct BarLine
 {
-	int time;
-	int numBeats;	
+	uint time;
+	uint numBeats;	
 }
 
-int barLinesCount;
+uint barLinesCount;
 
 BarLine[] barLines
 
-int trailingBeatLen;
+uint trailingBeatLen;
 
 byte HasBRE;//(bool) whether the song has a Big Rock Ending
 
 uint BREStart, BREEnd;//in MS from start of song
 
-int numHarmonies;
+uint numHarmonies;
 
 struct Harmony
 {
@@ -70,24 +72,24 @@ Harmony[numHarmonies] harmonies;
 
 char[3] InstrumentType;
 
-int numOverdrivePhrases
+uint numOverdrivePhrases
 
 struct OverdrivePhrase
 {
-	int time;
-	int len;
+	uint time;
+	uint len;
 }
 
 OverdrivePhrase[numOverdrivePhrases] spph;
 
 if(instrument HasSolos)
 {
-	int numSolos;
+	uint numSolos;
 	
 	struct Solo
 	{
-		int time;
-		int len;
+		uint time;
+		uint len;
 	}
 	
 	Solo[numSolos] solos;
@@ -95,15 +97,15 @@ if(instrument HasSolos)
 
 if((instrument RPEnableType)&FILLS != 0)
 {
-	int numDrumFills;
+	uint numFills;
 	
-	struct DrumFill
+	struct Fill
 	{
-		int time;
-		int len;
+		uint time;
+		uint len;
 	}
 	
-	DrumFill[numDrumFills] dFills;
+	Fill[numFills] fills;
 }
 
 struct Note
@@ -113,10 +115,10 @@ struct Note
 	{
 		long endvalue;
 	}
-	int time;//in MS from beginning of song
+	uint time;//in MS from beginning of song
 	if(instrument ContainsHeldNotes)
 	{
-		int len;//0 for non-held notes
+		uint len;//0 for non-held notes
 	}
 	if(instrument ContainsText)
 	{
@@ -132,16 +134,16 @@ struct Phrase
 		byte type;
 		bool rockpower;
 	}
-	int numNotes;
+	uint numNotes;
 	Note[numNotes] notes;
 }
 
 Struct DifficultySet
 {
-	int diff;//3=Expert, 0=Easy, etc
-	int numPhrases;//if instrument TypesOfPhrases == NONE, it always = 1
+	byte diff;//3=Expert, 0=Easy, etc
+	uint numPhrases;//if instrument TypesOfPhrases == NONE, it always = 1
 	Phrase[numPhrases] phrases;
-	int[6] starScoreLevels;
+	uint[6] starScoreLevels;
 }
 
 DifficultySet[4] notedata;
@@ -150,17 +152,17 @@ DifficultySet[4] notedata;
 //GBE CHUNK sfx
 
 
-int numCameraSwitches;
+uint numCameraSwitches;
 
 uint[numCameraSwitches] camSwitches;//in MS from start
 
-int numEffects;
+uint numEffects;
 
 struct Effect
 {
-	int time;
+	uint time;
 	char[2] type;
-	int length;
+	uint length;
 	...
 	//additional data based on type
 }
@@ -171,9 +173,9 @@ Effect[numEffects] effects
 
 struct NormalLightingEffect : Effect
 {
-	int time;
+	uint time;
 	char[2] type = {'l', 'n'};
-	int length;
+	uint length;
 	Color32 color;
 }
 

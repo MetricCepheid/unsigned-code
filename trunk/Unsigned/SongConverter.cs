@@ -1,458 +1,465 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Unsigned
 {
-    class SongConverter
+    /// <summary>
+    /// Contains all data in a songdata file(s)
+    /// </summary>
+    public class SongData
     {
-        public static bool ConvertSong12to17(String fn)
+        public class Effect
         {
+            public int time;
+            public String type;
+            public int length;
+        }
 
-            if (!System.IO.File.Exists("songdata\\" + fn + ".gba"))
-            {
-#if WINDOWS
-                System.Windows.Forms.MessageBox.Show("songdata not found");
-#endif
-                return false;
-            }
-//            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".uns"));
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gba"));
-            byte version = reader.ReadByte();
-            if (version < 12)
-            {
-#if WINDOWS
-                System.Windows.Forms.MessageBox.Show("SongData Version too old");
-#endif
-                return false;
-            }
-            String SongName = reader.ReadString();
-            String ArtistName = reader.ReadString();
-            int year = reader.ReadInt32();
-            String genre = reader.ReadString();
-            String songLength = reader.ReadString();
+        public class NormalLightingEffect : Effect
+        {
+            public Color color;
+        }
 
+        public struct EffectsTrack
+        {
+            public uint[] cameraSwitches;
+            public Effect[] effects;
+        }
+
+        public struct Barline
+        {
+            public uint time;
+            public uint numBeats;
+            public Barline(uint time, uint numBeats)
+            {
+                this.time = time;
+                this.numBeats = numBeats;
+            }
+        }
+
+        public struct BigRockEnding
+        {
+            public bool enabled;
+            public uint start, end;
+        }
+
+        public struct Harmony
+        {
+            public uint start, end;
+            public int instruments;
+            public Harmony(uint start, uint end, int instruments)
+            {
+                this.start = start;
+                this.end = end;
+                this.instruments = instruments;
+            }
+        }
+
+        public struct FullBandChunk
+        {
+            public byte version;
+            public String filename, name, artist;
+            public uint year;
+            public String genre;
+            public TimeSpan length;
+            public String[] quotes;
+            public String[] charters;
+            public byte[] difficulties;
+            public Barline[] barlines;
+            public uint trailingBeatLen;
+            public BigRockEnding bre;
+            public Harmony[] harmonies;
+
+            public String[] SongDisplayInfo;
+
+            public void GenerateSongDisplayInfo()
+            {
+                SongDisplayInfo = new string[3 + charters.Length];
+                SongDisplayInfo[0] = name;
+                SongDisplayInfo[1] = artist;
+                SongDisplayInfo[2] = "Charter" + (charters.Length > 1 ? "s:" : ":");
+                for (int i = 0; i < charters.Length; i++)
+                    SongDisplayInfo[i + 3] = charters[i];
+            }
+        }
+
+        public struct RockPowerPhrase
+        {
+            public uint time, len;
+            public RockPowerPhrase(uint time, uint len)
+            {
+                this.time = time;
+                this.len = len;
+            }
+        }
+
+        public struct Solo
+        {
+            public uint time, len;
+            public Solo(uint time, uint len)
+            {
+                this.time = time;
+                this.len = len;
+            }
+        }
+
+        public struct Fill
+        {
+            public uint time, len;
+            public Fill(uint time, uint len)
+            {
+                this.time = time;
+                this.len = len;
+            }
+        }
+
+        public struct Note
+        {
+            public long value, endvalue;
+            public uint time, len;
+            public String text;
+        }
+
+        public struct Phrase
+        {
+            public uint time;
+            public SongData.TYPE type;
+            public bool rockpower;
+            public SongData.RTYPE rType;
+            public Note[] notes;
+        }
+
+        public struct DifficultySet
+        {
+            public int diff;
+            public Phrase[] phrases;
+            public uint[] starScoreLevels;
+        }
+
+        public struct SongDataInstrument
+        {
+            public String instrumentType;
+            public RockPowerPhrase[] rpPhrases;
+            public Solo[] solos;
+            public Fill[] fills;
+            public DifficultySet[] diffSets;
+        }
+
+        public enum TYPE { REGULAR = 0, BLANK = 1, RHYTHM = 2 };
+        public enum RTYPE { TAMBOURINE = 0, COWBELL = 1, CLAP = 2 };
+
+        public FullBandChunk info;
+        public SongDataInstrument[] instruments;
+        public EffectsTrack effects;
+
+        public SongData()
+        {
+            info = new FullBandChunk();
+            info.quotes = new string[8];
+            effects = new EffectsTrack();
+        }
+    }
+
+    /// <summary>
+    /// Loads songdata files into a SongData struct
+    /// </summary>
+    class SongLoader
+    {
+        public static TimeSpan LengthStringToTimeSpan(String songLength)
+        {
             String z = songLength;
             uint iSongLength = 0;
             iSongLength += 3600u*UInt32.Parse(z.Substring(0, z.IndexOf(':')));
             z = z.Substring(z.IndexOf(':') + 1);
             iSongLength += 60u*UInt32.Parse(z.Substring(0, z.IndexOf(':')));
             iSongLength += UInt32.Parse(z.Substring(z.IndexOf(':') + 1));
-
-            String[] quotes = new string[8];
-            for (int i = 0; i < quotes.Length; i++)
-                quotes[i] = reader.ReadString();
-
-            int numCharters = 6;
-            String[] charters = new String[numCharters];
-            for (int i = 0; i < numCharters; i++)
-                charters[i] = reader.ReadString();
-
-            byte[] diffs = new byte[4];
-            for(int i=0;i<4;i++)
-                diffs[i] = reader.ReadByte();
-            Vector2[] Bars = new Vector2[reader.ReadInt32()];
-            for (int c = 0; c < Bars.Length; c++)
-            {
-                Bars[c] = new Vector2(reader.ReadInt32(), reader.ReadInt32());
-            }
-            int endLength = reader.ReadInt32();
-
-            reader.Close();
-            reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gbg"));
-
-            reader.ReadByte();//version
-            uint[] GuitarSPS = new uint[reader.ReadInt32()];
-            uint[] GuitarSPE = new uint[GuitarSPS.Length];
-            for (int i = 0; i < GuitarSPS.Length; i++)
-            {
-                GuitarSPS[i] = reader.ReadUInt32();
-                GuitarSPE[i] = reader.ReadUInt32();
-            }
-            NoteSet[][] GuitarNotes = new NoteSet[4][];
-            uint[][] GuitarStarLevels = new uint[4][];
-            for (int i = 0; i < 4; i++)
-            {
-                int k = reader.ReadInt32();
-                GuitarNotes[k] = new NoteSet[reader.ReadInt32()];
-                for (int j = 0; j < GuitarNotes[k].Length; j++)
-                {
-                    GuitarNotes[k][j] = new NoteSet();
-                    GuitarNotes[k][j].type = reader.ReadByte();
-                    GuitarNotes[k][j].time = reader.ReadUInt32();
-                    GuitarNotes[k][j].length = reader.ReadInt32();
-                }
-                GuitarStarLevels[k] = new uint[5];
-                for (int j = 0; j < 5; j++)
-                    GuitarStarLevels[k][j] = reader.ReadUInt32();
-            }
-            reader.Close();
-
-            reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gbb"));
-
-            reader.ReadByte();//version
-            uint[] BassSPS = new uint[reader.ReadInt32()];
-            uint[] BassSPE = new uint[BassSPS.Length];
-            for (int i = 0; i < BassSPS.Length; i++)
-            {
-                BassSPS[i] = reader.ReadUInt32();
-                BassSPE[i] = reader.ReadUInt32();
-            }
-            NoteSet[][] BassNotes = new NoteSet[4][];
-            uint[][] BassStarLevels = new uint[4][];
-            for (int i = 0; i < 4; i++)
-            {
-                int k = reader.ReadInt32();
-                BassNotes[k] = new NoteSet[reader.ReadInt32()];
-                for (int j = 0; j < BassNotes[k].Length; j++)
-                {
-                    BassNotes[k][j] = new NoteSet();
-                    BassNotes[k][j].type = reader.ReadByte();
-                    BassNotes[k][j].time = reader.ReadUInt32();
-                    BassNotes[k][j].length = reader.ReadInt32();
-                }
-                BassStarLevels[k] = new uint[5];
-                for (int j = 0; j < 5; j++)
-                    BassStarLevels[k][j] = reader.ReadUInt32();
-            }
-            reader.Close();
-
-            reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gbd"));
-
-            reader.ReadByte();//version
-            uint[] DrumsSPS = new uint[reader.ReadInt32()];
-            uint[] DrumsSPE = new uint[DrumsSPS.Length];
-            for (int i = 0; i < DrumsSPS.Length; i++)
-            {
-                DrumsSPS[i] = reader.ReadUInt32();
-                DrumsSPE[i] = reader.ReadUInt32();
-            }
-            uint[] DrumsDFS = new uint[reader.ReadInt32()];
-            uint[] DrumsDFE = new uint[DrumsDFS.Length];
-            for (int i = 0; i < DrumsDFS.Length; i++)
-            {
-                DrumsDFS[i] = reader.ReadUInt32();
-                DrumsDFE[i] = reader.ReadUInt32();
-            }
-            NoteSet[][] DrumsNotes = new NoteSet[4][];
-            uint[][] DrumsStarLevels = new uint[4][];
-            for (int i = 0; i < 4; i++)
-            {
-                int k = reader.ReadInt32();
-                DrumsNotes[k] = new NoteSet[reader.ReadInt32()];
-                for (int j = 0; j < DrumsNotes[k].Length; j++)
-                {
-                    DrumsNotes[k][j] = new NoteSet();
-                    DrumsNotes[k][j].type = reader.ReadByte();
-                    DrumsNotes[k][j].time = reader.ReadUInt32();
-                }
-                DrumsStarLevels[k] = new uint[5];
-                for (int j = 0; j < 5; j++)
-                    DrumsStarLevels[k][j] = reader.ReadUInt32();
-            }
-            reader.Close();
-
-            reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gbv"));
-
-            reader.ReadByte();//version
-
-            VocalPhrase[] vocals = new VocalPhrase[reader.ReadUInt32()];
-            uint[][] VocalStarLevels = new uint[4][];
-            for (int i = 0; i < vocals.Length; i++)
-            {
-                vocals[i].time = reader.ReadUInt32();
-                vocals[i].type = (VocalPhrase.TYPE)reader.ReadByte();
-                vocals[i].words = new VocalWord[reader.ReadInt32()];
-                if (vocals[i].type == VocalPhrase.TYPE.REGULAR)
-                {
-                    for (int k = 0; k < vocals[i].words.Length; k++)
-                    {
-                        vocals[i].words[k] = new VocalWord();
-                        vocals[i].words[k].time = reader.ReadUInt32();
-                        vocals[i].words[k].len = reader.ReadUInt32();
-                        vocals[i].words[k].sNote = reader.ReadInt16();
-                        vocals[i].words[k].value = reader.ReadString();
-                    }
-                }
-                else if (vocals[i].type == VocalPhrase.TYPE.RHYTHM)
-                {
-                    vocals[i].rType = (VocalPhrase.RTYPE)reader.ReadByte();
-                    for (int k = 0; k < vocals[i].words.Length; k++)
-                    {
-                        vocals[i].words[k] = new VocalWord();
-                        vocals[i].words[k].time = reader.ReadUInt32();
-                    }
-                }
-            }
-            VocalStarLevels[0] = new uint[5];
-            for (int j = 0; j < 5; j++)
-                VocalStarLevels[0][j] = reader.ReadUInt32();
-            reader.Close();
-
-            reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".gbe"));
-
-            reader.ReadByte();//version
-            uint[] camSwitches = new uint[reader.ReadInt32()];
-            for (int i = 0; i < camSwitches.Length; i++)
-                camSwitches[i] = reader.ReadUInt32();
-
-            reader.Close();
-
-            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".uns"));
-
-            writer.Write('U');
-            writer.Write('N');
-            writer.Write('S');
-
-            int offsetToGBA = 3 + (4 * 6);
-
-            int offsetToGBG = offsetToGBA;
-            offsetToGBG += 1 + 1 + 1 + 1 + 1 + 4;
-            offsetToGBG += SongName.Length + ArtistName.Length
-                        + genre.Length + songLength.Length;
-            for (int i = 0; i < 8; i++)
-                offsetToGBG += ((quotes[i].Length/128)+1)+quotes[i].Length;
-            offsetToGBG += 6 * 1;
-            for (int i = 0; i < 6; i++)
-                offsetToGBG += charters[i].Length;
-            offsetToGBG += 1 * 4;
-            offsetToGBG += 4;
-            offsetToGBG += 8 * Bars.Length;
-            offsetToGBG += 4;
-            offsetToGBG += 1 + 4 + 4;
-            offsetToGBG += 4;
-
-            int offsetToGBB = offsetToGBG;
-            offsetToGBB += 4 + 4;
-            offsetToGBB += GuitarSPS.Length * 8;
-            for (int i = 0; i < 4; i++)
-            {
-                offsetToGBB += 4 * 7;
-                offsetToGBB += 9 * GuitarNotes[i].Length;
-            }
-
-            int offsetToGBD = offsetToGBB;
-            offsetToGBD += 4;
-            offsetToGBD += BassSPS.Length * 8;
-            for (int i = 0; i < 4; i++)
-            {
-                offsetToGBD += 4 * 7;
-                offsetToGBD += 9 * BassNotes[i].Length;
-            }
-
-            int offsetToGBV = offsetToGBD;
-            offsetToGBV += 4 + 4;
-            offsetToGBV += DrumsSPS.Length * 8;
-            offsetToGBV += DrumsDFS.Length * 8;
-            for (int i = 0; i < 4; i++)
-            {
-                offsetToGBV += 4 * 7;
-                offsetToGBV += 5 * DrumsNotes[i].Length;
-            }
-
-            int offsetToGBE = offsetToGBV;
-            offsetToGBE += 4;
-            for (int i = 0; i < vocals.Length; i++)
-            {
-                offsetToGBE += 10;
-                if (vocals[i].type == VocalPhrase.TYPE.REGULAR)
-                {
-                    for (int k = 0; k < vocals[i].words.Length; k++)
-                    {
-                        offsetToGBE += 13;
-                        offsetToGBE += vocals[i].words[k].value.Length;
-                    }
-                }
-                else if (vocals[i].type == VocalPhrase.TYPE.RHYTHM)
-                {
-                    offsetToGBE += 1;
-                    offsetToGBE += 4 * vocals[i].words.Length;
-                }
-            }
-            offsetToGBE += 4 * 4 * 5;
-
-            //GBA
-
-            writer.Write(offsetToGBA);
-            writer.Write(offsetToGBG);
-            writer.Write(offsetToGBB);
-            writer.Write(offsetToGBD);
-            writer.Write(offsetToGBV);
-            writer.Write(offsetToGBE);
-
-            writer.Write((byte)17);
-
-            writer.Write(SongName);
-            writer.Write(ArtistName);
-            writer.Write(year);
-            writer.Write(genre);
-            writer.Write(songLength);
-            for (int i = 0; i < 8; i++)
-                writer.Write(quotes[i]);
-
-            for (int i = 0; i < charters.Length; i++)
-                writer.Write(charters[i]);
-
-            for (int i = 0; i < diffs.Length; i++)
-                writer.Write(diffs[i]);
-
-            writer.Write(Bars.Length);
-            for (int i = 0; i < Bars.Length; i++)
-            {
-                writer.Write((int)Bars[i].X);
-                writer.Write((int)Bars[i].Y);
-            }
-            writer.Write(endLength);
-
-            writer.Write(false);
-            writer.Write(0);
-            writer.Write(0);
-
-            writer.Write(0);
-
-            //GBG
-
-            writer.Write(GuitarSPS.Length);
-            for (int i = 0; i < GuitarSPS.Length; i++)
-            {
-                writer.Write(GuitarSPS[i]);
-                writer.Write(GuitarSPE[i]);
-            }
-
-            writer.Write(0);
-
-            for (int i = 3; i >= 0; i--)
-            {
-                writer.Write(i);
-                writer.Write(GuitarNotes[i].Length);
-                for (int k = 0; k < GuitarNotes[i].Length; k++)
-                {
-                    writer.Write(GuitarNotes[i][k].type);
-                    writer.Write(GuitarNotes[i][k].time);
-                    writer.Write(GuitarNotes[i][k].length);
-                }
-                for (int k = 0; k < 5; k++)
-                    writer.Write(GuitarStarLevels[i][k]);
-            }
-
-            //GBB
-
-            writer.Write(BassSPS.Length);
-            for (int i = 0; i < BassSPS.Length; i++)
-            {
-                writer.Write(BassSPS[i]);
-                writer.Write(BassSPE[i]);
-            }
-
-            for (int i = 3; i >= 0; i--)
-            {
-                writer.Write(i);
-                writer.Write(BassNotes[i].Length);
-                for (int k = 0; k < BassNotes[i].Length; k++)
-                {
-                    writer.Write(BassNotes[i][k].type);
-                    writer.Write(BassNotes[i][k].time);
-                    writer.Write(BassNotes[i][k].length);
-                }
-                for (int k = 0; k < 5; k++)
-                    writer.Write(BassStarLevels[i][k]);
-            }
-
-            //GBD
-
-            writer.Write(DrumsSPS.Length);
-            for (int i = 0; i < DrumsSPS.Length; i++)
-            {
-                writer.Write(DrumsSPS[i]);
-                writer.Write(DrumsSPE[i]);
-            }
-
-            writer.Write(DrumsDFS.Length);
-            for (int i = 0; i < DrumsDFS.Length; i++)
-            {
-                writer.Write(DrumsDFS[i]);
-                writer.Write(DrumsDFE[i]);
-            }
-
-            for (int i = 3; i >= 0; i--)
-            {
-                writer.Write(i);
-                writer.Write(DrumsNotes[i].Length);
-                for (int k = 0; k < DrumsNotes[i].Length; k++)
-                {
-                    writer.Write(DrumsNotes[i][k].type);
-                    writer.Write(DrumsNotes[i][k].time);
-                }
-                for (int k = 0; k < 5; k++)
-                    writer.Write(DrumsStarLevels[i][k]);
-            }
-
-            //GBV
-
-            writer.Write(vocals.Length);
-
-            for (int i = 0; i < vocals.Length; i++)
-            {
-                writer.Write(vocals[i].time);
-                writer.Write((byte)vocals[i].type);
-                writer.Write(false);
-                writer.Write(vocals[i].words.Length);
-                if (vocals[i].type == VocalPhrase.TYPE.REGULAR)
-                {
-                    for (int k = 0; k < vocals[i].words.Length; k++)
-                    {
-                        writer.Write(vocals[i].words[k].time);
-                        writer.Write(vocals[i].words[k].len);
-                        writer.Write(vocals[i].words[k].sNote);
-                        writer.Write(vocals[i].words[k].sNote);
-                        writer.Write(vocals[i].words[k].value);
-                    }
-                }
-                else if (vocals[i].type == VocalPhrase.TYPE.RHYTHM)
-                {
-                    writer.Write((byte)vocals[i].rType);
-                    for (int k = 0; k < vocals[i].words.Length; k++)
-                        writer.Write(vocals[i].words[k].time);
-                }
-
-            }
-            for (int i = 0; i < 4; i++)
-                for (int k = 0; k < 5; k++)
-                    writer.Write(VocalStarLevels[0][k]);
-
-            //GBE
-
-            writer.Write(camSwitches.Length);
-
-            for (int i = 0; i < camSwitches.Length; i++)
-                writer.Write(camSwitches[i]);
-
-            writer.Write(0);
-
-            writer.Write(0);
-            writer.Write('l');
-            writer.Write('n');
-            writer.Write(iSongLength);
-            writer.Write(0xFFFFFFFF);
-
-            writer.Close();
-
-            return true;
+            return TimeSpan.FromSeconds(iSongLength);
         }
 
-        public static bool ConvertSong17to18(String fn)
+        private static String[] GetCharters(List<String> charters)
         {
+            int numCharters = charters.Count; ;
+            int[] numC = new int[numCharters];
+            string[] charters2 = new string[numCharters];
+            charters2[0] = charters[0];
+            numC[0]++;
+            int nC2 = 1;
+            for (int i = 1; i < numCharters; i++)
+            {
+                int k;
+                for (k = 0; k < nC2; k++)
+                    if (charters[i].Equals(charters2[k]))
+                    {
+                        numC[k]++;
+                        break;
+                    }
+                if (k >= nC2)
+                {
+                    charters2[k] = charters[i];
+                    numC[k]++;
+                    nC2++;
+                }
+            }
+            if (nC2 > 2)
+            {
+                for (int i = 2; i < nC2; i++)
+                {
+                    for (int k = i - 1; k >= 1; k--)
+                    {
+                        if (numC[k] > numC[k + 1])
+                        {
+                            int t = numC[k];
+                            numC[k] = numC[k + 1];
+                            numC[k + 1] = t;
+                            string s = charters2[k];
+                            charters2[k] = charters2[k + 1];
+                            charters2[k + 1] = s;
+                        }
+                        else
+                            break;
+                    }
+                }
+            }
+            String[] ret = new String[nC2];
+            for (int i = 0; i < nC2; i++)
+                ret[i] = charters2[i];
+            return ret;
+        }
 
-            if (!System.IO.File.Exists("songdata\\" + fn + ".uns"))
+        public static SongData LoadSong12(String fn)
+        {
+            SongData ret = new SongData();
+            if (!File.Exists("songdata\\" + fn + ".gba"))
             {
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("songdata not found");
 #endif
-                return false;
+                return null;
             }
-            //            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".uns"));
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + fn + ".uns"));
+//            BinaryWriter writer = new BinaryWriter(File.OpenWrite("songdata\\" + fn + ".uns"));
+            BinaryReader reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gba"));
+            ret.info.version = reader.ReadByte();
+            if (ret.info.version < 12)
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("SongData Version too old");
+#endif
+                return null;
+            }
+            ret.info.name = reader.ReadString();
+            ret.info.artist = reader.ReadString();
+            ret.info.year = reader.ReadUInt32();
+            ret.info.genre = reader.ReadString();
+            ret.info.length = LengthStringToTimeSpan(reader.ReadString());
+            ret.info.quotes = new string[8];
+            for (int i = 0; i < ret.info.quotes.Length; i++)
+                ret.info.quotes[i] = reader.ReadString();
+
+            int numCharters = 6;
+            List<String> chtemp = new List<String>();
+            for (int i = 0; i < numCharters; i++)
+                chtemp.Add(reader.ReadString());
+            ret.info.charters = GetCharters(chtemp);
+
+            ret.info.difficulties = new byte[4];
+            for(int i=0;i<4;i++)
+                ret.info.difficulties[i] = reader.ReadByte();
+            ret.info.barlines = new SongData.Barline[reader.ReadInt32()];
+            for (int c = 0; c < ret.info.barlines.Length; c++)
+            {
+                ret.info.barlines[c] = new SongData.Barline(reader.ReadUInt32(), reader.ReadUInt32());
+            }
+            ret.info.trailingBeatLen = reader.ReadUInt32();
+
+            reader.Close();
+
+            ret.instruments = new SongData.SongDataInstrument[4];
+
+            reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gbg"));
+
+            reader.ReadByte();//version
+            SongData.SongDataInstrument guitar = new SongData.SongDataInstrument();
+            guitar.instrumentType = "LGT";
+
+            guitar.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            for (int i = 0; i < guitar.rpPhrases.Length; i++)
+            {
+                guitar.rpPhrases[i] = new SongData.RockPowerPhrase();
+                guitar.rpPhrases[i].time = reader.ReadUInt32();
+                guitar.rpPhrases[i].len = reader.ReadUInt32();
+            }
+            guitar.diffSets = new SongData.DifficultySet[4];
+            for (int i = 0; i < 4; i++)
+            {
+                int k = reader.ReadInt32();
+                guitar.diffSets[k].diff = k;
+                guitar.diffSets[k].phrases = new SongData.Phrase[1];
+                guitar.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
+                SongData.Note[] arr = guitar.diffSets[k].phrases[0].notes;
+                for (int j = 0; j < arr.Length; j++)
+                {
+                    arr[j] = new SongData.Note();
+                    arr[j].value = reader.ReadByte();
+                    arr[j].time = reader.ReadUInt32();
+                    arr[j].len = reader.ReadUInt32();
+                }
+                guitar.diffSets[k].starScoreLevels = new uint[6];
+                for (int j = 0; j < 5; j++)
+                    guitar.diffSets[k].starScoreLevels[j] = reader.ReadUInt32();
+            }
+            reader.Close();
+
+            ret.instruments[0] = guitar;
+
+            reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gbb"));
+
+            reader.ReadByte();//version
+
+            SongData.SongDataInstrument bass = new SongData.SongDataInstrument();
+            bass.instrumentType = "BAS";
+
+            bass.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            for (int i = 0; i < bass.rpPhrases.Length; i++)
+            {
+                bass.rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            }
+            bass.diffSets = new SongData.DifficultySet[4];
+            for (int i = 0; i < 4; i++)
+            {
+                int k = reader.ReadInt32();
+                bass.diffSets[k] = new SongData.DifficultySet();
+                bass.diffSets[k].phrases = new SongData.Phrase[1];
+                bass.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
+                SongData.Note[] arr = bass.diffSets[k].phrases[0].notes;
+                for (int j = 0; j < arr.Length; j++)
+                {
+                    arr[j] = new SongData.Note();
+                    arr[j].value = reader.ReadByte();
+                    arr[j].time = reader.ReadUInt32();
+                    arr[j].len = reader.ReadUInt32();
+                }
+                bass.diffSets[k].starScoreLevels = new uint[6];
+                for (int j = 0; j < 5; j++)
+                    bass.diffSets[k].starScoreLevels[j] = reader.ReadUInt32();
+            }
+            reader.Close();
+
+            ret.instruments[3] = bass;
+
+            reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gbd"));
+
+            SongData.SongDataInstrument drums = new SongData.SongDataInstrument();
+            drums.instrumentType = "SET";
+
+            reader.ReadByte();//version
+            drums.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            for (int i = 0; i < drums.rpPhrases.Length; i++)
+            {
+                drums.rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(),reader.ReadUInt32());
+            }
+            drums.fills = new SongData.Fill[reader.ReadInt32()];
+            for (int i = 0; i < drums.fills.Length; i++)
+            {
+                drums.fills[i] = new SongData.Fill(reader.ReadUInt32(),reader.ReadUInt32());
+            }
+            drums.diffSets = new SongData.DifficultySet[4];
+            for (int i = 0; i < 4; i++)
+            {
+                int k = reader.ReadInt32();
+                drums.diffSets[k] = new SongData.DifficultySet();
+                drums.diffSets[k].phrases = new SongData.Phrase[1];
+                drums.diffSets[k].phrases[0] = new SongData.Phrase();
+                drums.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
+                SongData.Note[] arr = drums.diffSets[k].phrases[0].notes;
+                for (int j = 0; j < arr.Length; j++)
+                {
+                    arr[j] = new SongData.Note();
+                    arr[j].value = reader.ReadByte();
+                    arr[j].time = reader.ReadUInt32();
+                }
+                drums.diffSets[k].starScoreLevels = new uint[6];
+                for (int j = 0; j < 5; j++)
+                    drums.diffSets[k].starScoreLevels[j] = reader.ReadUInt32();
+            }
+            reader.Close();
+
+            ret.instruments[2] = drums;
+
+            reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gbv"));
+
+            SongData.SongDataInstrument vocals = new SongData.SongDataInstrument();
+
+            reader.ReadByte();//version
+
+            vocals.instrumentType = "LVX";
+            vocals.diffSets = new SongData.DifficultySet[4];
+            vocals.diffSets[3].phrases = new SongData.Phrase[reader.ReadUInt32()];
+            for (int i = 0; i < vocals.diffSets[3].phrases.Length; i++)
+            {
+                vocals.diffSets[3].phrases[i].time = reader.ReadUInt32();
+                vocals.diffSets[3].phrases[i].type = (SongData.TYPE)reader.ReadByte();
+                vocals.diffSets[3].phrases[i].notes = new SongData.Note[reader.ReadInt32()];
+                if (vocals.diffSets[3].phrases[i].type == SongData.TYPE.REGULAR)
+                {
+                    for (int k = 0; k < vocals.diffSets[3].phrases[i].notes.Length; k++)
+                    {
+                        vocals.diffSets[3].phrases[i].notes[k] = new SongData.Note();
+                        vocals.diffSets[3].phrases[i].notes[k].time = reader.ReadUInt32();
+                        vocals.diffSets[3].phrases[i].notes[k].len = reader.ReadUInt32();
+                        vocals.diffSets[3].phrases[i].notes[k].value = reader.ReadInt16();
+                        vocals.diffSets[3].phrases[i].notes[k].endvalue = vocals.diffSets[3].phrases[i].notes[k].value;
+                        vocals.diffSets[3].phrases[i].notes[k].text = reader.ReadString();
+                    }
+                }
+                else if (vocals.diffSets[3].phrases[i].type == SongData.TYPE.RHYTHM)
+                {
+                    vocals.diffSets[3].phrases[i].rType = (SongData.RTYPE)reader.ReadByte();
+                    for (int k = 0; k < vocals.diffSets[3].phrases[i].notes.Length; k++)
+                    {
+                        vocals.diffSets[3].phrases[i].notes[k] = new SongData.Note();
+                        vocals.diffSets[3].phrases[i].notes[k].time = reader.ReadUInt32();
+                    }
+                }
+                else if (vocals.diffSets[3].phrases[i].type == SongData.TYPE.BLANK)
+                    vocals.diffSets[3].phrases[i].notes = new SongData.Note[0];
+            }
+            vocals.diffSets[3].starScoreLevels = new uint[6];
+            for (int j = 0; j < 5; j++)
+                vocals.diffSets[3].starScoreLevels[j] = reader.ReadUInt32();
+            reader.Close();
+
+            ret.instruments[1] = vocals;
+
+            reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".gbe"));
+
+            reader.ReadByte();//version
+            ret.effects.cameraSwitches = new uint[reader.ReadInt32()];
+            for (int i = 0; i < ret.effects.cameraSwitches.Length; i++)
+                ret.effects.cameraSwitches[i] = reader.ReadUInt32();
+
+            reader.Close();
+
+            return ret;
+        }
+
+        public static SongData LoadSong17(String fn)
+        {
+
+            if (!File.Exists("songdata\\" + fn + ".uns"))
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("songdata not found");
+#endif
+                return null;
+            }
+
+            SongData ret = new SongData();
+
+            BinaryReader reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".uns"));
 
             reader.ReadBytes(3);//UNS
 
@@ -463,29 +470,189 @@ namespace Unsigned
             int offsetToGBV = reader.ReadInt32();
             int offsetToGBE = reader.ReadInt32();
 
-            byte version = reader.ReadByte();
-            if (version < 17)
+            ret.info.version = reader.ReadByte();
+            if (ret.info.version != 17)
             {
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("SongData Version too old");
 #endif
-                return false;
+                return null;
             }
 
-            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite("songdata\\" + fn + ".unstemp"));
+            ret.info.name = reader.ReadString();
+            ret.info.artist = reader.ReadString();
+            ret.info.year = reader.ReadUInt32();
+            ret.info.genre = reader.ReadString();
+            ret.info.length = LengthStringToTimeSpan(reader.ReadString());
+            ret.info.quotes = new string[8];
+            for (int i = 0; i < 8; i++)
+                ret.info.quotes[i] = reader.ReadString();
 
-            writer.Write('U');
-            writer.Write('N');
-            writer.Write('S');
+            List<String> charters = new List<String>();
+            for (int i = 0; i < 6; i++)
+            {
+                String str = reader.ReadString();
+                if (charters.Contains(str))
+                    charters.Add(str);
+            }
+            ret.info.charters = charters.ToArray();
 
-            writer.Write(4);
+            reader.ReadUInt32();//irrelevant diffs
 
-            writer.Write(offsetToGBA);
+            ret.info.barlines = new SongData.Barline[reader.ReadInt32()];
+            for (int i = 0; i < ret.info.barlines.Length; i++)
+                ret.info.barlines[i] = new SongData.Barline(reader.ReadUInt32(), reader.ReadUInt32());
 
-            writer.Write(offsetToGBG);
+            ret.info.trailingBeatLen = reader.ReadUInt32();
 
-            writer.Write((offsetToGBB - offsetToGBG)+(8*4));
+            ret.info.bre.enabled = reader.ReadBoolean();
+            ret.info.bre.start = reader.ReadUInt32();
+            ret.info.bre.end = reader.ReadUInt32();
 
+            ret.info.harmonies = new SongData.Harmony[reader.ReadUInt32()];
+            for (int i = 0; i < ret.info.harmonies.Length; i++)
+                ret.info.harmonies[i] = new SongData.Harmony(reader.ReadUInt32(), reader.ReadUInt32(), (int)reader.ReadByte());
+
+            ret.instruments = new SongData.SongDataInstrument[4];
+
+            //guitar
+            ret.instruments[0] = new SongData.SongDataInstrument();
+            ret.instruments[0].instrumentType = "LGT";
+            ret.instruments[0].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            for (int i = 0; i < ret.instruments[0].rpPhrases.Length; i++)
+                ret.instruments[0].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[0].solos = new SongData.Solo[reader.ReadUInt32()];
+            for (int i = 0; i < ret.instruments[0].solos.Length; i++)
+                ret.instruments[0].solos[i] = new SongData.Solo(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[0].diffSets = new SongData.DifficultySet[4];
+            for (int ir = 0; ir < 4; ir++)
+            {
+                uint k = reader.ReadUInt32();
+                ret.instruments[0].diffSets[k].phrases = new SongData.Phrase[1];
+                ret.instruments[0].diffSets[k].phrases[0] = new SongData.Phrase();
+                ret.instruments[0].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                for(int i=0;i<ret.instruments[0].diffSets[k].phrases[0].notes.Length;i++)
+                {
+                    SongData.Note note = new SongData.Note();
+                    note.value = (long)reader.ReadByte();
+                    note.time = reader.ReadUInt32();
+                    note.len = reader.ReadUInt32();
+                    ret.instruments[0].diffSets[k].phrases[0].notes[i] = note;
+                }
+                ret.instruments[0].diffSets[k].starScoreLevels = new uint[6];
+                for (int i = 0; i < 5; i++)
+                    ret.instruments[0].diffSets[k].starScoreLevels[i] = reader.ReadUInt32();
+            }
+
+
+            //bass
+            ret.instruments[3] = new SongData.SongDataInstrument();
+            ret.instruments[3].instrumentType = "BAS";
+            ret.instruments[3].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            for (int i = 0; i < ret.instruments[3].rpPhrases.Length; i++)
+                ret.instruments[3].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[3].diffSets = new SongData.DifficultySet[4];
+            for (int ir = 0; ir < 4; ir++)
+            {
+                uint k = reader.ReadUInt32();
+                ret.instruments[3].diffSets[k].phrases = new SongData.Phrase[1];
+                ret.instruments[3].diffSets[k].phrases[0] = new SongData.Phrase();
+                ret.instruments[3].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                for (int i = 0; i < ret.instruments[3].diffSets[k].phrases[0].notes.Length; i++)
+                {
+                    SongData.Note note = new SongData.Note();
+                    note.value = (long)reader.ReadByte();
+                    note.time = reader.ReadUInt32();
+                    note.len = reader.ReadUInt32();
+                    ret.instruments[3].diffSets[k].phrases[0].notes[i] = note;
+                }
+                ret.instruments[3].diffSets[k].starScoreLevels = new uint[6];
+                for (int i = 0; i < 5; i++)
+                    ret.instruments[3].diffSets[k].starScoreLevels[i] = reader.ReadUInt32();
+            }
+
+
+            //drums
+            ret.instruments[2] = new SongData.SongDataInstrument();
+            ret.instruments[2].instrumentType = "SET";
+            ret.instruments[2].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            for (int i = 0; i < ret.instruments[2].rpPhrases.Length; i++)
+                ret.instruments[2].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[2].fills = new SongData.Fill[reader.ReadUInt32()];
+            for (int i = 0; i < ret.instruments[2].fills.Length; i++)
+                ret.instruments[2].fills[i] = new SongData.Fill(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[2].diffSets = new SongData.DifficultySet[4];
+            for (int ir = 0; ir < 4; ir++)
+            {
+                uint k = reader.ReadUInt32();
+                ret.instruments[2].diffSets[k].phrases = new SongData.Phrase[1];
+                ret.instruments[2].diffSets[k].phrases[0] = new SongData.Phrase();
+                ret.instruments[2].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                for (int i = 0; i < ret.instruments[2].diffSets[k].phrases[0].notes.Length; i++)
+                {
+                    SongData.Note note = new SongData.Note();
+                    note.value = (long)reader.ReadByte();
+                    note.time = reader.ReadUInt32();
+                    ret.instruments[2].diffSets[k].phrases[0].notes[i] = note;
+                }
+                ret.instruments[2].diffSets[k].starScoreLevels = new uint[6];
+                for (int i = 0; i < 5; i++)
+                    ret.instruments[2].diffSets[k].starScoreLevels[i] = reader.ReadUInt32();
+            }
+
+
+            //vocals
+            ret.instruments[1] = new SongData.SongDataInstrument();
+            ret.instruments[1].instrumentType = "LVX";
+            ret.instruments[1].diffSets = new SongData.DifficultySet[4];
+            ret.instruments[1].diffSets[3].phrases = new SongData.Phrase[reader.ReadUInt32()];
+            for (int j = 0; j < ret.instruments[1].diffSets[3].phrases.Length; j++)
+            {
+                ret.instruments[1].diffSets[3].phrases[j] = new SongData.Phrase();
+                ret.instruments[1].diffSets[3].phrases[j].type = (SongData.TYPE)reader.ReadByte();
+                ret.instruments[1].diffSets[3].phrases[j].rockpower = reader.ReadBoolean();
+                ret.instruments[1].diffSets[3].phrases[j].notes = new SongData.Note[reader.ReadUInt32()];
+                if (ret.instruments[1].diffSets[3].phrases[j].type == SongData.TYPE.REGULAR)
+                {
+                    for (int i = 0; i < ret.instruments[1].diffSets[3].phrases[i].notes.Length; i++)
+                    {
+                        SongData.Note note = new SongData.Note();
+                        note.time = reader.ReadUInt32();
+                        note.len = reader.ReadUInt32();
+                        note.value = reader.ReadUInt16();
+                        note.endvalue = reader.ReadUInt16();
+                        note.text = reader.ReadString();
+                        ret.instruments[1].diffSets[3].phrases[j].notes[i] = note;
+                    }
+                }
+                else if (ret.instruments[1].diffSets[3].phrases[j].type == SongData.TYPE.RHYTHM)
+                {
+                    ret.instruments[1].diffSets[3].phrases[j].rType = (SongData.RTYPE)reader.ReadByte();
+                    for (int i = 0; i < ret.instruments[1].diffSets[3].phrases[i].notes.Length; i++)
+                    {
+                        SongData.Note note = new SongData.Note();
+                        note.time = reader.ReadUInt32();
+                        ret.instruments[1].diffSets[3].phrases[j].notes[i] = note;
+                    }
+                }
+            }
+            for (int ir = 0; ir < 4; ir++)
+            {
+                ret.instruments[1].diffSets[ir].starScoreLevels = new uint[6];
+                for (int i = 0; i < 5; i++)
+                    ret.instruments[1].diffSets[ir].starScoreLevels[i] = reader.ReadUInt32();
+            }
+
+
+            //effects
+            ret.effects.effects = new SongData.Effect[0];
+            ret.effects.cameraSwitches = new uint[reader.ReadUInt32()];
+            for (int i = 0; i < ret.effects.cameraSwitches.Length; i++)
+                ret.effects.cameraSwitches[i] = reader.ReadUInt32();
+
+            reader.Close();
+
+            return ret;
 
         }
     }

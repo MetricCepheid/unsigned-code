@@ -9,7 +9,7 @@ namespace Unsigned
         /// </summary>
         static void Main(string[] args)
         {
-            using (Game1 game = new Game1())
+            using (UnsignedGame game = new UnsignedGame())
             {
 #if !DEBUG
                 try

@@ -45,8 +45,7 @@ namespace Unsigned
 
     static class Global
     {
-        public static Texture2D gradient;
-        public static Texture2D texWhite;
+        public static Texture2D gradient, texWhite, texDefaultBM;
         public static byte[] bits = { 1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, 1 << 6, 1 << 7 };
         public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
         public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
@@ -56,7 +55,25 @@ namespace Unsigned
         public static SpriteFont DefaultFont, BigFont, SmallFont;
         public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
-        public static Texture2D texDefaultBM;
         public static VertexDeclaration vd;
+        public static int[] multToIndex = { -1, -1, 0, 1, 2, 3, 4, -1, 5, -1, 6, -1, 7 };
+        public static bool DemoMode;
+        public const byte M_GAME = 1, M_FREESTYLE = 2;
+        public static byte mode = M_GAME;
+        public static Random random;
+
+        public static void Write(String output)
+        {
+#if DEBUG
+            Console.Write(output);
+#endif
+        }
+
+        public static void WriteLine(String output)
+        {
+#if DEBUG
+            Console.WriteLine(output);
+#endif
+        }
     }
 }

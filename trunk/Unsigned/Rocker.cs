@@ -16,7 +16,7 @@ namespace Unsigned
         private Texture2D tex;
         private Vector3 position;
                                      
-        public Rocker(String filename, Game1 game, ContentManager cont, Effect e) : base(game)
+        public Rocker(String filename, UnsignedGame game, ContentManager cont, Effect e) : base(game)
         {
             content = cont;
             FileName = filename;

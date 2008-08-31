@@ -1454,18 +1454,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="charmodels\dude.fbx">
-      <Name>dude</Name>
-      <Importer>FbxImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-    </Compile>
-    <Compile Include="charmodels\SkinnedModel.fx">
-      <Name>SkinnedModel</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="shaders\HFPS_Shader_XNA_360.fx">
       <Name>HFPS_Shader_XNA_360</Name>
       <Importer>EffectImporter</Importer>
@@ -1636,6 +1624,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="audio\" />
+    <Folder Include="charmodels\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
