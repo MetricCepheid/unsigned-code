@@ -67,12 +67,20 @@ namespace Unsigned
 
         public override void Load(ContentManager content)
         {
-
+            texSnakeSkin = content.Load<Texture2D>("graphics\\snake");
+            mSnake = content.Load<Model>("meshes\\snake");
+            rtSnake = new RenderTarget2D(RenderMaster.GetSingleton().graphics.GraphicsDevice, 512, 128, 1, SurfaceFormat.Color);
+            waves = content.Load<Texture2D>("graphics\\waves");
+            wave = content.Load<Texture2D>("graphics\\wave");
+            songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
+            texHeader = content.Load<Texture2D>("graphics\\header");
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
-
+            texSnakeSkin = null;
+            mSnake = null;
+            rtSnake = null;
         }
 
         public override void Update(GameTime gameTime)

@@ -34,7 +34,7 @@ namespace Unsigned
             bEffect = new BasicEffect(RenderMaster.GetSingleton().graphics.GraphicsDevice, new EffectPool());
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
 
         }

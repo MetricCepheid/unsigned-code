@@ -23,8 +23,9 @@ namespace Unsigned
         {
             peripheralTypes = new List<Type>();
             controllerAssemblies = new Assembly[1];
-            controllerAssemblies[0] = Assembly.LoadFile("Xbox360Controller.dll");
+            controllerAssemblies[0] = Assembly.LoadFile(System.IO.Directory.GetCurrentDirectory()+"\\Xbox360Controller.dll");
             ownedPeripherals = new Peripheral[4];
+            connections = new Peripheral[0];
         }
 
         public void ReloadDLLs()

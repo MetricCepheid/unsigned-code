@@ -15,12 +15,12 @@ namespace Unsigned
         public Matrix Projection, View, World;
         public GraphicsDeviceManager graphics;
         public SpriteBatch spritebatch;
-        private RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
+        public RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
         public SpriteFont fontHandwritten;
 
-        public SpriteBatch Spritebatch;
+        public Texture2D lastframe;
 
-        private Texture2D texGlow;
+        public SpriteBatch Spritebatch;
 
 
         public RenderState RenderState
@@ -40,31 +40,15 @@ namespace Unsigned
             fader = content.Load<Effect>("shaders\\BoardFade");
 
             screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
-            if (HALF_RENDER)
+            if (GameSettings.HALF_RENDER)
             {
                 screenTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth / 2, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
                 screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth / 2, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
-                rtBoard = new RenderTarget2D[4];
-                rtWaves = new RenderTarget2D[4];
-                for (int i = 0; i < 4; i++)
-                    if (instruments[i] && i != 1)
-                    {
-                        rtBoard[i] = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 4, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
-                        rtWaves[i] = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 4, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
-                    }
             }
             else
             {
                 screenTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
                 screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
-                rtBoard = new RenderTarget2D[4];
-                rtWaves = new RenderTarget2D[4];
-                for (int i = 0; i < 4; i++)
-                    if (instruments[i] && i != 1)
-                    {
-                        rtBoard[i] = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
-                        rtWaves[i] = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
-                    }
             }
         }
 

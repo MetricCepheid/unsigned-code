@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Unsigned
 {
-    class Instrument
+    public class Instrument
     {
         //Rock Power Enable Types
         public enum RockPowerEnableTypes
@@ -37,7 +37,12 @@ namespace Unsigned
             BLANK_REGULAR_RHYTHM=7,
         };
 
-        // number of chord/note tracks (in RB, 5 for G/B and 4 for drums)
+        // number of visible chord/note tracks (in RB, 5 for G/B and 4 for drums)
+        public int NumDrawnTracks;
+
+        
+        // number of total chord/note tracks (in RB, 5 for G/B/D because Drum bass counts as a track)
+        // if this is more than NumDrawnTracks, any others are represented as bars
         public int NumTracks;
 
         // how this instrument activates star power
@@ -72,6 +77,15 @@ namespace Unsigned
         // what kinds of phrases are available
         public PhraseType TypesOfPhrases;
 
+        // whether you need input other than frets to hit notes
+        public bool NeedsStrum;
+
+        // the max (non-RP) multiplier (default 4)
+        public int MaxMultiplier;
+
+        // which notes, when hit, cause the board to bump. bitwise
+        public ulong BumpNotes;
+
         void SetValue(String variable, String value)
         {
             if (variable.ToLower().Trim().Equals("numtracks"))
@@ -97,9 +111,16 @@ namespace Unsigned
             else if (variable.ToLower().Trim().Equals("containstext"))
                 ContainsText = Boolean.Parse(value);
             else if (variable.ToLower().Trim().Equals("typesofphrase"))
-                TypesOfPhrases = (BoardDimensions)Enum.Parse(Type.GetType("PhraseType"), value.Trim().ToUpper());
+                TypesOfPhrases = (PhraseType)Enum.Parse(Type.GetType("PhraseType"), value.Trim().ToUpper());
+            else if (variable.ToLower().Trim().Equals("needsstrum"))
+                NeedsStrum = Boolean.Parse(value);
+            else if (variable.ToLower().Trim().Equals("maxmultiplier"))
+                MaxMultiplier = Int32.Parse(value);
+            else if (variable.ToLower().Trim().Equals("bumpnotes"))
+                BumpNotes = UInt64.Parse(value);
             else
                 System.Windows.Forms.MessageBox.Show("Invalid Instrument Variable Name: " + variable);
+
         }
     }
 }

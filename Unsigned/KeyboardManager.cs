@@ -14,7 +14,7 @@ namespace Unsigned
         private bool[] bufferedMap;
         private KeyboardState previousState;
 
-        private KeyboardPeripheral()
+        public KeyboardPeripheral()
         {
             keymap = new Keys[(int)PeripheralButton.TOTAL];
             bufferedMap = new bool[(int)PeripheralButton.TOTAL];
@@ -49,15 +49,15 @@ namespace Unsigned
         {
             KeyboardPeripheral[] ret = new KeyboardPeripheral[1];
             ret[0] = new KeyboardPeripheral();
-            ret[0].keymap[PeripheralButton.BLUE] = Keys.F;
-            ret[0].keymap[PeripheralButton.DOWN] = Keys.Down;
-            ret[0].keymap[PeripheralButton.GREEN] = Keys.A;
-            ret[0].keymap[PeripheralButton.ORANGE] = Keys.G;
-            ret[0].keymap[PeripheralButton.RED] = Keys.S;
-            ret[0].keymap[PeripheralButton.SELECT] = Keys.RightShift;
-            ret[0].keymap[PeripheralButton.START] = Keys.Escape;
-            ret[0].keymap[PeripheralButton.UP] = Keys.Up;
-            ret[0].keymap[PeripheralButton.YELLOW] = Keys.D;
+            ret[0].keymap[(int)PeripheralButton.BLUE] = Keys.F;
+            ret[0].keymap[(int)PeripheralButton.DOWN] = Keys.Down;
+            ret[0].keymap[(int)PeripheralButton.GREEN] = Keys.A;
+            ret[0].keymap[(int)PeripheralButton.ORANGE] = Keys.G;
+            ret[0].keymap[(int)PeripheralButton.RED] = Keys.S;
+            ret[0].keymap[(int)PeripheralButton.SELECT] = Keys.RightShift;
+            ret[0].keymap[(int)PeripheralButton.START] = Keys.Escape;
+            ret[0].keymap[(int)PeripheralButton.UP] = Keys.Up;
+            ret[0].keymap[(int)PeripheralButton.YELLOW] = Keys.D;
             return ret;
         }
 

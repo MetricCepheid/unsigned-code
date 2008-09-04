@@ -34,7 +34,7 @@ namespace Unsigned
             
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
             
         }
