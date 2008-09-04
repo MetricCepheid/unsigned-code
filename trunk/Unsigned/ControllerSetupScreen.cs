@@ -44,10 +44,20 @@ namespace Unsigned
 
         public override void Load(ContentManager content)
         {
-            
+            nPadMdl = content.Load<Model>("meshes\\paper1");
+            nPadTex = new Texture2D[4];
+            nPadTex[0] = content.Load<Texture2D>("graphics\\paper1");
+            nPadTex[1] = content.Load<Texture2D>("graphics\\paper2");
+            nPadTex[2] = content.Load<Texture2D>("graphics\\paper3");
+            nPadTex[3] = content.Load<Texture2D>("graphics\\paper4");
+            flames = new Vector3[4][];
+            flames[0] = new Vector3[100];
+            flames[1] = new Vector3[100];
+            flames[2] = new Vector3[100];
+            flames[3] = new Vector3[100];
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
             
         }

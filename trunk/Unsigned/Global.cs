@@ -46,12 +46,9 @@ namespace Unsigned
     static class Global
     {
         public static Texture2D gradient, texWhite, texDefaultBM;
-        public static byte[] bits = { 1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, 1 << 6, 1 << 7 };
         public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
         public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
-        public static Color[] FretColors = { new Color(0, 255, 0), new Color(255, 0, 0), new Color(255, 255, 0), new Color(0, 0, 255), new Color(255, 128, 0), };
-        public static Color[] FadedFretColors = { new Color(175, 207, 175), new Color(207, 175, 175), new Color(207, 207, 175), new Color(175, 175, 207), new Color(207, 191, 175), };
-        public static Vector4[] FretColorsV4 = { new Vector4(0, 1, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 1, 0, 1), new Vector4(0, 0, 1, 1), new Vector4(1, 0.5f, 0, 1) };
+        public static Color[] FretColors = { Color.Green, Color.Red, Color.Yellow, Color.Blue, Color.Orange, };
         public static SpriteFont DefaultFont, BigFont, SmallFont;
         public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
@@ -61,6 +58,7 @@ namespace Unsigned
         public const byte M_GAME = 1, M_FREESTYLE = 2;
         public static byte mode = M_GAME;
         public static Random random;
+        public static Rectangle rect256 = new Rectangle(0, 0, 256, 256);
 
         public static void Write(String output)
         {
@@ -74,6 +72,23 @@ namespace Unsigned
 #if DEBUG
             Console.WriteLine(output);
 #endif
+        }
+
+        public static int AddBits(ulong ind)
+        {
+            int ret = 0;
+            for (ulong i = 1; i < sizeof(ulong)*8; i <<= 1)
+                if ((ind & i) > 0)
+                    ret++;
+            return ret;
+        }
+
+        public static Color FadedFretColors(int i)
+        {
+            return new Color((byte)(((FretColors[i].R / 255f) * (207 - 175)) + 175),
+                             (byte)(((FretColors[i].G / 255f) * (207 - 175)) + 175),
+                             (byte)(((FretColors[i].B / 255f) * (207 - 175)) + 175),
+                             255);
         }
     }
 }

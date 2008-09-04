@@ -31,22 +31,23 @@ namespace Unsigned
 
     public struct SpecialEffectsSettings
     {
-        private enum FRAME_EFFECT
+        public enum FRAME_EFFECT
         {
             CONSTANT = 0, //this is normal
             SLOW = 1,     //framerate 1/2
             VERYSLOW = 2, //framerate 1/4
             DEATHLY = 3,  //1 fps :O
         };
-        private FRAME_EFFECT currentFE;
+        public FRAME_EFFECT currentFE;
 
-        private enum FRAME_EFFECT_STYLE
+        public enum FRAME_EFFECT_STYLE
         {//for FRAME_EFFECT.CONSTANT, use BLINK
             BLINK = 0, //no fades
             CREST = 1, //fade, flash
             XFADE = 2, //Full fade
         }
-        private FRAME_EFFECT_STYLE currentFES;
+        public FRAME_EFFECT_STYLE currentFES;
+        public float countFES;
 
         const int DESATURATE = 1, //desaturate
                   HUE_SHIFT = 2,  //hue-shift

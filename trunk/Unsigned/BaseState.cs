@@ -10,6 +10,6 @@ namespace Unsigned
         public abstract void Update(GameTime gameTime);
         public abstract void Render(GameTime gameTime);
         public abstract void Load(Microsoft.Xna.Framework.Content.ContentManager content);
-        public abstract void Unload(Microsoft.Xna.Framework.Content.ContentManager content);
+        public abstract void Unload();
     }
 }

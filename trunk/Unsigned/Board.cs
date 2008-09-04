@@ -4,23 +4,29 @@ using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
+using UnsignedPeripheralPlugins;
 
 namespace Unsigned
 {
-    class NoteSet : IComparable
+    public class NoteSet : IComparable
     {
-        public uint time;
-        public byte type;
-        public int length;
+        public uint time, length;
+        public ulong type, endtype;
+        public String text;
+        public uint end
+        {
+            get { return time + length; }
+        }
+
         public VIS_STATE[] visible;//0=visible,1=greyedout,2=invisible,3=invisibleButAvailable(HOPO)
-        public bool burning;//for held notes
+        public bool burning;//for held Notes
 
         public uint late;
 
         public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, OVERDONE=4/*drums*/, };
 
         private bool strummed;
-        private byte pressed;
+        private ulong pressed;
         private bool good;
 
         public void Strum()
@@ -28,19 +34,18 @@ namespace Unsigned
             strummed = true;
         }
 
-        public void addPressedGuitar(byte pressed)
+        public void AddPressedGuitar(Instrument instr, ulong pressed)
         {
-            if(Board.IsValidFrettage(type,pressed))
+            if(Board.IsValidFrettage(type,pressed, instr))
                  good = true;
         }
 
-        public byte addPressedDrums(byte pressed)
+        public ulong AddPressedDrums(Instrument instr, ulong pressed)
         {
-            
-            byte ret = 0;
-            for (int i = 0; i < 5; i++)
+            ulong ret = 0;
+            for (int i = 0; i < instr.NumTracks; i++)
             {
-                if ((pressed & (1 << i)) != 0 && (this.pressed & (1 << i)) == 0)
+                if ((pressed & (((ulong)1) << i)) != 0 && (this.pressed & (((ulong)1) << i)) == 0)
                 { ret |= (byte)(1 << i); visible[i] = VIS_STATE.INVISIBLE; }
             }
             this.pressed |= pressed;
@@ -49,16 +54,13 @@ namespace Unsigned
         }
 
 
-        public bool IsGood(bool HOPOable)
+        public bool IsGood(Instrument instr, bool HOPOable)
         {
-            if ((HOPOable && (type&(1<<5))!=0) || strummed)
+            if(!instr.NeedsStrum)
+                return (pressed) == (type);
+            if ((instr.CanHOPO && HOPOable && (type&(((ulong)1)<<instr.NumTracks))!=0) || strummed)
                 return good;
             return false;
-        }
-
-        public bool IsGood()
-        {
-            return (pressed) == (type);
         }
 
         public int CompareTo(object other)
@@ -66,10 +68,75 @@ namespace Unsigned
             return time.CompareTo(((NoteSet)other).time);
         }
 
-        internal void Kill()
+        public void Kill()
         {
             for(int i=0;i<visible.Length;i++)
                 visible[i] = VIS_STATE.INVISIBLE;
+        }
+
+        public bool IsHOPO(Instrument instrument)
+        {
+            return (type & (((ulong)1) << instrument.NumTracks)) != 0;
+        }
+    }
+
+    public struct Phrase
+    {
+        public uint time;
+        public SongData.TYPE type;
+        public bool rockpower;
+        public SongData.RTYPE rType;
+        public NoteSet[] notes;
+    }
+
+    public struct Fill
+    {
+        public uint time, len;
+        public bool hitGreen;
+        public float amount;
+        public uint end
+        {
+            get { return time + len; }
+        }
+
+        public Fill(uint time, uint len)
+        {
+            this.time = time;
+            this.len = len;
+            hitGreen = false;
+            amount = 0f;
+        }
+    }
+
+    public struct RockPowerPhrase
+    {
+        public uint time, len;
+        public bool okay;//defaulted to true, falsed when note missed
+        public uint end
+        {
+            get { return time + len; }
+        }
+        public RockPowerPhrase(uint time, uint len)
+        {
+            this.time = time;
+            this.len = len;
+            okay = true;
+        }
+    }
+
+    public struct Solo
+    {
+        public uint time, len;
+        public bool okay;//defaulted to true, falsed when note missed
+        public uint end
+        {
+            get { return time + len; }
+        }
+        public Solo(uint time, uint len)
+        {
+            this.time = time;
+            this.len = len;
+            okay = true;
         }
     }
 
@@ -95,54 +162,6 @@ namespace Unsigned
 
     class Board
     {
-        private static Random random;
-        private Instrument type;
-        public int xOffset;
-        public static float vocalheight, vocaly, vocalzerox, vocalwidth;
-        public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
-        public float yRotate=0;
-        public static Texture2D[][] boardTexPlain;
-        public Texture2D texBoard, texWaves;
-        public float multSlide=0;
-        public static float WaveDetail = 50f;
-        public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
-        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
-        public float SPMFlash=0, SPMFVel=0;
-        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
-        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
-        public static GBVertexFormat[] arrBoard;
-        public static VertexBuffer mdlBoard, mdlSPM;
-        public static VertexBuffer mdlTrigger, mdlTriggerBorder;
-        public static Model mdlNote, mdlNoteInside;
-        public static Texture2D[] texNotes, texTriggers, texTriggersLit;
-        public static Texture2D texTriggerBorder, texTriggerBorderLit;
-        private static Texture2D texLine, texLineEnd;
-        public static float BOARD_BUMP_COEF = 0.002f;
-        public static float spMeterYScale = 0.4f;
-        public int spMeterShift = 7, spMeterShiftDrums=10;
-        public float flashRot;
-        private byte difficulty;
-        private int index;
-        private float multiplier=1;
-        public byte lastPressed=0;
-        private int[] starPts;
-        private int score;
-        private bool LeftySwitch = false;
-        private float[] popup, popupSpeed;
-        private float StarPowerAmount = 0, SPADisplay = 0;
-        private int SPIndex, FillIndex;
-        private int[] SPStart, SPEnd;
-        private int[] FillStart, FillEnd;
-        private bool[] DFHitGreen;
-        private float[] FillAmount;
-        private bool SPGood = true;
-        private bool SPActivated = false;
-        public static int[] guitarToDrums = { 1, 2, 3, 0, 4 };
-        public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
-        public LinkedList<WaveVector2> whammyage;
-        float waveoffset=0;
-        Results myResults;
-
         private struct SPCircle
         {
             public Vector2 pos;
@@ -150,22 +169,141 @@ namespace Unsigned
             public bool rotDir;
             public float alpha;
         }
+        public static float vocalheight, vocaly, vocalzerox, vocalwidth;
+        public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
+        public static Texture2D[][] boardTexPlain;
+        public static float WaveDetail = 50f;
+        public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
+        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
+        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
+        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
+        public static GBVertexFormat[] arrBoard;
+        public static VertexBuffer mdlBoard, mdlSPM;
+        public static VertexBuffer mdlTrigger, mdlTriggerBorder;
+        public static Model mdlNote, mdlNoteInside;
+        public static Texture2D[] texNotes, texBarNotes, texTriggers, texTriggersLit;
+        public static Texture2D texTriggerBorder, texTriggerBorderLit;
+        private static Texture2D texLine, texLineEnd;
+        public static float BOARD_BUMP_COEF = 0.002f;
+        public static float spMeterYScale = 0.4f;
+        public static int[] guitarToDrums = { 1, 2, 3, 0, 4 };
+        public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
+        private static Texture2D texGlow;
         private static SPCircle[] spcircles = new SPCircle[50];
-
         private static uint PILLOW = 100;//padding in front of and behind note
-        public static int OFFSET_TO_GBA=0, OFFSET_TO_GBG=1, OFFSET_TO_GBB=2, OFFSET_TO_GBD=3, OFFSET_TO_GBV=4, OFFSET_TO_GBE=5;
+        private static Texture2D[] boardBackgrounds, texMult;
 
-        public Vector4[] OutNotes;
-        public Vector4[] OutFills;
-        public int notesLen;
-        public WaveNode[][] waves;
-        public int wavesLen;
-        public int[] wavesSubLen;
+        private const float BOARD_FADE_RATIO =  7 / 8f;
+
+        private Instrument type;
+        private int xOffset;
+        private float yRotate=0;
+        private Texture2D texBoard, texWaves;
+        private float multSlide=0;
+        private float SPMFlash=0, SPMFVel=0;
+        private int spMeterShift = 7, spMeterShiftDrums=10;
+        private float flashRot;
+        private byte difficulty;
+        private int index;
+        private float multiplier=1;
+        private byte lastPressed=0;
+        private int[] starPts;
+        private int score;
+        private bool LeftySwitch = false;
+        private float[] popup, popupSpeed;
+        private float StarPowerAmount = 0, SPADisplay = 0;
+        private int RPIndex, FillIndex;
+        private bool SPGood = true;
+        private bool SPActivated = false;
+        private LinkedList<WaveVector2> whammyage;
+        float waveoffset=0;
+        Results myResults;
+        private float rockMeterLevel;
+        private int boardBackground;
+        private byte numFails;
+        Peripheral controller; 
+        private RenderTarget2D boardTarget;
+
+
+        private WaveNode[][] waves;
+        private int wavesLen;
+        private int[] wavesSubLen;
         bool SPDelayStart;
+        private RenderTarget2D rtBoard, rtWaves;
 
-        private NoteSet[] notes;
-        public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
-        private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", };
+        //public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
+
+        //Legacy
+        private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", }; public static int OFFSET_TO_GBA = 0, OFFSET_TO_GBG = 1, OFFSET_TO_GBB = 2, OFFSET_TO_GBD = 3, OFFSET_TO_GBV = 4, OFFSET_TO_GBE = 5;
+
+        private NoteSet[] Notes
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases[0].notes;
+                return null;
+            }
+        }
+
+        private Phrase[] Phrases
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases;
+                return null;
+            }
+        }
+
+        private Fill[] Fills
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].fills;
+                return null;
+            }
+        }
+
+        private RockPowerPhrase[] RPPhrases
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].rpPhrases;
+                return null;
+            }
+        }
+
+        private Solo[] Solos
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].solos;
+                return null;
+            }
+        }
+
+#region Accessors
+
+        public bool IsFailing
+        {
+            get { return rockMeterLevel<=0; }
+        }
+
+        public bool IsLefty
+        {
+            get { return LeftySwitch; }
+        }
+
+#endregion
 
         public Board(Instrument type, int xOffset, SongData song, byte difficulty)
         {
@@ -173,23 +311,18 @@ namespace Unsigned
             this.xOffset = xOffset;
             this.difficulty = difficulty;
             myResults.instr = type;
-            LoadNotes(difficulty,song);
             score = 0;
             FillIndex = 0;
-            SPIndex = 0;
-            popup = new float[5];
-            popupSpeed = new float[5];
+            RPIndex = 0;
+            popup = new float[type.NumTracks];
+            popupSpeed = new float[type.NumTracks];
             if (type.CanWhammy)
             {
                 whammyage = new LinkedList<WaveVector2>();
                 waves = new WaveNode[5][];
                 for (int i = 0; i < 5; i++)
                     waves[i] = new WaveNode[50];
-            }
-            OutNotes = new Vector4[50];
-            OutFills = new Vector4[4];
-            random = new Random();
-            
+            }            
         }
 
         public Instrument GetBoardType()
@@ -202,8 +335,24 @@ namespace Unsigned
             return xOffset;
         }
 
+        public void LoadInstance(ContentManager content)
+        {
+            GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
+            if (GameSettings.HALF_RENDER)
+            {
+                rtBoard = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 4, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
+                rtWaves = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 4, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
+            }
+            else
+            {
+                rtBoard = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
+                rtWaves = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
+            }
+        }
+
         public static void Load(GraphicsDeviceManager graphics, ContentManager content)
         {
+            Random r = Global.random;
             for (int i = 0; i < spcircles.Length; i++)
             {
                 spcircles[i].alpha = (float)r.NextDouble();
@@ -230,16 +379,20 @@ namespace Unsigned
                 texTriggersLit[i] = content.Load<Texture2D>("graphics\\triggerlit" + i);
             texNotes = new Texture2D[5];
             for (int i = 0; i < 5; i++)
-                texNotes[i] = content.Load<Texture2D>("graphics\\notes" + i);
+                texNotes[i] = content.Load<Texture2D>("graphics\\Notes" + i);
             vBar = content.Load<Texture2D>("graphics\\vocalbar");
             vBGExt = content.Load<Texture2D>("graphics\\vocalbg_ext");
             vBGInt = content.Load<Texture2D>("graphics\\vocalbg_int");
             vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
             vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
             vGlow = content.Load<Texture2D>("graphics\\vGlow");
+            texMult = new Texture2D[8];
+            for (int i = 0; i < Global.multToIndex.Length; i++)
+                if (Global.multToIndex[i] >= 0)
+                    texMult[Global.multToIndex[i]] = content.Load<Texture2D>("graphics\\X" + i);
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,};
-                float[] ys = {  0f,  0f,   .5f,   .5f,   .5f,  0f,       .5f,   .5f,  .85f,   .5f,  .85f,  .85f,      .85f,  .85f,    1f,  .85f,    1f,    1f,};
+                float[] ys = {  0f,  0f,  .56f,  .56f,  .56f,  0f,      .56f,  .56f,  .88f,  .56f,  .88f,  .88f,      .88f,  .88f,    1f,  .88f,    1f,    1f,};
                 float[] zs = {  1f, -1f,    1f,   -1f,    1f, -1f,        1f,   -1f,    1f,   -1f,    1f,   -1f,        1f,   -1f,    1f,   -1f,    1f,   -1f,};
 
                 GBVertexFormat[] zmdlBoard = new GBVertexFormat[xs.Length * 2];
@@ -274,11 +427,11 @@ namespace Unsigned
                 mdlNoteInside = content.Load<Model>("meshes\\noteinside");
                 foreach (ModelMesh mesh in mdlNoteInside.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = engine;
+                        part.Effect = effect;
                 mdlNote = content.Load<Model>("meshes\\note");
                 foreach (ModelMesh mesh in mdlNote.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = engine;      
+                        part.Effect = effect;      
             }*/
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     };
@@ -314,27 +467,27 @@ namespace Unsigned
             }
         }
 
-        float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
-        public void GetNotes(long currenttime, long viewdistance)
+        //float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
+        /*public void GetNotes(long currenttime, long viewdistance)
         {
             int k;
-            for (k = 0; k < notes.Length; k++)
-                if ((long)notes[k].time*(Global.TicksPerSecond/1000) > (currenttime) - (viewdistance / 3))
+            for (k = 0; k < Notes.Length; k++)
+                if ((long)Notes[k].time*(Global.TicksPerSecond/1000) > (currenttime) - (viewdistance / 3))
                     break;
             int count = 0;
-            for (int i = k; i<notes.Length && (long)notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
+            for (int i = k; i<Notes.Length && (long)Notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
-                if (notes[i].visible[0]==NoteSet.VIS_STATE.INVISIBLE)
+                if (Notes[i].visible[0]==NoteSet.VIS_STATE.INVISIBLE)
                     continue;
-                if (type.CanHOPO && notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
+                if (type.CanHOPO && Notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
                     continue;
-                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || notes[i].time < FillStart[FillIndex] || notes[i].time > FillEnd[FillIndex]))
+                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || Notes[i].time < FillStart[FillIndex] || Notes[i].time > FillEnd[FillIndex]))
                     continue;
                 for (int r = 0; r < type.NumTracks;r++ )
-                    if ((notes[i].type & (1 << r)) != 0)
+                    if ((Notes[i].type & (1 << r)) != 0)
                         count++;
             }
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
             {
                 if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) > FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) < FillEnd[FillIndex] && FillAmount[FillIndex] >= 1)
                     count++;
@@ -345,30 +498,30 @@ namespace Unsigned
             notesLen = count;
             int indx = 0;
             int plus = 0;
-            for (int i = k; i < notes.Length && (long)notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
+            for (int i = k; i < Notes.Length && (long)Notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
             {
                 float sp = 0f;
-                if (SPIndex<SPStart.Length && i >= SPStart[SPIndex] && i <= SPEnd[SPIndex] && SPGood)
+                if (RPIndex<SPStart.Length && i >= SPStart[RPIndex] && i <= SPEnd[RPIndex] && SPGood)
                     sp = 1f;
 
-                if (notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE)
+                if (Notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE)
                     continue;
-                if (type.CanHOPO && notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
+                if (type.CanHOPO && Notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
                     continue;
-                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || notes[i].time < FillStart[FillIndex] || notes[i].time > FillEnd[FillIndex]))
+                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || Notes[i].time < FillStart[FillIndex] || Notes[i].time > FillEnd[FillIndex]))
                     continue;
                 for (int r = 0; r < type.NumTracks; r++)
-                    if ((notes[i].type & (1 << r)) != 0)
+                    if ((Notes[i].type & (1 << r)) != 0)
                     {
                         OutNotes[indx].X = -1f + ((2.0f/(type.NumTracks-1)) * r);
-                        OutNotes[indx].Y = (long)notes[i].time * (Global.TicksPerSecond / 1000);
-                        OutNotes[indx].Z = ((notes[i].type & NS_HOPO) != 0 && type.CanHOPO) ? 1f : -1f;
+                        OutNotes[indx].Y = (long)Notes[i].time * (Global.TicksPerSecond / 1000);
+                        OutNotes[indx].Z = ((Notes[i].type & NS_HOPO) != 0 && type.CanHOPO) ? 1f : -1f;
                         OutNotes[indx].W = sp;
                         indx++;
                     }
             }
 
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
             {
                 if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) >= FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) <= FillEnd[FillIndex] && FillAmount[FillIndex] >= 0.95)
                 {
@@ -383,7 +536,7 @@ namespace Unsigned
 
             for (int i = 0; i < 4; i++)
                 OutFills[i] = new Vector4(0, 0, 0, 0);
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILLS) != 0)
+            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
             if(!SPActivated && StarPowerAmount>=0.5)
             for (int i = 0; i < 4; i++)
             {
@@ -394,217 +547,17 @@ namespace Unsigned
                 OutFills[i].Z = FillAmount[FillIndex + i] * 0.75f + 0.25f;
                 OutFills[i].W = 100;
             }
-        }
+        }*/
 
-        private void LoadNotes(String filename, byte diff)
+        public static bool IsValidFrettage(ulong note, ulong pressed, Instrument instr)
         {
-            Vector2[] bars = song.GetAllBars();
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(System.IO.File.OpenRead("songdata\\" + filename + ".uns"));
-
-            reader.ReadChars(3);
-
-            int[] offsets = new int[6];
-            for (int i = 0; i < 6; i++)
-                offsets[i] = reader.ReadInt32();
-
-            if (GetBoardType() == UnsignedGame.BASS)
-                reader.ReadBytes(offsets[OFFSET_TO_GBB] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == UnsignedGame.GUITAR)
-                reader.ReadBytes(offsets[OFFSET_TO_GBG] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == Global.DRUMS)
-                reader.ReadBytes(offsets[OFFSET_TO_GBD] - offsets[OFFSET_TO_GBA]);
-            else if (GetBoardType() == UnsignedGame.VOCALS)
-                reader.ReadBytes(offsets[OFFSET_TO_GBV] - offsets[OFFSET_TO_GBA]);
-
-            if (GetBoardType() != UnsignedGame.VOCALIST)
-            {
-                int numSPP = reader.ReadInt32();
-                myResults.totalSPPH = numSPP;
-                SPStart = new int[numSPP];
-                SPEnd = new int[numSPP];
-                for (int i = 0; i < numSPP; i++)
-                {
-                    SPStart[i] = reader.ReadInt32();
-                    SPEnd[i] = reader.ReadInt32() + SPStart[i];
-                }
-
-                if (GetBoardType() == UnsignedGame.PERCUSSIONIST)
-                {
-                    int numDFP = reader.ReadInt32();
-                    FillStart = new int[numDFP];
-                    FillEnd = new int[numDFP];
-                    FillAmount = new float[numDFP];
-                    DFHitGreen = new bool[numDFP];
-                    for (int i = 0; i < numDFP; i++)
-                    {
-                        FillStart[i] = reader.ReadInt32();
-                        FillEnd[i] = reader.ReadInt32();
-                        FillAmount[i] = 0;
-                        DFHitGreen[i] = false;
-                    }
-                }
-                else if (GetBoardType() == UnsignedGame.GUITAR)
-                {
-                    int numSolos = reader.ReadInt32();
-                    for (int i = 0; i < numSolos; i++)
-                        reader.ReadInt64();
-                }
-                for (int dfrep = 3; dfrep >= 0; dfrep--)
-                {
-                    bool skip = true;
-                    int difr = reader.ReadInt32();
-                    if (diff == UnsignedGame.D_EXPERT && difr == 3)
-                        skip = false;
-                    if (diff == UnsignedGame.D_HARD && difr == 2)
-                        skip = false;
-                    if (diff == UnsignedGame.D_MEDIUM && difr == 1)
-                        skip = false;
-                    if (diff == UnsignedGame.D_EASY && difr == 0)
-                        skip = false;
-
-                    if (skip)
-                    {
-                        int notesn = reader.ReadInt32();
-                        for (int i = 0; i < notesn; i++)
-                        {
-                            reader.ReadByte();
-                            if (GetBoardType() != Global.DRUMS)
-                            {
-                                reader.ReadInt32();
-                                reader.ReadInt32();
-                            }
-                            else
-                            {
-                                reader.ReadInt32();
-                            }
-                        }
-                        for (int i = 1; i <= 5; i++)
-                            reader.ReadInt32();
-                    }
-                    else
-                    {
-                        notes = new NoteSet[reader.ReadInt32()];
-                        myResults.totalNotes = notes.Length;
-                        for (int i = 0; i < notes.Length; i++)
-                        {
-                            notes[i] = new NoteSet();
-                            notes[i].type = reader.ReadByte();
-                            if (GetBoardType() != Global.DRUMS)
-                            {
-                                notes[i].time = reader.ReadUInt32();
-                                notes[i].length = reader.ReadInt32();
-                                notes[i].visible = new NoteSet.VIS_STATE[1];
-                            }
-                            else
-                            {
-                                notes[i].visible = new NoteSet.VIS_STATE[5];
-                                notes[i].time = reader.ReadUInt32();
-                                notes[i].length = 0;
-                            }
-                        }
-                        starPts = new int[6];
-                        starPts[0] = 0;
-                        for (int i = 1; i <= 5; i++)
-                            starPts[i] = reader.ReadInt32();
-                        int numrep = 0;
-                        uint curtm = 0;
-                        for (int i = 0; i < notes.Length; i++)
-                        {
-                            if (notes[i].time < curtm)
-                                numrep++;
-                            curtm = notes[i].time;
-                        }
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                vNotes = new VocalPhrase[reader.ReadInt32()];
-                for (int i = 0; i < vNotes.Length; i++)
-                {
-                    vNotes[i] = new VocalPhrase();
-                    vNotes[i].time = reader.ReadUInt32();
-                    vNotes[i].type = (VocalPhrase.TYPE)reader.ReadByte();
-                    vNotes[i].SP = reader.ReadBoolean();
-                    vNotes[i].words = new VocalWord[reader.ReadInt32()];
-                    switch (vNotes[i].type)
-                    {
-                        case VocalPhrase.TYPE.REGULAR:
-                            for (int k = 0; k < vNotes[i].words.Length; k++)
-                            {
-                                vNotes[i].words[k] = new VocalWord();
-                                vNotes[i].words[k].time = reader.ReadUInt32();
-                                vNotes[i].words[k].len = reader.ReadUInt32();
-                                vNotes[i].words[k].sNote = reader.ReadInt16();
-                                vNotes[i].words[k].eNote = reader.ReadInt16();
-                                vNotes[i].words[k].value = reader.ReadString();
-                            }
-                            break;
-                        case VocalPhrase.TYPE.BLANK:
-                            break;
-                        case VocalPhrase.TYPE.RHYTHM:
-                            vNotes[i].rType = (VocalPhrase.RTYPE)reader.ReadByte();
-                            for (int k = 0; k < vNotes[i].words.Length; k++)
-                            {
-                                vNotes[i].words[k].time = reader.ReadUInt32();
-                            }
-                            break;
-                    }
-                }
-            }
-
-            reader.Close();
-
-            if (GetBoardType() == UnsignedGame.VOCALIST)
-            {
-
-                return;
-            }
-
-            //post processing
-            for (int i = 0; i < notes.Length; i++)
-            {
-                if (i == notes.Length - 1)
-                    notes[i].late = notes[i].time + PILLOW;
-                else
-                {
-                    if (notes[i + 1].time - notes[i].time < PILLOW * 2)
-                        notes[i].late = notes[i].time+((notes[i + 1].time - notes[i].time) / 2);
-                    else
-                        notes[i].late = notes[i].time + PILLOW;
-                }
-            }
-            for (int i = 0; i < SPStart.Length; i++)
-            {
-                int k;
-                for (k = 0; k < notes.Length; k++)
-                {
-                    if (notes[k].time >= SPStart[i] && notes[k].time <= SPEnd[i])
-                    {
-                        SPStart[i] = k;
-                        break;
-                    }
-                }
-                for (k = 0; k < notes.Length; k++)
-                {
-                    if (notes[k].time > SPEnd[i])
-                    {
-                        SPEnd[i] = k;
-                        break;
-                    }
-                }
-            }
-        }
-
-        public static bool IsValidFrettage(byte note, byte pressed)
-        {
-            note &= (byte)(~NS_HOPO & 255);
+            ulong NOT_HOPO_VALUE = ~(((ulong)1) << instr.NumTracks);
+            note &= NOT_HOPO_VALUE;
             int numNotes = 0;
-            for (int i = 0; i < 5; i++)
-                if ((note & UnsignedGame.bits[i]) != 0)
+            for (int i = 0; i < instr.NumTracks; i++)
+                if ((note & (((ulong)1)<<((int)i))) != 0)
                     numNotes++;
-            if (numNotes > 1 && pressed == (note & (~UnsignedGame.bits[5])))
+            if (numNotes > 1 && pressed == note)
                 return true;
             else if (numNotes > 1)
                 return false;
@@ -612,73 +565,34 @@ namespace Unsigned
                 return false;
             for (int i = 4; i >= 0; i--)
             {
-                if ((note & UnsignedGame.bits[i]) != 0)
+                if ((note & (((ulong)1)<<i)) != 0)
                     return true;
-                if ((pressed & UnsignedGame.bits[i]) != 0)
+                if ((pressed & (((ulong)1)<<i)) != 0)
                     return false;
             }
             return false;
-            /*OLD VERSION:
-             * bool fair = false;
-            if ((note & NS_ORANGE) != 0)
-            {
-                if (((pressed & NS_ORANGE) != 0))
-                {
-                    if (((note & NS_GREEN) != 0) == false && ((note & NS_RED) != 0) == false && ((note & NS_YELLOW) != 0) == false && ((note & NS_BLUE) != 0) == false)
-                        fair = true;
-                    if (((((note & NS_GREEN) != 0) == false && !(((pressed & NS_GREEN) != 0))) || (((note & NS_GREEN) != 0) == true && ((pressed & NS_GREEN) != 0))) &&
-                        ((((note & NS_RED) != 0) == false && !(((pressed & NS_RED) != 0))) || (((note & NS_RED) != 0) == true && ((pressed & NS_RED) != 0))) &&
-                        ((((note & NS_YELLOW) != 0) == false && !(((pressed & NS_YELLOW) != 0))) || (((note & NS_YELLOW) != 0) == true && ((pressed & NS_YELLOW) != 0))) &&
-                        ((((note & NS_BLUE) != 0) == false && !(((pressed & NS_BLUE) != 0))) || (((note & NS_BLUE) != 0) == true && ((pressed & NS_BLUE) != 0))))
-                        fair = true;
-                }
-            }
-            else if (((note & NS_BLUE) != 0) == true)
-            {
-                if (((pressed & NS_BLUE) != 0) && !((pressed & NS_ORANGE) != 0))
-                {
-                    if (((note & NS_GREEN) != 0) == false && ((note & NS_RED) != 0) == false && ((note & NS_YELLOW) != 0) == false)
-                        fair = true;
-                    if (((((note & NS_GREEN) != 0) == false && !(((pressed & NS_GREEN) != 0))) || (((note & NS_GREEN) != 0) == true && ((pressed & NS_GREEN) != 0))) &&
-                        ((((note & NS_RED) != 0) == false && !(((pressed & NS_RED) != 0))) || (((note & NS_RED) != 0) == true && ((pressed & NS_RED) != 0))) &&
-                        ((((note & NS_YELLOW) != 0) == false && !(((pressed & NS_YELLOW) != 0))) || (((note & NS_YELLOW) != 0) == true && ((pressed & NS_YELLOW) != 0))))
-                        fair = true;
-                }
-            }
-            else if (((note & NS_YELLOW) != 0) == true)
-            {
-                if (((pressed & NS_YELLOW) != 0) && !((pressed & NS_ORANGE) != 0) && !((pressed & NS_BLUE) != 0))
-                {
-                    if (((note & NS_GREEN) != 0) == false && ((note & NS_RED) != 0) == false)
-                        fair = true;
-                    if (((((note & NS_GREEN) != 0) == false && !((pressed & NS_GREEN) != 0)) || (((note & NS_GREEN) != 0) == true && ((pressed & NS_GREEN) != 0))) &&
-                        ((((note & NS_RED) != 0) == false && !(((pressed & NS_RED) != 0))) || (((note & NS_RED) != 0) == true && ((pressed & NS_RED) != 0))))
-                        fair = true;
-                }
-            }
-            else if (((note & NS_RED) != 0) == true)
-            {
-                if (((pressed & NS_RED) != 0) && !((pressed & NS_ORANGE) != 0) && !((pressed & NS_BLUE) != 0) && !((pressed & NS_YELLOW) != 0))
-                {
-                    if (((note & NS_GREEN) != 0) == false || ((pressed & NS_GREEN) != 0))
-                        fair = true;
-                }
-            }
-            else if (((note & NS_GREEN) != 0) == true)
-            {
-                if (((pressed & NS_GREEN) != 0) && !((pressed & NS_ORANGE) != 0) && !((pressed & NS_BLUE) != 0) && !((pressed & NS_YELLOW) != 0) && !((pressed & NS_RED) != 0))
-                {
-                    fair = true;
-                }
-            }
-            return fair;*/
         }
 
-        public byte Update(GameTime gameTime, long currenttime,UnsignedGame reff, int ind, byte pressed)
+        public ulong Update(GameTime gameTime)
         {
-            if (GetBoardType() != UnsignedGame.VOCALS)
+            for (int i = 0; i < spcircles.Length; i++)
             {
-                for (int i = 0; i < 5; i++)
+                Random r = Global.random;
+                spcircles[i].rotation += spcircles[i].rotDir ? (float)gameTime.ElapsedGameTime.TotalSeconds : -(float)gameTime.ElapsedGameTime.TotalSeconds;
+                spcircles[i].alpha -= gameTime.ElapsedGameTime.Milliseconds / 2000f;
+                if (spcircles[i].alpha <= 0)
+                {
+                    spcircles[i].alpha = (float)r.NextDouble();
+                    spcircles[i].rotation = (float)r.NextDouble();
+                    spcircles[i].pos = new Vector2((float)r.NextDouble(), (float)r.NextDouble());
+                    spcircles[i].rotDir = r.Next() % 2 == 0;
+                }
+            }
+
+            ulong pressed = controller.GetFrets();
+            ulong newPressed = controller.GetBufferedFrets();
+            RhythmMaster rm = RhythmMaster.GetSingleton();
+                for (int i = 0; i < popup.Length; i++)
                 {
                     if (popup[i] > 20 && popupSpeed[i] > 0)
                         popupSpeed[i] = 0;
@@ -693,55 +607,48 @@ namespace Unsigned
                     }
                     popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
                 }
-                if (UnsignedGame.DemoMode)
+                if (Global.DemoMode)
                 {
-                    if(index<notes.Length)
-                        if (notes[index].time - currenttime < 0)
+                    if(index<Notes.Length)
+                        if (Notes[index].time - (rm.GetCurrentTime()*1000) < 0)
                         {
-                            if(!notes[index].burning)
+                            if(!Notes[index].burning)
                             {
-                                if (notes[index].length > 0)
+                                if (GetBoardType().ContainsHeldNotes && Notes[index].length > 0)
                                 {
-                                    for(int i=0;i<notes[index].visible.Length;i++)
-                                        notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
-                                    notes[index].burning = true;
+                                    for(int i=0;i<Notes[index].visible.Length;i++)
+                                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
+                                    Notes[index].burning = true;
                                     for (int i = 0; i < 5; i++)
-                                        if ((notes[index].type & (1 << i)) != 0)
-                                            if (ind == 0 || ind == 3)
-                                                popupSpeed[i] += 100;
-                                            else
-                                                popupSpeed[guitarToDrums[i]] += 100;
+                                        if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                            popupSpeed[i] += 100;
                                     flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
-                                    return notes[index].type;
-
+                                    return Notes[index].type;
                                 }
                                 else
                                 {
-                                    for (int i = 0; i < notes[index].visible.Length; i++)
-                                        notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
+                                    for (int i = 0; i < Notes[index].visible.Length; i++)
+                                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                                     for (int i = 0; i < 5; i++)
-                                        if ((notes[index].type & (1 << i)) != 0)
-                                            if (ind == 0 || ind == 3)
-                                                popupSpeed[i] += 100;
-                                            else
-                                                popupSpeed[guitarToDrums[i]] += 100;
+                                        if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                               popupSpeed[i] += 100;
                                     index++;
                                     flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
-                                    return notes[index - 1].type;
+                                    return Notes[index - 1].type;
                                 }
                             }
-                            else
+                            else //well, i'm just gonna assume we support held Notes
                             {
-                                if ((notes[index].time + notes[index].length) - currenttime < 0)
+                                if ((Notes[index].end) - (rm.GetCurrentTime()*1000) < 0)
                                 {
                                     index++;
                                     return 0;
                                 }
                                 else
                                 {
-                                    reff.Burn(gameTime, notes[index].type, ind);
-                                    //Burn(gameTime, notes[index].type);
-                                    return 0;// (byte)(Game1.bits[7] | notes[index].type);
+                                    RhythmMaster.GetSingleton().Burn(Notes[index].type, this);
+                                    //Burn(gameTime, Notes[index].type);
+                                    return 0;// (byte)(Game1.bits[7] | Notes[index].type);
                                 }
                             }
                         }
@@ -749,11 +656,9 @@ namespace Unsigned
                 }
                 waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
-                byte newPressed = (byte)((pressed ^ lastPressed) & pressed);
-                lastPressed = pressed;
-                if (GetBoardType() == Global.DRUMS)
+                if (GetBoardType().RPEnableType == Instrument.RockPowerEnableTypes.FILL)
                 {
-                    if (FillIndex < FillStart.Length && currenttime > FillEnd[FillIndex])
+                    if (FillIndex < Fills.Length && rm.GetCurrentTime() > Fills[FillIndex].end)
                     {
                         if (SPDelayStart)
                         {
@@ -762,63 +667,60 @@ namespace Unsigned
                         }
                         FillIndex++;
                     }
-                    if (StarPowerAmount >= 0.5 && !SPActivated && FillIndex < FillStart.Length && currenttime >= FillStart[FillIndex] && currenttime <= FillEnd[FillIndex])
+                    if (StarPowerAmount >= 0.5 && !SPActivated && FillIndex < Fills.Length && rm.GetCurrentTime()*1000 >= Fills[FillIndex].time && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
                     {
-                        reff.AddSparks(newPressed, ind);
+                        rm.AddSparks(newPressed, this);
                         for (int i = 0; i < 5; i++)
-                            if ((newPressed & (1 << i)) != 0)
+                            if ((newPressed & (((ulong)1) << i)) != 0)
                             {
                                 popupSpeed[drumsToGuitar[i]] += 100f;
-                                FillAmount[FillIndex] += 1f / (((FillEnd[FillIndex] - FillStart[FillIndex]) / 1000f) * 7);
-                                FillAmount[FillIndex] = Math.Min(FillAmount[FillIndex], 1);
+                                Fills[FillIndex].amount += 1f / (((Fills[FillIndex].len) / 1000f) * 7);
+                                Fills[FillIndex].amount = Math.Min(Fills[FillIndex].amount, 1);
                             }
-                        while (notes[index].time <= FillEnd[FillIndex]+100)
+                        while (Notes[index].time <= Fills[FillIndex].end+100)
                         { index++; myResults.hitNotes++; }
-                        if (currenttime >= FillEnd[FillIndex] - 100 && currenttime <= FillEnd[FillIndex])
+                        if (rm.GetCurrentTime()*1000 >= (Fills[FillIndex].end) - 100 && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
                             if ((newPressed | 1) != 0)
-                                if (FillAmount[FillIndex] >= 1)
+                                if (Fills[FillIndex].amount >= 1)
                                     SPDelayStart = true;
                     }
                 }
-                if (index< notes.Length && notes[index].time - PILLOW < currenttime)
+                if (index< Notes.Length && Notes[index].time - PILLOW < rm.GetCurrentTime()*1000)
                 {
 
-                    if (GetBoardType() == Global.DRUMS)
+                    if (!GetBoardType().NeedsStrum)
                     {
-                        
-                        
-                            byte flash = notes[index].addPressedDrums(newPressed);
-                            for (int i = 0; i < 5; i++)
-                                if ((flash & (1 << i)) != 0)
-                                {
-                                    multiplier += 0.1f;
-                                    popupSpeed[drumsToGuitar[i]] += 100f;
-                                }
-                            for (int i = 0; i < 5; i++)
-                                if ((flash & (1 << i)) != 0)
-                                { score += 100 * (int)multiplier; }
-                            if (notes[index].IsGood())
+                        ulong flash = Notes[index].AddPressedDrums(GetBoardType(),newPressed);
+                        for (int i = 0; i < 5; i++)
+                            if ((flash & (((ulong)1) << i)) != 0)
                             {
-                                notes[index].Kill();
-                                reff.Help(ind);
-                                index++;
-                                myResults.hitNotes++;
-                                return notes[index - 1].type;
+                                multiplier += 0.1f;
+                                popupSpeed[drumsToGuitar[i]] += 100f;
                             }
-                            if (notes[index].late <= currenttime)
-                            {
-                                if (SPIndex < SPStart.Length && index >= SPStart[SPIndex] && index <= SPEnd[SPIndex])
-                                    SPGood = false;
-                                index++;
-                                multiplier = 1;
-                                reff.Hurt(ind);
-                                myResults.missedNotes++;
-                            }
-                        
+                        for (int i = 0; i < 5; i++)
+                            if ((flash & (((ulong)1) << i)) != 0)
+                            { score += 100 * (int)multiplier; }
+                        if (Notes[index].IsGood(GetBoardType(),false))
+                        {
+                            Notes[index].Kill();
+                            Help();
+                            index++;
+                            myResults.hitNotes++;
+                            return Notes[index - 1].type;
+                        }
+                        if (Notes[index].late <= rm.GetCurrentTime()*1000)
+                        {
+                            if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                                SPGood = false;
+                            index++;
+                            multiplier = 1;
+                            Hurt();
+                            myResults.missedNotes++;
+                        }
                     }
                     else
                     {
-                        if (notes[index].burning)
+                        if (GetBoardType().ContainsHeldNotes && Notes[index].burning)
                         {
                             LinkedListNode<WaveVector2> temp = whammyage.First;
                             while (temp != null)
@@ -826,44 +728,44 @@ namespace Unsigned
                                 temp.Value.Y += gameTime.ElapsedGameTime.Milliseconds;
                                 temp = temp.Next;
                             }
-                            if (notes[index].time + notes[index].length <= currenttime)
+                            if (Notes[index].end <= rm.GetCurrentTime()*1000)
                                 index++;
-                            else if (!IsValidFrettage(notes[index].type, pressed))
+                            else if (!IsValidFrettage(Notes[index].type, pressed,GetBoardType()))
                                 index++;
                             else
                             {
-                                Burn(gameTime, notes[index].type);
-                                reff.Burn(gameTime, notes[index].type, ind);
+                                rm.Burn(Notes[index].type, this);
+                                Burn(gameTime, Notes[index].type);
                             }
                         }
                         else
                         {
-                            notes[index].addPressedGuitar(pressed);
-                            if (notes[index].IsGood(index > 0 && notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                            Notes[index].AddPressedGuitar(GetBoardType(),pressed);
+                            if (Notes[index].IsGood(GetBoardType(), index > 0 && Notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
                             {
-                                notes[index].Kill();
-                                for (int i = 0; i < 5; i++)
-                                    if ((notes[index].type & (1 << i)) != 0)
+                                Notes[index].Kill();
+                                for (int i = 0; i < GetBoardType().NumTracks; i++)
+                                    if ((Notes[index].type & (((ulong)1) << i)) != 0)
                                         popupSpeed[i] += 100f;
                                 multiplier += 0.1f;
-                                for (int i = 0; i < 5; i++)
-                                    if ((notes[index].type & (1 << i)) != 0)
+                                for (int i = 0; i < GetBoardType().NumTracks; i++)
+                                    if ((Notes[index].type & (((ulong)1) << i)) != 0)
                                     { score += 100 * (int)multiplier; }
                                 myResults.hitNotes++;
-                                reff.Help(ind);
-                                if (notes[index].length > 0)
-                                    notes[index].burning = true;
+                                Help();
+                                if (Notes[index].length > 0)
+                                    Notes[index].burning = true;
                                 else
                                     index++;
-                                return notes[index - 1].type;
+                                return Notes[index - 1].type;
                             }
-                            if (notes[index].late <= currenttime)
+                            if (Notes[index].late <= rm.GetCurrentTime()*1000)
                             {
-                                if (SPIndex < SPStart.Length && index >= SPStart[SPIndex] && index <= SPEnd[SPIndex])
+                                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
                                     SPGood = false;
                                 index++;
                                 multiplier = 1;
-                                reff.Hurt(ind);
+                                Hurt();
                                 myResults.missedNotes++;
                             }
                         }
@@ -871,13 +773,13 @@ namespace Unsigned
 
                     
                 }
-                else if (newPressed != 0 && GetBoardType() == Global.DRUMS)
+                else if (newPressed != 0 && !GetBoardType().NeedsStrum)
                 {
-                    reff.Hurt(ind);
+                    Hurt();
                     multiplier = 1;
                 }
 
-                if (SPIndex < SPStart.Length && (index > SPEnd[SPIndex] || (index==SPEnd[SPIndex] && notes[index].burning)))
+                if (RPIndex < RPPhrases.Length && (index > RPPhrases[RPIndex].end || (index == RPPhrases[RPIndex].end && Notes[index].burning)))
                 {
                     if (SPGood)
                     {
@@ -887,220 +789,13 @@ namespace Unsigned
                     else 
                         myResults.missedSPPH++;
                     SPGood = true;
-                    SPIndex++;
+                    RPIndex++;
                 }
 
-                if (GetBoardType() != UnsignedGame.BASS && multiplier > 4)
-                    multiplier = 4;
-                if (GetBoardType() == UnsignedGame.BASS && multiplier > 6)
-                    multiplier = 6;
-
-                /*if (GetBoardType() != Game1.PERCUSSIONIST)
-                    if (index < notes.Length)
-                        if (multiplier > 1)
-                            if ((notes[index].type & NS_HOPO) != 0)
-                                if (Math.Abs((long)notes[index].time - (long)currenttime) < 100)
-                                    if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED)
-                                        if (IsValidFrettage(notes[index].type, pressed))
-                                        {
-                                            int scre = Game1.AddBits(notes[index].type);
-                                            scre -= 1;
-                                            scre *= (int)(100 * multiplier);
-                                            score += scre;
-                                            for(int i=0;i<5;i++)
-                                                if((notes[index].type & (1<<i)) != 0)
-                                                    popupSpeed[i] += 100f;
-                                            multiplier += 0.1f;
-                                            notes[index].visible[0] = NoteSet.VIS_STATE.HOPOED;
-                                            reff.AddShards(notes[index].type, ind);
-                                            if (notes[index].length > 0)
-                                                notes[index].burning = true;
-                                        }
-                while (index < notes.Length - 1 && Math.Abs((notes[index].time + notes[index].length) - (long)currenttime) > Math.Abs((notes[index + 1].time) - (long)currenttime))
-                {
-                    if (GetBoardType() != Game1.PERCUSSIONIST)
-                    {
-                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
-                        {
-                            reff.Hurt(ind);
-                            multiplier = 1;
-                            notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
-                            myResults.missedNotes++;
-                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                                SPGood = false;
-                        }
-                    }
-                    else
-                    {
-                        bool shouldhurt = false;
-                        for (int i = 0; i < 5; i++)
-                            if ((notes[index].type & Game1.bits[i]) != 0 && notes[index].visible[i] == 0)
-                            {
-                                shouldhurt = true;
-                                notes[index].visible[i] = NoteSet.VIS_STATE.GREYED_OUT;
-                            }
-                        bool indf = false;
-                        if (index<notes.Length && FillIndex<FillStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time >= FillStart[FillIndex] && notes[index].time <= FillEnd[FillIndex])
-                            indf = true;
-                        if (indf)
-                        {
-                            myResults.hitNotes++;
-                        }
-                        else if (shouldhurt)
-                        {
-                            reff.Hurt(ind);
-                            multiplier = 1;
-                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                            {
-                                SPGood = false;
-
-                            }
-                            myResults.missedNotes++;
-                            //reff.Hurt(2);
-                        }
-                        else
-                        {
-                            reff.Help(2);
-                            myResults.hitNotes++;
-                            int scre = 0;
-                            for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & Game1.bits[i]) != 0)
-                                    scre++;
-                            score += scre * (int)multiplier * 100;
-                            multiplier = Math.Min(multiplier + (scre*0.1f), 4);
-                        }
-                    }
-                    index++;
-                }
-                if (index < notes.Length && (notes[index].time + notes[index].length) - (long)currenttime < -100)
-                {
-                    if (GetBoardType() != Game1.PERCUSSIONIST)
-                    {
-                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
-                        {
-                            reff.Hurt(ind);
-                            multiplier = 1;
-                            notes[index].visible[0] = NoteSet.VIS_STATE.GREYED_OUT;
-                            myResults.missedNotes++;
-                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                                SPGood = false;
-                        }
-                    }
-                    else
-                    {
-                        bool shouldhurt = false;
-                        for (int i = 0; i < 5; i++)
-                            if ((notes[index].type & Game1.bits[i]) != 0 && notes[index].visible[i] == NoteSet.VIS_STATE.VISIBLE)
-                            {
-                                shouldhurt = true;
-                                notes[index].visible[i] = NoteSet.VIS_STATE.GREYED_OUT;
-                            }
-                            else if ((notes[index].type & Game1.bits[i]) == 0 && notes[index].visible[i] == NoteSet.VIS_STATE.OVERDONE)
-                            {
-                                shouldhurt = true;
-                            }
-                        
-
-                        
-                        bool indf = false;
-                        if (index<notes.Length && FillIndex<FillStart.Length && !SPActivated && StarPowerAmount>=0.5f && notes[index].time > FillStart[FillIndex] && notes[index].time < FillEnd[FillIndex])
-                            indf = true;
-                        if (indf)
-                        {
-                            myResults.hitNotes++;
-
-                        }
-                        else if (shouldhurt)
-                        {
-                            reff.Hurt(ind);
-                            multiplier = 1;
-                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
-                            {
-                                SPGood = false;
-                            }
-                            myResults.missedNotes++;
-                            //reff.Hurt(2);
-                        }
-                        else
-                        {
-                            
-                            reff.Help(2);
-                            myResults.hitNotes++;
-                            int scre = 0;
-                            for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & Game1.bits[i]) != 0)
-                                    scre++;
-                            multiplier = Math.Min(multiplier + (scre*0.1f), 4);
-                            score += scre * (int)multiplier * 100;
-                        }
-                    }
-                    index++;
-                }
-                if ((GetBoardType() == Game1.GUITARIST || GetBoardType() == Game1.BASSIST) && index < notes.Length && notes[index].burning)
-                {
-                    LinkedListNode<WaveVector2> temp = whammyage.First;
-                    while (temp != null)
-                    {
-                        temp.Value.Y += gameTime.ElapsedGameTime.Milliseconds;
-                        temp = temp.Next;
-                    }
-                    if (IsValidFrettage(notes[index].type, pressed))
-                    {
-                        reff.Burn(gameTime, notes[index].type, ind);
-                        Burn(gameTime, notes[index].type);
-                    }
-                    else
-                    {
-                        notes[index].burning = false;
-                        index++;
-                    }
-                }
-                
-
-                if (SPIndex < SPStart.Length && (long)currenttime > SPEnd[SPIndex])
-                {
-                    if (SPGood)
-                    {
-                        StarPowerAmount += 0.25f;
-                        myResults.hitSPPH++;
-                    }
-                    SPGood = true;
-                    SPIndex++;
-                }
+                if (multiplier > GetBoardType().MaxMultiplier)
+                    multiplier = GetBoardType().MaxMultiplier;
 
                 
-                /*if (StarPowerAmount >= 0.5)
-                {
-                    if (SPMFVel == 0)
-                        SPMFVel = 4f;
-                    SPMFlash += SPMFVel * (gameTime.ElapsedGameTime.Milliseconds / 1000f);
-                    if (SPMFlash > 1)
-                        SPMFVel = -4;
-                    if (SPMFlash < 0)
-                        SPMFVel = 4;
-                }
-                else
-                    SPMFlash = 0;
-                if (GetMultiplier() >= 2 && multSlide < 1)
-                    multSlide += gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                if (GetMultiplier() < 2 && multSlide > 0)
-                    multSlide -= gameTime.ElapsedGameTime.Milliseconds / 1000f;
-
-
-                if (GetBoardType() == Game1.PERCUSSIONIST)
-                    if (FillIndex < FillEnd.Length && (long)currenttime > FillEnd[FillIndex])
-                        FillIndex++;
-                lastPressed = pressed;
-
-                if (multiplier > 6 && type == Game1.BASS)
-                    multiplier = 6;
-                else if (multiplier > 4 && type != Game1.BASS)
-                    multiplier = 4;*/
-            }
-            else
-            {
-
-            }
 
             if (StarPowerAmount < 0)
                 StarPowerAmount = 0;
@@ -1121,38 +816,42 @@ namespace Unsigned
                     StarPowerAmount = 0;
                 }
             }
+
+            if (rockMeterLevel > 100)
+                rockMeterLevel = 100;
+
             return 0;
         }
 
         public float GetBoardBump()//bass bump
         {
-            if (GetBoardType() == UnsignedGame.PERCUSSIONIST)
-            {
-                return popup[4];
-            }
-            return 0;
+            float ret = 0;
+            for(int i=0;i<GetBoardType().NumTracks;i++)
+                if((GetBoardType().BumpNotes & (((ulong)1) << i)) != 0)
+                    ret += popup[i];
+            return ret;
         }
 
         public byte Strum(byte pressed, long currenttime, UnsignedGame game, int ind)
         {
-            if (index < notes.Length && notes[index].time - PILLOW < currenttime)
-                notes[index].Strum();
+            if (index < Notes.Length && Notes[index].time - PILLOW < currenttime)
+                Notes[index].Strum();
             else
-            { multiplier = 1; game.Hurt(ind); }
+            { multiplier = 1; Hurt(); }
             return 0;
-            /*if (index >= notes.Length)
+            /*if (index >= Notes.Length)
                 return 0;
-            if (Math.Abs(notes[index].time - (long)currenttime) < 100)
+            if (Math.Abs(Notes[index].time - (long)currenttime) < 100)
             {
-                if (!(notes[index].burning && index + 1 < notes.Length && Math.Abs(notes[index + 1].time - (long)currenttime) < 100))
+                if (!(Notes[index].burning && index + 1 < Notes.Length && Math.Abs(Notes[index + 1].time - (long)currenttime) < 100))
                 {
-                    if (IsValidFrettage(notes[index].type, pressed))
+                    if (IsValidFrettage(Notes[index].type, pressed))
                     {
-                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
                         {
                             int scre = 0;
                             for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                if ((Notes[index].type & Game1.bits[i]) > 0)
                                 {
                                     scre++;
                                     popupSpeed[i] += 100f;
@@ -1161,38 +860,38 @@ namespace Unsigned
                             score += scre;
                             multiplier += .1f;
                         }
-                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (notes[index].burning)
+                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (Notes[index].burning)
                         {
-                            notes[index].burning = false;
+                            Notes[index].burning = false;
                             game.Hurt(ind);
-                            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                            if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
                                 SPGood = false;
                             multiplier = 1;
                             return 0;
                         }
-                        if (notes[index].length > 0)
+                        if (Notes[index].length > 0)
                         {
-                            notes[index].burning = true;
+                            Notes[index].burning = true;
                             myResults.hitNotes++;
-                            return notes[index].type;
+                            return Notes[index].type;
                         }
                         //else
                         myResults.hitNotes++;
                         index++;
-                        return notes[index - 1].type;
+                        return Notes[index - 1].type;
                     }
                 }
                 else
                 {
                     index++;
-                    if (IsValidFrettage(notes[index].type, pressed))
+                    if (IsValidFrettage(Notes[index].type, pressed))
                     {
-                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
                         {
                             int scre = 0;
                             for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                if ((Notes[index].type & Game1.bits[i]) > 0)
                                 {
                                     scre++;
                                     popupSpeed[i] += 100f;
@@ -1201,30 +900,30 @@ namespace Unsigned
                             score += scre;
                             multiplier += .1f;
                         }
-                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (notes[index].length > 0)
+                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (Notes[index].length > 0)
                         {
-                            notes[index].burning = true;
+                            Notes[index].burning = true;
                             myResults.hitNotes++;
-                            return notes[index].type;
+                            return Notes[index].type;
                         }
                         //else
                         myResults.hitNotes++;
                         index++;
-                        return notes[index - 1].type;
+                        return Notes[index - 1].type;
                     }
                 }
             }
-            else if (notes[index].burning && index + 1 < notes.Length && Math.Abs(notes[index + 1].time - (long)currenttime) < 100)
+            else if (Notes[index].burning && index + 1 < Notes.Length && Math.Abs(Notes[index + 1].time - (long)currenttime) < 100)
             {
                 index++;
-                    if (IsValidFrettage(notes[index].type, pressed))
+                    if (IsValidFrettage(Notes[index].type, pressed))
                     {
-                        if (notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !notes[index].burning)
+                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
                         {
                             int scre = 0;
                             for (int i = 0; i < 5; i++)
-                                if ((notes[index].type & Game1.bits[i]) > 0)
+                                if ((Notes[index].type & Game1.bits[i]) > 0)
                                 {
                                     scre++;
                                     popupSpeed[i] += 100f;
@@ -1233,27 +932,27 @@ namespace Unsigned
                             score += scre;
                             multiplier += .1f;
                         }
-                        notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (notes[index].length > 0)
+                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
+                        if (Notes[index].length > 0)
                         {
-                            notes[index].burning = true;
+                            Notes[index].burning = true;
                             myResults.hitNotes++;
-                            return notes[index].type;
+                            return Notes[index].type;
                         }
                         //else
                         myResults.hitNotes++;
                         index++;
-                        return notes[index - 1].type;
+                        return Notes[index - 1].type;
                     }
             }
-            else if (currenttime > (long)notes[index].time && currenttime < ((long)notes[index].time + (long)notes[index].length))
+            else if (currenttime > (long)Notes[index].time && currenttime < ((long)Notes[index].time + (long)Notes[index].length))
             {
-                notes[index].burning = false; multiplier = 1; game.Hurt(ind);
-                if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+                Notes[index].burning = false; multiplier = 1; game.Hurt(ind);
+                if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
                     SPGood = false; return 0;
             }
             
-            if (SPIndex < SPStart.Length && notes[index].time >= SPStart[SPIndex] && notes[index].time < SPEnd[SPIndex])
+            if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
                             SPGood = false;
             game.Hurt(ind);
             multiplier = 1;
@@ -1271,7 +970,7 @@ namespace Unsigned
             }
             if (newPressed == 0)
                 return 0;
-            if (index >= notes.Length)
+            if (index >= Notes.Length)
                 return 0;
             if (StarPowerAmount>=0.5 && !SPActivated && FillIndex<FillEnd.Length && currenttime >= (long)FillStart[FillIndex] && currenttime <= (long)FillEnd[FillIndex])
             {
@@ -1288,19 +987,19 @@ namespace Unsigned
                     FillAmount[FillIndex] = 1f;
                 return (byte)(newPressed | Game1.bits[7]);
             }
-            else if ((notes[index].time - (long)currenttime) < 100)
+            else if ((Notes[index].time - (long)currenttime) < 100)
             {
                 byte ret = 0;
                 for (int i = 0; i < 5; i++)
-                    if ((notes[index].type & Game1.bits[i]) != 0 && (newPressed & Game1.bits[i]) != 0 && notes[index].visible[i]==0)
+                    if ((Notes[index].type & Game1.bits[i]) != 0 && (newPressed & Game1.bits[i]) != 0 && Notes[index].visible[i]==0)
                     {
                         ret |= Game1.bits[i];
-                        notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
+                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                         popupSpeed[drumsToGuitar[i]] += 100f;
                     }
-                    else if ((notes[index].type & Game1.bits[i]) == 0 && (newPressed & Game1.bits[i]) != 0)
+                    else if ((Notes[index].type & Game1.bits[i]) == 0 && (newPressed & Game1.bits[i]) != 0)
                     {
-                        notes[index].visible[i] = NoteSet.VIS_STATE.OVERDONE;
+                        Notes[index].visible[i] = NoteSet.VIS_STATE.OVERDONE;
                     }
                 return ret;
             }
@@ -1311,8 +1010,6 @@ namespace Unsigned
 
         public float GetStars()
         {
-            if (GetBoardType() == UnsignedGame.VOCALIST)
-                return 5f;
             int i;
             for (i = 0; i < starPts.Length; i++)
                 if (score < starPts[i])
@@ -1335,9 +1032,7 @@ namespace Unsigned
 
         public int GetMultiplierFraction()
         {
-            if (multiplier >= 4 && GetBoardType() != UnsignedGame.BASSIST)
-                return 10;
-            else if (multiplier >= 6)
+            if (multiplier >= GetBoardType().MaxMultiplier)
                 return 10;
             int i= (int)((multiplier % 1) * 10);
             if (i == 0 && multiplier > 1)
@@ -1350,17 +1045,12 @@ namespace Unsigned
             return (int)multiplier*(SPActivated?2:1);
         }
 
-        public bool IsLefty()
-        {
-            return LeftySwitch;
-        }
-
-        public bool GetWaves(long currenttime)
+        /*public bool GetWaves(long currenttime)
         {
             int count = 0;
-            for (int i = index; i<notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
+            for (int i = index; i<Notes.Length && Notes[i].time < currenttime + (eFade*1000) && Notes[i].time+Notes[i].length>(long)currenttime; i++)
             {
-                if (notes[i].length > 0)
+                if (Notes[i].length > 0)
                     count++;
             }
             if (wavesLen < count)
@@ -1369,42 +1059,42 @@ namespace Unsigned
             if (count == 0)
                 return false;
             count = 0;
-            for (int i = index; i < notes.Length && notes[i].time < currenttime + (eFade*1000) && notes[i].time+notes[i].length>(long)currenttime; i++)
+            for (int i = index; i < Notes.Length && Notes[i].time < currenttime + (eFade*1000) && Notes[i].time+Notes[i].length>(long)currenttime; i++)
             {
-                if (notes[i].length > 0)
+                if (Notes[i].length > 0)
                 {
                     bool white = false;
-                    if (SPIndex < SPStart.Length && SPGood && i >= SPStart[SPIndex] && i <= SPEnd[SPIndex])
+                    if (RPIndex < RPPhrases.Length && SPGood && i >= SPStart[RPIndex] && i <= SPEnd[RPIndex])
                         white = true;
-                    if (notes[i].burning)
+                    if (Notes[i].burning)
                     {
                         
-                        int num = (int)((Math.Min(notes[i].length, eFade * 1000f - (notes[i].time - (long)currenttime)) - ((notes[i].time < (long)currenttime) ? (long)currenttime - notes[i].time : 0) - WaveDetail) / WaveDetail);
+                        int num = (int)((Math.Min(Notes[i].length, eFade * 1000f - (Notes[i].time - (long)currenttime)) - ((Notes[i].time < (long)currenttime) ? (long)currenttime - Notes[i].time : 0) - WaveDetail) / WaveDetail);
                         num += 2;
                         if (wavesSubLen[count] < num)
                         { waves[count] = new WaveNode[num];  }
                         wavesSubLen[count] = num;
                         waves[count][0].X = 0f;
-                        waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
+                        waves[count][0].Y = (Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime);
+                        waves[count][0].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
                         waves[count][0].White = white;
                         float varyPower;
                         for (int n = 0; n < num - 1; n++)
                         {
                             waves[count][n].White = white;
-                            waves[count][n].Y = ((notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime)) + (WaveDetail * n);
+                            waves[count][n].Y = ((Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime)) + (WaveDetail * n);
                             varyPower = GetWhammy(waves[count][n].Y,currenttime);
                             if(varyPower<0.1)
                                 waves[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (waves[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
                             else
                                 waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
-                            waves[count][n].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
+                            waves[count][n].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
                         }
                         waves[count][num-1].White = white;
-                        waves[count][num - 1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), ((eFade * 1000f)));
+                        waves[count][num - 1].Y = Math.Min(((Notes[i].time + Notes[i].length) - (long)currenttime), ((eFade * 1000f)));
                         //waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
                         waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
-                        waves[count][num - 1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime?0:128)|64);
+                        waves[count][num - 1].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
                         count++;
                     }
                     else
@@ -1414,24 +1104,19 @@ namespace Unsigned
                          wavesSubLen[count] = 2;
                         waves[count][0].White = white;
                         waves[count][0].X = 0.2f;
-                        waves[count][0].Y = (notes[i].time < (long)currenttime) ? 0 : (notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
+                        waves[count][0].Y = (Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime);
+                        waves[count][0].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime-100?0:128)|(Notes[i].time >= (long)currenttime?64:0));
 
                         waves[count][1].White = white;
-                        waves[count][1].Y = Math.Min(((notes[i].time + notes[i].length) - (long)currenttime), (eFade * 1000f));
+                        waves[count][1].Y = Math.Min(((Notes[i].time + Notes[i].length) - (long)currenttime), (eFade * 1000f));
                         waves[count][1].X = 0.2f;
-                        waves[count][1].Z = (byte)(notes[i].type|(notes[i].burning||notes[i].time>(long)currenttime-100?0:128)|(notes[i].time >= (long)currenttime?64:0));
+                        waves[count][1].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime-100?0:128)|(Notes[i].time >= (long)currenttime?64:0));
                         count++;
                     }
                 }
             }
             return true;
-        }
-
-        public float[] GetPopups()
-        {
-            return popup;
-        }
+        }*/
 
         public float GetSPAmount()
         {
@@ -1446,18 +1131,18 @@ namespace Unsigned
         public void Whammy(float p,long currenttime,GameTime gametime, int beatLength)
         {
             p = (p + 1) / 2f;
-            if (index >= notes.Length)
+            if (index >= Notes.Length)
                 return;
-            if (notes[index].burning && notes[index].time < currenttime && notes[index].time + notes[index].length > currenttime)
+            if (Notes[index].burning && Notes[index].time < currenttime && Notes[index].end > currenttime)
             {
                 whammyage.AddFirst(new WaveVector2(p, 0));
-                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
+                int end = (int)Math.Min(eFade * 1000, (Notes[index].end) - (long)currenttime);
                 while (whammyage.Last.Value.Y >= end)
                     whammyage.RemoveLast();
                 score += (int)(10 * ((gametime.ElapsedGameTime.TotalSeconds*1000) / beatLength));
-                if(SPIndex<SPStart.Length && index>=SPStart[SPIndex] && index<=SPEnd[SPIndex])
+                if(RPIndex<RPPhrases.Length && index>=RPPhrases[RPIndex].time && index<=RPPhrases[RPIndex].end)
                 StarPowerAmount += (float)(((gametime.ElapsedGameTime.TotalSeconds * 1000) / beatLength));
-                if(SPIndex<SPStart.Length && index>=SPStart[SPIndex] && index<=SPEnd[SPIndex])
+                if(RPIndex<RPPhrases.Length && index>=RPPhrases[RPIndex].time && index<=RPPhrases[RPIndex].end)
                     StarPowerAmount += (float)(0.05f * ((gametime.ElapsedGameTime.TotalSeconds * 1000) / beatLength));
             }
             else if (whammyage.Count > 0)
@@ -1475,7 +1160,7 @@ namespace Unsigned
             }
             if (temp == null)
             {
-                int end = (int)Math.Min(eFade * 1000, (notes[index].time + notes[index].length) - (long)currenttime);
+                int end = (int)Math.Min(eFade * 1000, (Notes[index].end) - (long)currenttime);
                 float p = (y - whammyage.Last.Value.Y) / (end - whammyage.Last.Value.Y);
                 return (0.1f * p) + (whammyage.Last.Value.X*(1 - p));
             }
@@ -1491,11 +1176,10 @@ namespace Unsigned
             }
         }
 
-        public void Burn(GameTime gt, byte note)
+        public void Burn(GameTime gt, ulong note)
         {
-            int num = UnsignedGame.AddBits((byte)(note & 31));
-            float dt = gt.ElapsedGameTime.Milliseconds / 1000f;
-            score += (int)(num * 100 * dt);
+            int num = Global.AddBits(note & ~(((ulong)1) << GetBoardType().NumTracks));
+            score += (int)(num * 100 * gt.ElapsedGameTime.TotalSeconds);
         }
 
         public Results GetResults()
@@ -1509,34 +1193,97 @@ namespace Unsigned
                 SPActivated = true;
         }
 
-        public void Draw(SpriteBatch spritebatch, long currenttime)
+        public void Draw(Matrix fling)
         {
-            Vector2 center = new Vector2(vFuzz.Width/2,vFuzz.Height/2);
-            float vScale=0.2f;
-            float height = vFuzz.Height*vScale;
-            Color glow = new Color(150, 255, 150, 255);
-            spritebatch.Draw(vBGInt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
-            for (int i = index; i < vNotes.Length; i++)
-            {
-                spritebatch.Draw(vBar, new Rectangle((int)(vocalzerox+(vocalwidth*(vNotes[i].time-(long)currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
-                
-                for (int k = 0; k < vNotes[i].words.Length; k++)
-                {
-                    if (vNotes[i].words[k].sNote < 0)
-                        continue;
-                    float minx=(vocalzerox+(vocalwidth*(vNotes[i].words[k].time-currenttime))), maxx=(vocalzerox+(vocalwidth*((vNotes[i].words[k].len)-currenttime))), y=(1-((vNotes[i].words[k].sNote%12)/12f))*vocalheight*.69f+vocaly;
-                    spritebatch.Draw(vGlow, new Rectangle((int)minx, (int)(y - height/2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(0, 0, 128, 256), glow);
-                    spritebatch.Draw(vGlow, new Rectangle((int)(minx+Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height/2), (int)((maxx-minx)-(Math.Min(128 * vScale, (maxx - minx) * vScale)*2)), (int)(height)), new Rectangle(128, 0, 128, 256), glow);
-                    spritebatch.Draw(vGlow, new Rectangle((int)(maxx-Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height/2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(128, 0, -128, 256), glow);
-                }
-            }
+            RenderMaster rm = RenderMaster.GetSingleton();
+            SpriteBatch spritebatch = rm.spritebatch;
+            Effect effect = rm.engine;
+            GraphicsDeviceManager graphics = rm.graphics;
 
-            spritebatch.Draw(vBGExt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
-            
-            for (int i = index; i < vNotes.Length; i++)
-            for (int k = 0; k < vNotes[i].words.Length; k++)
-                    spritebatch.DrawString(UnsignedGame.DefaultFont, vNotes[i].words[k].value, new Vector2((vocalzerox + (vocalwidth * (vNotes[i].words[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
-            spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
+            if (GetBoardType().Dimensions == Instrument.BoardDimensions.TWO_DIMENSIONAL)
+            {
+                long currenttime = (long)(RhythmMaster.GetSingleton().GetCurrentTime() * 1000);
+                Vector2 center = new Vector2(vFuzz.Width / 2, vFuzz.Height / 2);
+                float vScale = 0.2f;
+                float height = vFuzz.Height * vScale;
+                Color glow = new Color(150, 255, 150, 255);
+                spritebatch.Draw(vBGInt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
+                for (int i = index; i < Phrases.Length; i++)
+                {
+                    spritebatch.Draw(vBar, new Rectangle((int)(vocalzerox + (vocalwidth * (Phrases[i].time - (long)currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
+
+                    for (int k = 0; k < Phrases[i].notes.Length; k++)
+                    {
+                        if (Phrases[i].notes[k].type < 0)
+                            continue;
+                        float minx = (vocalzerox + (vocalwidth * (Phrases[i].notes[k].time - currenttime))), maxx = (vocalzerox + (vocalwidth * ((Phrases[i].notes[k].length) - currenttime))), y = (1 - ((Phrases[i].notes[k].type % 12) / 12f)) * vocalheight * .69f + vocaly;
+                        spritebatch.Draw(vGlow, new Rectangle((int)minx, (int)(y - height / 2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(0, 0, 128, 256), glow);
+                        spritebatch.Draw(vGlow, new Rectangle((int)(minx + Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height / 2), (int)((maxx - minx) - (Math.Min(128 * vScale, (maxx - minx) * vScale) * 2)), (int)(height)), new Rectangle(128, 0, 128, 256), glow);
+                        spritebatch.Draw(vGlow, new Rectangle((int)(maxx - Math.Min(128 * vScale, (maxx - minx) * vScale)), (int)(y - height / 2), (int)Math.Min(128 * vScale, (maxx - minx) * vScale), (int)(height)), new Rectangle(128, 0, -128, 256), glow);
+                    }
+                }
+
+                spritebatch.Draw(vBGExt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
+
+                for (int i = index; i < Phrases.Length; i++)
+                    for (int k = 0; k < Phrases[i].notes.Length; k++)
+                        spritebatch.DrawString(Global.DefaultFont, Phrases[i].notes[k].text, new Vector2((vocalzerox + (vocalwidth * (Phrases[i].notes[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
+                spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
+            }
+            else //if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
+            {
+                if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
+                    DrawBoardTarget();
+
+                graphics.GraphicsDevice.SetRenderTarget(0, boardTarget);
+                graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
+
+                graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+                graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
+                graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+                graphics.ApplyChanges();
+
+                Matrix matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
+                          boardTarget.Width / (float)boardTarget.Height,
+                          1f, 10.0f);
+                effect.CurrentTechnique = effect.Techniques["boardTechnique"];
+                effect.Begin();
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Begin();
+
+                    effect.Parameters["view"].SetValue(Matrix.Identity);
+                    effect.Parameters["viewInverse"].SetValue(Matrix.Identity);
+                    effect.Parameters["proj"].SetValue(matProj);
+
+                    //get board measure world lengths
+
+#if DEBUG_CAM_CONTROL
+                                    fling *= Matrix.CreateRotationX(-0.4f);
+#endif
+
+                    effect.Parameters["fullbright"].SetValue(true);
+                    Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+
+                    //draw each boards
+                    DrawBoard(fling, matTransl);
+                    if (!IsFailing)
+                        DrawNotes(fling);
+                    DrawBoardDetail(fling, matTransl);
+                    if (!IsFailing)
+                    {
+                        DrawWaves(fling, matTransl);
+                        //draw the non-world gibs (glass shards sparks)
+                        //ParticleMaster.GetSingleton().Render(i?);
+                        DrawFlashes(fling);
+                    }
+                    pass.End();
+                }
+                effect.End();
+                //spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
+
+                //spritebatch.End();
+            }
         }
 
         internal void EatHalfSP()
@@ -1549,6 +1296,824 @@ namespace Unsigned
         internal void ToggleLefty()
         {
             LeftySwitch = !LeftySwitch;
+        }
+
+        /// <summary>
+        /// Turns a "time" into a position on the board
+        /// </summary>
+        /// <param name="position">the absolute time value of something (e.g. a note)</param>
+        /// <param name="ratio">the position of the frets. 0 is at the base of the board, 1 is at the far end</param>
+        /// <returns>the position on the board to draw (0-1 is visible range)</returns>
+        private static float GetBoardPos(double position, float ratio)
+        {
+            //relative position to current time
+            double relPos = position - RhythmMaster.GetSingleton().GetCurrentTime();
+
+            //total length of the board
+            double len = (Board.eFade * (1 / (1 - ratio)));
+
+            // in correct units
+            double retPos = position / len;
+
+            //shift for ratio offset
+            retPos += ratio;
+
+            //fix for tip of board being 0
+            retPos = 1 - retPos;
+
+            return (float)retPos;
+        }
+
+        private void DrawBoardTarget()
+        {
+            Effect fader = RenderMaster.GetSingleton().fader;
+            SpriteBatch spritebatch = RenderMaster.GetSingleton().spritebatch;
+            GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
+
+            float[] noteLanePos = { 29 / 256f, 79 / 256f, 127 / 256f, 176 / 256f, 227 / 256f };
+            float ratio = BOARD_FADE_RATIO;
+            fader.CurrentTechnique = fader.Techniques["Fade"];
+            float fh = (Board.eFade - Board.sFade) / (Board.eFade * (1 / ratio));
+            if (GetBoardType().Dimensions == Instrument.BoardDimensions.TWO_DIMENSIONAL)
+                return;
+            graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+            if (wavesLen > 0)
+            {
+                for (int p = 0; p < wavesLen; p++)
+                {
+                    for (int r = 0; r < 5; r++)
+                    {
+                        if ((waves[p][0].Z & (((ulong)1)<<r)) > 0)
+                        {
+                            for (int q = 0; q < wavesSubLen[p] - 1; q++)
+                            {
+                                float loA, hiA;
+                                if (waves[p][q].Y / 1000f < Board.sFade)
+                                    loA = 1;
+                                else if (waves[p][q].Y / 1000f < Board.eFade)
+                                    loA = 1 - (((waves[p][q].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
+                                else
+                                    loA = 0;
+                                if (waves[p][q + 1].Y / 1000f < Board.sFade)
+                                    hiA = 1;
+                                else if (waves[p][q + 1].Y / 1000f < Board.eFade)
+                                    hiA = 1 - (((waves[p][q + 1].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
+                                else
+                                    hiA = 0;
+                                float xscale = 15f;
+                                //spritebatch.Draw(texWhite, new Vector2(waves[p][q].X, (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), Color.White);
+                                int note = waves[p][q].Z;
+                                //if ((note & 128) == 0)
+                                {
+                                    for (int k = 0; k < 5; k++)
+                                        if ((note & (1 << k)) != 0)
+                                        {
+                                            if ((note & 64) != 0)
+                                            {
+                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, waves[p][q].White ? Color.White : Global.FretColors[k], (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * -xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, waves[p][q].White ? Color.White : Global.FretColors[k], (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                            }
+                                            else
+                                            {
+                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, Global.FadedFretColors(k), (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * -xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, Global.FadedFretColors(k), (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
+                                            }
+                                        }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+            spritebatch.End();
+
+
+            graphics.GraphicsDevice.SetRenderTarget(0, null);
+            texWaves = rtWaves.GetTexture();
+            graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+            fader.Begin();
+            fader.CurrentTechnique.Passes[0].Begin();
+
+            fader.Parameters["blend"].SetValue(fh);
+            spritebatch.Draw(texWaves, new Rectangle(0, 0, rtWaves.Width, rtWaves.Height), Color.White);
+
+
+            spritebatch.End();
+            fader.CurrentTechnique.Passes[0].End();
+            fader.End();
+            graphics.GraphicsDevice.SetRenderTarget(0, rtBoard);
+
+            //float scale = (Board.eFade - Board.sFade) / (Board.eFade * 1.5f);
+
+            fader.CommitChanges();
+
+
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+            //graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+            spritebatch.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            spritebatch.GraphicsDevice.RenderState.SourceBlend = Blend.SourceColor;
+            spritebatch.GraphicsDevice.RenderState.DestinationBlend = Blend.DestinationColor;
+            spritebatch.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+            spritebatch.GraphicsDevice.RenderState.AlphaSourceBlend = Blend.SourceAlpha;
+            float bgyscale = 2.0f;
+            /*for (int k = -4; k < 8; k++)
+            {
+                if (IsSPActivated())
+                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(128, 128, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                else if (isFailing)
+                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(255 * failTime), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                else if (rockMeterLevel < 20)
+                {
+                    if (RhythmMaster.GetSingleton().GetPercentBeat() > 0.5)
+                        spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((song.percentBeat - 0.5) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                    else
+                        spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((0.5 - song.percentBeat) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                }
+                else if (rockMeterLevel > 80)
+                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, (byte)(30 + ((rockMeterLevel[i] - 80) / 20f) * 50), 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                else if (rockMeterLevel < 40)
+                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(30 + (1 - ((rockMeterLevel[i] - 20) / 20f)) * 50), 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+                else
+                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
+            }
+
+            int fiver = i == 0 || i == 3 ? 1 : 0;
+            int lowestPoint = 0;
+            //spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard.Width,rtBoard.Height),null,Color.White);// (int)y, rtBoard.Width, (int)height), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.9f);
+            for (int k = 0; k < songtimes.Length - 1; k++)
+            {
+                if (started < 2 && CurrentTime < 30 * TicksPerSecond)
+                {
+                    if ((int)(rtBoard.Height * ratio) - (int)(songtimes[k].X * scale) > lowestPoint)
+                        lowestPoint = (int)(rtBoard.Height * ratio) - (int)(songtimes[k].X * scale);
+                }
+
+                {
+                    float height = (songtimes[k + 1].X - songtimes[k].X) * scale;
+                    float y = (rtBoard.Height * ratio) - (int)(songtimes[k].X * scale) - (int)((songtimes[k + 1].X - songtimes[k].X) * scale);
+
+                    for (int j = 0; j < (int)(songtimes[k].Y + 0.5); j++)
+                    {
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + ((j / songtimes[k].Y) * height)) - 1, rtBoard.Width, 5), Color.DarkGray);
+                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((j + 0.5) / songtimes[k].Y) * height)), rtBoard.Width, 3), Color.DarkGray);
+                    }
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((0.5) / songtimes[k].Y) * height)), rtBoard.Width, 3), Color.DarkGray);
+                    spritebatch.Draw(texWhite, new Rectangle(0, (int)y - 2, rtBoard.Width, 5), Color.DarkGray);
+                }
+            }*/
+
+            // Draw Board Fills
+            if ((GetBoardType().RPEnableType|Instrument.RockPowerEnableTypes.FILL)!=0)
+                for (int k = 0; k < Fills.Length; k++)
+                {
+                    float halfMaxWidth = rtBoard.Width / (float)(GetBoardType().NumDrawnTracks*2);
+                    if (!Fills[k].hitGreen)
+                    {
+                        float y1 = GetBoardPos(Fills[k].end, 1/ratio);
+                        float y2 = GetBoardPos(Fills[k].time, 1/ratio);
+                        for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
+                        {
+                            float center = ((r * 2 + 1) / (float)(GetBoardType().NumDrawnTracks*2)) * rtBoard.Width;
+                            spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * Fills[k].amount)), (int)y1, (int)(2 * (halfMaxWidth * Fills[k].amount)), (int)((y2-y1)+0.5f)), Global.FretColors[r]);
+                        }
+                    }
+                }
+
+            // Draw metainfo under frets
+            if (!Global.DemoMode)
+            {
+                // just trust me on this one...
+                float rpWidth = 0.97656f;
+                // this should? be compounded on rpWidth
+                float rpMeterWidth = 0.9375f;
+                // the height of the overal console thingy
+                int rpHeight = (int)((rtBoard.Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.spMeterYScale);
+                // this should be compounded on rpHeight
+                float rpMeterHeight = 0.21875f;
+                // draw the console thingy background
+                spritebatch.Draw(Board.spMeterBG, 
+                                 new Rectangle((int)(rtBoard.Width * ((1-rpWidth)/2) + 0.5f), 
+                                               (int)(rtBoard.Height * ratio) + spMeterShift, 
+                                               (int)(rtBoard.Width * rpWidth + 0.5f), 
+                                               rpHeight), 
+                                 null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.1f);
+
+                // draw the rock power meter
+                {
+                    // get the draw rect for the meter
+                    // all the extraneous 0.5fs are for rounding... damn Rectangle
+                    Rectangle meterRect = new Rectangle((int)(rtBoard.Width * ((1 - rpWidth) / 2) + rtBoard.Width * ((1 - rpMeterWidth) / 2) + 0.5f),
+                                                        (int)(rtBoard.Height * ratio) + spMeterShift + (int)(rpHeight * 0.03125f + 0.5f),
+                                                        (int)(rtBoard.Width * rpWidth * rpMeterWidth * GetSPAmount() + 0.5f),
+                                                        (int)(rpHeight * rpMeterHeight + 0.5f));
+                    spritebatch.Draw(Board.spMeterFill, meterRect, Color.Yellow);
+                    meterRect.Width = (int)(rtBoard.Width * rpWidth * rpMeterWidth + 0.5f);
+
+                    // TODO: find some way to do this that doesnt look retarded
+                    if (GetSPAmount() >= 0.4999f)
+                    {
+                        float ringScale = (rtBoard.Width / (float)spMeterCurl.Width) * 0.05f;
+                        for (int k = 0; k < spcircles.Length; k++)
+                            if (spcircles[k].pos.X < GetSPAmount())
+                                spritebatch.Draw(Board.spMeterCurl, 
+                                                 new Vector2((spcircles[k].pos.X * meterRect.Width) + meterRect.Left, 
+                                                             (spcircles[k].pos.Y * meterRect.Height) + meterRect.Top), 
+                                                 null, new Color(new Vector4(1, 1, 1, spcircles[k].alpha)), 
+                                                 spcircles[k].rotation, 
+                                                 new Vector2(Board.spMeterCurl.Width / 2, Board.spMeterCurl.Height / 2), 
+                                                 new Vector2(ringScale, ringScale), 
+                                                 SpriteEffects.None, 0);
+                    }
+                }
+
+                // TODO: jesus christ! wtf...
+                int f = GetMultiplierFraction();
+                int m = GetMultiplier();
+                // draw the multiplier bar
+                for (int k = 0; k < f; k++)
+                    spritebatch.Draw(Board.spMeterLED, 
+                                     new Rectangle((int)(rtBoard.Width * 0.109375f + rtBoard.Width * 0.0117f + 0.5f) + (int)(rtBoard.Width * 0.97656f * .078125f * k + 0.5f), 
+                                                   (int)(rtBoard.Height * ratio) + spMeterShift + (int)(rpHeight * 0.3125f + 0.5f), 
+                                                   (int)(rtBoard.Width * 0.97656f * .078125f + 0.5f) + 1, 
+                                                   (int)(rpHeight * 0.3125f + 0.5f)), 
+                                     null, 
+                                     m <= 1 ? Color.Yellow : m == 2 && f == 10 ? Color.Yellow : m == 2 ? Color.Green : m == 3 && f == 10 ? Color.Green : Color.Purple, 
+                                     0, new Vector2(0, 0), SpriteEffects.None, 0.8f);
+                // draw the multiplier number
+                if (Global.multToIndex[m] >= 0)
+                    spritebatch.Draw(texMult[Global.multToIndex[m]], 
+                                     new Rectangle(rtBoard.Width / 3, 
+                                                   (int)(rtBoard.Height * ratio) + spMeterShift + (int)(rpHeight * 0.3125f + 0.5f), 
+                                                   rtBoard.Width / 3, 
+                                                   (int)(rpHeight * 0.5f + 0.5f)), 
+                                     null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0);
+            }
+            spritebatch.End();
+
+            graphics.GraphicsDevice.SetRenderTarget(0, null);
+            texBoard = rtBoard.GetTexture();
+            graphics.GraphicsDevice.SetRenderTarget(0, rtBoard);
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+
+            fader.CommitChanges();
+            fader.Begin();
+            fader.CurrentTechnique.Passes[0].Begin();
+
+            fader.Parameters["blend"].SetValue(fh);
+            spritebatch.Draw(texBoard, new Rectangle(0, 0, rtBoard.Width, rtBoard.Height), Color.White);
+
+
+            spritebatch.End();
+            fader.CurrentTechnique.Passes[0].End();
+            fader.End();
+            graphics.GraphicsDevice.SetRenderTarget(0, null);
+            texBoard = rtBoard.GetTexture();
+        }
+
+        private void DrawNotes(Matrix fling)
+        {
+            RenderMaster rm = RenderMaster.GetSingleton();
+            RhythmMaster rtm = RhythmMaster.GetSingleton();
+            Effect effect = rm.engine;
+            if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
+            {
+                effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
+                effect.Parameters["BumpMappingEnabled"].SetValue(false);
+                effect.Parameters["fullbright"].SetValue(true);
+                effect.Parameters["vertexAlpha"].SetValue(false);
+                int lefty = 1;
+                if (IsLefty)
+                    lefty = -1;
+
+                
+                bool whited = false;
+                for (int r = 0; r < GetBoardType().NumTracks; r++)
+                {
+                    if (r < GetBoardType().NumDrawnTracks)
+                        effect.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                    else
+                        effect.Parameters["diffuseTexture"].SetValue(Board.texBarNotes[r-GetBoardType().NumDrawnTracks]);
+                    whited = false;
+                    for (int p = index; p < Notes.Length; p++)
+                    {
+                        bool IsWhite = false;
+                        for(int i=0;i<RPPhrases.Length;i++)
+                            if(Notes[p].time>=RPPhrases[i].time && Notes[p].time<=RPPhrases[i].end)
+                                IsWhite = true;
+                        if (IsWhite && !whited)
+                        { effect.Parameters["diffuseTexture"].SetValue(Global.texWhite); whited = true; }
+                        else if (!IsWhite && whited)
+                        {
+                            if (r < GetBoardType().NumDrawnTracks)
+                                effect.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                            else
+                                effect.Parameters["diffuseTexture"].SetValue(Board.texBarNotes[r - GetBoardType().NumDrawnTracks]);
+                            whited = false;
+                        }
+
+                        /*if (GetBoardType() != PERCUSSIONIST)
+                        {
+                            if (Math.Abs(OutNotes[p].X - (-1)) < 0.01 && r != 0)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (-0.5)) < 0.01 && r != 1)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X) < 0.01 && r != 2)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (0.5)) < 0.01 && r != 3)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (1.0)) < 0.01 && r != 4)
+                                continue;
+                        }
+                        else
+                        {
+                            if (Math.Abs(OutNotes[p].X - (-1)) < 0.01 && r != 1)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (-1 / 3f)) < 0.01 && r != 2)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X) < 0.01 && r != 5)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (1 / 3f)) < 0.01 && r != 3)
+                                continue;
+                            else if (Math.Abs(OutNotes[p].X - (1)) < 0.01 && r != 0)
+                                continue;
+                        }*/
+
+                        // how far along the board... should be called Z probly
+                        float Y = ((Notes[p].time / 1000f) - (float)rtm.GetCurrentTime());
+
+                        if ((Notes[p].type & (((ulong)1) << r)) == 0)
+                            continue;
+
+                        Matrix matIdentity, matTransl, matScale, matOrbit;
+                        matIdentity = Matrix.Identity;
+                        if( r >= GetBoardType().NumDrawnTracks )
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        else
+                            matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.02f, 0f);
+
+                        matOrbit = Matrix.CreateTranslation((((r*2)+1)/(float)GetBoardType().NumDrawnTracks) * lefty * Board.width, 0f, -(Board.length * Y) - Board.zeroZ) * fling;
+
+                        if (r<GetBoardType().NumDrawnTracks)
+                            matOrbit = Matrix.CreateRotationX(-Y * MathHelper.Pi) * matOrbit;
+
+                        if (r>=GetBoardType().NumDrawnTracks)
+                            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.01f));
+                        else
+                            matScale = Matrix.CreateScale(new Vector3((Notes[p].IsHOPO(GetBoardType()) ? 0.5f : 1.0f) * 0.125f * Board.width, 0.05f * Board.length, 0.05f * Board.length));
+
+                        float alpha;
+                        if (Y < Board.sFade)
+                            alpha = 1;
+                        else if (Y < Board.eFade)
+                            alpha = 1 - ((Y - Board.sFade) / (Board.eFade - Board.sFade));
+                        else
+                            alpha = 0;
+
+
+                        effect.Parameters["wAlpha"].SetValue(alpha);
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+
+
+                        effect.CommitChanges();
+
+                        GraphicsDeviceManager graphics = rm.graphics;
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        if (r>=GetBoardType().NumDrawnTracks)
+                        {
+                            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        }
+                        else
+                        {
+                            foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+                                    //effect.Parameters["diffuseTexture"].SetValue(texWhite);
+                                    effect.CommitChanges();
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
+                            foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                            {
+                                foreach (ModelMeshPart part in mesh.MeshParts)
+                                {
+
+                                    //effect.Parameters["diffuseTexture"].SetValue(texWhite);
+                                    effect.CommitChanges();
+                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                                }
+                            }
+                        }
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        
+                    }
+                }
+                effect.Parameters["wAlpha"].SetValue(1.0f);
+                effect.Parameters["fullbright"].SetValue(false);
+                effect.Parameters["vertexAlpha"].SetValue(true);
+            }
+        }
+
+        private void DrawBoardDetail(Matrix fling, Matrix matTransl)
+        {
+            if (GetBoardType().Dimensions==Instrument.BoardDimensions.THREE_DIMENSIONAL)
+            {
+                RenderMaster rm = RenderMaster.GetSingleton();
+                Effect effect = rm.engine;
+                SpriteBatch spritebatch = rm.spritebatch;
+                GraphicsDeviceManager graphics = rm.graphics;
+
+                effect.Parameters["fullbright"].SetValue(true);
+                int lefty = 1;
+                if (IsLefty)
+                    lefty = -1;
+
+                //if (GetBoardType() == GUITAR || GetBoardType() == BASS)
+                {
+                    Matrix matIdentity, matScale, matOrbit;
+
+                    bool[] glow = new bool[5];
+                    for (int p = 0; p < GetBoardType().NumDrawnTracks; p++)
+                    {
+                        float rise = -.01f;
+
+                        matIdentity = Matrix.Identity;
+                        //matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        float lanePos = (((p * 2 + 1) / (float)(GetBoardType().NumDrawnTracks * 2)) - 0.5f) * 2;
+                        float height = -(lanePos * lanePos) + 1;
+                        matTransl = Matrix.CreateTranslation(lanePos * lefty * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * height + rise + ((popup[p]) * 0.001f), -Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                        //effect.Parameters["proj"].SetValue(matProj);
+
+                        
+                        if((controller.GetFrets()&(((ulong)1)<<p))!=0)
+                        { effect.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                        else
+                            effect.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
+
+                        effect.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }
+                    effect.Parameters["fullbright"].SetValue(true);
+                    
+                    /*for (int p = 0; p < 5; p++)
+                    {
+
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
+
+
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                        effect.Parameters["proj"].SetValue(matProj);
+                        effect.Parameters["diffuseColor"].SetValue(new Vector4(FretColors[p].ToVector3(), 0.5f));
+                        effect.Parameters["wAlpha"].SetValue(pop[i]);
+                        effect.Parameters["diffuseTexture"].SetValue(texGlow);
+                        effect.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                        //graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }*/
+                    effect.Parameters["fullbright"].SetValue(false);
+                    effect.Parameters["wAlpha"].SetValue(1);
+
+                }
+                /*else if (GetBoardType() == PERCUSSIONIST)
+                {
+
+
+                    bool[] glow = new bool[5];
+                    float[] pop = GetPopups();
+                    for (int k = 0; k < 5; k++)
+                        glow[k] = pop[k] > 0;
+                    {
+                        Matrix matIdentity, matScale, matOrbit;
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, 0f, -(0.08f) - Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                        effect.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }
+                    for (int p = 0; p < 4; p++)
+                    {
+                        Matrix matIdentity, matScale, matOrbit;
+                        float rise = -.01f;
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation((-.75f + (p * .5f)) * (Board.width), Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 0.05f, .05f));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
+                        if (glow[p] && p < 4)
+                            effect.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
+
+                        effect.CommitChanges();
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+                    }
+                    {
+                        Matrix matIdentity, matScale, matOrbit;
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, 0f, (0.08f) - Board.zeroZ) * fling;
+                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                        effect.CommitChanges();
+
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.VertexDeclaration = vd;
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                    }
+                    effect.Parameters["fullbright"].SetValue(true);
+                    for (int p = 0; p < 4; p++)
+                    {
+                        if (glow[p])
+                        {
+                            Matrix matIdentity, matScale, matOrbit;
+
+                            matIdentity = Matrix.Identity;
+                            matTransl = Matrix.CreateTranslation((-0.75f + (p * .5f)) * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                            matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (gloworder[p] * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
+                            matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
+
+                            // identity, scale, rotate, orbit(translate & rotate), translate
+                            effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+
+                            if (GetBoardType() != PERCUSSIONIST)
+                                effect.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
+                            else
+                                effect.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
+                            effect.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
+
+                            effect.Parameters["diffuseTexture"].SetValue(texGlow);
+                            effect.CommitChanges();
+
+                            // 5: draw object - select vertex type, primitive type, # of primitives
+                            graphics.GraphicsDevice.VertexDeclaration = vd;
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                        }
+                    }
+
+                    effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                    effect.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                    effect.Parameters["fullbright"].SetValue(false);
+                }*/
+                effect.Parameters["wAlpha"].SetValue(1.0f);
+                effect.Parameters["fullbright"].SetValue(false);
+            }
+        }
+
+        private void DrawFlashes(Matrix fling)
+        {
+            RenderMaster rm = RenderMaster.GetSingleton();
+            Effect effect = rm.engine;
+            GraphicsDeviceManager graphics = rm.graphics;
+
+            int lefty = 1;
+            if (IsLefty)
+                lefty = -1;
+            
+            for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)
+                if (popup[i] > 0)
+                {
+                    Matrix matRot, matTransl, matOrbit, matScale;
+                    matRot = Matrix.CreateRotationY(flashRot) * Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
+                    float lanePos = (((i * 2 + 1) / (float)(GetBoardType().NumDrawnTracks * 2)) - 0.5f) * 2;
+                    float height = -(lanePos * lanePos) + 1;
+                    matTransl = Matrix.CreateTranslation(lanePos * (Board.width), 0.1f + Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                    matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * height + ((popup[i]) * 0.001f), -Board.zeroZ) * fling;
+                    matScale = Matrix.CreateScale(new Vector3(0.2f, 0.2f, 0.2f));
+
+                    // identity, scale, rotate, orbit(translate & rotate), translate
+                    effect.Parameters["world"].SetValue(matScale * matRot * matOrbit * matTransl);
+
+                    effect.Parameters["diffuseTexture"].SetValue(Board.texBlast);
+                    effect.Parameters["diffuseColor"].SetValue(Global.FretColors[i].ToVector4());
+                    effect.CommitChanges();
+
+                    // 5: draw object - select vertex type, primitive type, # of primitives
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
+                    graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                    graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+            effect.Parameters["diffuseColor"].SetValue(new Vector4(1, 1, 1, 1));
+        }
+
+        private void DrawBoard(Matrix fling, Matrix matTransl)
+        {
+            RenderMaster rm = RenderMaster.GetSingleton();
+            GraphicsDeviceManager graphics = rm.graphics;
+            Effect effect = rm.engine;
+
+            graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+            Matrix matScale, matOrbit;
+            matOrbit = Matrix.CreateTranslation(0f, 0f, -Board.zeroZ - (Board.eFade * Board.length)) * fling;
+            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
+            effect.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+            effect.Parameters["diffuseTexture"].SetValue(texBoard);
+            effect.Parameters["wAlpha"].SetValue(1.0f);
+            effect.CommitChanges();
+            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+        }
+
+        private void DrawWaves(Matrix fling, Matrix matTransl)
+        {
+            RenderMaster rm = RenderMaster.GetSingleton();
+            GraphicsDeviceManager graphics = rm.graphics;
+            Effect effect = rm.engine;
+
+            Matrix matScale, matOrbit;
+            matOrbit = Matrix.CreateTranslation(0f, 0.01f,  -Board.zeroZ - (Board.eFade * Board.length)) * fling;
+            matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
+            effect.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
+            effect.Parameters["diffuseTexture"].SetValue(texWaves);
+            effect.Parameters["wAlpha"].SetValue(1.0f);
+            effect.CommitChanges();
+            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+            graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlBoard, 0, GBVertexFormat.SizeInBytes);
+            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlBoard.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+        }
+
+        private void Help()
+        {
+            if (difficulty == Global.D_EASY)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel += 1 * (SPActivated ? 10 : 1);
+                else
+                    rockMeterLevel += 4f * (SPActivated ? 10 : 1);
+            }
+            else if (difficulty == Global.D_MEDIUM)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel += 1 * (SPActivated ? 10 : 1);
+                else
+                    rockMeterLevel += 3f * (SPActivated ? 10 : 1);
+            }
+            else if (difficulty == Global.D_HARD)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel += 0.75f * (SPActivated ? 10 : 1);
+                else
+                    rockMeterLevel += 2f * (SPActivated ? 10 : 1);
+            }
+            if (difficulty == Global.D_EXPERT)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel += 0.25f * (SPActivated ? 10 : 1);
+                else
+                    rockMeterLevel += 1f * (SPActivated ? 10 : 1);
+            }
+        }
+
+        private void Hurt()
+        {
+            if (difficulty == Global.D_EASY)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel -= 1;//1f;
+                else if (rockMeterLevel > 20)
+                    rockMeterLevel -= 0.75f;//0.75f;
+                else
+                    rockMeterLevel -= 0.5f;// 0.5f;
+            }
+            else if (difficulty == Global.D_MEDIUM)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel -= 2;//1f;
+                else if (rockMeterLevel > 20)
+                    rockMeterLevel -= 1f;//0.75f;
+                else
+                    rockMeterLevel -= 0.5f;// 0.5f;
+            }
+            else if (difficulty == Global.D_HARD)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel -= 3;//1f;
+                else if (rockMeterLevel > 20)
+                    rockMeterLevel -= 1.5f;//0.75f;
+                else
+                    rockMeterLevel -= 1f;// 0.5f;
+            }
+            else if (difficulty == Global.D_EXPERT)
+            {
+                if (rockMeterLevel > 80)
+                    rockMeterLevel -= 4;//1f;
+                else if (rockMeterLevel > 20)
+                    rockMeterLevel -= 3f;//0.75f;
+                else
+                    rockMeterLevel -= 2f;// 0.5f;
+            }
+        }
+
+        /// <summary>
+        /// Saves a board from failing
+        /// e.g. someone saves using rock power
+        /// </summary>
+        public void Save()
+        {
+            rockMeterLevel = 80;
+        }
+
+        public float GetRockMeterLevel()
+        {
+            return rockMeterLevel;
+        }
+
+        public Texture2D GetRender()
+        {
+            return boardTarget.GetTexture();
         }
     }
 }

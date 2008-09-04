@@ -32,7 +32,7 @@ namespace Unsigned
             
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
             
         }
@@ -160,7 +160,12 @@ namespace Unsigned
             else if (SM.Major >= 2)
                 engine.CurrentTechnique = RenderMaster.GetSingleton().engine.Techniques["menutechniquet"];
             else
-                UnsignedGame.SINGLETON.InvalidShaderVersion();
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("Whoops! Your graphics card only supports Shader Model " + SM.Major + "." + SM.Minor + "\nYou need at least 2.0 to run Unsigned");
+#endif
+                UnsignedGame.GetSingleton().Exit();
+            }
             engine.CommitChanges();
 #if !DEBUG
                     }

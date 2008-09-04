@@ -96,7 +96,7 @@ namespace Unsigned
         }
          */
 
-        public void play()
+        public void Play()
         {
 #if WINDOWS
             sound.Paused = false; 
@@ -106,10 +106,10 @@ namespace Unsigned
 #endif
         }
 
-        public long getTime()
+        public double GetTime()
         {
 #if WINDOWS
-            return sound.PlayPosition;  
+            return sound.PlayPosition/1000.0;  
 #else
             return 0;
 #endif
@@ -140,7 +140,7 @@ namespace Unsigned
         }
          */
 
-        internal void pause()
+        internal void Pause()
         {
 #if WINDOWS
             sound.Paused = true;
@@ -149,10 +149,10 @@ namespace Unsigned
 #endif
         }
 
-        internal void resume(long p)
+        internal void Resume()
         {
 #if WINDOWS
-            sound.PlayPosition = (uint)p;
+            sound.PlayPosition = (uint)(RhythmMaster.GetSingleton().GetCurrentTime()*1000);
             sound.Paused = false;
 #else
             cue.Resume();
@@ -175,17 +175,17 @@ namespace Unsigned
         }
          */
 
-        public void CreateSingleton(IntPtr game)
+        public static void CreateSingleton(IntPtr game)
         {
             SINGLETON_SongAudioMaster = new SongAudioMaster(game);
         }
 
-        public SongAudioMaster GetSingleton()
+        public static SongAudioMaster GetSingleton()
         {
             return SINGLETON_SongAudioMaster;
         }
 
-        public void DestroySingleton()
+        public static void DestroySingleton()
         {
             SINGLETON_SongAudioMaster = null;
         }

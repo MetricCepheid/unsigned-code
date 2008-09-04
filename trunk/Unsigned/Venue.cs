@@ -147,7 +147,7 @@ namespace Unsigned
             LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
         }
 
-        public void Update(GameTime gameTime, long songtime, Effect engine)
+        public void Update(GameTime gameTime)
         {
 #if DEBUG_CAM_CONTROL
             KeyboardState kbs = Keyboard.GetState();
@@ -194,7 +194,7 @@ namespace Unsigned
                 camindex = list[rand.Next(list.Count)];
                 camtime++;
             }
-            else if (camtime < camtimes.Length - 1 && (long)songtime > camtimes[camtime + 1])
+            else if (camtime < camtimes.Length - 1 && RhythmMaster.GetSingleton().GetCurrentTime()*1000 > camtimes[camtime + 1])
             {//sets up camera movement interpolation
                 int k;
                 do 
@@ -224,7 +224,7 @@ namespace Unsigned
             if (camtime >= camtimes.Length-1)//sets flag for new camera
                 camblendvalue = -1;
             else//interpolation math:
-                camblendvalue = ((long)songtime - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
+                camblendvalue = ((long)(RhythmMaster.GetSingleton().GetCurrentTime()*1000) - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
 
 
             for (int i = 0; i < Entities.Count; i++)
@@ -304,7 +304,7 @@ namespace Unsigned
                                     ons[lt] = true;
                                     fars[lt] = lights[j].outerAngle;
                                     nears[lt] = lights[j].innerAngle;
-                                    powers[lt] = GetStrobe(effects[i].data,songtime);
+                                    powers[lt] = GetStrobe(effects[i].data);
                                     poss[lt] = lights[j].pos;
                                     dirs[lt] = lights[j].targs[0].dir;
                                     lt++;
@@ -361,10 +361,11 @@ namespace Unsigned
             engine.CommitChanges();
         }
 
-        private float GetStrobe(int spb, long currenttime)
+        private float GetStrobe(int spb)
         {
-            float measure = song.GetMeasureProgress(currenttime);
-            int bpm = song.GetBPMeasure(currenttime);
+
+            float measure = RhythmMaster.GetSingleton().GetMeasureProgress();
+            int bpm = RhythmMaster.GetSingleton().GetBPMeasure();
             float beat = (measure * bpm) % 1;
             return ((beat * spb)) % 1;
         }
@@ -613,14 +614,17 @@ namespace Unsigned
             sr.Close();
         }
 
-        public void Render(GraphicsDeviceManager graphics, Effect engine, Matrix matProj,
-                           VertexDeclaration vd, GameTime gameTime)
+        public void Render(GameTime gameTime, Matrix matProj, VertexDeclaration vd)
         {
+            RenderMaster rm = RenderMaster.GetSingleton();
+            Effect effect = rm.engine;
+            GraphicsDeviceManager graphics = rm.graphics;
+
             lastTexApplied=-1;
             Matrix matIdentity, matTransl, matScale, matRot, matOrbit, mMatWorld;
 
-            engine.Parameters["ambientColor"].SetValue(new Vector4(.2f, .2f, .2f, 1f));
-            engine.Parameters["fullbright"].SetValue(false);
+            effect.Parameters["ambientColor"].SetValue(new Vector4(.2f, .2f, .2f, 1f));
+            effect.Parameters["fullbright"].SetValue(false);
 
             for (int i = 0; i < StaticGeom.Length; i++)
             {
@@ -629,18 +633,18 @@ namespace Unsigned
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale;
-                    engine.Parameters["world"].SetValue(mMatWorld);
-                    engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                    engine.Parameters["shininess"].SetValue(StaticTexture[StaticGeom[i].texIndex].shininess);
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
-                    //engine.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    effect.Parameters["world"].SetValue(mMatWorld);
+                    effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                    effect.Parameters["shininess"].SetValue(StaticTexture[StaticGeom[i].texIndex].shininess);
+                    effect.Parameters["diffuseColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    //effect.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
                     if (lastTexApplied != StaticGeom[i].texIndex)
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].tex);
-                        engine.Parameters["bumpTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].bm);
+                        effect.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].tex);
+                        effect.Parameters["bumpTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].bm);
                         lastTexApplied = StaticGeom[i].texIndex;
                     }
-                    engine.CommitChanges();
+                    effect.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
                     graphics.GraphicsDevice.VertexDeclaration = vd;
@@ -655,11 +659,11 @@ namespace Unsigned
             }
             for (int i = 0; i < Entities.Count; i++)
             {
-                Entities[i].Draw(engine,graphics,camPos);
+                Entities[i].Draw(effect,graphics,camPos);
             }
-            engine.Parameters["vertexAlpha"].SetValue(false);
-            engine.Parameters["BumpMappingEnabled"].SetValue(false);
-            //engine.Parameters["SpecularEnabled"].SetValue(false);
+            effect.Parameters["vertexAlpha"].SetValue(false);
+            effect.Parameters["BumpMappingEnabled"].SetValue(false);
+            //effect.Parameters["SpecularEnabled"].SetValue(false);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
             {//guitarist
 
@@ -669,11 +673,11 @@ namespace Unsigned
             {//Bassist
                 bassist.Draw(gameTime, graphics);
             }//Bassist
-            engine.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
+            effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
             {//Drummer
 
                 drummer.Draw(gameTime, graphics);
-                engine.Parameters["vertexAlpha"].SetValue(false);
+                effect.Parameters["vertexAlpha"].SetValue(false);
 
                 //BASS DRUM
                 matIdentity = Matrix.Identity;
@@ -685,26 +689,26 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matOrbit * matTransl;
 
-                //engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                //engine.Parameters["fullbright"].SetValue(true);
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_BASSDRUM]);
-                engine.CommitChanges();
+                //effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                //effect.Parameters["fullbright"].SetValue(true);
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_BASSDRUM]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_BASSDRUM].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        //engine.Parameters["diffuseTexture"].SetValue(Game1.texWhite);
-                        engine.CommitChanges();
+                        //effect.Parameters["diffuseTexture"].SetValue(Game1.texWhite);
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
                         graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
                     }
                 }
-                //engine.Parameters["fullbright"].SetValue(false);
+                //effect.Parameters["fullbright"].SetValue(false);
 
                 //CRASH CYMBAL
                 matIdentity = Matrix.Identity;
@@ -715,16 +719,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matRot * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_CRASHCYMBAL]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_CRASHCYMBAL]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_CRASHCYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -741,16 +745,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matRot * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_FLOORTOM]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_FLOORTOM]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_FLOORTOM].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -765,16 +769,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_TOMTOMS]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_TOMTOMS]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_TOMTOMS].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -790,16 +794,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matRot * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_SNARE]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_SNARE]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_SNARE].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -815,16 +819,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matRot * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_RIDECYMBAL]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_RIDECYMBAL]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_RIDECYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -840,16 +844,16 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matRot * matOrbit * matTransl;
 
-                engine.Parameters["world"].SetValue(mMatWorld);
-                engine.Parameters["wRot"].SetValue(Matrix.Identity);
-                engine.Parameters["diffuseTexture"].SetValue(drumsetT[DS_HIHATCYMBAL]);
-                engine.CommitChanges();
+                effect.Parameters["world"].SetValue(mMatWorld);
+                effect.Parameters["wRot"].SetValue(Matrix.Identity);
+                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_HIHATCYMBAL]);
+                effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_HIHATCYMBAL].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        engine.CommitChanges();
+                        effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
                         graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
@@ -861,9 +865,9 @@ namespace Unsigned
             {//singer
                 vocalist.Draw(gameTime, graphics);
             }//singer
-            engine.Parameters["vertexAlpha"].SetValue(true);
-            engine.Parameters["BumpMappingEnabled"].SetValue(true);
-            engine.Parameters["SpecularEnabled"].SetValue(true);
+            effect.Parameters["vertexAlpha"].SetValue(true);
+            effect.Parameters["BumpMappingEnabled"].SetValue(true);
+            effect.Parameters["SpecularEnabled"].SetValue(true);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
         }
 

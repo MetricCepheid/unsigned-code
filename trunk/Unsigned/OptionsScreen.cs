@@ -34,7 +34,7 @@ namespace Unsigned
 
         }
 
-        public override void Unload(ContentManager content)
+        public override void Unload()
         {
 
         }
@@ -267,8 +267,8 @@ namespace Unsigned
                 float x = 0.4f, y = 0.6f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "HUD Style", new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
-                rm.spritebatch.DrawString(Global.DefaultFont, guiStyle[(int)GameSettings.cGUIStyle], new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, ((float)GameSettings.cGUIStyle / (guiStyle.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.DrawString(Global.DefaultFont, guiStyle[(int)GameSettings.guiStyle], new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, ((float)GameSettings.guiStyle / (guiStyle.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//gfxqual
                 float x = 0.6f, y = 0.3f;

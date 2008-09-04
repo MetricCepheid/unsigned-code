@@ -87,52 +87,6 @@ namespace Unsigned
             }
         }
 
-        public struct RockPowerPhrase
-        {
-            public uint time, len;
-            public RockPowerPhrase(uint time, uint len)
-            {
-                this.time = time;
-                this.len = len;
-            }
-        }
-
-        public struct Solo
-        {
-            public uint time, len;
-            public Solo(uint time, uint len)
-            {
-                this.time = time;
-                this.len = len;
-            }
-        }
-
-        public struct Fill
-        {
-            public uint time, len;
-            public Fill(uint time, uint len)
-            {
-                this.time = time;
-                this.len = len;
-            }
-        }
-
-        public struct Note
-        {
-            public long value, endvalue;
-            public uint time, len;
-            public String text;
-        }
-
-        public struct Phrase
-        {
-            public uint time;
-            public SongData.TYPE type;
-            public bool rockpower;
-            public SongData.RTYPE rType;
-            public Note[] notes;
-        }
-
         public struct DifficultySet
         {
             public int diff;
@@ -285,10 +239,10 @@ namespace Unsigned
             SongData.SongDataInstrument guitar = new SongData.SongDataInstrument();
             guitar.instrumentType = "LGT";
 
-            guitar.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            guitar.rpPhrases = new RockPowerPhrase[reader.ReadInt32()];
             for (int i = 0; i < guitar.rpPhrases.Length; i++)
             {
-                guitar.rpPhrases[i] = new SongData.RockPowerPhrase();
+                guitar.rpPhrases[i] = new RockPowerPhrase();
                 guitar.rpPhrases[i].time = reader.ReadUInt32();
                 guitar.rpPhrases[i].len = reader.ReadUInt32();
             }
@@ -297,15 +251,16 @@ namespace Unsigned
             {
                 int k = reader.ReadInt32();
                 guitar.diffSets[k].diff = k;
-                guitar.diffSets[k].phrases = new SongData.Phrase[1];
-                guitar.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
-                SongData.Note[] arr = guitar.diffSets[k].phrases[0].notes;
+                guitar.diffSets[k].phrases = new Phrase[1];
+                guitar.diffSets[k].phrases[0].notes = new NoteSet[reader.ReadInt32()];
+                NoteSet[] arr = guitar.diffSets[k].phrases[0].notes;
                 for (int j = 0; j < arr.Length; j++)
                 {
-                    arr[j] = new SongData.Note();
-                    arr[j].value = reader.ReadByte();
+                    arr[j] = new NoteSet();
+                    arr[j].visible = new NoteSet.VIS_STATE[5];
+                    arr[j].type = reader.ReadByte();
                     arr[j].time = reader.ReadUInt32();
-                    arr[j].len = reader.ReadUInt32();
+                    arr[j].length = reader.ReadUInt32();
                 }
                 guitar.diffSets[k].starScoreLevels = new uint[6];
                 for (int j = 0; j < 5; j++)
@@ -322,25 +277,26 @@ namespace Unsigned
             SongData.SongDataInstrument bass = new SongData.SongDataInstrument();
             bass.instrumentType = "BAS";
 
-            bass.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            bass.rpPhrases = new RockPowerPhrase[reader.ReadInt32()];
             for (int i = 0; i < bass.rpPhrases.Length; i++)
             {
-                bass.rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+                bass.rpPhrases[i] = new RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
             }
             bass.diffSets = new SongData.DifficultySet[4];
             for (int i = 0; i < 4; i++)
             {
                 int k = reader.ReadInt32();
                 bass.diffSets[k] = new SongData.DifficultySet();
-                bass.diffSets[k].phrases = new SongData.Phrase[1];
-                bass.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
-                SongData.Note[] arr = bass.diffSets[k].phrases[0].notes;
+                bass.diffSets[k].phrases = new Phrase[1];
+                bass.diffSets[k].phrases[0].notes = new NoteSet[reader.ReadInt32()];
+                NoteSet[] arr = bass.diffSets[k].phrases[0].notes;
                 for (int j = 0; j < arr.Length; j++)
                 {
-                    arr[j] = new SongData.Note();
-                    arr[j].value = reader.ReadByte();
+                    arr[j] = new NoteSet();
+                    arr[j].visible = new NoteSet.VIS_STATE[5];
+                    arr[j].type = reader.ReadByte();
                     arr[j].time = reader.ReadUInt32();
-                    arr[j].len = reader.ReadUInt32();
+                    arr[j].length = reader.ReadUInt32();
                 }
                 bass.diffSets[k].starScoreLevels = new uint[6];
                 for (int j = 0; j < 5; j++)
@@ -356,29 +312,30 @@ namespace Unsigned
             drums.instrumentType = "SET";
 
             reader.ReadByte();//version
-            drums.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
+            drums.rpPhrases = new RockPowerPhrase[reader.ReadInt32()];
             for (int i = 0; i < drums.rpPhrases.Length; i++)
             {
-                drums.rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(),reader.ReadUInt32());
+                drums.rpPhrases[i] = new RockPowerPhrase(reader.ReadUInt32(),reader.ReadUInt32());
             }
-            drums.fills = new SongData.Fill[reader.ReadInt32()];
+            drums.fills = new Fill[reader.ReadInt32()];
             for (int i = 0; i < drums.fills.Length; i++)
             {
-                drums.fills[i] = new SongData.Fill(reader.ReadUInt32(),reader.ReadUInt32());
+                drums.fills[i] = new Fill(reader.ReadUInt32(),reader.ReadUInt32());
             }
             drums.diffSets = new SongData.DifficultySet[4];
             for (int i = 0; i < 4; i++)
             {
                 int k = reader.ReadInt32();
                 drums.diffSets[k] = new SongData.DifficultySet();
-                drums.diffSets[k].phrases = new SongData.Phrase[1];
-                drums.diffSets[k].phrases[0] = new SongData.Phrase();
-                drums.diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadInt32()];
-                SongData.Note[] arr = drums.diffSets[k].phrases[0].notes;
+                drums.diffSets[k].phrases = new Phrase[1];
+                drums.diffSets[k].phrases[0] = new Phrase();
+                drums.diffSets[k].phrases[0].notes = new NoteSet[reader.ReadInt32()];
+                NoteSet[] arr = drums.diffSets[k].phrases[0].notes;
                 for (int j = 0; j < arr.Length; j++)
                 {
-                    arr[j] = new SongData.Note();
-                    arr[j].value = reader.ReadByte();
+                    arr[j] = new NoteSet();
+                    arr[j].visible = new NoteSet.VIS_STATE[5];
+                    arr[j].type = reader.ReadByte();
                     arr[j].time = reader.ReadUInt32();
                 }
                 drums.diffSets[k].starScoreLevels = new uint[6];
@@ -397,21 +354,22 @@ namespace Unsigned
 
             vocals.instrumentType = "LVX";
             vocals.diffSets = new SongData.DifficultySet[4];
-            vocals.diffSets[3].phrases = new SongData.Phrase[reader.ReadUInt32()];
+            vocals.diffSets[3].phrases = new Phrase[reader.ReadUInt32()];
             for (int i = 0; i < vocals.diffSets[3].phrases.Length; i++)
             {
                 vocals.diffSets[3].phrases[i].time = reader.ReadUInt32();
                 vocals.diffSets[3].phrases[i].type = (SongData.TYPE)reader.ReadByte();
-                vocals.diffSets[3].phrases[i].notes = new SongData.Note[reader.ReadInt32()];
+                vocals.diffSets[3].phrases[i].notes = new NoteSet[reader.ReadInt32()];
                 if (vocals.diffSets[3].phrases[i].type == SongData.TYPE.REGULAR)
                 {
                     for (int k = 0; k < vocals.diffSets[3].phrases[i].notes.Length; k++)
                     {
-                        vocals.diffSets[3].phrases[i].notes[k] = new SongData.Note();
+                        vocals.diffSets[3].phrases[i].notes[k] = new NoteSet();
                         vocals.diffSets[3].phrases[i].notes[k].time = reader.ReadUInt32();
-                        vocals.diffSets[3].phrases[i].notes[k].len = reader.ReadUInt32();
-                        vocals.diffSets[3].phrases[i].notes[k].value = reader.ReadInt16();
-                        vocals.diffSets[3].phrases[i].notes[k].endvalue = vocals.diffSets[3].phrases[i].notes[k].value;
+                        vocals.diffSets[3].phrases[i].notes[k].length = reader.ReadUInt32();
+                        vocals.diffSets[3].phrases[i].notes[k].visible = new NoteSet.VIS_STATE[(vocals.diffSets[3].phrases[i].notes[k].length / 10) + 1];
+                        vocals.diffSets[3].phrases[i].notes[k].type = (ulong)reader.ReadInt16();
+                        vocals.diffSets[3].phrases[i].notes[k].endtype = vocals.diffSets[3].phrases[i].notes[k].type;
                         vocals.diffSets[3].phrases[i].notes[k].text = reader.ReadString();
                     }
                 }
@@ -420,12 +378,13 @@ namespace Unsigned
                     vocals.diffSets[3].phrases[i].rType = (SongData.RTYPE)reader.ReadByte();
                     for (int k = 0; k < vocals.diffSets[3].phrases[i].notes.Length; k++)
                     {
-                        vocals.diffSets[3].phrases[i].notes[k] = new SongData.Note();
+                        vocals.diffSets[3].phrases[i].notes[k] = new NoteSet();
                         vocals.diffSets[3].phrases[i].notes[k].time = reader.ReadUInt32();
+                        vocals.diffSets[3].phrases[i].notes[k].visible = new NoteSet.VIS_STATE[1];
                     }
                 }
                 else if (vocals.diffSets[3].phrases[i].type == SongData.TYPE.BLANK)
-                    vocals.diffSets[3].phrases[i].notes = new SongData.Note[0];
+                    vocals.diffSets[3].phrases[i].notes = new NoteSet[0];
             }
             vocals.diffSets[3].starScoreLevels = new uint[6];
             for (int j = 0; j < 5; j++)
@@ -518,25 +477,26 @@ namespace Unsigned
             //guitar
             ret.instruments[0] = new SongData.SongDataInstrument();
             ret.instruments[0].instrumentType = "LGT";
-            ret.instruments[0].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            ret.instruments[0].rpPhrases = new RockPowerPhrase[reader.ReadUInt32()];
             for (int i = 0; i < ret.instruments[0].rpPhrases.Length; i++)
-                ret.instruments[0].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
-            ret.instruments[0].solos = new SongData.Solo[reader.ReadUInt32()];
+                ret.instruments[0].rpPhrases[i] = new RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[0].solos = new Solo[reader.ReadUInt32()];
             for (int i = 0; i < ret.instruments[0].solos.Length; i++)
-                ret.instruments[0].solos[i] = new SongData.Solo(reader.ReadUInt32(), reader.ReadUInt32());
+                ret.instruments[0].solos[i] = new Solo(reader.ReadUInt32(), reader.ReadUInt32());
             ret.instruments[0].diffSets = new SongData.DifficultySet[4];
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
-                ret.instruments[0].diffSets[k].phrases = new SongData.Phrase[1];
-                ret.instruments[0].diffSets[k].phrases[0] = new SongData.Phrase();
-                ret.instruments[0].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                ret.instruments[0].diffSets[k].phrases = new Phrase[1];
+                ret.instruments[0].diffSets[k].phrases[0] = new Phrase();
+                ret.instruments[0].diffSets[k].phrases[0].notes = new NoteSet[reader.ReadUInt32()];
                 for(int i=0;i<ret.instruments[0].diffSets[k].phrases[0].notes.Length;i++)
                 {
-                    SongData.Note note = new SongData.Note();
-                    note.value = (long)reader.ReadByte();
+                    NoteSet note = new NoteSet();
+                    note.visible = new NoteSet.VIS_STATE[5];
+                    note.type = (ulong)reader.ReadByte();
                     note.time = reader.ReadUInt32();
-                    note.len = reader.ReadUInt32();
+                    note.length = reader.ReadUInt32();
                     ret.instruments[0].diffSets[k].phrases[0].notes[i] = note;
                 }
                 ret.instruments[0].diffSets[k].starScoreLevels = new uint[6];
@@ -548,22 +508,23 @@ namespace Unsigned
             //bass
             ret.instruments[3] = new SongData.SongDataInstrument();
             ret.instruments[3].instrumentType = "BAS";
-            ret.instruments[3].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            ret.instruments[3].rpPhrases = new RockPowerPhrase[reader.ReadUInt32()];
             for (int i = 0; i < ret.instruments[3].rpPhrases.Length; i++)
-                ret.instruments[3].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+                ret.instruments[3].rpPhrases[i] = new RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
             ret.instruments[3].diffSets = new SongData.DifficultySet[4];
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
-                ret.instruments[3].diffSets[k].phrases = new SongData.Phrase[1];
-                ret.instruments[3].diffSets[k].phrases[0] = new SongData.Phrase();
-                ret.instruments[3].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                ret.instruments[3].diffSets[k].phrases = new Phrase[1];
+                ret.instruments[3].diffSets[k].phrases[0] = new Phrase();
+                ret.instruments[3].diffSets[k].phrases[0].notes = new NoteSet[reader.ReadUInt32()];
                 for (int i = 0; i < ret.instruments[3].diffSets[k].phrases[0].notes.Length; i++)
                 {
-                    SongData.Note note = new SongData.Note();
-                    note.value = (long)reader.ReadByte();
+                    NoteSet note = new NoteSet();
+                    note.visible = new NoteSet.VIS_STATE[5];
+                    note.type = (ulong)reader.ReadByte();
                     note.time = reader.ReadUInt32();
-                    note.len = reader.ReadUInt32();
+                    note.length = reader.ReadUInt32();
                     ret.instruments[3].diffSets[k].phrases[0].notes[i] = note;
                 }
                 ret.instruments[3].diffSets[k].starScoreLevels = new uint[6];
@@ -575,23 +536,24 @@ namespace Unsigned
             //drums
             ret.instruments[2] = new SongData.SongDataInstrument();
             ret.instruments[2].instrumentType = "SET";
-            ret.instruments[2].rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+            ret.instruments[2].rpPhrases = new RockPowerPhrase[reader.ReadUInt32()];
             for (int i = 0; i < ret.instruments[2].rpPhrases.Length; i++)
-                ret.instruments[2].rpPhrases[i] = new SongData.RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
-            ret.instruments[2].fills = new SongData.Fill[reader.ReadUInt32()];
+                ret.instruments[2].rpPhrases[i] = new RockPowerPhrase(reader.ReadUInt32(), reader.ReadUInt32());
+            ret.instruments[2].fills = new Fill[reader.ReadUInt32()];
             for (int i = 0; i < ret.instruments[2].fills.Length; i++)
-                ret.instruments[2].fills[i] = new SongData.Fill(reader.ReadUInt32(), reader.ReadUInt32());
+                ret.instruments[2].fills[i] = new Fill(reader.ReadUInt32(), reader.ReadUInt32());
             ret.instruments[2].diffSets = new SongData.DifficultySet[4];
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
-                ret.instruments[2].diffSets[k].phrases = new SongData.Phrase[1];
-                ret.instruments[2].diffSets[k].phrases[0] = new SongData.Phrase();
-                ret.instruments[2].diffSets[k].phrases[0].notes = new SongData.Note[reader.ReadUInt32()];
+                ret.instruments[2].diffSets[k].phrases = new Phrase[1];
+                ret.instruments[2].diffSets[k].phrases[0] = new Phrase();
+                ret.instruments[2].diffSets[k].phrases[0].notes = new NoteSet[reader.ReadUInt32()];
                 for (int i = 0; i < ret.instruments[2].diffSets[k].phrases[0].notes.Length; i++)
                 {
-                    SongData.Note note = new SongData.Note();
-                    note.value = (long)reader.ReadByte();
+                    NoteSet note = new NoteSet();
+                    note.visible = new NoteSet.VIS_STATE[5];
+                    note.type = (ulong)reader.ReadByte();
                     note.time = reader.ReadUInt32();
                     ret.instruments[2].diffSets[k].phrases[0].notes[i] = note;
                 }
@@ -605,22 +567,23 @@ namespace Unsigned
             ret.instruments[1] = new SongData.SongDataInstrument();
             ret.instruments[1].instrumentType = "LVX";
             ret.instruments[1].diffSets = new SongData.DifficultySet[4];
-            ret.instruments[1].diffSets[3].phrases = new SongData.Phrase[reader.ReadUInt32()];
+            ret.instruments[1].diffSets[3].phrases = new Phrase[reader.ReadUInt32()];
             for (int j = 0; j < ret.instruments[1].diffSets[3].phrases.Length; j++)
             {
-                ret.instruments[1].diffSets[3].phrases[j] = new SongData.Phrase();
+                ret.instruments[1].diffSets[3].phrases[j] = new Phrase();
                 ret.instruments[1].diffSets[3].phrases[j].type = (SongData.TYPE)reader.ReadByte();
                 ret.instruments[1].diffSets[3].phrases[j].rockpower = reader.ReadBoolean();
-                ret.instruments[1].diffSets[3].phrases[j].notes = new SongData.Note[reader.ReadUInt32()];
+                ret.instruments[1].diffSets[3].phrases[j].notes = new NoteSet[reader.ReadUInt32()];
                 if (ret.instruments[1].diffSets[3].phrases[j].type == SongData.TYPE.REGULAR)
                 {
                     for (int i = 0; i < ret.instruments[1].diffSets[3].phrases[i].notes.Length; i++)
                     {
-                        SongData.Note note = new SongData.Note();
+                        NoteSet note = new NoteSet();
                         note.time = reader.ReadUInt32();
-                        note.len = reader.ReadUInt32();
-                        note.value = reader.ReadUInt16();
-                        note.endvalue = reader.ReadUInt16();
+                        note.length = reader.ReadUInt32();
+                        note.visible = new NoteSet.VIS_STATE[(note.length / 10) + 1];
+                        note.type = reader.ReadUInt16();
+                        note.endtype = reader.ReadUInt16();
                         note.text = reader.ReadString();
                         ret.instruments[1].diffSets[3].phrases[j].notes[i] = note;
                     }
@@ -630,7 +593,8 @@ namespace Unsigned
                     ret.instruments[1].diffSets[3].phrases[j].rType = (SongData.RTYPE)reader.ReadByte();
                     for (int i = 0; i < ret.instruments[1].diffSets[3].phrases[i].notes.Length; i++)
                     {
-                        SongData.Note note = new SongData.Note();
+                        NoteSet note = new NoteSet();
+                        note.visible = new NoteSet.VIS_STATE[1];
                         note.time = reader.ReadUInt32();
                         ret.instruments[1].diffSets[3].phrases[j].notes[i] = note;
                     }
