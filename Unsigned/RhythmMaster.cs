@@ -3,9 +3,30 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using UnsignedPeripheralPlugins;
 
 namespace Unsigned
 {
+    class PlayerConfigNugget
+    {
+        public Peripheral[] peripherals;
+        public int[] instruments;
+        public int[] characterIndices;
+        public byte[] difficulties;
+
+        public String songFileName;
+
+        public PlayerConfigNugget()
+        {
+            peripherals = new Peripheral[4];
+            instruments = new int[4];
+            characterIndices = new int[4];
+            difficulties = new byte[4];
+            songFileName = "";
+        }
+    }
+
     class RhythmMaster
     {
         private static RhythmMaster SINGLETON_RhythmMaster = null;
@@ -13,10 +34,11 @@ namespace Unsigned
         private static float[] rockMeterLevel;
 
         private int[] selectedInstruments;
-        private Instrument[] instrumentTypes;
         private Board[] boards;
         private float failTime;
         private double CurrentTime, lastChange;
+
+        private SongData songData;
 
         private int started = 0;
 
@@ -32,64 +54,40 @@ namespace Unsigned
             rockMeterLevel[1] = 80;
             rockMeterLevel[2] = 80;
             rockMeterLevel[3] = 80;
-            instrumentTypes = new Instrument[4];
-            instrumentTypes[0].CodeName = "LGT";
-            instrumentTypes[0].FullName = "Lead Guitar";
-            instrumentTypes[0].Dimensions = Instrument.BoardDimensions.THREE_DIMENSIONAL;
-            instrumentTypes[0].NumTracks = 5;
-            instrumentTypes[0].RPEnableType = Instrument.RockPowerEnableTypes.SELECT;
-            instrumentTypes[0].ContainsHeldNotes = true;
-            instrumentTypes[0].CanWhammy = true;
-            instrumentTypes[0].CanHOPO = true;
-            instrumentTypes[0].HasSolos = true;
-            instrumentTypes[0].NeedsStrum = true;
-            instrumentTypes[0].MaxMultiplier = 4;
-            instrumentTypes[0].BumpNotes = 0;
-            instrumentTypes[1].CodeName = "LVX";
-            instrumentTypes[1].FullName = "Lead Vocals";
-            instrumentTypes[1].Dimensions = Instrument.BoardDimensions.TWO_DIMENSIONAL;
-            instrumentTypes[1].NumTracks = 12 * 3;// 3 octaves
-            instrumentTypes[1].RPEnableType = Instrument.RockPowerEnableTypes.FILL;
-            instrumentTypes[1].ContainsHeldNotes = true;
-            instrumentTypes[1].CanWhammy = false;
-            instrumentTypes[1].CanHOPO = false;
-            instrumentTypes[1].HasSolos = false;
-            instrumentTypes[1].NeedsStrum = false;
-            instrumentTypes[1].MaxMultiplier = 4;
-            instrumentTypes[1].BumpNotes = 0;
-            instrumentTypes[2].CodeName = "SET";
-            instrumentTypes[2].FullName = "Drum Set";
-            instrumentTypes[2].Dimensions = Instrument.BoardDimensions.THREE_DIMENSIONAL;
-            instrumentTypes[2].NumTracks = 4;
-            instrumentTypes[2].RPEnableType = Instrument.RockPowerEnableTypes.FILL;
-            instrumentTypes[2].ContainsHeldNotes = false;
-            instrumentTypes[2].CanWhammy = false;
-            instrumentTypes[2].CanHOPO = false;
-            instrumentTypes[2].HasSolos = false;
-            instrumentTypes[2].NeedsStrum = false;
-            instrumentTypes[2].MaxMultiplier = 4;
-            instrumentTypes[2].BumpNotes = ((ulong)1) << 4;
-            instrumentTypes[3].CodeName = "BAS";
-            instrumentTypes[3].FullName = "Bass Guitar";
-            instrumentTypes[3].Dimensions = Instrument.BoardDimensions.THREE_DIMENSIONAL;
-            instrumentTypes[3].NumTracks = 5;
-            instrumentTypes[3].RPEnableType = Instrument.RockPowerEnableTypes.SELECT;
-            instrumentTypes[3].ContainsHeldNotes = true;
-            instrumentTypes[3].CanWhammy = true;
-            instrumentTypes[3].CanHOPO = true;
-            instrumentTypes[3].HasSolos = false;
-            instrumentTypes[3].NeedsStrum = true;
-            instrumentTypes[3].MaxMultiplier = 6;
-            instrumentTypes[3].BumpNotes = 0;
-
         }
 
-        public Instrument GetInstrumentType(int index)
+        public void Initialize(PlayerConfigNugget info, SongData song, ContentManager content)
         {
-            if (IsInstrumentAvailable(index))
-                return instrumentTypes[index];
-            else
-                return null;
+            boards = new Board[4];
+            Board.Load(content);
+            songData = song;
+
+            int num3D = 0;
+            for(int i=0;i<4;i++)
+                if(info.peripherals[i]!=null)
+                    if(InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]).Dimensions==Instrument.BoardDimensions.THREE_DIMENSIONAL)
+                        num3D++;
+            int count3D = 0;
+            for(int i=0;i<4;i++)
+                if(info.peripherals[i]!=null)
+                {
+                    boards[i] = new Board(InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]),
+                        InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL ? (int)((((count3D * 2) + 1) / (num3D * 2.0f)) * GameSettings.windowwidth) : 0,
+                        song, info.difficulties[i]);
+                    boards[i].LoadInstance(content);
+                    boards[i].Peripheral = info.peripherals[i];
+                    if (InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
+                        count3D++;
+
+                }
+            Board.curveHeight = 0.03f;
+            Board.height = -2.0f;
+            Board.length = 3f;
+            Board.width = 0.7f;
+            Board.rotate = .5f;
+            Board.zeroZ = 2.8f;
+            Board.sFade = 0.8f;
+            Board.eFade = 1.2f;
         }
 
         public static void CreateSingleton()
@@ -144,10 +142,16 @@ namespace Unsigned
                 lastChange = songt;
             CurrentTime += gameTime.ElapsedGameTime.TotalSeconds;
 
+            for (int i = 0; i < 4; i++)
+                if (boards[i] != null)
+                    boards[i].Update(gameTime);
+
             bool allFail = true;
             int anyFail = 0;
             for (int i = 0; i < 4; i++)
             {
+                if (boards[i] == null)
+                    continue;
                 if (!boards[i].IsFailing)
                     allFail = false;
                 if (boards[i].IsFailing)
@@ -168,10 +172,10 @@ namespace Unsigned
             Matrix fling;
             if (started == 1)
             {
-                if (RhythmMaster.GetSingleton().GetCurrentTime() < 3)
+                if (CurrentTime < 3)
                     fling = Matrix.CreateRotationX(Board.rotate);
-                else if (RhythmMaster.GetSingleton().GetCurrentTime() < 4)
-                    fling = Matrix.CreateRotationX(((-((float)RhythmMaster.GetSingleton().GetCurrentTime() - 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                else if (CurrentTime < 4)
+                    fling = Matrix.CreateRotationX(((-((float)CurrentTime - 4f)) * Board.rotate * 4) - (Board.rotate * 3));
                 else
                     fling = Matrix.CreateRotationX((float)Math.PI / 2);
             }
@@ -179,8 +183,9 @@ namespace Unsigned
                 fling = Matrix.CreateRotationX(Board.rotate);
 
             for (int i = 0; i < boards.Length; i++)
+            if(boards[i]!=null)
             {
-                
+                boards[i].Draw(fling);
             }
         }
 
@@ -278,17 +283,17 @@ namespace Unsigned
 
         internal float PercentSong()
         {
-            throw new Exception("The method or operation is not implemented.");
+            return (float)(CurrentTime / SongAudioMaster.GetSingleton().GetSongLength().TotalSeconds);
         }
 
         internal double GetCurrentTime()
         {
-            throw new Exception("The method or operation is not implemented.");
+            return CurrentTime;
         }
 
         internal float GetFailTime()
         {
-            throw new Exception("The method or operation is not implemented.");
+            return failTime;
         }
 
         internal double GetPercentBeat()
@@ -298,7 +303,7 @@ namespace Unsigned
 
         internal SongData GetSongData()
         {
-            throw new Exception("The method or operation is not implemented.");
+            return songData;
         }
 
         internal void Burn(ulong note, Board board)
@@ -327,7 +332,9 @@ namespace Unsigned
         {
             for (int i = 0; i < 4; i++)
                 if(boards[i]!=null)
-                    spritebatch.Draw(boards[i].GetRender(), new Rectangle(boards[i].GetXOffset(), 0, GameSettings.windowwidth, GameSettings.windowheight), Color.White);
+                    spritebatch.Draw(boards[i].GetRender(), new Rectangle(0, 0, GameSettings.windowwidth, GameSettings.windowheight), Color.White);
+            spritebatch.Draw(boards[0].rtBoard.GetTexture(), new Rectangle(0, 0, 100, 100), Color.White);
+            spritebatch.Draw(boards[0].rtWaves.GetTexture(), new Rectangle(100, 0, 100, 100), Color.White);
         }
 
         private void ProcessInput(GameTime gameTime, long currenttime)
@@ -540,7 +547,7 @@ namespace Unsigned
 
         internal void DrawSongInfo()
         {
-            throw new Exception("The method or operation is not implemented.");
+            
         }
     }
 }

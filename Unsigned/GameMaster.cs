@@ -8,7 +8,6 @@ namespace Unsigned
 {
     class GameState : BaseState
     {
-        private static GameState SINGLETON_GameState = null;
 
         private bool IsPaused = false;
 
@@ -22,10 +21,13 @@ namespace Unsigned
         private float[] lastframes = new float[60];
         private int frameIndex;
 
-        private GameState()
+        private PlayerConfigNugget nugget;
+
+        public GameState(PlayerConfigNugget nugget)
         {
             for (int i = 0; i < lastframes.Length; i++)
                 lastframes[i] = 1 / 30f;
+            this.nugget = nugget;
         }
 
         public override void Update(GameTime gameTime)
@@ -60,7 +62,7 @@ namespace Unsigned
                 double currenttime = RhythmMaster.GetSingleton().GetCurrentTime();
 
 
-                if (currenttime >= songData.info.length.TotalSeconds)
+                if (currenttime >= SongAudioMaster.GetSingleton().GetSongLength().TotalSeconds)
                     UnsignedGame.GetSingleton().PushState(new ResultsScreen());
 
                 if (GameSettings.renderLevel > 0)
@@ -120,7 +122,7 @@ namespace Unsigned
 #endif
                 UnsignedGame.GetSingleton().Exit();
             }
-            if (GameSettings.renderLevel > 0)
+            
             {
                 rm.graphics.GraphicsDevice.Clear(Color.Black);
                 if (currentSettings.currentFES == SpecialEffectsSettings.FRAME_EFFECT_STYLE.CREST)
@@ -144,19 +146,25 @@ namespace Unsigned
                 rm.SetViewMatrix(matView);
 
                 graphics.GraphicsDevice.Clear(Color.Black);
-                effect.Begin();
-
-                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                effect.Parameters["BumpMappingEnabled"].SetValue(false);
+                effect.Parameters["SpecularEnabled"].SetValue(false);
+                effect.Parameters["fullbright"].SetValue(false);
+                if (GameSettings.renderLevel > 0)
                 {
-                    pass.Begin();
-                    effect.Parameters["BumpMappingEnabled"].SetValue(false);
-                    effect.Parameters["SpecularEnabled"].SetValue(false);
+                    effect.Begin();
 
-                    effect.Parameters["fullbright"].SetValue(false);
-                    venue.Render(gameTime, matProj, vd);
-                    pass.End();
+                    foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                    {
+                        pass.Begin();
+                        venue.Render(gameTime, matProj, vd);
+                        pass.End();
+                    }
+                    effect.End();
                 }
-                effect.End();
+                effect.Parameters["vertexAlpha"].SetValue(true);
+                effect.Parameters["BumpMappingEnabled"].SetValue(true);
+                effect.Parameters["SpecularEnabled"].SetValue(true);
+                graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             }
 #if !DEBUG
     }
@@ -240,8 +248,8 @@ namespace Unsigned
             else
             {
                 rm.graphics.GraphicsDevice.SetRenderTarget(0, null);
-                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
                 rm.graphics.GraphicsDevice.Clear(Color.Black);
+                spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
             }
 #if !DEBUG
                     }
@@ -306,7 +314,13 @@ namespace Unsigned
 
         public override void Load(Microsoft.Xna.Framework.Content.ContentManager content)
         {
-            //venue = new Venue(venueStr + ".gbw", songname, this, content, graphics, engine);
+            songData = SongLoader.LoadSong(nugget.songFileName);
+            venue = new Venue("tikibar.gbw", songData, content, nugget);
+            RhythmMaster.CreateSingleton();
+            RhythmMaster.GetSingleton().Initialize(nugget, songData,content);
+            ParticleMaster.CreateSingleton();
+            SongAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
+            SongAudioMaster.GetSingleton().InitSong(songData);
         }
 
         public override void Unload()
@@ -325,32 +339,6 @@ namespace Unsigned
                 IsPaused = false;
                 SongAudioMaster.GetSingleton().Resume();
             }
-        }
-
-        
-
-
-        
-
-        public static void CreateSingleton()
-        {
-            if (SINGLETON_GameState == null)
-                SINGLETON_GameState = new GameState();
-            else
-                throw new InvalidOperationException("Singleton has already been initialized");
-        }
-
-        public static void DestroySingleton()
-        {
-            if (SINGLETON_GameState != null)
-                SINGLETON_GameState = null;
-            else
-                throw new InvalidOperationException("Singleton has already been destroyed");
-        }
-
-        public static GameState GetSingleton()
-        {
-            return SINGLETON_GameState;
         }
     }
 }

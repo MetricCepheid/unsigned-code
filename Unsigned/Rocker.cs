@@ -7,37 +7,39 @@ using Microsoft.Xna.Framework;
 
 namespace Unsigned
 {
-    class Rocker : DrawableGameComponent
+    class Rocker
     {
         public float Rot;
         private Model model;
-        private ContentManager content;
         private String FileName;
         private Texture2D tex;
         private Vector3 position;
+        private int characterIndex;
+        private Instrument instrument;
                                      
-        public Rocker(String filename, UnsignedGame game, ContentManager cont, Effect e) : base(game)
+        public Rocker(int characterindex, ContentManager content)
         {
-            content = cont;
-            FileName = filename;
-            LoadModel(e);
+            this.characterIndex = characterindex;
+            LoadModel(content);
             Rot = 0;
         }
 
-        protected void LoadModel(Effect e)
+        protected void LoadModel(ContentManager content)
         {
-            model = content.Load<Model>("charmodels\\dude");
+            model = content.Load<Model>("charmodels\\char");
 
 
             foreach (ModelMesh mesh in model.Meshes)
                 foreach (ModelMeshPart mPart in mesh.MeshParts)
-                    mPart.Effect = e;
+                    mPart.Effect = RenderMaster.GetSingleton().engine;
 
             //tex = content.Load<Texture2D>("graphics\\rocker");
         }
 
-        public void Draw(GameTime gameTime, GraphicsDeviceManager graphics)
+        public void Draw(GameTime gameTime)
         {
+            GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
+
             //Matrix[] bones = animationPlayer.GetSkinTransforms();
             
             
@@ -61,8 +63,6 @@ namespace Unsigned
             }
             //model.Meshes[0].Effects[0].Parameters["skinned"].SetValue(false);
             model.Meshes[0].Effects[0].Parameters["vertexAlpha"].SetValue(true);
-
-            base.Draw(gameTime);
         }
 
         public String GetName()
@@ -78,6 +78,16 @@ namespace Unsigned
         public void SetPosition(Vector3 inn)
         {
             position = inn;
+        }
+
+        public CharacterIdol GetCharacter()
+        {
+            return CharacterMaster.GetSingleton().GetCharacter(characterIndex);
+        }
+
+        public Instrument GetInstrument()
+        {
+            return instrument;
         }
     }
 }

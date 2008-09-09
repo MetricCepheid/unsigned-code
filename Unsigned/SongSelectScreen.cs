@@ -22,16 +22,28 @@ namespace Unsigned
 
         private SetList setList;
 
+        PlayerConfigNugget nugget;
+
         private int selectedSubSet, selectedSong;
 
-        public SongSelectScreen()
+        public SongSelectScreen(PlayerConfigNugget nugget)
         {
-
+            this.nugget = nugget;
         }
 
         public override void Load(ContentManager content)
         {
-            
+            if (SongListRT == null)
+            {
+                SongListRT = new RenderTarget2D(RenderMaster.GetSingleton().graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
+            }
+            SongListBG = content.Load<Texture2D>("graphics\\songlist");
+            songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
+            concrTex = content.Load<Texture2D>("graphics\\concr");
+            concrBM = content.Load<Texture2D>("graphics\\concrBM");
+            SongHiLi = content.Load<Texture2D>("graphics\\songhili");
+            setList = new SetList();
+            setList.LoadSongFileHeaders();
         }
 
         public override void Unload()
@@ -55,47 +67,62 @@ namespace Unsigned
             bool green = false, red = false, yellow = false;
 
             for (int i = 0; i < 4; i++)
-                if (peripherals[i].IsConnected())
+                if (nugget.peripherals[i]!=null && nugget.peripherals[i].IsConnected())
                 {
                     if (peripherals[i].WasPressed(PeripheralButton.DOWN))
                         collective--;
                     if (peripherals[i].WasPressed(PeripheralButton.UP))
                         collective++;
-                    if (peripherals[i].WasPressed(PeripheralButton.CONFIRM))
-                        green = true;
                     if (peripherals[i].WasPressed(PeripheralButton.BACK))
                         red = true;
                     if (peripherals[i].WasPressed(PeripheralButton.SWITCH))
                         yellow = true;
                 }
-
-            /*if (setlist > 0)
-            {
-                if (collective > 0 && songIndex > 0)
-                { songIndex--; chgd = true; }
-                else if (collective > 0 && songIndex <= 0 && setIndex > 0)
-                { setIndex--; songIndex = setlist.setlist[setIndex].songs.Count - 1; chgd = true; }
-                else if (collective < 0 && songIndex < setlist.setlist[setIndex].songs.Count - 1)
-                { songIndex++; chgd = true; }
-                else if (collective < 0 && songIndex >= setlist.setlist[setIndex].songs.Count - 1 && setIndex < setlist.setlist.Count - 1)
-                { songIndex = 0; setIndex++; chgd = true; }
-
-                if (green)
+            for(int i=0;i<4;i++)
+                if (nugget.peripherals[i] != null)
                 {
-                    songname = setlist.setlist[setIndex].songs[songIndex].fileName;
-                    for (int k = 0; k < 4; k++)
-                        diff[k] = 1;
-                    FillSongDiffs(songname);
-                    screen = S_CHOOSEDIFF;
-                    menu_ticker = 200;
+                    if (peripherals[i].WasPressed(PeripheralButton.CONFIRM))
+                        green = true;
+                    break;
                 }
-            }*/
+
             if (yellow)
             {
                 setList.NextSortOrder();
             }
             if (red)
             { UnsignedGame.GetSingleton().PopState(); }
+            if (green)
+            {
+                nugget.songFileName = setList.GetSubsets()[selectedSubSet].GetSongList()[selectedSong].Filename;
+                UnsignedGame.GetSingleton().PushState(new DifficultyScreen(nugget));
+            }
+            if(collective != 0)
+            {
+                selectedSong -= collective;
+                List<SubSet> subsets = setList.GetSubsets();
+                while (selectedSong >= subsets[selectedSubSet].GetSongList().Count)
+                {
+                    if (selectedSubSet >= subsets.Count - 1)
+                        selectedSong = subsets[selectedSubSet].GetSongList().Count - 1;
+                    else
+                    {
+                        selectedSong -= subsets[selectedSubSet].GetSongList().Count;
+                        selectedSubSet++;
+                    }
+                }
+                while (selectedSong < 0)
+                {
+                    if (selectedSubSet <= 0)
+                        selectedSong = 0;
+                    else
+                    {
+                        selectedSubSet--;
+                        selectedSong += subsets[selectedSubSet].GetSongList().Count;
+                    }
+                }
+                chgd = true;
+            }
 #if !DEBUG
             }
             catch(Exception e)
@@ -123,82 +150,50 @@ namespace Unsigned
                     rm.spritebatch.Draw(SongListBG, new Rectangle(0, 0, SongListRT.Width, SongListRT.Height), Color.White);
                     List<SubSet> subsets = setList.GetSubsets();
 
-                    List<String> drawListName = new List<String>();
-                    List<String> drawListArtist = new List<String>();
-                    List<String> drawListLength = new List<String>();
-                    int index = 0;
-                    drawListName.Add(subsets[selectedSubSet].GetSongList()[selectedSong].SongName);
-                    drawListArtist.Add(subsets[selectedSubSet].GetSongList()[selectedSong].ArtistName);
-                    drawListLength.Add(subsets[selectedSubSet].GetSongList()[selectedSong].Length.ToString());
+                    if (subsets.Count > 0 && subsets[selectedSubSet].GetSongList().Count > 0)
                     {
-                        int i = selectedSubSet;
-                        int j = selectedSong;
-                        for(int count = 0;count<20;count++)
+                        List<String> drawListName = new List<String>();
+                        List<String> drawListArtist = new List<String>();
+                        List<String> drawListLength = new List<String>();
+                        int index = 0;
+                        
+                        for (int i = 0; i < subsets.Count; i++)
                         {
-                            j++;
-                            if (j >= subsets[i].GetSongList().Count)
                             {
-                                i++;
-                                j = -1;
-                                if (i >= subsets.Count)
-                                    break;
                                 drawListName.Add("@@@" + subsets[i].name);
                                 drawListArtist.Add("");
                                 drawListLength.Add("");
                             }
-                            else
+                            for (int j = 0; j < subsets[i].GetSongList().Count; j++)
                             {
                                 drawListName.Add(subsets[i].GetSongList()[j].SongName);
                                 drawListArtist.Add(subsets[i].GetSongList()[j].ArtistName);
                                 drawListLength.Add(subsets[i].GetSongList()[j].Length.ToString());
+                                if (i == selectedSubSet && j == selectedSong)
+                                    index = drawListName.Count - 1;
                             }
                         }
-                        i = selectedSubSet;
-                        j = selectedSong;
-                        for (int count = 0; count < 20; count++)
+
+                        int low = index - 4;
+                        int high = index + 4;
+                        if (low < 0)
                         {
-                            if (i < 0)
-                                break;
-                            j--;
-                            if (j < 0)
-                            {
-                                drawListName.Insert(0, "@@@" + subsets[i].name);
-                                drawListArtist.Insert(0, "");
-                                drawListLength.Insert(0, "");
-                                i--;
-                                if(i>0)
-                                    j = subsets[i].GetSongList().Count;
-                            }
-                            else
-                            {
-                                drawListName.Insert(0, subsets[i].GetSongList()[j].SongName);
-                                drawListArtist.Insert(0, subsets[i].GetSongList()[j].ArtistName);
-                                drawListLength.Insert(0, subsets[i].GetSongList()[j].Length.ToString());
-                            }
-                            index++;
+                            high += -low;
+                            low = 0;
+                        }
+                        if (high >= drawListName.Count)
+                        {
+                            low = Math.Max(0, low - (high - drawListName.Count));
+                            high = drawListName.Count - 1;
+                        }
+                        rm.spritebatch.Draw(SongHiLi, new Rectangle(20, (index-low) * 40 + 93, SongListRT.Width - 40, 60), Color.White);
+                        for (int i = low; i <= high; i++)
+                        {
+                            rm.spritebatch.DrawString(Global.DefaultFont, drawListName[i].StartsWith("@@@") ? drawListName[i].Substring(3) : drawListName[i], new Vector2(10 + (drawListName[i].StartsWith("@@@") ? 20 : 50), (i - low) * 40 + 100), drawListName[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
+                            if (!drawListName[i].StartsWith("@@@"))
+                                rm.spritebatch.DrawString(Global.SmallFont, drawListArtist[i], new Vector2(70, (i - low) * 40 + 125), Color.Black);
                         }
                     }
-
-                    int low = index - 4;
-                    int high = index + 4;
-                    if (low < 0)
-                    {
-                        high += -low;
-                        low = 0;
-                    }
-                    if (high >= drawListName.Count)
-                    {
-                        low = Math.Max(0, low - (high - drawListName.Count));
-                        high = drawListName.Count - 1;
-                    }
-                    rm.spritebatch.Draw(SongHiLi, new Rectangle(20, (index) * 40 + 95, SongListRT.Width - 40, 50), Color.White);
-                    for (int i = low; i <= high; i++)
-                    {
-                        rm.spritebatch.DrawString(Global.DefaultFont, drawListName[i].StartsWith("@@@") ? drawListName[i].Substring(3) : drawListName[i], new Vector2(10 + (drawListName[i].StartsWith("@@@") ? 20 : 50), (i - low) * 40 + 100), drawListName[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);
-                        if (!drawListName[i].StartsWith("@@@"))
-                            rm.spritebatch.DrawString(Global.SmallFont, drawListArtist[i], new Vector2(70, (i - low) * 40 + 125), Color.Black);
-                    }
-
                     rm.spritebatch.End();
                     rm.graphics.GraphicsDevice.SetRenderTarget(0, null);
                     SongListTex = SongListRT.GetTexture();
@@ -241,19 +236,7 @@ namespace Unsigned
             effect.Parameters["diffuseColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
             effect.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
 
-            bool[] plo = new bool[16];
-            Vector3[] plp = new Vector3[16];
-            float[] pln = new float[16];
-            float[] plf = new float[16];
-            Vector3[] pld = new Vector3[16];
-            Vector3[] pls = new Vector3[16];
-            effect.Parameters["pLightOn"].SetValue(plo);
-            effect.Parameters["pLightPos"].SetValue(plp);
-            effect.Parameters["pLightNear"].SetValue(pln);
-            effect.Parameters["pLightFar"].SetValue(plf);
-            effect.Parameters["pLightDiffuse"].SetValue(pld);
-            effect.Parameters["pLightSpecular"].SetValue(pls);
-            effect.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
+            effect.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
             effect.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             effect.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0, 3, 1)));
 
@@ -278,17 +261,17 @@ namespace Unsigned
                 
                 effect.Parameters["fullbright"].SetValue(false);
 
-                Matrix matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0));
+                Matrix matView = Matrix.CreateLookAt(new Vector3(0, 128, 128), new Vector3(0, 128, 0), new Vector3(0, 1, 0)); 
+                UnsignedGame.SetProjMatrix(GameSettings.windowwidth, GameSettings.windowheight);
                 //render the background rm.graphics
                 rm.SetViewMatrix(matView);
 
                 Matrix matRot, matScale, matTranslate;
 
-
                 {
                     matTranslate = Matrix.CreateTranslation(-32, 120, -128);
                     matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                    matScale = Matrix.CreateScale(256, 192, 128);
+                    matScale = Matrix.CreateScale(300, 1, 192);
 
                     effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                     effect.Parameters["wRot"].SetValue(matRot);

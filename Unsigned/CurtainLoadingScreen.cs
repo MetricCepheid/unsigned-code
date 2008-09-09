@@ -9,7 +9,6 @@ namespace Unsigned
 {
     class CurtainLoadingScreen : BaseState
     {
-        private BasicEffect bEffect;
         private Model mCurtain;
         private Texture2D texCurtainLeft, texCurtainRight;
 
@@ -35,7 +34,7 @@ namespace Unsigned
         public override void Render(GameTime gameTime)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            
+            BasicEffect bEffect = rm.bEffect;
 
             rm.graphics.GraphicsDevice.Clear(Color.Black);
 

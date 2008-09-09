@@ -10,26 +10,54 @@ namespace Unsigned
 {
     class DifficultyScreen : BaseState
     {
-        byte[] diff;
         bool[] diffConfirm;
-        private int menu_ticker = 0;
         private Texture2D whitishTex, whitishBM;
         private Texture2D[] texMetalTypes;
         private Texture2D glassboxTex, glassboxBM;
+        private Texture2D[][] texStrings;
         private Dictionary<String, Model> instrumentModels;
-        Model[][] trophies;
+        private float instrRot;
 
-        public DifficultyScreen()
+        PlayerConfigNugget nugget;
+
+        public DifficultyScreen(PlayerConfigNugget nugget)
         {
             diffConfirm = new bool[4];
             for (int i = 0; i < 4; i++)
                 diffConfirm[i] = false;
-            
+            this.nugget = nugget;
+            instrRot = 0;
         }
 
         public override void Load(ContentManager content)
         {
-            
+            instrumentModels = new Dictionary<string, Model>();
+            String dir = System.IO.Directory.GetCurrentDirectory();
+            dir += "\\meshes\\instruments\\";
+            String[] files = System.IO.Directory.GetFiles(dir,"*.xnb");
+            for (int i = 0; i < files.Length; i++)
+            {
+                files[i] = files[i].Substring(files[i].IndexOf("meshes\\"), files[i].Length - files[i].IndexOf("meshes\\"));
+                files[i] = files[i].Substring(0,files[i].LastIndexOf('.'));
+                String codename = files[i].Substring(files[i].LastIndexOf('\\') + 1);
+                instrumentModels.Add(codename,content.Load<Model>(files[i]));
+            }
+            texMetalTypes = new Texture2D[4];
+            texMetalTypes[0] = content.Load<Texture2D>("graphics\\instr_bronze");
+            texMetalTypes[1] = content.Load<Texture2D>("graphics\\instr_silver");
+            texMetalTypes[2] = content.Load<Texture2D>("graphics\\instr_gold");
+            texMetalTypes[3] = content.Load<Texture2D>("graphics\\instr_platinum");
+            glassboxTex = content.Load<Texture2D>("graphics\\glasscase");
+            glassboxBM = content.Load<Texture2D>("graphics\\glasscasebm");
+            whitishTex = content.Load<Texture2D>("graphics\\whitish");
+            whitishBM = content.Load<Texture2D>("graphics\\whitishbm");
+            texStrings = new Texture2D[4][];
+            for (int i = 0; i < 4; i++)
+            {
+                texStrings[i] = new Texture2D[2];
+                for (int k = 0; k < 2; k++)
+                    texStrings[i][k] = content.Load<Texture2D>("graphics\\diff" + i + "" + k);
+            }
         }
 
         public override void Unload()
@@ -39,28 +67,26 @@ namespace Unsigned
 
         public override void Update(GameTime gameTime)
         {
-            
+            instrRot += (float)gameTime.ElapsedGameTime.TotalSeconds;
 #if !DEBUG
                 try
                 {
 #endif
                 bool green = false, red = false;
-                Peripheral[] controllers = PeripheralManager.GetSingleton().GetPeripherals();
                 for (int i = 0; i < 4; i++)
                 {
-                    Peripheral p = PeripheralManager.GetSingleton().GetPeripheral(i);
-                    if (p == null)
+                    if (nugget.peripherals[i] == null)
                         continue;
-                    if (p.IsConnected())
+                    if (nugget.peripherals[i].IsConnected())
                     {
-                        if (p.WasPressed(PeripheralButton.GREEN))
+                        if (nugget.peripherals[i].WasPressed(PeripheralButton.CONFIRM))
                         {
                             if (diffConfirm[i])
                                 green = true;
                             else
                                 diffConfirm[i] = true;
                         }
-                        if (p.WasPressed(PeripheralButton.RED))
+                        if (nugget.peripherals[i].WasPressed(PeripheralButton.BACK))
                         {
                             if (diffConfirm[i])
                                 diffConfirm[i] = false;
@@ -71,35 +97,27 @@ namespace Unsigned
                 }
                 for(int i=0;i<4;i++)
                 {
-                    Peripheral p = PeripheralManager.GetSingleton().GetPeripheral(i);
-                    if(p!=null && !diffConfirm[i])
+                    if (nugget.peripherals[i] != null && !diffConfirm[i])
                     {
                         bool up = false, down = false;
-                        if (p.WasPressed(PeripheralButton.DOWN))
+                        if (nugget.peripherals[i].WasPressed(PeripheralButton.DOWN))
                             down = true;
-                        if (p.WasPressed(PeripheralButton.UP))
+                        if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                             up = true;
-                        if (up && diff[i] > 0)
-                            diff[i]--;
-                        if (down && diff[i] < 3)
-                            diff[i]++;
+                        if (up && nugget.difficulties[i] > 0)
+                            nugget.difficulties[i]--;
+                        if (down && nugget.difficulties[i] < 3)
+                            nugget.difficulties[i]++;
                     }
                 }
 
                 bool allconfirmed = true;
                 for (int i = 0; i < 4; i++)
-                    if (PeripheralManager.GetSingleton().GetPeripheral(i)!=null && !diffConfirm[i])
+                    if (nugget.peripherals[i]!=null && !diffConfirm[i])
                         allconfirmed = false;
                 if (green && allconfirmed)
                 {
-                    if (Global.mode == Global.M_GAME)
-                    {
-                        GameState.CreateSingleton();
-                        UnsignedGame.SINGLETON.PushState(GameState.GetSingleton());
-                    }
-                    // TODO: Work on freestyle
-                    //else if (Global.mode == Global.M_FREESTYLE)
-                    //    UnsignedGame.SINGLETON.PushState(new FreestyleState());
+                    UnsignedGame.SINGLETON.PushState(new GameState(nugget));
                 }
                 if (red)
                 { UnsignedGame.SINGLETON.PopState(); }
@@ -153,7 +171,7 @@ namespace Unsigned
             Version SM =RenderMaster.GetSingleton().graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
 
             engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-            engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+            engine.Parameters["dLSpecularColor"].SetValue(new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
             engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0.1f, -1f, 0.5f)));
             if (SM.Major >= 3)
                 engine.CurrentTechnique = RenderMaster.GetSingleton().engine.Techniques["menutechnique"];
@@ -197,25 +215,71 @@ namespace Unsigned
                 engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
 
                 Matrix matRot, matScale, matTranslate;
-                              
-                RhythmMaster rm = RhythmMaster.GetSingleton();
+                {//basebottom
+                    matTranslate = Matrix.CreateTranslation(0, 100, 0);
+                    matRot = Matrix.CreateRotationX((float)Math.PI);
+                    matScale = Matrix.CreateScale(40, 0, 32);
+
+                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                    engine.Parameters["wRot"].SetValue(matRot);
+                    engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                    engine.Parameters["bumpTexture"].SetValue(whitishBM);
+                    engine.Parameters["shininess"].SetValue(0.25f);
+                    engine.Parameters["SpecularEnabled"].SetValue(false);
+                    engine.Parameters["vertexAlpha"].SetValue(true);
+                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                    engine.CommitChanges();
+
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+                {//basewall
+                    matTranslate = Matrix.CreateTranslation(0, 132, -32);
+                    matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                    matScale = Matrix.CreateScale(40, 0, 32);
+
+                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
+                    engine.Parameters["wRot"].SetValue(matRot);
+                    engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                    engine.Parameters["bumpTexture"].SetValue(whitishBM);
+                    engine.Parameters["shininess"].SetValue(0.25f);
+                    engine.Parameters["SpecularEnabled"].SetValue(false);
+                    engine.Parameters["vertexAlpha"].SetValue(true);
+                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                    engine.CommitChanges();
+
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+                
                 for(int k=0;k<4;k++)
-                    if (rm.IsInstrumentAvailable(k))
+                    if (nugget.peripherals[k]!=null)
                     {
-                        Model model = instrumentModels[rm.GetInstrumentType(k).CodeName];
-                        matTranslate = Matrix.CreateTranslation(-12+(8*k), 105, -6);
-                        matRot = Matrix.CreateRotationX(MathHelper.PiOver4);
-                        matScale = Matrix.CreateScale(1, 1, 1);
+                        Model model = instrumentModels[InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[k]).CodeName];
+                        matTranslate = Matrix.CreateTranslation(-10+(5*k), 105, -6);
+                        matRot = Matrix.CreateRotationY(instrRot)*Matrix.CreateRotationZ(0.1f)*Matrix.CreateRotationY(-instrRot)*Matrix.CreateRotationX(MathHelper.PiOver4);
+                        matScale = Matrix.CreateScale(1.25f, 1.25f, 1.25f);
 
                         engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                         engine.Parameters["wRot"].SetValue(matRot * Matrix.CreateRotationX(MathHelper.Pi / 2));
 
-                        engine.Parameters["shininess"].SetValue(0.25f);
-                        engine.Parameters["SpecularEnabled"].SetValue(false);
+                        engine.Parameters["shininess"].SetValue(1.0f);
+                        engine.Parameters["SpecularEnabled"].SetValue(true);
+                        engine.Parameters["specularColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
                         engine.Parameters["vertexAlpha"].SetValue(false);
                         engine.Parameters["BumpMappingEnabled"].SetValue(false);
 
-                        engine.Parameters["diffuseTexture"].SetValue(texMetalTypes[diff[k]]);
+                        engine.Parameters["diffuseTexture"].SetValue(texMetalTypes[nugget.difficulties[k]]);
                         engine.CommitChanges();
                         foreach (ModelMesh mesh in model.Meshes)
                         {
@@ -326,13 +390,21 @@ namespace Unsigned
             }
             engine.End();
 
-            SpriteBatch spritebatch = RenderMaster.GetSingleton().Spritebatch;
+            SpriteBatch spritebatch = RenderMaster.GetSingleton().spritebatch;
 
             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+            for (int i = 0; i < 4; i++)
+                if(nugget.peripherals[i]!=null)
+                {
+                    Texture2D tex = texStrings[nugget.difficulties[i]][diffConfirm[i]?1:0];
+                    spritebatch.Draw(tex, new Rectangle((int)((GameSettings.windowwidth * 0.125f) + (GameSettings.windowwidth * 0.25f * i) - (tex.Width / 2)), 400, tex.Width, tex.Height), Color.White);
+                }
+            /*
             spritebatch.Draw(GameUIMaster.GetSingleton().texButtonGreen, new Rectangle((int)(0.1f * GameSettings.windowwidth), (int)(0.80f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight)), Color.White);
             spritebatch.DrawString(Global.DefaultFont, "Select", new Vector2((0.1f * GameSettings.windowwidth) + (0.10f * GameSettings.windowheight), (0.80f * GameSettings.windowheight) + (0.09f * GameSettings.windowheight) - (Global.DefaultFont.MeasureString("Select").Y)), Color.White);
             spritebatch.Draw(GameUIMaster.GetSingleton().texButtonRed, new Rectangle((int)(0.9f * GameSettings.windowwidth) - (int)(0.09f * GameSettings.windowheight), (int)(0.80f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight)), Color.White);
             spritebatch.DrawString(Global.DefaultFont, "Back", new Vector2((0.9f * GameSettings.windowwidth) - (0.10f * GameSettings.windowheight) - Global.DefaultFont.MeasureString("Back").X, (0.80f * GameSettings.windowheight) + (0.09f * GameSettings.windowheight) - (Global.DefaultFont.MeasureString("Back").Y)), Color.White);
+            */
             if (Global.DemoMode)
             {
                 spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));

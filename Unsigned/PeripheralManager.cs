@@ -50,6 +50,18 @@ namespace Unsigned
             ownedPeripherals[index] = p;
         }
 
+        public void RelinquishOwnership(int index)
+        {
+            ownedPeripherals[index] = null;
+        }
+
+        public void RelinquishOwnership(Peripheral p)
+        {
+            for(int i=0;i<4;i++)
+                if(ownedPeripherals[i]==p)
+                    ownedPeripherals[i] = null;
+        }
+
         public void CheckConnections()
         {
             List<Peripheral> list = new List<Peripheral>();

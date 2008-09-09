@@ -12,7 +12,7 @@ namespace Unsigned
         private float logoTime;
         Texture2D texBarrel, texGoo1, texGoo2, texPresser;
         Model mBarrel, mGoo1, mGoo2, mPresser;
-        BasicEffect bEffect;
+        
 
         public FVLogoScreen()
         {
@@ -30,8 +30,6 @@ namespace Unsigned
             mGoo1 = content.Load<Model>("meshes\\goo1");
             mGoo2 = content.Load<Model>("meshes\\goo2");
             mPresser = content.Load<Model>("meshes\\presser");
-
-            bEffect = new BasicEffect(RenderMaster.GetSingleton().graphics.GraphicsDevice, new EffectPool());
         }
 
         public override void Unload()
@@ -50,6 +48,7 @@ namespace Unsigned
         public override void Render(GameTime gameTime)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
+            BasicEffect bEffect = rm.bEffect;
 
             rm.graphics.GraphicsDevice.Clear(Color.Black);
 

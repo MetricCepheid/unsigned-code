@@ -33,6 +33,10 @@ namespace Unsigned
 
         public override void Load(ContentManager content)
         {
+            coolbg1 = content.Load<Texture2D>("graphics\\coolbg1");
+            coolbg2 = content.Load<Texture2D>("graphics\\coolbg2");
+            resultsScroller = content.Load<Texture2D>("graphics\\resultscroller");
+            failbg = content.Load<Texture2D>("graphics\\faildialog");
             
         }
 

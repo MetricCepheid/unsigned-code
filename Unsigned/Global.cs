@@ -49,7 +49,7 @@ namespace Unsigned
         public const byte D_EASY = 3, D_MEDIUM = 6, D_HARD = 12, D_EXPERT = 24;
         public static String[] DifficultyStr = { "Easy", "Medium", "Hard", "Expert" };
         public static Color[] FretColors = { Color.Green, Color.Red, Color.Yellow, Color.Blue, Color.Orange, };
-        public static SpriteFont DefaultFont, BigFont, SmallFont;
+        public static SpriteFont DefaultFont, BigFont, SmallFont, HandwrittenFont;
         public static long TicksPerSecond = 10000000;
         public static VertexBuffer square;
         public static VertexDeclaration vd;

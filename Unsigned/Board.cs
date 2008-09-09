@@ -222,14 +222,14 @@ namespace Unsigned
         private int boardBackground;
         private byte numFails;
         Peripheral controller; 
-        private RenderTarget2D boardTarget;
+        private RenderTarget2D boardTarget;        
 
 
         private WaveNode[][] waves;
         private int wavesLen;
         private int[] wavesSubLen;
         bool SPDelayStart;
-        private RenderTarget2D rtBoard, rtWaves;
+        public RenderTarget2D rtBoard, rtWaves;
 
         //public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
 
@@ -291,6 +291,12 @@ namespace Unsigned
             }
         }
 
+        public Peripheral Peripheral
+        {
+            get { return controller; }
+            set { controller = value; }
+        }
+
 #region Accessors
 
         public bool IsFailing
@@ -322,7 +328,8 @@ namespace Unsigned
                 waves = new WaveNode[5][];
                 for (int i = 0; i < 5; i++)
                     waves[i] = new WaveNode[50];
-            }            
+            }
+            rockMeterLevel = 80.0f;
         }
 
         public Instrument GetBoardType()
@@ -348,10 +355,20 @@ namespace Unsigned
                 rtBoard = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
                 rtWaves = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
             }
+            boardTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
+            NoteSet[] notes = Notes;
+            for (int i = 0; i < notes.Length - 1; i++)
+            {
+                uint dist = notes[i + 1].time - notes[i].time;
+                if (dist > PILLOW)
+                    dist = PILLOW;
+                notes[i].late = notes[i].time + dist;
+            }
         }
 
-        public static void Load(GraphicsDeviceManager graphics, ContentManager content)
+        public static void Load(ContentManager content)
         {
+            GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
             Random r = Global.random;
             for (int i = 0; i < spcircles.Length; i++)
             {
@@ -386,6 +403,14 @@ namespace Unsigned
             vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
             vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
             vGlow = content.Load<Texture2D>("graphics\\vGlow");
+            List<Texture2D> texBGs = new List<Texture2D>();
+            String[] files = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory() + "\\boards\\");
+            for (int i = 0; i < files.Length; i++)
+            {
+                if(files[i].ToLower().EndsWith(".png") || files[i].ToLower().EndsWith(".bmp") || files[i].ToLower().EndsWith(".jpg"))
+                    texBGs.Add(Texture2D.FromFile(RenderMaster.GetSingleton().graphics.GraphicsDevice,files[i]));
+            }
+            boardBackgrounds = texBGs.ToArray();
             texMult = new Texture2D[8];
             for (int i = 0; i < Global.multToIndex.Length; i++)
                 if (Global.multToIndex[i] >= 0)
@@ -423,16 +448,16 @@ namespace Unsigned
                 mdlSPM = new VertexBuffer(graphics.GraphicsDevice, 2 * xs.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
                 mdlSPM.SetData<GBVertexFormat>(zmdlBoard);
             }
-            /*{
+            {
                 mdlNoteInside = content.Load<Model>("meshes\\noteinside");
                 foreach (ModelMesh mesh in mdlNoteInside.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = effect;
+                        part.Effect = RenderMaster.GetSingleton().engine;
                 mdlNote = content.Load<Model>("meshes\\note");
                 foreach (ModelMesh mesh in mdlNote.Meshes)
                     foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = effect;      
-            }*/
+                        part.Effect = RenderMaster.GetSingleton().engine;      
+            }
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     };
                 float[] ys = {  0f, .5f,   .5f,  1.5f,   .5f, .5f,       .5f,  1.5f,  .85f,  1.5f,  .85f, 1.85f,      .85f, 1.85f,    1f, 1.85f,    1f,    2f,     .5f,  1f,  .75f,  1.5f,  .75f,  1f,      1.5f,  1.5f, 1.85f,  1.5f, 1.85f, 1.85f,     1.85f, 1.85f,    2f, 1.85f,    2f,    2f,     .5f,  0f,  1.5f,   .5f,  1.5f,  0f,      1.5f,   .5f, 1.85f,   .5f, 1.85f,  .85f,     1.85f,  .85f,    2f,  .85f,    2f,    1f,     };
@@ -720,6 +745,9 @@ namespace Unsigned
                     }
                     else
                     {
+                        if (controller.WasPressed(PeripheralButton.UP) || controller.WasPressed(PeripheralButton.DOWN))
+                            Strum();
+
                         if (GetBoardType().ContainsHeldNotes && Notes[index].burning)
                         {
                             LinkedListNode<WaveVector2> temp = whammyage.First;
@@ -754,7 +782,10 @@ namespace Unsigned
                                 myResults.hitNotes++;
                                 Help();
                                 if (Notes[index].length > 0)
+                                {
                                     Notes[index].burning = true;
+                                    return Notes[index].type;
+                                }
                                 else
                                     index++;
                                 return Notes[index - 1].type;
@@ -832,9 +863,9 @@ namespace Unsigned
             return ret;
         }
 
-        public byte Strum(byte pressed, long currenttime, UnsignedGame game, int ind)
+        public byte Strum()
         {
-            if (index < Notes.Length && Notes[index].time - PILLOW < currenttime)
+            if (index < Notes.Length && Notes[index].time - PILLOW < RhythmMaster.GetSingleton().GetCurrentTime()*1000)
                 Notes[index].Strum();
             else
             { multiplier = 1; Hurt(); }
@@ -1197,7 +1228,7 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             SpriteBatch spritebatch = rm.spritebatch;
-            Effect effect = rm.engine;
+            BasicEffect effect = rm.bEffect;
             GraphicsDeviceManager graphics = rm.graphics;
 
             if (GetBoardType().Dimensions == Instrument.BoardDimensions.TWO_DIMENSIONAL)
@@ -1232,8 +1263,7 @@ namespace Unsigned
             }
             else //if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
             {
-                if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
-                    DrawBoardTarget();
+                DrawBoardTarget();
 
                 graphics.GraphicsDevice.SetRenderTarget(0, boardTarget);
                 graphics.GraphicsDevice.Clear(new Color(new Vector4(0, 0, 0, 0)));
@@ -1245,25 +1275,23 @@ namespace Unsigned
 
                 Matrix matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                           boardTarget.Width / (float)boardTarget.Height,
-                          1f, 10.0f);
-                effect.CurrentTechnique = effect.Techniques["boardTechnique"];
-                effect.Begin();
-                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
-                {
-                    pass.Begin();
+                          0.01f, 1000.0f);
 
-                    effect.Parameters["view"].SetValue(Matrix.Identity);
-                    effect.Parameters["viewInverse"].SetValue(Matrix.Identity);
-                    effect.Parameters["proj"].SetValue(matProj);
+                rm.SetViewMatrix(Matrix.Identity);
+                effect.Projection = matProj;
 
-                    //get board measure world lengths
+                //get board measure world lengths
 
 #if DEBUG_CAM_CONTROL
                                     fling *= Matrix.CreateRotationX(-0.4f);
 #endif
 
-                    effect.Parameters["fullbright"].SetValue(true);
-                    Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                effect.AmbientLightColor = new Vector3(1, 1, 1);
+                effect.Begin();
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Begin();
 
                     //draw each boards
                     DrawBoard(fling, matTransl);
@@ -1271,18 +1299,16 @@ namespace Unsigned
                         DrawNotes(fling);
                     DrawBoardDetail(fling, matTransl);
                     if (!IsFailing)
-                    {
+                    {   
                         DrawWaves(fling, matTransl);
-                        //draw the non-world gibs (glass shards sparks)
+
                         //ParticleMaster.GetSingleton().Render(i?);
                         DrawFlashes(fling);
                     }
                     pass.End();
                 }
                 effect.End();
-                //spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
-
-                //spritebatch.End();
+                graphics.GraphicsDevice.SetRenderTarget(0, null);
             }
         }
 
@@ -1290,8 +1316,6 @@ namespace Unsigned
         {
             StarPowerAmount -= 0.5f;
         }
-
-
 
         internal void ToggleLefty()
         {
@@ -1313,7 +1337,7 @@ namespace Unsigned
             double len = (Board.eFade * (1 / (1 - ratio)));
 
             // in correct units
-            double retPos = position / len;
+            double retPos = relPos / len;
 
             //shift for ratio offset
             retPos += ratio;
@@ -1414,7 +1438,7 @@ namespace Unsigned
             fader.CommitChanges();
 
 
-            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 255));
             //graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
             spritebatch.GraphicsDevice.RenderState.AlphaBlendEnable = true;
@@ -1423,6 +1447,55 @@ namespace Unsigned
             spritebatch.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
             spritebatch.GraphicsDevice.RenderState.AlphaSourceBlend = Blend.SourceAlpha;
             float bgyscale = 2.0f;
+
+            Color bgColor = Color.Gray;
+            if (IsSPActivated())
+                bgColor = new Color(200, 200, 0);
+            else if (IsFailing)
+                bgColor = new Color((byte)(255 * RhythmMaster.GetSingleton().GetFailTime()), 0, 0);
+            else if (rockMeterLevel < 20)
+            {
+                if (RhythmMaster.GetSingleton().GetPercentBeat() > 0.5)
+                    bgColor = new Color((byte)((RhythmMaster.GetSingleton().GetPercentBeat() - 0.5) * 255), 0, 0);
+                else
+                    bgColor = new Color((byte)((0.5 - RhythmMaster.GetSingleton().GetPercentBeat()) * 255), 0, 0);
+            }
+            else if (rockMeterLevel > 80)
+                bgColor = new Color(30, (byte)(30 + ((rockMeterLevel - 80) / 20f) * 50), 30);
+            else if (rockMeterLevel > 40)
+                bgColor = new Color((byte)(30 + (1 - ((rockMeterLevel - 20) / 20f)) * 50), 30, 30);
+
+            for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length; i++)
+            {
+                SongData.Barline[] barlines = RhythmMaster.GetSingleton().GetSongData().info.barlines;
+                float Y = GetBoardPos(barlines[i].time / 1000.0, 1 - ratio) * rtBoard.Height;
+                if (Y < 0)
+                    break;
+                if (i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length - 1)
+                {
+                    float Y2 = GetBoardPos(barlines[i + 1].time / 1000.0, 1 - ratio) * rtBoard.Height;
+                    spritebatch.Draw(boardBackgrounds[boardBackground],new Rectangle(0,(int)Y2,rtBoard.Width,(int)(Y-Y2)),bgColor);
+                }
+            }
+            for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length; i++)
+            {
+                SongData.Barline[] barlines = RhythmMaster.GetSingleton().GetSongData().info.barlines;
+                float Y = GetBoardPos(barlines[i].time / 1000.0, 1 - ratio) * rtBoard.Height;
+                if (Y < 0)
+                    break;
+                spritebatch.Draw(Global.texWhite, new Rectangle(0, (int)Y-3, rtBoard.Width, 7), Color.White);
+                if (i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length - 1)
+                {
+                    float Y2 = GetBoardPos(barlines[i + 1].time / 1000.0, 1 - ratio) * rtBoard.Height;
+                    spritebatch.Draw(Global.texWhite, new Rectangle(0, (int)(((Y2 - Y) * (1 / (float)(RhythmMaster.GetSingleton().GetSongData().info.barlines[i].numBeats * 2))) + Y) - 1, rtBoard.Width, 2), Color.White);
+                    for (int k = 1; k <= RhythmMaster.GetSingleton().GetSongData().info.barlines[i].numBeats - 1; k++)
+                    {
+                        spritebatch.Draw(Global.texWhite, new Rectangle(0, (int)(((Y2 - Y) * (k / (float)RhythmMaster.GetSingleton().GetSongData().info.barlines[i].numBeats)) + Y) - 1, rtBoard.Width, 3), Color.White);
+                        spritebatch.Draw(Global.texWhite, new Rectangle(0, (int)(((Y2 - Y) * (((k * 2) + 1) / (float)(RhythmMaster.GetSingleton().GetSongData().info.barlines[i].numBeats * 2))) + Y) - 1, rtBoard.Width, 2), Color.White);
+                    }
+                }
+            }
+
             /*for (int k = -4; k < 8; k++)
             {
                 if (IsSPActivated())
@@ -1470,7 +1543,7 @@ namespace Unsigned
             }*/
 
             // Draw Board Fills
-            if ((GetBoardType().RPEnableType|Instrument.RockPowerEnableTypes.FILL)!=0)
+            if ((GetBoardType().RPEnableType&Instrument.RockPowerEnableTypes.FILL)!=0)
                 for (int k = 0; k < Fills.Length; k++)
                 {
                     float halfMaxWidth = rtBoard.Width / (float)(GetBoardType().NumDrawnTracks*2);
@@ -1583,40 +1656,44 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             RhythmMaster rtm = RhythmMaster.GetSingleton();
-            Effect effect = rm.engine;
+            BasicEffect effect = rm.bEffect;
+
+            effect.DirectionalLight0.SpecularColor = new Vector3(0.6f, 0.6f, 0.6f);
+            effect.DirectionalLight0.Enabled = true;
+            effect.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(0, -2, -1));
+            effect.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+            effect.DirectionalLight1.Enabled = false;
+            effect.DirectionalLight2.Enabled = false;
+            effect.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+
             if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
             {
-                effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-                effect.Parameters["BumpMappingEnabled"].SetValue(false);
-                effect.Parameters["fullbright"].SetValue(true);
-                effect.Parameters["vertexAlpha"].SetValue(false);
                 int lefty = 1;
                 if (IsLefty)
                     lefty = -1;
 
-                
                 bool whited = false;
                 for (int r = 0; r < GetBoardType().NumTracks; r++)
                 {
                     if (r < GetBoardType().NumDrawnTracks)
-                        effect.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                        effect.Texture = Board.texNotes[r];
                     else
-                        effect.Parameters["diffuseTexture"].SetValue(Board.texBarNotes[r-GetBoardType().NumDrawnTracks]);
+                        effect.Texture = Board.texBarNotes[r-GetBoardType().NumDrawnTracks];
                     whited = false;
-                    for (int p = index; p < Notes.Length; p++)
+                    for (int p = Math.Max(index-32,0); p < Notes.Length; p++)
                     {
                         bool IsWhite = false;
                         for(int i=0;i<RPPhrases.Length;i++)
                             if(Notes[p].time>=RPPhrases[i].time && Notes[p].time<=RPPhrases[i].end)
                                 IsWhite = true;
                         if (IsWhite && !whited)
-                        { effect.Parameters["diffuseTexture"].SetValue(Global.texWhite); whited = true; }
+                        { effect.Texture = Global.texWhite; whited = true; }
                         else if (!IsWhite && whited)
                         {
                             if (r < GetBoardType().NumDrawnTracks)
-                                effect.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                                effect.Texture = Board.texNotes[r];
                             else
-                                effect.Parameters["diffuseTexture"].SetValue(Board.texBarNotes[r - GetBoardType().NumDrawnTracks]);
+                                effect.Texture = Board.texBarNotes[r - GetBoardType().NumDrawnTracks];
                             whited = false;
                         }
 
@@ -1648,9 +1725,14 @@ namespace Unsigned
                         }*/
 
                         // how far along the board... should be called Z probly
-                        float Y = ((Notes[p].time / 1000f) - (float)rtm.GetCurrentTime());
+                        float ct = (float)rtm.GetCurrentTime();
+                        float Y = ((Notes[p].time / 1000f) - ct);
+                        if (Y > eFade)
+                            continue;
 
                         if ((Notes[p].type & (((ulong)1) << r)) == 0)
+                            continue;
+                        if (Notes[p].visible[r] == NoteSet.VIS_STATE.INVISIBLE)
                             continue;
 
                         Matrix matIdentity, matTransl, matScale, matOrbit;
@@ -1660,7 +1742,7 @@ namespace Unsigned
                         else
                             matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.02f, 0f);
 
-                        matOrbit = Matrix.CreateTranslation((((r*2)+1)/(float)GetBoardType().NumDrawnTracks) * lefty * Board.width, 0f, -(Board.length * Y) - Board.zeroZ) * fling;
+                        matOrbit = Matrix.CreateTranslation(((((r*2)+1)/(float)(GetBoardType().NumDrawnTracks*2))-0.5f) * lefty * Board.width * 2.0f, 0f, -(Board.length * Y) - Board.zeroZ) * fling;
 
                         if (r<GetBoardType().NumDrawnTracks)
                             matOrbit = Matrix.CreateRotationX(-Y * MathHelper.Pi) * matOrbit;
@@ -1679,10 +1761,10 @@ namespace Unsigned
                             alpha = 0;
 
 
-                        effect.Parameters["wAlpha"].SetValue(alpha);
+                        effect.Alpha = alpha;
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                        effect.World = matIdentity * matScale * matOrbit * matTransl;
 
 
 
@@ -1700,7 +1782,7 @@ namespace Unsigned
                         }
                         else
                         {
-                            foreach (ModelMesh mesh in Board.mdlNoteInside.Meshes)
+                            foreach (ModelMesh mesh in mdlNoteInside.Meshes)
                             {
                                 foreach (ModelMeshPart part in mesh.MeshParts)
                                 {
@@ -1712,7 +1794,10 @@ namespace Unsigned
                                     graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
                                 }
                             }
-                            foreach (ModelMesh mesh in Board.mdlNote.Meshes)
+                            effect.SpecularPower = 32f;
+                            effect.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
+                            effect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
+                            foreach (ModelMesh mesh in mdlNote.Meshes)
                             {
                                 foreach (ModelMeshPart part in mesh.MeshParts)
                                 {
@@ -1725,14 +1810,12 @@ namespace Unsigned
                                     graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
                                 }
                             }
+                            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
                         }
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         
                     }
                 }
-                effect.Parameters["wAlpha"].SetValue(1.0f);
-                effect.Parameters["fullbright"].SetValue(false);
-                effect.Parameters["vertexAlpha"].SetValue(true);
             }
         }
 
@@ -1741,11 +1824,17 @@ namespace Unsigned
             if (GetBoardType().Dimensions==Instrument.BoardDimensions.THREE_DIMENSIONAL)
             {
                 RenderMaster rm = RenderMaster.GetSingleton();
-                Effect effect = rm.engine;
+                BasicEffect effect = rm.bEffect;
                 SpriteBatch spritebatch = rm.spritebatch;
                 GraphicsDeviceManager graphics = rm.graphics;
 
-                effect.Parameters["fullbright"].SetValue(true);
+                VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
+                graphics.GraphicsDevice.VertexDeclaration = vd;
+
+                effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
+                effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
+                effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+
                 int lefty = 1;
                 if (IsLefty)
                     lefty = -1;
@@ -1768,15 +1857,15 @@ namespace Unsigned
                         matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                        effect.World = matIdentity * matScale * matOrbit * matTransl;
 
                         //effect.Parameters["proj"].SetValue(matProj);
 
                         
                         if((controller.GetFrets()&(((ulong)1)<<p))!=0)
-                        { effect.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                        { effect.Texture = Board.texTriggersLit[p]; glow[p] = true; }
                         else
-                            effect.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
+                            effect.Texture = Board.texTriggers[p];
 
                         effect.CommitChanges();
 
@@ -1788,171 +1877,21 @@ namespace Unsigned
                         graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
-                    effect.Parameters["fullbright"].SetValue(true);
-                    
-                    /*for (int p = 0; p < 5; p++)
-                    {
-
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation((-.8f + (p * 0.4f)) * lefty * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
-
-
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                        effect.Parameters["proj"].SetValue(matProj);
-                        effect.Parameters["diffuseColor"].SetValue(new Vector4(FretColors[p].ToVector3(), 0.5f));
-                        effect.Parameters["wAlpha"].SetValue(pop[i]);
-                        effect.Parameters["diffuseTexture"].SetValue(texGlow);
-                        effect.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                        //graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }*/
-                    effect.Parameters["fullbright"].SetValue(false);
-                    effect.Parameters["wAlpha"].SetValue(1);
-
                 }
-                /*else if (GetBoardType() == PERCUSSIONIST)
-                {
-
-
-                    bool[] glow = new bool[5];
-                    float[] pop = GetPopups();
-                    for (int k = 0; k < 5; k++)
-                        glow[k] = pop[k] > 0;
-                    {
-                        Matrix matIdentity, matScale, matOrbit;
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, 0f, -(0.08f) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
-                        effect.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
-                    for (int p = 0; p < 4; p++)
-                    {
-                        Matrix matIdentity, matScale, matOrbit;
-                        float rise = -.01f;
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation((-.75f + (p * .5f)) * (Board.width), Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (p * 0.4f))) + rise + ((GetPopups()[p]) * 0.001f), -Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 0.05f, .05f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
-                        if (glow[p] && p < 4)
-                            effect.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
-
-                        effect.CommitChanges();
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
-                    }
-                    {
-                        Matrix matIdentity, matScale, matOrbit;
-                        matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, 0f, (0.08f) - Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * 0.005f));
-
-                        // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        effect.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
-                        effect.CommitChanges();
-
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.VertexDeclaration = vd;
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTriggerBorder.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                    }
-                    effect.Parameters["fullbright"].SetValue(true);
-                    for (int p = 0; p < 4; p++)
-                    {
-                        if (glow[p])
-                        {
-                            Matrix matIdentity, matScale, matOrbit;
-
-                            matIdentity = Matrix.Identity;
-                            matTransl = Matrix.CreateTranslation((-0.75f + (p * .5f)) * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                            matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (gloworder[p] * 0.4f))) + 0.1f, -Board.zeroZ) * fling;
-                            matScale = Matrix.CreateScale(new Vector3((Board.width / 4f), 1f, (Board.width / 6f)));
-
-                            // identity, scale, rotate, orbit(translate & rotate), translate
-                            effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-
-                            if (GetBoardType() != PERCUSSIONIST)
-                                effect.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
-                            else
-                                effect.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
-                            effect.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
-
-                            effect.Parameters["diffuseTexture"].SetValue(texGlow);
-                            effect.CommitChanges();
-
-                            // 5: draw object - select vertex type, primitive type, # of primitives
-                            graphics.GraphicsDevice.VertexDeclaration = vd;
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                            graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
-                            graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                        }
-                    }
-
-                    effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    effect.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
-                    effect.Parameters["fullbright"].SetValue(false);
-                }*/
-                effect.Parameters["wAlpha"].SetValue(1.0f);
-                effect.Parameters["fullbright"].SetValue(false);
             }
         }
 
         private void DrawFlashes(Matrix fling)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            Effect effect = rm.engine;
+            BasicEffect effect = rm.bEffect;
             GraphicsDeviceManager graphics = rm.graphics;
 
             int lefty = 1;
             if (IsLefty)
                 lefty = -1;
-            
+
+            effect.Texture = Board.texBlast;
             for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)
                 if (popup[i] > 0)
                 {
@@ -1965,10 +1904,9 @@ namespace Unsigned
                     matScale = Matrix.CreateScale(new Vector3(0.2f, 0.2f, 0.2f));
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
-                    effect.Parameters["world"].SetValue(matScale * matRot * matOrbit * matTransl);
+                    effect.World = matScale * matRot * matOrbit * matTransl;
 
-                    effect.Parameters["diffuseTexture"].SetValue(Board.texBlast);
-                    effect.Parameters["diffuseColor"].SetValue(Global.FretColors[i].ToVector4());
+                    effect.DiffuseColor = Global.FretColors[i].ToVector3();
                     effect.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -1979,23 +1917,33 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            effect.Parameters["diffuseColor"].SetValue(new Vector4(1, 1, 1, 1));
+            effect.DiffuseColor = new Vector3(1, 1, 1);
         }
 
         private void DrawBoard(Matrix fling, Matrix matTransl)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             GraphicsDeviceManager graphics = rm.graphics;
-            Effect effect = rm.engine;
+            BasicEffect effect = rm.bEffect;
+
+
+            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
+            effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
+            effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+            effect.TextureEnabled = true;
+
+            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
+            graphics.GraphicsDevice.VertexDeclaration = vd;
 
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             Matrix matScale, matOrbit;
             matOrbit = Matrix.CreateTranslation(0f, 0f, -Board.zeroZ - (Board.eFade * Board.length)) * fling;
             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
-            effect.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-            effect.Parameters["diffuseTexture"].SetValue(texBoard);
-            effect.Parameters["wAlpha"].SetValue(1.0f);
+            effect.World = matScale * matOrbit * matTransl;
+            effect.Texture = rtBoard.GetTexture();
+            effect.Alpha = 1.0f;
             effect.CommitChanges();
+            graphics.ApplyChanges();
             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
             graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
             graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
@@ -2008,14 +1956,22 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             GraphicsDeviceManager graphics = rm.graphics;
-            Effect effect = rm.engine;
+            BasicEffect effect = rm.bEffect;
+
+            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
+            effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
+            effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+            effect.TextureEnabled = true;
+
+            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
+            graphics.GraphicsDevice.VertexDeclaration = vd;
 
             Matrix matScale, matOrbit;
             matOrbit = Matrix.CreateTranslation(0f, 0.01f,  -Board.zeroZ - (Board.eFade * Board.length)) * fling;
             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
-            effect.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-            effect.Parameters["diffuseTexture"].SetValue(texWaves);
-            effect.Parameters["wAlpha"].SetValue(1.0f);
+            effect.World = matScale * matOrbit * matTransl;
+            effect.Texture = rtWaves.GetTexture();
+            effect.Alpha = 1.0f;
             effect.CommitChanges();
             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
             graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;

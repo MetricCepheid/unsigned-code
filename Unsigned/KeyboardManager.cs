@@ -45,6 +45,11 @@ namespace Unsigned
             return bufferedMap[(int)button];
         }
 
+        public override bool IsPressed(PeripheralButton peripheralButton)
+        {
+            return Keyboard.GetState().IsKeyDown(keymap[(int)peripheralButton]);
+        }
+
         public override Peripheral[] GetControllers()
         {
             KeyboardPeripheral[] ret = new KeyboardPeripheral[1];
@@ -58,6 +63,8 @@ namespace Unsigned
             ret[0].keymap[(int)PeripheralButton.START] = Keys.Escape;
             ret[0].keymap[(int)PeripheralButton.UP] = Keys.Up;
             ret[0].keymap[(int)PeripheralButton.YELLOW] = Keys.D;
+            ret[0].keymap[(int)PeripheralButton.CONFIRM] = Keys.Enter;
+            ret[0].keymap[(int)PeripheralButton.BACK] = Keys.Back;
             return ret;
         }
 
@@ -82,6 +89,38 @@ namespace Unsigned
                 SINGLETON_KeyboardPeripheral = null;
             else
                 throw new InvalidOperationException("KeyboardPeripheral has already been destroyed");
+        }
+
+        public override ulong GetFrets()
+        {
+            ulong ret = 0;
+            if (IsPressed(PeripheralButton.GREEN))
+                ret |= (((ulong)1) << 0);
+            if (IsPressed(PeripheralButton.RED))
+                ret |= (((ulong)1) << 1);
+            if (IsPressed(PeripheralButton.YELLOW))
+                ret |= (((ulong)1) << 2);
+            if (IsPressed(PeripheralButton.BLUE))
+                ret |= (((ulong)1) << 3);
+            if (IsPressed(PeripheralButton.ORANGE))
+                ret |= (((ulong)1) << 4);
+            return ret;
+        }
+
+        public override ulong GetBufferedFrets()
+        {
+            ulong ret = 0;
+            if (WasPressed(PeripheralButton.GREEN))
+                ret |= (((ulong)1) << 0);
+            if (WasPressed(PeripheralButton.RED))
+                ret |= (((ulong)1) << 1);
+            if (WasPressed(PeripheralButton.YELLOW))
+                ret |= (((ulong)1) << 2);
+            if (WasPressed(PeripheralButton.BLUE))
+                ret |= (((ulong)1) << 3);
+            if (WasPressed(PeripheralButton.ORANGE))
+                ret |= (((ulong)1) << 4);
+            return ret;
         }
     }
 }

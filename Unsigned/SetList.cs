@@ -46,6 +46,10 @@ namespace Unsigned
         {
             get { return length; }
         }
+        public String Filename
+        {
+            get { return filePath; }
+        }
 
         /// <summary>
         /// Creates an empty SongFileHeader
@@ -491,6 +495,7 @@ namespace Unsigned
                     allSongs.Add(gbaFile.GetSimpleFileName(), gbaFile);
                 }
             }
+            OrderBySongName();
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
@@ -20,12 +21,32 @@ namespace Unsigned
 
         private CharacterMaster()
         {
-
+            String dir = Directory.GetCurrentDirectory()+"\\";
+            String[] files = Directory.GetFiles(dir+"characters\\","*.unc");
+            List<CharacterIdol> list = new List<CharacterIdol>();
+            for (int i = 0; i < files.Length; i++)
+            {
+                CharacterIdol idol = new CharacterIdol();
+                BinaryReader bin = new BinaryReader(File.OpenRead(files[i]));
+                if (bin.ReadChar() == 'U' && bin.ReadChar() == 'N' && bin.ReadChar() == 'C')
+                {
+                    idol.filename = files[i];
+                    idol.name = bin.ReadString();
+                    list.Add(idol);
+                }
+                bin.Close();
+            }
+            idols = list;
         }
 
         public CharacterIdol GetCharacter(int index)
         {
             return idols[index];
+        }
+
+        public int GetNumCharacters()
+        {
+            return idols.Count;
         }
 
         public CharacterIdol GetCharacter(String index)

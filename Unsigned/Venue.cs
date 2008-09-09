@@ -108,7 +108,7 @@ namespace Unsigned
 
         private float fast_strobe_on = 0f;
 
-        private LightingEffect[] effects;
+        private SongData.Effect[] effects;
 
         #region DEBUG_VAR
 //#define DEBUG_CAM_CONTROL
@@ -126,7 +126,7 @@ namespace Unsigned
         private long camtime = -1;
         private float camblendvalue;
         private static Random rand=new Random();
-        private int[] camtimes;
+        private uint[] camtimes;
 
         private Model guitarM;
         private Texture guitarT;
@@ -137,14 +137,14 @@ namespace Unsigned
         private Model[] drumsetM;
         private Texture[] drumsetT;
         private static int DS_BASSDRUM = 0, DS_CRASHCYMBAL = 1, DS_RIDECYMBAL = 2, DS_HIHATCYMBAL = 3, DS_FLOORTOM = 4, DS_TOMTOMS = 5, DS_SNARE = 6;
-        private Rocker guitarist,bassist,drummer,vocalist;
+        private Rocker[] rockers;
 
         public static float SCALE = 1f;
 
-        public Venue(String Filename, String Songname, UnsignedGame game, ContentManager content, GraphicsDeviceManager graphics, Effect e)
+        public Venue(String Filename, SongData songData, ContentManager content, PlayerConfigNugget nugget)
         {
             this.Filename = Filename;
-            LoadWorld("venues\\"+Filename, "songdata\\"+Songname,game,content,graphics,"Random","Random","Random","Random",e);
+            LoadWorld("venues\\"+Filename,songData,content,nugget);
         }
 
         public void Update(GameTime gameTime)
@@ -175,7 +175,7 @@ namespace Unsigned
 
             if (camtime==-1)
             {//sets the next camera view once the previous one is finished
-                int len = camtimes[1] - camtimes[0];
+                uint len = camtimes[1] - camtimes[0];
                 CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
                 if (len < 500)
                     tlen = CamBlendPos.TYPE_LEN.FLASH;
@@ -199,7 +199,7 @@ namespace Unsigned
                 int k;
                 do 
                 {
-                    int len = camtimes[camtime+1] - camtimes[camtime];
+                    uint len = camtimes[camtime+1] - camtimes[camtime];
                     CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
                     if (len < 1000)
                         tlen = CamBlendPos.TYPE_LEN.FLASH;
@@ -257,25 +257,25 @@ namespace Unsigned
             {
                 if (effects[i].begin <= songtime && effects[i].end > songtime)
                 {
-                    switch (effects[i].type)
+                    if(effects[i] is SongData.NormalLightingEffect)
                     {
-                        case LightingEffect.EFFECT_TYPE.LIGHTING_NORMAL:
-                            for (int j = 0; j < lights.Length; j++)
+                        for (int j = 0; j < lights.Length; j++)
+                        {
+                            if (lights[j].type == DLight.LIGHT_TYPE.NORMAL)
                             {
-                                if (lights[j].type == DLight.LIGHT_TYPE.NORMAL)
-                                {
-                                    ons[lt] = true;
-                                    fars[lt] = lights[j].outerAngle;
-                                    nears[lt] = lights[j].innerAngle;
-                                    powers[lt] = effects[i].data/100f;
-                                    poss[lt] = lights[j].pos;
-                                    dirs[lt] = lights[j].targs[0].dir;
-                                    lt++;
-                                    if (lt >= numLights)
-                                        break;
-                                }
+                                ons[lt] = true;
+                                fars[lt] = lights[j].outerAngle;
+                                nears[lt] = lights[j].innerAngle;
+                                powers[lt] = ((SongData.NormalLightingEffect)effects[i]).color.R/100f;
+                                poss[lt] = lights[j].pos;
+                                dirs[lt] = lights[j].targs[0].dir;
+                                lt++;
+                                if (lt >= numLights)
+                                    break;
                             }
-                            break;
+                        }
+                    }
+                    /*
                         case LightingEffect.EFFECT_TYPE.LIGHTING_STROBE:
                             for (int j = 0; j < lights.Length; j++)
                             {
@@ -347,6 +347,7 @@ namespace Unsigned
                         default:
                             break;
                     }
+                     */
                     if (lt >= numLights)
                         break;                    
                 }
@@ -412,13 +413,13 @@ namespace Unsigned
                                                        cNear, cFar);
         }
 
-        private void LoadWorld(String Filename, String Songname, UnsignedGame game, ContentManager content, GraphicsDeviceManager graphics, String g, String b, String d, String v, Effect e) 
+        private void LoadWorld(String Filename, SongData songData, ContentManager content, PlayerConfigNugget nugget) 
         {
-            
-            guitarist = new Rocker("rockers\\"+g,game,content,e);
-            bassist = new Rocker("rockers\\"+b,game,content,e);
-            drummer = new Rocker("rockers\\"+d,game,content,e);
-            vocalist = new Rocker("rockers\\"+v,game,content,e);
+            rockers = new Rocker[4];
+            rockers[0] = new Rocker(nugget.characterIndices[0], content);
+            rockers[1] = new Rocker(nugget.characterIndices[1], content);
+            rockers[2] = new Rocker(nugget.characterIndices[2], content);
+            rockers[3] = new Rocker(nugget.characterIndices[3], content);
 
             //TODO: fix for customized content
             guitarM = content.Load<Model>("meshes\\gibsonsg");
@@ -448,10 +449,10 @@ namespace Unsigned
             cNear = fin.ReadUInt32();
             cFar = fin.ReadUInt32();
 
-            guitarist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
-            vocalist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
-            drummer.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
-            bassist.SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            rockers[0].SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            rockers[1].SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            rockers[2].SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            rockers[3].SetPosition(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
 
             fin.ReadChars(2);// T{
 
@@ -478,7 +479,7 @@ namespace Unsigned
                 GBVertexFormat[] buffer = new GBVertexFormat[fin.ReadUInt32()];
                 for (int k = 0; k < buffer.Length; k++)
                     buffer[k] = new GBVertexFormat(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()), normal, new Vector2(fin.ReadSingle(), fin.ReadSingle()), tangent);
-                StaticGeom[i].vb = new VertexBuffer(graphics.GraphicsDevice, buffer.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
+                StaticGeom[i].vb = new VertexBuffer(RenderMaster.GetSingleton().graphics.GraphicsDevice, buffer.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
                 StaticGeom[i].vb.SetData<GBVertexFormat>(buffer);
             }
 
@@ -584,34 +585,10 @@ namespace Unsigned
             fin.ReadChars(1);// }
             fin.Close();
 
-            System.IO.BinaryReader sr = new System.IO.BinaryReader(System.IO.File.OpenRead(Songname + ".uns"));
-            sr.ReadChars(3);//UNS
+            camtimes = songData.effects.cameraSwitches;
 
-            int[] offsets = new int[6];
-            for (int i = 0; i < 6; i++)
-                offsets[i] = sr.ReadInt32();
+            effects = songData.effects.effects;
 
-            sr.ReadBytes(offsets[Board.OFFSET_TO_GBE] - offsets[Board.OFFSET_TO_GBA]);
-
-            int nTransitions = sr.ReadInt32();
-            camtimes = new int[nTransitions];
-            for (int i = 0; i < nTransitions; i++)
-                camtimes[i] = sr.ReadInt32();
-            int nEffects = sr.ReadInt32();
-            effects = new LightingEffect[nEffects];
-            for (int i = 0; i < nEffects; i++)
-            {
-                effects[i] = new LightingEffect();
-                effects[i].begin = sr.ReadUInt32();
-                String eftp = ""+sr.ReadChar()+sr.ReadChar();
-                effects[i].end = sr.ReadUInt32();
-                effects[i].data = sr.ReadInt32();
-                for (int k = 0; k < LightingEffect.EF_TP_STR.Length; k++)
-                    if (eftp.Equals(LightingEffect.EF_TP_STR[k]))
-                        effects[i].type = (LightingEffect.EFFECT_TYPE)k;
-            }
-
-            sr.Close();
         }
 
         public void Render(GameTime gameTime, Matrix matProj, VertexDeclaration vd)
@@ -665,19 +642,13 @@ namespace Unsigned
             effect.Parameters["BumpMappingEnabled"].SetValue(false);
             //effect.Parameters["SpecularEnabled"].SetValue(false);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
-            {//guitarist
+            /*for(int i=0;i<rockers.Length;i++)
+            {
+                rockers[i].Draw(gameTime);
 
-                guitarist.Draw(gameTime, graphics);
-                
-            }//guitarist
-            {//Bassist
-                bassist.Draw(gameTime, graphics);
-            }//Bassist
-            effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-            {//Drummer
-
-                drummer.Draw(gameTime, graphics);
                 effect.Parameters["vertexAlpha"].SetValue(false);
+
+                if(
 
                 //BASS DRUM
                 matIdentity = Matrix.Identity;
@@ -861,10 +832,7 @@ namespace Unsigned
                     }
                 }
 
-            }//drummer
-            {//singer
-                vocalist.Draw(gameTime, graphics);
-            }//singer
+            }*/
             effect.Parameters["vertexAlpha"].SetValue(true);
             effect.Parameters["BumpMappingEnabled"].SetValue(true);
             effect.Parameters["SpecularEnabled"].SetValue(true);
