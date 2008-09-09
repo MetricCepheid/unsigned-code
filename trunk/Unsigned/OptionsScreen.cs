@@ -48,13 +48,6 @@ namespace Unsigned
             RenderMaster rm = RenderMaster.GetSingleton();
             Effect effect = rm.engine;
 
-            int linum = 0;
-            bool[] plo = new bool[16];
-            Vector3[] plp = new Vector3[16];
-            float[] pln = new float[16];
-            float[] plf = new float[16];
-            Vector3[] pld = new Vector3[16];
-            Vector3[] pls = new Vector3[16];
 
 #if !DEBUG
                     try
@@ -82,12 +75,6 @@ namespace Unsigned
             Random r = new Random();
 
             Version SM = rm.graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
-            effect.Parameters["pLightOn"].SetValue(plo);
-            effect.Parameters["pLightPos"].SetValue(plp);
-            effect.Parameters["pLightNear"].SetValue(pln);
-            effect.Parameters["pLightFar"].SetValue(plf);
-            effect.Parameters["pLightDiffuse"].SetValue(pld);
-            effect.Parameters["pLightSpecular"].SetValue(pls);
             effect.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
             effect.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             effect.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0.1f, -1f, 0.5f)));

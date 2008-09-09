@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Unsigned
 {
-    public struct LightingEffect
+    /*public struct LightingEffect
     {
         public uint begin, end;
         public EFFECT_TYPE type;
@@ -27,7 +27,7 @@ namespace Unsigned
         {
             "nr", "sb", "ss", "bo", "cg", "cb", "cd", "cv", "sw", "sk", "fl",
         };
-    }
+    }*/
 
     public struct SpecialEffectsSettings
     {

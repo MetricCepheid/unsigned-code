@@ -77,9 +77,9 @@
     <Compile Include="Global.cs" />
     <Compile Include="InputPeripherals.cs" />
     <Compile Include="Instrument.cs" />
+    <Compile Include="InstrumentMaster.cs" />
     <Compile Include="KeyboardManager.cs" />
     <Compile Include="MainMenuState.cs" />
-    <Compile Include="Menu.cs" />
     <Compile Include="OptionsScreen.cs" />
     <Compile Include="ParticleMaster.cs" />
     <Compile Include="PauseScreen.cs" />
@@ -127,11 +127,41 @@
     <None Include="audio\Win\Wave Bank.xwb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="characters\Gedhy.unc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="characters\Ozzie.unc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="characters\Pearl.unc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="characters\Petracci.unc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="config.cfg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="characters\dummy.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="boards\board0.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="boards\board1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="boards\board2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Instruments\BAS.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Instruments\LGT.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Instruments\LVX.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Instruments\SET.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="irrKlang.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

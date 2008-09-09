@@ -56,7 +56,13 @@ namespace Unsigned
 #if WINDOWS
 
             sEngine = new ISoundEngine();
-            song = sEngine.AddSoundSourceFromFile("audio\\" + songdata.info.filename + ".ogg", StreamMode.NoStreaming, true);
+            String fn = songdata.info.filename;
+            if (fn.Contains("\\") || fn.ToLower().EndsWith("gba") || fn.ToLower().EndsWith("uns"))
+            {
+                fn = fn.Substring(fn.LastIndexOf('\\') + 1);
+                fn = fn.Substring(0, fn.LastIndexOf('.'));
+            }
+            song = sEngine.AddSoundSourceFromFile("audio\\" + fn + ".ogg", StreamMode.NoStreaming, true);
             sound = sEngine.Play2D(song, false, true, true);
             if (song == null || sound == null)
             {
@@ -188,6 +194,11 @@ namespace Unsigned
         public static void DestroySingleton()
         {
             SINGLETON_SongAudioMaster = null;
+        }
+
+        public TimeSpan GetSongLength()
+        {
+            return new TimeSpan(0, 0, 0, 0, (int)sound.PlayLength);
         }
     }
 }

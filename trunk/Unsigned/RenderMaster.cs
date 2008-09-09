@@ -11,16 +11,19 @@ namespace Unsigned
     {
         private static RenderMaster SINGLETON_RenderMaster;
 
-        public Effect engine, ppEngine, fader, current;
-        public Matrix Projection, View, World;
+        public Effect engine, ppEngine, fader;
         public GraphicsDeviceManager graphics;
         public SpriteBatch spritebatch;
         public RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
         public SpriteFont fontHandwritten;
+        public BasicEffect bEffect;
 
         public Texture2D lastframe;
 
-        public SpriteBatch Spritebatch;
+        public Matrix Projection
+        {
+            set { engine.Parameters["proj"].SetValue(value); }
+        }
 
 
         public RenderState RenderState
@@ -38,6 +41,7 @@ namespace Unsigned
             engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
             fader = content.Load<Effect>("shaders\\BoardFade");
+            bEffect = new BasicEffect(graphics.GraphicsDevice, new EffectPool());
 
             screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
             if (GameSettings.HALF_RENDER)
@@ -75,6 +79,7 @@ namespace Unsigned
         {
             engine.Parameters["view"].SetValue(matView);
             engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+            bEffect.View = matView;
         }
 
         public static void CreateSingleton()

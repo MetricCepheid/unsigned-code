@@ -86,14 +86,16 @@ namespace Unsigned
         // which notes, when hit, cause the board to bump. bitwise
         public ulong BumpNotes;
 
-        void SetValue(String variable, String value)
+        public void SetValue(String variable, String value)
         {
             if (variable.ToLower().Trim().Equals("numtracks"))
                 NumTracks = Int32.Parse(value);
+            else if (variable.ToLower().Trim().Equals("numdrawntracks"))
+                NumDrawnTracks = Int32.Parse(value);
             else if (variable.ToLower().Trim().Equals("rpenabletype"))
-                RPEnableType = (RockPowerEnableTypes)Enum.Parse(Type.GetType("RockPowerEnableTypes"), value.Trim().ToUpper());
+                RPEnableType = (RockPowerEnableTypes)Enum.Parse(typeof(RockPowerEnableTypes), value.Trim().ToUpper());
             else if (variable.ToLower().Trim().Equals("dimensions"))
-                Dimensions = (BoardDimensions)Enum.Parse(Type.GetType("BoardDimensions"), value.Trim().ToUpper());
+                Dimensions = (BoardDimensions)Enum.Parse(typeof(BoardDimensions), value.Trim().ToUpper());
             else if (variable.ToLower().Trim().Equals("codename"))
                 CodeName = value;
             else if (variable.ToLower().Trim().Equals("fullname"))

@@ -76,33 +76,21 @@ namespace Unsigned
             RenderMaster.GetSingleton().Load(content);
 
             GameUIMaster.CreateSingleton();
+            GameUIMaster.GetSingleton().Load(content);
 
             PeripheralManager.CreateSingleton();
             PeripheralManager.GetSingleton().CheckConnections();
+
+            CharacterMaster.CreateSingleton();
+
+            InstrumentMaster.CreateSingleton();
 
             InitXNAApp();
 
             currentState = new Stack<BaseState>();
             PushState(new FVLogoScreen());
 
-#if WINDOWS
-
-            
-
-            diffExists = new bool[4][];
-            for(int i=0;i<4;i++)
-                diffExists[i] = new bool[4];
-            
-#else
-            setLists = new SetList[1];
-            setLists[0] = new SetList();
-            setLists[0].LoadCustom("songlist.txt");
-            setLists[0].name = "Custom";
-#endif
-
-
-
-            
+            Global.random = new Random();
             
             GBVertexFormat[] arr = { new GBVertexFormat(new Vector3(-1f,0f, 1f),new Vector3(0f,1f,0f),new Vector2(0f,0f)),
                                      new GBVertexFormat(new Vector3(-1f,0f,-1f),new Vector3(0f,1f,0f),new Vector2(0f,1f)),
@@ -156,7 +144,7 @@ namespace Unsigned
 
             
 
-            SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
+            //SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             graphics.SynchronizeWithVerticalRetrace = true;
         }
@@ -239,7 +227,7 @@ namespace Unsigned
 #endif
         }
 
-        void SetProjMatrix(int w, int h)
+        public static void SetProjMatrix(int w, int h)
         {
             RenderMaster.GetSingleton().Projection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                               w / (float)h,
@@ -252,13 +240,13 @@ namespace Unsigned
             sfGuitarist = content.Load<SpriteFont>("fonts\\guitarist");
             sfDrummer = content.Load<SpriteFont>("fonts\\drummer");
             sfSinger = content.Load<SpriteFont>("fonts\\singer");
-            sfManager = content.Load<SpriteFont>("fonts\\manager");
              */
             sfMenu = content.Load<SpriteFont>("fonts\\menu");
             Global.texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             Global.DefaultFont = content.Load<SpriteFont>("BasicFont");
             Global.BigFont = content.Load<SpriteFont>("fonts\\bigfont");
             Global.SmallFont = content.Load<SpriteFont>("fonts\\smallfont");
+            Global.HandwrittenFont = content.Load<SpriteFont>("fonts\\manager");
             Global.gradient = content.Load<Texture2D>("graphics\\gradient");
             gradientMask = content.Load<Texture2D>("graphics\\gradientMask");
             GameUIMaster.GetSingleton().texButtonGreen = content.Load<Texture2D>("graphics\\large_face_a");
@@ -474,11 +462,6 @@ namespace Unsigned
             MenuLoading = true;
             ThreadStart ThreadStarter = delegate
             {
-                if (SongListRT == null)
-                {
-                    SongListRT = new RenderTarget2D(graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
-                }
-                SongListBG = content.Load<Texture2D>("graphics\\songlist");
                 SongHiLi = content.Load<Texture2D>("graphics\\songhili");
                 songchoosetop = content.Load<Texture2D>("graphics\\songscreentop");
                 rtNote = new RenderTarget2D[4];
@@ -491,13 +474,8 @@ namespace Unsigned
                 texCurtainRight = content.Load<Texture2D>("graphics\\rightcurtain");
                 coolbg1 = content.Load<Texture2D>("graphics\\coolbg1");
                 coolbg2 = content.Load<Texture2D>("graphics\\coolbg2");
-                texNote = new Texture2D[4];
                 resultsScroller = content.Load<Texture2D>("graphics\\resultscroller");
                 failbg = content.Load<Texture2D>("graphics\\faildialog");
-                concrTex = content.Load<Texture2D>("graphics\\concr");
-                concrBM = content.Load<Texture2D>("graphics\\concrBM");
-                glassboxTex = content.Load<Texture2D>("graphics\\glasscase");
-                glassboxBM = content.Load<Texture2D>("graphics\\glasscasebm");
                 whitishTex = content.Load<Texture2D>("graphics\\whitish");
                 greyishTex = new Texture2D[5];
                 greyishTex[0]= content.Load<Texture2D>("graphics\\greyish");
@@ -596,9 +574,6 @@ namespace Unsigned
                 ContGUIData.DRUMS_ICO_BLUR = content.Load<Texture2D>("graphics\\drumslogo_blur");
                 ContGUIData.MICROPHONE_ICO = content.Load<Texture2D>("graphics\\mphonelogo");
                 ContGUIData.MICROPHONE_ICO_BLUR = content.Load<Texture2D>("graphics\\mphonelogo_blur");
-                hairl = content.Load<Texture2D>("graphics\\hairl");
-                hairr = content.Load<Texture2D>("graphics\\hairr");
-                flameTex = content.Load<Texture2D>("graphics\\flame");
                 texContinue = content.Load<Texture2D>("graphics\\continue");
                 GC.Collect();
                 MenuLoaded = true;
