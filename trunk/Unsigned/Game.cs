@@ -78,6 +78,8 @@ namespace Unsigned
             GameUIMaster.CreateSingleton();
             GameUIMaster.GetSingleton().Load(content);
 
+            KeyboardPeripheral.LoadMapping("keymapping.xml");
+
             PeripheralManager.CreateSingleton();
             PeripheralManager.GetSingleton().CheckConnections();
 

@@ -27,6 +27,9 @@ namespace Unsigned
         {
             for (int i = 0; i < lastframes.Length; i++)
                 lastframes[i] = 1 / 30f;
+            for (int i = 0; i < nugget.peripherals.Length; i++)
+                if(nugget.peripherals[i]!=null)
+                    nugget.peripherals[i].SetMode(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName);
             this.nugget = nugget;
         }
 

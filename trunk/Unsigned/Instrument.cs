@@ -83,6 +83,9 @@ namespace Unsigned
         // the max (non-RP) multiplier (default 4)
         public int MaxMultiplier;
 
+        // what 5+ multipliers are called (e.g. "Bass Groove")
+        public String OverMultiplier;
+
         // which notes, when hit, cause the board to bump. bitwise
         public ulong BumpNotes;
 
@@ -118,6 +121,8 @@ namespace Unsigned
                 NeedsStrum = Boolean.Parse(value);
             else if (variable.ToLower().Trim().Equals("maxmultiplier"))
                 MaxMultiplier = Int32.Parse(value);
+            else if (variable.ToLower().Trim().Equals("overmultiplier"))
+                OverMultiplier = value;
             else if (variable.ToLower().Trim().Equals("bumpnotes"))
                 BumpNotes = UInt64.Parse(value);
             else
