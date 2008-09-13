@@ -10,3 +10,4 @@ CanHOPO = true
 HasSolos = false
 NeedsStrum = true
 MaxMultiplier = 6
+OverMultiplier = Bass Groove

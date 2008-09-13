@@ -549,5 +549,10 @@ namespace Unsigned
         {
             
         }
+
+        internal float GetBPM()
+        {
+            return 120;
+        }
     }
 }
