@@ -140,23 +140,15 @@ namespace Unsigned
         }
     }
 
-    class WaveVector2
+    class Wave
     {
-        public float X;
-        public long Time;
-        public bool White;
-        public WaveVector2(float X, long time)
-        {
-            this.X = X;
-            this.Time = time;
-            White = false;
-        }
+        public float Value;
+        public float Time;
 
-        public WaveVector2(float X, long time, bool w)
+        public Wave(float val, long time)
         {
-            this.X = X;
-            this.Time = time;
-            White = w;
+            Value = val;
+            Time = time;
         }
     }
 
@@ -215,8 +207,8 @@ namespace Unsigned
         private int RPIndex, FillIndex;
         private bool SPGood = true;
         private bool SPActivated = false;
-        private LinkedList<WaveVector2> whammyage;
-        float waveoffset=0;
+        private List<Wave> whammyValues;
+        float sinwavestart=0;
         Results myResults;
         private float rockMeterLevel;
         private int boardBackground;
@@ -319,7 +311,7 @@ namespace Unsigned
             popupSpeed = new float[type.NumTracks];
             if (type.CanWhammy)
             {
-                whammyage = new LinkedList<WaveVector2>();
+                whammyValues = new List<Wave>();
             }
             rockMeterLevel = 80.0f;
         }
@@ -675,7 +667,7 @@ namespace Unsigned
                         }
                     return 0;
                 }
-                waveoffset -= gameTime.ElapsedGameTime.Milliseconds / 100f;
+                sinwavestart -= gameTime.ElapsedGameTime.Milliseconds / 100f;
 
                 if (GetBoardType().CanWhammy)
                     Whammy(controller.GetAnalogValue(PeripheralAnalog.WHAMMY_BAR), gameTime);
@@ -749,11 +741,9 @@ namespace Unsigned
 
                         if (GetBoardType().ContainsHeldNotes && Notes[index].burning)
                         {
-                            LinkedListNode<WaveVector2> temp = whammyage.First;
-                            while (temp != null)
+                            for(int k=0;k<whammyValues.Count;k++)
                             {
-                                temp.Value.Time += gameTime.ElapsedGameTime.Milliseconds;
-                                temp = temp.Next;
+                                whammyValues[k].Time += (float)gameTime.ElapsedGameTime.TotalSeconds;
                             }
                             if (Notes[index].end <= rm.GetCurrentTime()*1000)
                                 index++;
@@ -1166,45 +1156,65 @@ namespace Unsigned
             long currenttime = (long)(RhythmMaster.GetSingleton().GetCurrentTime()*1000);
             if (Notes[index].burning && Notes[index].time < currenttime && Notes[index].end > currenttime)
             {
-                whammyage.AddFirst(new WaveVector2(whammyAmount, 0));
-                int end = (int)Math.Min(eFade * 1000, (Notes[index].end) - (long)currenttime);
-                while (whammyage.Last.Value.Time >= end)
-                    whammyage.RemoveLast();
-                score += (int)(10 * ((gametime.ElapsedGameTime.TotalSeconds*1000) * bpm));
-                if(RPIndex<RPPhrases.Length && index>=RPPhrases[RPIndex].time && index<=RPPhrases[RPIndex].end)
-                StarPowerAmount += (float)(((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
-                if(RPIndex<RPPhrases.Length && index>=RPPhrases[RPIndex].time && index<=RPPhrases[RPIndex].end)
+                whammyValues.Insert(0, new Wave(whammyAmount, 0));
+                score += (int)(10 * ((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
+                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                    StarPowerAmount += (float)(((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
+                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
                     StarPowerAmount += (float)(0.05f * ((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
             }
-            else if (whammyage.Count > 0)
-                whammyage.Clear();
+            else
+                whammyValues.Clear();
+            while (whammyValues.Count > 0 && whammyValues[whammyValues.Count - 1].Time > eFade)
+                whammyValues.RemoveAt(whammyValues.Count - 1);
         }
 
-        private float GetWhammy(float y,long currenttime)
+        private float GetWaveWidth(float time)
         {
-            if (whammyage.Count < 2)
-                return 0f;
-            LinkedListNode<WaveVector2> temp = whammyage.First;
-            while (temp!=null && temp.Value.Time < y)
-            {
-                temp = temp.Next;
-            }
-            if (temp == null)
-            {
-                int end = (int)Math.Min(eFade * 1000, (Notes[index].end) - (long)currenttime);
-                float p = (y - whammyage.Last.Value.Time) / (end - whammyage.Last.Value.Time);
-                return (0.1f * p) + (whammyage.Last.Value.X*(1 - p));
-            }
-            else if (temp.Equals(whammyage.First))
-            {
-                float p = y / whammyage.First.Value.Time;
-                return (0.1f * (1 - p)) + (whammyage.First.Value.X * p);
-            }
+            float sinRet, whammyRet=0;
+
+            //part one: get the scale value based on user input
+            /*if (whammyValues.Count < 1)
+                whammyRet = 0.1f;
             else
             {
-                float p = (y - temp.Previous.Value.Time) / (temp.Value.Time - temp.Previous.Value.Time);
-                return (temp.Value.X * p) + (temp.Previous.Value.X * (1 - p));
-            }
+                int i;
+                for (i = 0; i < whammyValues.Count; i++)
+                {
+                    if (time < whammyValues[i].Time)
+                        break;
+                }
+                i--;
+                if (i < 0)
+                {
+                    //lerp between start and first
+                    float timeDifference = whammyValues[0].Time;
+
+                    whammyRet = FVMath.Lerp(0, whammyValues[0].Value, ((time - 0) / timeDifference));
+                }
+                else if (i >= whammyValues.Count - 1)
+                {
+                    //lerp bertween last and end
+                    float timeDifference = eFade-whammyValues[whammyValues.Count-1].Time;
+
+                    whammyRet = FVMath.Lerp(whammyValues[whammyValues.Count-1].Value, 0, ((time - whammyValues[whammyValues.Count-1].Time) / timeDifference));
+                }
+                else
+                {
+                    //lerp between two nodes
+                    float timeDifference = whammyValues[i+1].Time-whammyValues[i].Time;
+
+                    whammyRet = FVMath.Lerp(whammyValues[i].Value, whammyValues[i + 1].Value, ((time - whammyValues[i].Time) / timeDifference));
+                }
+            }*/
+
+            // part two: get the sin for curviness
+            sinRet = (float)Math.Sin((sinwavestart)*20f);
+
+            // part three: multiply <-- this is the hard one
+            if (whammyRet > 0.15f)
+                sinRet = 1;
+            return sinRet;// *whammyRet;
         }
 
         public void Burn(GameTime gt, ulong note)
@@ -1371,61 +1381,53 @@ namespace Unsigned
                 if (Notes[i].length <= 0)
                     continue;
 
-                float LineWidth = 1.0f;
+                float LineWidth = 0.5f;
 
-                bool first = true;
-                LinkedListNode<WaveVector2> node = whammyage.First;
-                if (node != null)
-                    while (node.Next != null)
-                    {
-                        if (node.Value.Time + (currentTime*1000) < Notes[i].time)
-                            continue;
-                        if (node.Value.Time + (currentTime*1000) > Notes[i].end)
-                            break;
-                        if (first)
-                        {
-                            float Z1 = GetBoardPos(Notes[i].time / 1000f, 1 - ratio) * rtWaves.Height;
-                            float Z2 = GetBoardPos(node.Value.Time / 1000f + currentTime, 1 - ratio) * rtWaves.Height;
-                            float X1 = 0;
-                            float X2 = node.Next.Value.X / 5;
-                            float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
-                            float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
-                            spritebatch.Draw(Global.texWhite, new Vector2(X1, Z1), null, Color.White, Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
-                            first = false;
-                        }
+                // how far between nodes (curve resolution) in seconds
+                float spaceBetween = 0.025f;
 
-                        {
-                            float Z1 = GetBoardPos(node.Value.Time / 1000f + currentTime, 1 - ratio) * rtWaves.Height;
-                            float Z2 = GetBoardPos(node.Next.Value.Time / 1000f + currentTime, 1 - ratio) * rtWaves.Height;
-                            float X1 = node.Value.X / 5;
-                            float X2 = node.Next.Value.X / 5;
-                            float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
-                            float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
-                            spritebatch.Draw(Global.texWhite, new Vector2(X1, Z1), null, Color.White, Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
-                        }
-                        node = node.Next;
-                    }
-                if(first)
+                float k;
+                for(k=(float)Math.Max(0,Notes[i].time/1000.0f-currentTime);k+spaceBetween<Math.Min(eFade,Notes[i].end/1000.0f-currentTime);k+=spaceBetween)
                 {
-                    float Z1 = GetBoardPos(Notes[i].time / 1000f, 1 - ratio)*rtWaves.Height;
-                    float Z2 = GetBoardPos(Notes[i].end / 1000f, 1 - ratio)*rtWaves.Height;
-                    float X1 = 0;
-                    float X2 = 0;
-                    float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
+                    float Z1 = GetBoardPos(k + currentTime, 1 - ratio) * rtWaves.Height;
+                    float Z2 = GetBoardPos(k + spaceBetween + currentTime, 1 - ratio) * rtWaves.Height;
+                    float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
+                    float X2base = ((GetWaveWidth(k + spaceBetween) + 1) / 2.0f);
 
-                    for (int k = 0; k < GetBoardType().NumDrawnTracks; k++)
+                    for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
                     {
-                        if ((Notes[i].type & (((ulong)1) << k)) == 0)
+                        if ((Notes[i].type & (((ulong)1) << r)) == 0)
                             continue;
-                        float x1 = X1 / (float)(GetBoardType().NumDrawnTracks * 2);
-                        float x2 = X2 / (float)(GetBoardType().NumDrawnTracks * 2);
-                        x1 += ((k * 2) + 1)/(float)(GetBoardType().NumDrawnTracks*2);
-                        x2 += ((k * 2) + 1)/(float)(GetBoardType().NumDrawnTracks*2);
-                        x1 *= rtWaves.Width;
-                        x2 *= rtWaves.Width;
 
-                        float Angle = (float)Math.Atan2(Z2 - Z1, x2 - x1);
-                        spritebatch.Draw(texLine, new Vector2(x1, Z1), null, Global.FretColors[k], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        float X1 = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X2 = ((X2base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+
+                        float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
+                        float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
+
+                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[r], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                    }
+                }
+                //last one :P
+                {
+                    float Z1 = GetBoardPos(k + currentTime, 1 - ratio) * rtWaves.Height;
+                    float Z2 = GetBoardPos(Notes[i].end/1000.0f, 1 - ratio) * rtWaves.Height;
+                    float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
+                    float X2base = ((GetWaveWidth(Notes[i].end / 1000.0f - (float)currentTime) + 1) / 2.0f);
+
+
+                    for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
+                    {
+                        if ((Notes[i].type & (((ulong)1) << r)) == 0)
+                            continue;
+
+                        float X1 = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X2 = ((X2base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+
+                        float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
+                        float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
+
+                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[r], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                     }
                 }
             }

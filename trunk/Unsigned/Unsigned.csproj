@@ -71,6 +71,7 @@
     <Compile Include="DifficultyScreen.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="FVLogoScreen.cs" />
+    <Compile Include="FVMath.cs" />
     <Compile Include="GameMaster.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="GameUIMaster.cs" />
