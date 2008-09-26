@@ -11,3 +11,4 @@ HasSolos = false
 NeedsStrum = false
 MaxMultiplier = 4
 BumpNotes = 4
+Colors = 1,2,3,0,0

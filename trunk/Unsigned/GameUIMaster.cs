@@ -203,19 +203,9 @@ namespace Unsigned
             if (GameSettings.guiStyle == GUIStyle.UN)
             {
                 float height = (GameSettings.windowheight * 0.15f);
-                /*int ct = 0;
-                for (int i = 0; i < 4; i++)
-                    if (instruments[i])
-                        ct++;*/
-                /*for (int i = 0; i < (int)totalRSA; i++)
-                {
-                    spritebatch.Draw(rmUNstar, new Vector2(0, GameSettings.windowheight / 2 + ((height / rmUNstaro.Height) * 0.5f * i)), null, totalRSA < 5 ? FretColors[(int)totalRSA] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), (height / rmUNstaro.Height) * 0.5f, SpriteEffects.None, 0);
-                    spritebatch.Draw(rmUNstar, new Vector2(GameSettings.windowwidth, GameSettings.windowheight / 2 + ((height / rmUNstaro.Height) * 0.5f * i)), null, totalRSA < 5 ? FretColors[(int)totalRSA] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), (height / rmUNstaro.Height) * 0.5f, SpriteEffects.None, 0);
-                }*/
 #if WINDOWS
                 spritebatch.Draw(rmUNstar, new Vector2(0, GameSettings.windowheight / 2), null, totalRSA < 5 ? Global.FretColors[(int)totalRSA] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), totalRSA >= 5 ? (height / rmUNstaro.Height) : (totalRSA % 1) * (height / rmUNstaro.Height), SpriteEffects.None, 0);
                 spritebatch.Draw(rmUNstaro, new Vector2(0, GameSettings.windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);
-                //if (ct <= 1)
                 {
                     spritebatch.Draw(rmUNstar, new Vector2(GameSettings.windowwidth, GameSettings.windowheight / 2), null, totalRSA < 5 ? Global.FretColors[(int)totalRSA] : Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), totalRSA >= 5 ? (height / rmUNstaro.Height) : (totalRSA % 1) * (height / rmUNstaro.Height), SpriteEffects.None, 0);
                     spritebatch.Draw(rmUNstaro, new Vector2(GameSettings.windowwidth, GameSettings.windowheight / 2), null, Color.White, rockstarDir, new Vector2(rmUNstar.Width / 2, rmUNstar.Height / 2), height / rmUNstaro.Height, SpriteEffects.None, 0);

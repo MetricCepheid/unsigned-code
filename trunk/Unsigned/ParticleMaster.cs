@@ -25,20 +25,25 @@ namespace Unsigned
     {
         private static ParticleMaster SINGLETON_ParticleMaster;
 
-        private ShatterGlass[][] glass;
-        private ShatterSpark[][] sparks;
+        private Dictionary<Board,ShatterGlass[]> glass;
+        private Dictionary<Board,ShatterSpark[]> sparks;
 
         private Texture2D[] texShard;
         private Texture2D texSpark;
 
         private ParticleMaster()
         {
-            glass = new ShatterGlass[4][];
-            for (int i = 0; i < 4; i++)
-                glass[i] = new ShatterGlass[100];
-            sparks = new ShatterSpark[4][];
-            for (int i = 0; i < 4; i++)
-                sparks[i] = new ShatterSpark[100];
+            glass = new Dictionary<Board, ShatterGlass[]>();
+            sparks = new Dictionary<Board, ShatterSpark[]>();
+        }
+
+        private void CheckGenerateArray(Board b)
+        {
+            if (!glass.ContainsKey(b))
+            {
+                glass.Add(b,new ShatterGlass[100]);
+                sparks.Add(b, new ShatterSpark[100]);
+            }
         }
 
         public void Load(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -56,40 +61,54 @@ namespace Unsigned
         /// <param name="lane">the player lane index</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
-        public void AddShards(long note, int lane, Board board, int density)
+        public void AddShards(ulong note, Board board, float density)
         {
+            CheckGenerateArray(board);
+
+            if (density >= 1)
+                density = (float)((int)density);
+            else
+            {
+                if (Global.random.NextDouble() < density)
+                    density = 1;
+                else
+                    return;
+            }
+            density += 0.05f;
+
             int lefty = board.IsLefty?-1:1;
             int count = 0;
             int noteage = 0;
             for (noteage = 0; noteage < board.GetBoardType().NumTracks; noteage++)
-                if ((note & (1<<noteage)) > 0)
+                if ((note & (((ulong)1)<<noteage)) > 0)
                     break;
             Random r = Global.random;
-            int k = lane;
 
-            for (int i = 0; i < glass[k].Length; i++)
+            ShatterGlass[] glassArr = glass[board];
+
+            for (int i = 0; i < glassArr.Length; i++)
             {
-                if (glass[k][i].scale <= 0)
+                if (glassArr[i].scale <= 0)
                 {
-                    glass[k][i].scale = 0.5f;
-                    glass[k][i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 1.5f) - 1, (float)(r.NextDouble() * 15)) * 0.2f;
-                    glass[k][i].rot = new Vector3((float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2));
-                    glass[k][i].col = noteage;
-                    glass[k][i].frame = r.Next(5);
+                    glassArr[i].scale = 0.5f;
+                    glassArr[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 1.5f) - 1, (float)(r.NextDouble() * 15)) * 0.2f;
+                    glassArr[i].rot = new Vector3((float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2));
+                    glassArr[i].col = noteage;
+                    glassArr[i].frame = r.Next(5);
                     Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
                     
-                    glass[k][i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
-                    glass[k][i].loc.Y = Board.height + rval.Y;
-                    glass[k][i].loc.Z = rval.Z;
-                    glass[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
-                    glass[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                    glassArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
+                    glassArr[i].loc.Y = Board.height + rval.Y;
+                    glassArr[i].loc.Z = rval.Z;
+                    glassArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
+                    glassArr[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= density)
                     {
                         count = 0;
                         noteage++;
                         for (; noteage < board.GetBoardType().NumTracks; noteage++)
-                            if ((note & (1<<noteage)) > 0)
+                            if ((note & (((ulong)1)<<noteage)) > 0)
                                 break;
                         if (noteage >= board.GetBoardType().NumTracks)
                             return;
@@ -105,8 +124,21 @@ namespace Unsigned
         /// <param name="lane">the player lane index</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
-        public void AddSparks(ulong note, int lane, Board board, int density)
+        public void AddSparks(ulong note, Board board, float density)
         {
+            CheckGenerateArray(board);
+
+            if (density >= 1)
+                density = (float)((int)density);
+            else
+            {
+                if (Global.random.NextDouble() < density)
+                    density = 1;
+                else
+                    return;
+            }
+            density += 0.05f;
+
             int lefty = board.IsLefty ? -1 : 1;
             int count = 0;
             int noteage = 0;
@@ -114,22 +146,23 @@ namespace Unsigned
                 if ((note & (((ulong)1) << noteage)) > 0)
                     break;
             Random r = Global.random;
-            int k = lane;
 
-            for (int i = 0; i < sparks[k].Length; i++)
+            ShatterSpark[] sparkArr = sparks[board];
+
+            for (int i = 0; i < sparkArr.Length; i++)
             {
-                if (sparks[k][i].scale <= 0)
+                if (sparkArr[i].scale <= 0)
                 {
-                    sparks[k][i].scale = 0.25f * (float)r.NextDouble();
-                    sparks[k][i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f) + 15f, (float)(r.NextDouble() * 15)) * 0.2f;
-                    sparks[k][i].col = noteage;
+                    sparkArr[i].scale = 0.25f * (float)r.NextDouble();
+                    sparkArr[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f) + 15f, (float)(r.NextDouble() * 15)) * 0.2f;
+                    sparkArr[i].col = noteage;
                     Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
 
-                    sparks[k][i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
-                    sparks[k][i].loc.Y = Board.height + rval.Y;
-                    sparks[k][i].loc.Z = rval.Z;
-                    sparks[k][i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
-                    sparks[k][i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
+                    sparkArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
+                    sparkArr[i].loc.Y = Board.height + rval.Y;
+                    sparkArr[i].loc.Z = rval.Z;
+                    sparkArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
+                    sparkArr[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= density)
                     {
@@ -342,49 +375,60 @@ namespace Unsigned
             }
         }*/
 
-        public void Update(GameTime gameTime)
+        /// <summary>
+        /// Must be called from each board
+        /// updates all animations
+        /// </summary>
+        /// <param name="b">Which board's gibs to update</param>
+        /// <param name="gameTime">frame-by-frame timespan</param>
+        public void Update(Board b, GameTime gameTime)
         {
-            for (int k = 0; k < glass.Length; k++)
+            CheckGenerateArray(b);
+
+            ShatterGlass[] glassArr = glass[b];
+            ShatterSpark[] sparksArr = sparks[b];
+            for (int i = 0; i < glassArr.Length; i++)
             {
-                for (int i = 0; i < glass[k].Length; i++)
+                if (glassArr[i].scale > 0)
                 {
-                    if (glass[k][i].scale > 0)
-                    {
-                        glass[k][i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
-                        glass[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
-                        glass[k][i].loc += glass[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
-                    }
-                }
-                for (int i = 0; i < sparks[k].Length; i++)
-                {
-                    sparks[k][i].scale = Math.Min(sparks[k][i].dir.Y, 1) * 4;
-                    sparks[k][i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
-                    if (sparks[k][i].scale > 0)
-                        sparks[k][i].loc += sparks[k][i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+                    glassArr[i].scale -= (float)gameTime.ElapsedGameTime.Milliseconds / 2000f;
+                    glassArr[i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000f;
+                    glassArr[i].loc += glassArr[i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
                 }
             }
+            for (int i = 0; i < sparksArr.Length; i++)
+            {
+                sparksArr[i].scale = Math.Min(sparksArr[i].dir.Y, 1) * 4;
+                sparksArr[i].dir.Y -= (float)gameTime.ElapsedGameTime.Milliseconds / 100f;
+                if (sparksArr[i].scale > 0)
+                    sparksArr[i].loc += sparksArr[i].dir * (float)gameTime.ElapsedGameTime.Milliseconds * 0.001f;
+            }
         }
-        public void Render(int lane)
+        public void Render(Board b)
         {
-            Effect effect = RenderMaster.GetSingleton().engine;
+            CheckGenerateArray(b);
+
+            BasicEffect effect = RenderMaster.GetSingleton().bEffect;
             GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
-            int k = lane;
+            ShatterGlass[] glassArr = glass[b];
+            ShatterSpark[] sparkArr = sparks[b];
             for (int r = 0; r < texShard.Length; r++)
             {
-                effect.Parameters["diffuseTexture"].SetValue(texShard[r]);
-                for (int i = 0; i < glass[k].Length; i++)
-                    if (glass[k][i].scale > 0 && glass[k][i].frame == r)
+                effect.Texture = texShard[r];
+                for (int i = 0; i < glassArr.Length; i++)
+                    if (glassArr[i].scale > 0 && glassArr[i].frame == r)
                     {
                         Matrix matIdentity, matTransl, matScale, matOrbit;
                         matIdentity = Matrix.Identity;
-                        matTransl = Matrix.CreateTranslation(glass[k][i].loc);
-                        matOrbit = Matrix.CreateRotationX(glass[k][i].rot.X) * Matrix.CreateRotationY(glass[k][i].rot.Y) * Matrix.CreateRotationZ(glass[k][i].rot.Z);
-                        matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glass[k][i].scale);
+                        matTransl = Matrix.CreateTranslation(glassArr[i].loc);
+                        matOrbit = Matrix.CreateRotationX(glassArr[i].rot.X) * Matrix.CreateRotationY(glassArr[i].rot.Y) * Matrix.CreateRotationZ(glassArr[i].rot.Z);
+                        matScale = Matrix.CreateScale((new Vector3(0.1f, 0.1f, 0.1f)) * glassArr[i].scale);
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
-                        effect.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
+                        effect.World = matIdentity * matScale * matOrbit * matTransl;
 
-                        effect.Parameters["diffuseColor"].SetValue(Global.FretColors[glass[k][i].col].ToVector4());
+                        effect.DiffuseColor = Global.FretColors[glassArr[i].col].ToVector3();
+                        effect.Alpha = Global.FretColors[glassArr[i].col].A / 255.0f;
                         effect.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -396,19 +440,20 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
             }
-            effect.Parameters["diffuseTexture"].SetValue(texSpark);
-            for (int i = 0; i < sparks[k].Length; i++)
-                if (sparks[k][i].scale > 0)
+            effect.Texture = texSpark;
+            for (int i = 0; i < sparkArr.Length; i++)
+                if (sparkArr[i].scale > 0)
                 {
                     Matrix matRot, matTransl, matScale;
                     matRot = Matrix.CreateRotationX(MathHelper.PiOver2) /* Matrix.CreateRotationY((float)(Math.Atan2(venue.GetCamFor().X, venue.GetCamFor().Z)) + MathHelper.PiOver2)*/;
-                    matTransl = Matrix.CreateTranslation(sparks[k][i].loc);
-                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparks[k][i].scale);
+                    matTransl = Matrix.CreateTranslation(sparkArr[i].loc);
+                    matScale = Matrix.CreateScale(new Vector3(0.01f, 0.01f, 0.01f) * sparkArr[i].scale);
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
-                    effect.Parameters["world"].SetValue(matScale * matRot * matTransl);
+                    effect.World = matScale * matRot * matTransl;
 
-                    effect.Parameters["diffuseColor"].SetValue(Global.FretColors[sparks[k][i].col].ToVector4());
+                    effect.DiffuseColor = Global.FretColors[sparkArr[i].col].ToVector3();
+                    effect.Alpha = Global.FretColors[glassArr[i].col].A / 255.0f;
                     effect.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -419,7 +464,8 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+            effect.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+            effect.Alpha = 1.0f;
         }
 
         public static void CreateSingleton()
