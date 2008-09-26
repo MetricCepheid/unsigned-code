@@ -31,9 +31,6 @@ namespace Unsigned
     {
         private static RhythmMaster SINGLETON_RhythmMaster = null;
 
-        private static float[] rockMeterLevel;
-
-        private int[] selectedInstruments;
         private Board[] boards;
         private float failTime;
         private double CurrentTime, lastChange;
@@ -44,16 +41,6 @@ namespace Unsigned
 
         private RhythmMaster()
         {
-            selectedInstruments = new int[4];
-            selectedInstruments[0] = -1;
-            selectedInstruments[1] = -1;
-            selectedInstruments[2] = -1;
-            selectedInstruments[3] = -1;
-            rockMeterLevel = new float[4];
-            rockMeterLevel[0] = 80;
-            rockMeterLevel[1] = 80;
-            rockMeterLevel[2] = 80;
-            rockMeterLevel[3] = 80;
         }
 
         public void Initialize(PlayerConfigNugget info, SongData song, ContentManager content)
@@ -196,14 +183,14 @@ namespace Unsigned
         /// <returns></returns>
         public bool IsInstrumentAvailable(int index)
         {
-            return selectedInstruments[index] >= 0;
+            return boards[index]!=null;
         }
 
         public float GetRockstarAmount()
         {
             float total = 0, count = 0;
             for (int i = 0; i < 4; i++)
-                if (selectedInstruments[i]>=0)
+                if (boards[i]!=null)
                 {
                     int adddiff;
                     if (boards[i].GetDifficulty() == Global.D_EASY)
@@ -229,7 +216,7 @@ namespace Unsigned
             if (failTime > 0)
             {
                 for (int k = 0; k < boards.Length; k++)
-                    if (selectedInstruments[i]>=0 && boards[k].IsFailing)
+                    if (boards[i]!=null && boards[k].IsFailing)
                     {
                         boards[i].Save();
                         boards[i].EatHalfSP();
@@ -244,25 +231,22 @@ namespace Unsigned
             int ct = 0;
             float add = 0;
             for (int i = 0; i < 4; i++)
-                if (selectedInstruments[i]>=0)
+                if (boards[i]!=null)
                 {
-                    if (rockMeterLevel[i] > 100)
-                        rockMeterLevel[i] = 100;
+                    float rockMeterLevel = boards[i].GetRockMeterLevel();
                     //if (TEST_SONG)
                     //    rockMeterLevel[i] = 99f;
                     ct++;
-                    add += rockMeterLevel[i];
+                    add += rockMeterLevel;
                 }
             return (add / ct) / 100f;
         }
 
         public float GetRockMeterFill(int which)
         {
-            if (selectedInstruments[which] < 0)
+            if (boards[which]==null)
                 return -1000;
-            if (rockMeterLevel[which] > 100)
-                rockMeterLevel[which] = 100;
-            return rockMeterLevel[which];
+            return boards[which].GetRockMeterLevel();
         }
 
         public int GetScore()
@@ -304,13 +288,6 @@ namespace Unsigned
         internal SongData GetSongData()
         {
             return songData;
-        }
-
-        internal void Burn(ulong note, Board board)
-        {
-            for (int i = 0; i < 4; i++)
-                if (boards[i] == board)
-                    ParticleMaster.GetSingleton().AddSparks(note, i, board, 1);
         }
 
         internal void AddSparks(ulong note, Board board)

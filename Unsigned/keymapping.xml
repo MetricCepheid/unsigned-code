@@ -19,6 +19,7 @@
 			<key name="Up" button="Up" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
+			<key name="Whammy" button="Left" />
 		</map>
 		<map type="BAS">
 			<key name="Fret0" button="A" />
@@ -30,6 +31,7 @@
 			<key name="Up" button="Up" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
+			<key name="Whammy" button="Left" />
 		</map>
 		<map type="SET">
 			<key name="Fret0" button="A" />

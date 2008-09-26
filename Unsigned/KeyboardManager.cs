@@ -23,7 +23,7 @@ namespace Unsigned
 
         private static Dictionary<String,List<KeyMap>>[] keymaps;
 
-        private const PeripheralButton Whammy = (PeripheralButton)(-10);
+        private const PeripheralButton Whammy = (PeripheralButton)(PeripheralButton.TOTAL+1);
 
         private bool[] bufferedMap;
         private KeyboardState previousState;
@@ -40,7 +40,7 @@ namespace Unsigned
         public KeyboardPeripheral(int pIndex)
         {
             playerIndex = pIndex;
-            bufferedMap = new bool[(int)PeripheralButton.TOTAL];
+            bufferedMap = new bool[(int)PeripheralButton.TOTAL*2];
         }
 
         public static void LoadMapping(String xmlFilename)
@@ -81,7 +81,14 @@ namespace Unsigned
                                 while (xin.MoveToNextAttribute())
                                 {
                                     if (xin.Name.ToLower().Equals("name"))
+                                    {
                                         button = GetButtonFromString(xin.Value);
+                                        if (button == PeripheralButton.NONE)
+                                        {
+                                            if (xin.Value.ToLower().Equals("whammy"))
+                                                button = Whammy;
+                                        }
+                                    }
                                     else if (xin.Name.ToLower().Equals("button"))
                                         key = GetKeyFromString(xin.Value);
                                 }
@@ -122,7 +129,9 @@ namespace Unsigned
             for(int i=0;i<keymaps[playerIndex][mode].Count;i++)
             {
                 if (currentState.IsKeyDown(keymaps[playerIndex][mode][i].key) && previousState.IsKeyUp(keymaps[playerIndex][mode][i].key))
+                {
                     bufferedMap[(int)keymaps[playerIndex][mode][i].button] = true;
+                }
             }
 
             previousState = currentState;

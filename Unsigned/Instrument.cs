@@ -89,6 +89,16 @@ namespace Unsigned
         // which notes, when hit, cause the board to bump. bitwise
         public ulong BumpNotes;
 
+        // for instruments with fret boards that are out of order.  default is value=index
+        public int[] colorIndices;
+
+        public Instrument()
+        {
+            colorIndices = new int[Global.FretColors.Length];
+            for (int i = 0; i < colorIndices.Length; i++)
+                colorIndices[i] = i;
+        }
+
         public void SetValue(String variable, String value)
         {
             if (variable.ToLower().Trim().Equals("numtracks"))
@@ -124,7 +134,37 @@ namespace Unsigned
             else if (variable.ToLower().Trim().Equals("overmultiplier"))
                 OverMultiplier = value;
             else if (variable.ToLower().Trim().Equals("bumpnotes"))
-                BumpNotes = UInt64.Parse(value);
+            {
+                BumpNotes = 0;
+                value = value.Trim();
+                int index = 0;
+                while (value.Length > 0)
+                {
+                    if (value.IndexOf(',') < 0)
+                    {
+                        BumpNotes |= (((ulong)1) << Int32.Parse(value.Trim()));
+                        break;
+                    }
+                    else
+                    {
+                        BumpNotes |= (((ulong)1) << Int32.Parse(value.Substring(0, value.IndexOf(',')).Trim()));
+                        value = value.Substring(value.IndexOf(',') + 1).Trim();
+                    }
+                }
+            }
+            else if (variable.ToLower().Trim().Equals("colors"))
+            {
+                value = value.Trim();
+                int index = 0; ;
+                while (value.Length > 0)
+                {
+                    if(value.IndexOf(',')<0)
+                        break;
+                    colorIndices[index] = Int32.Parse(value.Substring(0, value.IndexOf(',')).Trim());
+                    value = value.Substring(value.IndexOf(',') + 1).Trim();
+                    index++;
+                }
+            }
             else
                 System.Windows.Forms.MessageBox.Show("Invalid Instrument Variable Name: " + variable);
 

@@ -76,6 +76,8 @@ namespace Unsigned
 
         public bool IsHOPO(Instrument instrument)
         {
+            if (!instrument.CanHOPO)
+                return false;
             return (type & (((ulong)1) << instrument.NumTracks)) != 0;
         }
     }
@@ -178,8 +180,6 @@ namespace Unsigned
         private static Texture2D texLine, texLineEnd;
         public static float BOARD_BUMP_COEF = 0.002f;
         public static float spMeterYScale = 0.4f;
-        public static int[] guitarToDrums = { 1, 2, 3, 0, 4 };
-        public static int[] drumsToGuitar = { 3, 0, 1, 2, 4 };
         private static Texture2D texGlow;
         private static SPCircle[] spcircles = new SPCircle[50];
         private static uint PILLOW = 100;//padding in front of and behind note
@@ -199,8 +199,7 @@ namespace Unsigned
         private int index;
         private float multiplier=1;
         private byte lastPressed=0;
-        private int[] starPts;
-        private int score;
+        private float score;
         private bool LeftySwitch = false;
         private float[] popup, popupSpeed;
         private float StarPowerAmount = 0, SPADisplay = 0;
@@ -208,7 +207,7 @@ namespace Unsigned
         private bool SPGood = true;
         private bool SPActivated = false;
         private List<Wave> whammyValues;
-        float sinwavestart=0;
+        private double sinwavestart=0;
         Results myResults;
         private float rockMeterLevel;
         private int boardBackground;
@@ -217,6 +216,7 @@ namespace Unsigned
         private RenderTarget2D boardTarget;
         bool SPDelayStart;
         public RenderTarget2D rtBoard, rtWaves;
+        private int[] colorIndices;
 
         //public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
 
@@ -282,6 +282,17 @@ namespace Unsigned
         {
             get { return controller; }
             set { controller = value; }
+        }
+
+        private uint[] StarPoints
+        {
+            get
+            {
+                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].starScoreLevels;
+                return null;
+            }
         }
 
 #region Accessors
@@ -602,6 +613,8 @@ namespace Unsigned
                 }
             }
 
+            ParticleMaster.GetSingleton().Update(this,gameTime);
+
             ulong pressed = controller.GetFrets();
             ulong newPressed = controller.GetBufferedFrets();
             RhythmMaster rm = RhythmMaster.GetSingleton();
@@ -659,15 +672,14 @@ namespace Unsigned
                                 }
                                 else
                                 {
-                                    RhythmMaster.GetSingleton().Burn(Notes[index].type, this);
-                                    //Burn(gameTime, Notes[index].type);
+                                    Burn(gameTime,Notes[index].type);
                                     return 0;// (byte)(Game1.bits[7] | Notes[index].type);
                                 }
                             }
                         }
                     return 0;
                 }
-                sinwavestart -= gameTime.ElapsedGameTime.Milliseconds / 100f;
+                sinwavestart -= gameTime.ElapsedGameTime.TotalSeconds*0.2;
 
                 if (GetBoardType().CanWhammy)
                     Whammy(controller.GetAnalogValue(PeripheralAnalog.WHAMMY_BAR), gameTime);
@@ -689,7 +701,7 @@ namespace Unsigned
                         for (int i = 0; i < 5; i++)
                             if ((newPressed & (((ulong)1) << i)) != 0)
                             {
-                                popupSpeed[drumsToGuitar[i]] += 100f;
+                                popupSpeed[i] += 100f;
                                 Fills[FillIndex].amount += 1f / (((Fills[FillIndex].len) / 1000f) * 7);
                                 Fills[FillIndex].amount = Math.Min(Fills[FillIndex].amount, 1);
                             }
@@ -703,7 +715,6 @@ namespace Unsigned
                 }
                 if (index< Notes.Length && Notes[index].time - PILLOW < rm.GetCurrentTime()*1000)
                 {
-
                     if (!GetBoardType().NeedsStrum)
                     {
                         ulong flash = Notes[index].AddPressedDrums(GetBoardType(),newPressed);
@@ -711,7 +722,7 @@ namespace Unsigned
                             if ((flash & (((ulong)1) << i)) != 0)
                             {
                                 multiplier += 0.1f;
-                                popupSpeed[drumsToGuitar[i]] += 100f;
+                                popupSpeed[i] += 100f;
                             }
                         for (int i = 0; i < 5; i++)
                             if ((flash & (((ulong)1) << i)) != 0)
@@ -722,11 +733,12 @@ namespace Unsigned
                             Help();
                             index++;
                             myResults.hitNotes++;
+                            ParticleMaster.GetSingleton().AddShards(Notes[index - 1].type, this, 10);
                             return Notes[index - 1].type;
                         }
                         if (Notes[index].late <= rm.GetCurrentTime()*1000)
                         {
-                            if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                            if (RPIndex < RPPhrases.Length && Notes[index].time >= RPPhrases[RPIndex].time && Notes[index].time <= RPPhrases[RPIndex].end)
                                 SPGood = false;
                             index++;
                             multiplier = 1;
@@ -751,7 +763,6 @@ namespace Unsigned
                                 index++;
                             else
                             {
-                                rm.Burn(Notes[index].type, this);
                                 Burn(gameTime, Notes[index].type);
                             }
                         }
@@ -769,6 +780,7 @@ namespace Unsigned
                                     if ((Notes[index].type & (((ulong)1) << i)) != 0)
                                     { score += 100 * (int)multiplier; }
                                 myResults.hitNotes++;
+                                ParticleMaster.GetSingleton().AddShards(Notes[index].type, this, 10);
                                 Help();
                                 if (Notes[index].length > 0)
                                 {
@@ -781,7 +793,7 @@ namespace Unsigned
                             }
                             if (Notes[index].late <= rm.GetCurrentTime()*1000)
                             {
-                                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                                if (RPIndex < RPPhrases.Length && Notes[index].time >= RPPhrases[RPIndex].time && Notes[index].time <= RPPhrases[RPIndex].end)
                                     SPGood = false;
                                 index++;
                                 multiplier = 1;
@@ -799,7 +811,7 @@ namespace Unsigned
                     multiplier = 1;
                 }
 
-                if (RPIndex < RPPhrases.Length && (index > RPPhrases[RPIndex].end || (index == RPPhrases[RPIndex].end && Notes[index].burning)))
+                if (RPIndex < RPPhrases.Length && Notes[index].end > RPPhrases[RPIndex].end)
                 {
                     if (SPGood)
                     {
@@ -1031,13 +1043,15 @@ namespace Unsigned
         public float GetStars()
         {
             int i;
-            for (i = 0; i < starPts.Length; i++)
-                if (score < starPts[i])
+            for (i = 0; i < StarPoints.Length; i++)
+                if (score >= StarPoints[i])
                     break;
             if (i > 5)
                 return 5;
-            float dec = (float)(score - starPts[i-1]) / (starPts[i] - starPts[i-1]);
-            return dec + i-1;
+            if (score < StarPoints[0])
+                return score / StarPoints[0];
+            float dec = (float)(score - StarPoints[i]) / (StarPoints[i+1] - StarPoints[i]);
+            return dec + i+1;
         }
 
         public byte GetDifficulty()
@@ -1047,7 +1061,7 @@ namespace Unsigned
 
         public int GetScore()
         {
-            return score;
+            return (int)score;
         }
 
         public int GetMultiplierFraction()
@@ -1156,8 +1170,9 @@ namespace Unsigned
             long currenttime = (long)(RhythmMaster.GetSingleton().GetCurrentTime()*1000);
             if (Notes[index].burning && Notes[index].time < currenttime && Notes[index].end > currenttime)
             {
-                whammyValues.Insert(0, new Wave(whammyAmount, 0));
-                score += (int)(10 * ((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
+                if(whammyValues.Count<=0 || whammyValues[0].Value!=whammyAmount)
+                    whammyValues.Insert(0, new Wave(whammyAmount, 0));
+                score += (int)(gametime.ElapsedGameTime.TotalSeconds * bpm);
                 if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
                     StarPowerAmount += (float)(((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
                 if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
@@ -1169,12 +1184,12 @@ namespace Unsigned
                 whammyValues.RemoveAt(whammyValues.Count - 1);
         }
 
-        private float GetWaveWidth(float time)
+        private float GetWaveWidth(double time)
         {
             float sinRet, whammyRet=0;
 
             //part one: get the scale value based on user input
-            /*if (whammyValues.Count < 1)
+            if (whammyValues.Count < 1)
                 whammyRet = 0.1f;
             else
             {
@@ -1190,37 +1205,36 @@ namespace Unsigned
                     //lerp between start and first
                     float timeDifference = whammyValues[0].Time;
 
-                    whammyRet = FVMath.Lerp(0, whammyValues[0].Value, ((time - 0) / timeDifference));
+                    whammyRet = FVMath.Lerp(0, whammyValues[0].Value, (((float)time - 0) / timeDifference));
                 }
                 else if (i >= whammyValues.Count - 1)
                 {
                     //lerp bertween last and end
                     float timeDifference = eFade-whammyValues[whammyValues.Count-1].Time;
 
-                    whammyRet = FVMath.Lerp(whammyValues[whammyValues.Count-1].Value, 0, ((time - whammyValues[whammyValues.Count-1].Time) / timeDifference));
+                    whammyRet = FVMath.Lerp(whammyValues[whammyValues.Count-1].Value, 0, (((float)time - whammyValues[whammyValues.Count-1].Time) / timeDifference));
                 }
                 else
                 {
                     //lerp between two nodes
                     float timeDifference = whammyValues[i+1].Time-whammyValues[i].Time;
 
-                    whammyRet = FVMath.Lerp(whammyValues[i].Value, whammyValues[i + 1].Value, ((time - whammyValues[i].Time) / timeDifference));
+                    whammyRet = FVMath.Lerp(whammyValues[i].Value, whammyValues[i + 1].Value, (((float)time - whammyValues[i].Time) / timeDifference));
                 }
-            }*/
+            }
 
             // part two: get the sin for curviness
-            sinRet = (float)Math.Sin((sinwavestart)*20f);
+            sinRet = (float)Math.Sin((sinwavestart+time)*20f);
 
             // part three: multiply <-- this is the hard one
-            if (whammyRet > 0.15f)
-                sinRet = 1;
-            return sinRet;// *whammyRet;
+            return sinRet*whammyRet;
         }
 
         public void Burn(GameTime gt, ulong note)
         {
             int num = Global.AddBits(note & ~(((ulong)1) << GetBoardType().NumTracks));
             score += (int)(num * 100 * gt.ElapsedGameTime.TotalSeconds);
+            ParticleMaster.GetSingleton().AddSparks(note, this, 0.05f);
         }
 
         public Results GetResults()
@@ -1311,13 +1325,15 @@ namespace Unsigned
                     if (!IsFailing)
                     {   
                         DrawWaves(fling, matTransl);
-
-                        //ParticleMaster.GetSingleton().Render(i?);
                         DrawFlashes(fling);
+                        ParticleMaster.GetSingleton().Render(this);
                     }
                     pass.End();
                 }
                 effect.End();
+                spritebatch.Begin();
+                spritebatch.DrawString(Global.DefaultFont, "" + rockMeterLevel, new Vector2(20, 120), Color.Red);
+                spritebatch.End();
                 graphics.GraphicsDevice.SetRenderTarget(0, null);
             }
         }
@@ -1381,10 +1397,10 @@ namespace Unsigned
                 if (Notes[i].length <= 0)
                     continue;
 
-                float LineWidth = 0.5f;
+                float LineWidth = 0.8f;
 
                 // how far between nodes (curve resolution) in seconds
-                float spaceBetween = 0.025f;
+                float spaceBetween = 0.01f;
 
                 float k;
                 for(k=(float)Math.Max(0,Notes[i].time/1000.0f-currentTime);k+spaceBetween<Math.Min(eFade,Notes[i].end/1000.0f-currentTime);k+=spaceBetween)
@@ -1393,27 +1409,42 @@ namespace Unsigned
                     float Z2 = GetBoardPos(k + spaceBetween + currentTime, 1 - ratio) * rtWaves.Height;
                     float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
                     float X2base = ((GetWaveWidth(k + spaceBetween) + 1) / 2.0f);
+                    float X3base = (((((X1base * 2) - 1) * -1) + 1) / 2.0f);
+                    float X4base = (((((X2base * 2) - 1) * -1) + 1) / 2.0f);
+
+                    float Length;
+                    float Angle1, Angle2;
+
+                    {
+                        float X1 = ((X1base) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X2 = ((X2base) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X3 = ((X3base) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X4 = ((X4base) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+
+                        Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
+                        Angle1 = (float)Math.Atan2(Z2 - Z1, X2 - X1);
+                        Angle2 = (float)Math.Atan2(Z2 - Z1, X4 - X3);
+                    }
 
                     for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
                     {
                         if ((Notes[i].type & (((ulong)1) << r)) == 0)
                             continue;
 
-                        float X1 = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
-                        float X2 = ((X2base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X1a = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X1b = ((X3base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
 
-                        float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
-                        float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
-
-                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[r], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1a, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle1, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1b, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle2, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                     }
                 }
                 //last one :P
+                if (Notes[i].end > 1000 * currentTime)
                 {
                     float Z1 = GetBoardPos(k + currentTime, 1 - ratio) * rtWaves.Height;
                     float Z2 = GetBoardPos(Notes[i].end/1000.0f, 1 - ratio) * rtWaves.Height;
                     float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
-                    float X2base = ((GetWaveWidth(Notes[i].end / 1000.0f - (float)currentTime) + 1) / 2.0f);
+                    float X2base = ((GetWaveWidth(Math.Min(Notes[i].end / 1000.0f - (float)currentTime,eFade)) + 1) / 2.0f);
 
 
                     for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
@@ -1427,59 +1458,10 @@ namespace Unsigned
                         float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
                         float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
 
-                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[r], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                     }
                 }
             }
-            /*if (wavesLen > 0)
-            {
-                for (int p = 0; p < wavesLen; p++)
-                {
-                    for (int r = 0; r < 5; r++)
-                    {
-                        if ((waves[p][0].Z & (((ulong)1)<<r)) > 0)
-                        {
-                            for (int q = 0; q < wavesSubLen[p] - 1; q++)
-                            {
-                                float loA, hiA;
-                                if (waves[p][q].Y / 1000f < Board.sFade)
-                                    loA = 1;
-                                else if (waves[p][q].Y / 1000f < Board.eFade)
-                                    loA = 1 - (((waves[p][q].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
-                                else
-                                    loA = 0;
-                                if (waves[p][q + 1].Y / 1000f < Board.sFade)
-                                    hiA = 1;
-                                else if (waves[p][q + 1].Y / 1000f < Board.eFade)
-                                    hiA = 1 - (((waves[p][q + 1].Y / 1000f) - Board.sFade) / (Board.eFade - Board.sFade));
-                                else
-                                    hiA = 0;
-                                float xscale = 15f;
-                                //spritebatch.Draw(texWhite, new Vector2(waves[p][q].X, (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), Color.White);
-                                int note = waves[p][q].Z;
-                                //if ((note & 128) == 0)
-                                {
-                                    for (int k = 0; k < 5; k++)
-                                        if ((note & (1 << k)) != 0)
-                                        {
-                                            if ((note & 64) != 0)
-                                            {
-                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, waves[p][q].White ? Color.White : Global.FretColors[k], (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
-                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * -xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, waves[p][q].White ? Color.White : Global.FretColors[k], (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
-                                            }
-                                            else
-                                            {
-                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, Global.FadedFretColors(k), (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
-                                                spritebatch.Draw(texLine, new Vector2((waves[p][q].X * -xscale) + (IsLefty ? noteLanePos[4 - k] * rtBoard.Width : noteLanePos[k] * rtBoard.Width), (rtBoard.Height * ratio) - ((rtBoard.Height * ratio) * ((waves[p][q].Y / 1000f) / Board.eFade))), null, Global.FadedFretColors(k), (float)Math.Atan2(((-rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)), (waves[p][q + 1].X - waves[p][q].X) * -xscale) + MathHelper.PiOver2, new Vector2(texLine.Width / 2, texLine.Height), new Vector2(0.5f, (new Vector2((waves[p][q + 1].X - waves[p][q].X) * xscale, ((rtBoard.Height * ratio) * (((waves[p][q + 1].Y - waves[p][q].Y) / 1000f) / Board.eFade)))).Length() * 1.05f / (float)texLine.Height), SpriteEffects.None, 0);
-                                            }
-                                        }
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }*/
             spritebatch.End();
 
 
@@ -1531,7 +1513,7 @@ namespace Unsigned
             else if (rockMeterLevel > 80)
                 bgColor = new Color(30, (byte)(30 + ((rockMeterLevel - 80) / 20f) * 50), 30);
             else if (rockMeterLevel > 40)
-                bgColor = new Color((byte)(30 + (1 - ((rockMeterLevel - 20) / 20f)) * 50), 30, 30);
+                bgColor = new Color(30, 30, 30);
 
             for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length; i++)
             {
@@ -1562,6 +1544,10 @@ namespace Unsigned
                         spritebatch.Draw(Global.texWhite, new Rectangle(0, (int)(((Y2 - Y) * (((k * 2) + 1) / (float)(RhythmMaster.GetSingleton().GetSongData().info.barlines[i].numBeats * 2))) + Y) - 1, rtBoard.Width, 2), Color.White);
                     }
                 }
+            }
+            for (int i = 1; i < GetBoardType().NumDrawnTracks; i++)
+            {
+                spritebatch.Draw(Global.texWhite, new Rectangle((int)(((float)i / (float)GetBoardType().NumDrawnTracks) * rtBoard.Width), 0, 1, rtBoard.Height), Color.White);
             }
 
             /*for (int k = -4; k < 8; k++)
@@ -1622,7 +1608,7 @@ namespace Unsigned
                         for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
                         {
                             float center = ((r * 2 + 1) / (float)(GetBoardType().NumDrawnTracks*2)) * rtBoard.Width;
-                            spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * Fills[k].amount)), (int)y1, (int)(2 * (halfMaxWidth * Fills[k].amount)), (int)((y2-y1)+0.5f)), Global.FretColors[r]);
+                            spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * Fills[k].amount)), (int)y1, (int)(2 * (halfMaxWidth * Fills[k].amount)), (int)((y2 - y1) + 0.5f)), Global.FretColors[GetBoardType().colorIndices[r]]);
                         }
                     }
                 }
@@ -1744,9 +1730,9 @@ namespace Unsigned
                 for (int r = 0; r < GetBoardType().NumTracks; r++)
                 {
                     if (r < GetBoardType().NumDrawnTracks)
-                        effect.Texture = Board.texNotes[r];
+                        effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
                     else
-                        effect.Texture = Board.texBarNotes[r-GetBoardType().NumDrawnTracks];
+                        effect.Texture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
                     whited = false;
                     for (int p = Math.Max(index-32,0); p < Notes.Length; p++)
                     {
@@ -1759,9 +1745,9 @@ namespace Unsigned
                         else if (!IsWhite && whited)
                         {
                             if (r < GetBoardType().NumDrawnTracks)
-                                effect.Texture = Board.texNotes[r];
+                                effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
                             else
-                                effect.Texture = Board.texBarNotes[r - GetBoardType().NumDrawnTracks];
+                                effect.Texture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
                             whited = false;
                         }
 
@@ -1875,6 +1861,7 @@ namespace Unsigned
                 VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
                 graphics.GraphicsDevice.VertexDeclaration = vd;
 
+                effect.Alpha = 1.0f;
                 effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
                 effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
                 effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
@@ -1898,7 +1885,7 @@ namespace Unsigned
                         float height = -(lanePos * lanePos) + 1;
                         matTransl = Matrix.CreateTranslation(lanePos * lefty * Board.width, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
                         matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * height + rise + ((popup[p]) * 0.001f), -Board.zeroZ) * fling;
-                        matScale = Matrix.CreateScale(new Vector3((Board.width / 5f), 0.05f, .05f));
+                        matScale = Matrix.CreateScale(new Vector3((Board.width / (float)GetBoardType().NumDrawnTracks), 0.05f, .05f));
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         effect.World = matIdentity * matScale * matOrbit * matTransl;
@@ -1907,9 +1894,9 @@ namespace Unsigned
 
                         
                         if((controller.GetFrets()&(((ulong)1)<<p))!=0)
-                        { effect.Texture = Board.texTriggersLit[p]; glow[p] = true; }
+                        { effect.Texture = Board.texTriggersLit[GetBoardType().colorIndices[p]]; glow[p] = true; }
                         else
-                            effect.Texture = Board.texTriggers[p];
+                            effect.Texture = Board.texTriggers[GetBoardType().colorIndices[p]];
 
                         effect.CommitChanges();
 
@@ -1950,7 +1937,7 @@ namespace Unsigned
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     effect.World = matScale * matRot * matOrbit * matTransl;
 
-                    effect.DiffuseColor = Global.FretColors[i].ToVector3();
+                    effect.DiffuseColor = Global.FretColors[GetBoardType().colorIndices[i]].ToVector3();
                     effect.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -2027,28 +2014,28 @@ namespace Unsigned
 
         private void Help()
         {
-            if (difficulty == Global.D_EASY)
+            if (difficulty == 0)
             {
                 if (rockMeterLevel > 80)
                     rockMeterLevel += 1 * (SPActivated ? 10 : 1);
                 else
                     rockMeterLevel += 4f * (SPActivated ? 10 : 1);
             }
-            else if (difficulty == Global.D_MEDIUM)
+            else if (difficulty == 1)
             {
                 if (rockMeterLevel > 80)
                     rockMeterLevel += 1 * (SPActivated ? 10 : 1);
                 else
                     rockMeterLevel += 3f * (SPActivated ? 10 : 1);
             }
-            else if (difficulty == Global.D_HARD)
+            else if (difficulty == 2)
             {
                 if (rockMeterLevel > 80)
                     rockMeterLevel += 0.75f * (SPActivated ? 10 : 1);
                 else
                     rockMeterLevel += 2f * (SPActivated ? 10 : 1);
             }
-            if (difficulty == Global.D_EXPERT)
+            if (difficulty == 3)
             {
                 if (rockMeterLevel > 80)
                     rockMeterLevel += 0.25f * (SPActivated ? 10 : 1);

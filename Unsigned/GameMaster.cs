@@ -43,7 +43,6 @@ namespace Unsigned
                 {
 #endif
                 RhythmMaster.GetSingleton().Update(gameTime);
-                ParticleMaster.GetSingleton().Update(gameTime);
 
                 
 
@@ -322,8 +321,10 @@ namespace Unsigned
             RhythmMaster.CreateSingleton();
             RhythmMaster.GetSingleton().Initialize(nugget, songData,content);
             ParticleMaster.CreateSingleton();
+            ParticleMaster.GetSingleton().Load(content);
             SongAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
             SongAudioMaster.GetSingleton().InitSong(songData);
+            SFXAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
         }
 
         public override void Unload()
