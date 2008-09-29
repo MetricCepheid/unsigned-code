@@ -21,6 +21,10 @@ namespace VocalEditor
         public short startNote, endNote;
         public String value;
         public bool connected;
+        public uint end
+        {
+            get { return time + len; }
+        }
 
         public int CompareTo(Object other)
         {
