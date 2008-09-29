@@ -1,0 +1,8 @@
+NumTracks = 5
+RPEnableType = SELECT
+Dimensions = THREE_DIMENSIONAL
+CodeName = BAS
+FullName = Bass Guitar
+ContainsHeldNotes = true
+CanWhammy = true
+CanHOPO = true

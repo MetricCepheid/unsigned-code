@@ -1,0 +1,5 @@
+NumTracks = 4
+RPEnableType = FILL
+Dimensions = THREE_DIMENSIONAL
+CodeName = SET
+FullName = Drum Set
