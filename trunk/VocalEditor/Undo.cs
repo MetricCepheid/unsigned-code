@@ -39,10 +39,10 @@ namespace VocalEditor
 
     public class UndoNoteRemove : UndoCommand
     {
-        public Song song;
-        public VocalWord word;
+        public VoxSong song;
+        public VoxSong.VocalWord word;
 
-        public UndoNoteRemove(Song s, VocalWord vw)
+        public UndoNoteRemove(VoxSong s, VoxSong.VocalWord vw)
         {
             song = s;
             word = vw;
@@ -59,13 +59,13 @@ namespace VocalEditor
 
     public class UndoNoteMove : UndoCommand
     {
-        Song song;
+        VoxSong song;
         int selNote;
         bool selBegin;
         uint oldTime;
         short oldVal;
 
-        public UndoNoteMove(Song s, int selectedNote, bool selectedBegin, short noteVal, uint oldTime)
+        public UndoNoteMove(VoxSong s, int selectedNote, bool selectedBegin, short noteVal, uint oldTime)
         {
             song = s;
             selNote = selectedNote;
@@ -93,10 +93,10 @@ namespace VocalEditor
 
     public class UndoNoteCreate : UndoCommand
     {
-        Song song;
-        VocalWord word;
+        VoxSong song;
+        VoxSong.VocalWord word;
 
-        public UndoNoteCreate(Song s, VocalWord vw)
+        public UndoNoteCreate(VoxSong s, VoxSong.VocalWord vw)
         {
             song = s;
             word = vw;

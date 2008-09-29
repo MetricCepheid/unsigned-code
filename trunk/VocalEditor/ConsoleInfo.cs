@@ -18,7 +18,7 @@ namespace VocalEditor
             mf = m;
         }
 
-        public void Update(Song s, VocalPreviewer vp)
+        public void Update(VoxSong s, VocalPreviewer vp)
         {
             String str = "";
             str += "Vocal Previewer:\r\n";
