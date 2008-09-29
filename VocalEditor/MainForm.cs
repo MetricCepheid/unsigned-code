@@ -10,8 +10,8 @@ namespace VocalEditor
 {
     public partial class MainForm : Form
     {
-        
-        Song song;
+        SongData songdata;
+        VoxSong song;
         ConsoleInfo consoleWindow;
         Timer t;
 
@@ -140,7 +140,7 @@ namespace VocalEditor
                         //timeTextBox.Enabled = true;
                         //lengthTextBox.Enabled = true;
                         nodeConnectedCheckbox.Enabled = true;
-                        VocalWord w = song.words[vocalPane.SelectedNode];
+                        VoxSong.VocalWord w = song.words[vocalPane.SelectedNode];
                         if (w.startNote < VocalPreviewer.numNotes)
                             nodeTypeVocalRadio.Checked = true;
                         else
@@ -240,7 +240,8 @@ namespace VocalEditor
             DialogResult dr = d.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                song = new Song(d.FileName);
+                songdata = SongLoader.LoadSong17(d.FileName);
+                song = VoxSong.FromSongData(songdata);
                 vocalPane.SetSong(song);
             }
             if(song!=null)
@@ -377,7 +378,7 @@ namespace VocalEditor
         {
             if (vocalPane.SelectedNode >= 0)
             {
-                VocalWord w = song.words[vocalPane.SelectedNode];
+                VoxSong.VocalWord w = song.words[vocalPane.SelectedNode];
                 w.connected = nodeConnectedCheckbox.Checked;
                 if (vocalPane.SelectedNode<song.words.Count)
                 {

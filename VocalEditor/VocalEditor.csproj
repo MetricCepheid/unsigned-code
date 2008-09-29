@@ -81,6 +81,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Song.cs" />
+    <Compile Include="SongConverter.cs" />
     <Compile Include="Undo.cs" />
     <Compile Include="VocalPreviewer.cs">
       <SubType>UserControl</SubType>

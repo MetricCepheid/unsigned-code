@@ -11,7 +11,7 @@ namespace VocalEditor
     public partial class VocalPreviewer : UserControl
     {
         public bool display;
-        Song song;
+        VoxSong song;
         public static MainForm mf;
         public int NodeSize;//4-*, multiple of 2
         public Color NodeSelectColor, NodeColor;
@@ -213,7 +213,7 @@ namespace VocalEditor
             //base.OnPaint(e);
         }
 
-        public void SetSong(Song s)
+        public void SetSong(VoxSong s)
         {
             song = s;
             Invalidate();
@@ -316,7 +316,7 @@ namespace VocalEditor
                         }
                     }
 
-                    VocalWord w = new VocalWord();
+                    VoxSong.VocalWord w = new VoxSong.VocalWord();
                     w.connected = false;
                     w.endNote = (short)y;
                     w.len = time;
