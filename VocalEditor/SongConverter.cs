@@ -288,7 +288,6 @@ namespace VocalEditor
 #endif
                 return null;
             }
-            //            BinaryWriter writer = new BinaryWriter(File.OpenWrite("songdata\\" + fn + ".uns"));
             BinaryReader reader = new BinaryReader(File.OpenRead(dir + fn + ".gba"));
             ret.info.version = reader.ReadByte();
             if (ret.info.version < 12)
@@ -463,7 +462,7 @@ namespace VocalEditor
                     {
                         vocals.diffSets[3].phrases[i].notes[k] = new SongData.NoteSet();
                         vocals.diffSets[3].phrases[i].notes[k].time = reader.ReadUInt32();
-                        vocals.diffSets[3].phrases[i].notes[k].length = reader.ReadUInt32();
+                        vocals.diffSets[3].phrases[i].notes[k].length = reader.ReadUInt32() - vocals.diffSets[3].phrases[i].notes[k].time;
                         vocals.diffSets[3].phrases[i].notes[k].type = (ulong)reader.ReadInt16();
                         vocals.diffSets[3].phrases[i].notes[k].endtype = vocals.diffSets[3].phrases[i].notes[k].type;
                         vocals.diffSets[3].phrases[i].notes[k].text = reader.ReadString();
@@ -504,15 +503,16 @@ namespace VocalEditor
         {
 
             SongData ret = new SongData();
-
+            String dir = "";
             if (fn.Contains("\\") || fn.ToLower().EndsWith("uns"))
             {
+                dir = fn.Substring(0, fn.LastIndexOf('\\') + 1);
                 fn = fn.Substring(fn.LastIndexOf('\\') + 1);
                 fn = fn.Substring(0, fn.LastIndexOf('.'));
             }
             ret.info.filename = fn;
 
-            if (!File.Exists("songdata\\" + fn + ".uns"))
+            if (!File.Exists(dir + fn + ".uns"))
             {
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("songdata not found");
@@ -679,7 +679,7 @@ namespace VocalEditor
                     {
                         SongData.NoteSet note = new SongData.NoteSet();
                         note.time = reader.ReadUInt32();
-                        note.length = reader.ReadUInt32();
+                        note.length = reader.ReadUInt32()-note.time;
                         note.type = reader.ReadUInt16();
                         note.endtype = reader.ReadUInt16();
                         note.text = reader.ReadString();
@@ -717,15 +717,51 @@ namespace VocalEditor
 
         }
 
-        public static SongData LoadSong20(String fn)
+        public static SongData LoadSong20(String filename)
         {
-            return null;
+            SongData ret = new SongData();
+            String fn = filename;
+            String dir = "";
+            if (fn.Contains("\\") || fn.ToLower().EndsWith("uns"))
+            {
+                dir = fn.Substring(0, fn.LastIndexOf('\\') + 1);
+                fn = fn.Substring(fn.LastIndexOf('\\') + 1);
+                fn = fn.Substring(0, fn.LastIndexOf('.'));
+            }
+            ret.info.filename = fn;
+
+            if (!File.Exists(dir + fn + ".uns"))
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("songdata not found");
+#endif
+                return null;
+            }
+
+            BinaryReader reader = new BinaryReader(File.OpenRead("songdata\\" + fn + ".uns"));
+
+            reader.ReadBytes(3);//UNS
+
+            int offsetToGBA = reader.ReadInt32();
+            int offsetToGBG = reader.ReadInt32();
+            int offsetToGBB = reader.ReadInt32();
+            int offsetToGBD = reader.ReadInt32();
+            int offsetToGBV = reader.ReadInt32();
+            int offsetToGBE = reader.ReadInt32();
+
+            ret.info.version = reader.ReadByte();
+            if (ret.info.version != 20)
+            {
+                return LoadSong17(filename);
+            }
+
+            return ret;
         }
 
         public static SongData LoadSong(String filename)
         {
             if (filename.ToLower().EndsWith(".uns"))
-                return LoadSong17(filename);
+                return LoadSong20(filename);
             else if (filename.Substring(0,filename.Length-1).ToLower().EndsWith(".gb"))
                 return LoadSong12(filename);
             return null;

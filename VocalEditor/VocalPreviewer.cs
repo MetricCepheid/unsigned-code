@@ -163,7 +163,7 @@ namespace VocalEditor
                         }
                         else
                         {
-                            Point pos2 = new Point((int)((song.words[k].len) / HSCALE) - xoffset, (int)((1 - ((song.words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
+                            Point pos2 = new Point((int)((song.words[k].end) / HSCALE) - xoffset, (int)((1 - ((song.words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)));
                             for (int j = 2; j >= 0; j--)
                                 g.DrawLine(overdrive ? lineYellow[j] : lineGreen[j], pos1, pos2);
                         }
@@ -181,7 +181,7 @@ namespace VocalEditor
                         bool sel = k == SelectedNode && !SelectedNodeBegin;
                         if (song.words[k].connected)
                             continue;
-                        Rectangle rect = new Rectangle((int)(song.words[k].len / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
+                        Rectangle rect = new Rectangle((int)(song.words[k].end / HSCALE - (NodeSize / 2)) - xoffset, (int)((1 - ((song.words[k].endNote+1) / (float)numNotes - (0.5f / (float)numNotes))) * (ClientRectangle.Height)) - (NodeSize / 2), NodeSize, NodeSize);
                         g.DrawRectangle(sel?new Pen(NodeSelectColor):new Pen(NodeColor), rect);
                         if (NodeSize < 8)
                             continue;
