@@ -1,3 +1,5 @@
+
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -134,11 +136,11 @@ namespace VocalEditor
                 {
                     if (vocalPane.SelectedNode >= 0)
                     {
-                        //nodeTypeTalkyRadio.Enabled = true;
-                        //nodeTypeVocalRadio.Enabled = true;
-                        //nodeTextBox.Enabled = true;
-                        //timeTextBox.Enabled = true;
-                        //lengthTextBox.Enabled = true;
+                        nodeTypeTalkyRadio.Enabled = true;
+                        nodeTypeVocalRadio.Enabled = true;
+                        nodeTextBox.Enabled = true;
+                        timeTextBox.Enabled = true;
+                        lengthTextBox.Enabled = true;
                         nodeConnectedCheckbox.Enabled = true;
                         VoxSong.VocalWord w = song.words[vocalPane.SelectedNode];
                         if (w.startNote < VocalPreviewer.numNotes)
@@ -236,11 +238,11 @@ namespace VocalEditor
             OpenFileDialog d = new OpenFileDialog();
             d.AddExtension = true;
             d.Multiselect = false;
-            d.Filter = "Unsigned SongData files (*.uns)|*.uns";
+            d.Filter = "Unsigned SongData files (*.uns)|*.uns|Unsigned Deprecated SongData files (*.gb*)|*.gba;*.gbg;*.gbb;*.gbd;*.gbv;*.gbe";
             DialogResult dr = d.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                songdata = SongLoader.LoadSong17(d.FileName);
+                songdata = SongLoader.LoadSong(d.FileName);
                 song = VoxSong.FromSongData(songdata);
                 vocalPane.SetSong(song);
             }

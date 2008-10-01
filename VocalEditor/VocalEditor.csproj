@@ -42,6 +42,8 @@
     <Compile Include="ConsoleInfo.Designer.cs">
       <DependentUpon>ConsoleInfo.cs</DependentUpon>
     </Compile>
+    <Compile Include="Instrument.cs" />
+    <Compile Include="InstrumentMaster.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
