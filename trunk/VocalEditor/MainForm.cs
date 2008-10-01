@@ -72,7 +72,6 @@ namespace VocalEditor
 
         public void UpdateActivations()
         {
-            
             nodeTypeTalkyRadio.Enabled = false;
             nodeTypeVocalRadio.Enabled = false;
             nodeTextBox.Enabled = false;
@@ -139,8 +138,8 @@ namespace VocalEditor
                         nodeTypeTalkyRadio.Enabled = true;
                         nodeTypeVocalRadio.Enabled = true;
                         nodeTextBox.Enabled = true;
-                        timeTextBox.Enabled = true;
-                        lengthTextBox.Enabled = true;
+                        //timeTextBox.Enabled = true;
+                        //lengthTextBox.Enabled = true;
                         nodeConnectedCheckbox.Enabled = true;
                         VoxSong.VocalWord w = song.words[vocalPane.SelectedNode];
                         if (w.startNote < VocalPreviewer.numNotes)
@@ -207,7 +206,13 @@ namespace VocalEditor
                         }
                         lenpos *= 16;
                         lenpos = ((int)(lenpos + 0.5f)) / 16f;
-                        lengthTextBox.Text = "" + lenpos;
+                        if (measureBeatToolStripMenuItem.Checked)
+                            lengthTextBox.Text = "" + lenpos;
+                        else
+                        {
+                            timeTextBox.Text = (w.time / 60000) + "m : " + (((float)(w.time%60000)) / 1000) + "s";
+                            lengthTextBox.Text = (w.len / 60000) + "m : " + (((float)(w.len%60000)) / 1000) + "s";
+                        }
                         noteTextBox.Text = noteNames[w.startNote];
                         nodeConnectedCheckbox.Checked = w.connected;
                         undoDisabled = true;
@@ -382,7 +387,7 @@ namespace VocalEditor
             {
                 VoxSong.VocalWord w = song.words[vocalPane.SelectedNode];
                 w.connected = nodeConnectedCheckbox.Checked;
-                if (vocalPane.SelectedNode<song.words.Count)
+                if (vocalPane.SelectedNode>=song.words.Count)
                 {
                     w.connected = false;
                     nodeConnectedCheckbox.Checked = false;
@@ -423,12 +428,59 @@ namespace VocalEditor
                 undos.Push(new UndoTextEdit(nodeTextBox, nodeTextBoxLastText));
                 redos.Clear();
             }
+            if (vocalPane.SelectedNode >= 0)
+                song.words[vocalPane.SelectedNode].value = nodeTextBox.Text;
             nodeTextBoxLastText = nodeTextBox.Text;
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void lengthTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (!undoDisabled)
+                {
+                    undos.Push(new UndoNoteMove(song, vocalPane.SelectedNode, false, song.words[vocalPane.SelectedNode].endNote, song.words[vocalPane.SelectedNode].end));
+                    redos.Clear();
+                }
+                song.words[vocalPane.SelectedNode].len = (uint)(Double.Parse(lengthTextBox.Text) * 1000);
+            }
+        }
+
+        private void timeTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (!undoDisabled)
+                {
+                    undos.Push(new UndoNoteMove(song, vocalPane.SelectedNode, true, song.words[vocalPane.SelectedNode].startNote, song.words[vocalPane.SelectedNode].time));
+                    redos.Clear();
+                }
+                song.words[vocalPane.SelectedNode].time = (uint)(Double.Parse(timeTextBox.Text) * 1000);
+            }
+        }
+
+        private void noteTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void measureBeatToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            measureBeatToolStripMenuItem.Checked = true;
+            minutesSecondsToolStripMenuItem.Checked = false;
+            UpdateActivations();
+        }
+
+        private void minutesSecondsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            minutesSecondsToolStripMenuItem.Checked = true;
+            measureBeatToolStripMenuItem.Checked = false;
+            UpdateActivations();
         }
 
     }
