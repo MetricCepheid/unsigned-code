@@ -148,6 +148,10 @@ namespace Unsigned
             currentState = GamePad.GetState(index);
 
             if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.CONFIRM] = true;
+            else
+                bufferedMap[(int)PeripheralButton.CONFIRM] = false;
+            if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.FRET0] = true;
             else
                 bufferedMap[(int)PeripheralButton.FRET0] = false;
@@ -169,7 +173,18 @@ namespace Unsigned
 
         public override ulong GetFrets()
         {
-            return 0;
+            ulong ret = 0;
+            if (IsPressed(PeripheralButton.FRET0))
+                ret |= (((ulong)1) << 0);
+            if (IsPressed(PeripheralButton.FRET1))
+                ret |= (((ulong)1) << 1);
+            if (IsPressed(PeripheralButton.FRET2))
+                ret |= (((ulong)1) << 2);
+            if (IsPressed(PeripheralButton.FRET3))
+                ret |= (((ulong)1) << 3);
+            if (IsPressed(PeripheralButton.FRET4))
+                ret |= (((ulong)1) << 4);
+            return ret;
         }
 
         public override ulong GetBufferedFrets()
@@ -182,7 +197,7 @@ namespace Unsigned
             switch (analogControl)
             {
                 case PeripheralAnalog.WHAMMY_BAR:
-                    return (currentState.ThumbSticks.Left.X + 1) / 2.0f;
+                    return (currentState.ThumbSticks.Right.X + 1) / 2.0f;
             }
             return 0.0f;
         }

@@ -324,12 +324,15 @@ namespace Unsigned
             ParticleMaster.GetSingleton().Load(content);
             SongAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
             SongAudioMaster.GetSingleton().InitSong(songData);
-            SFXAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
         }
 
         public override void Unload()
         {
-            
+            songData = null;
+            venue = null;
+            RhythmMaster.DestroySingleton();
+            ParticleMaster.DestroySingleton();
+            SongAudioMaster.DestroySingleton();
         }
 
         public void TogglePause()

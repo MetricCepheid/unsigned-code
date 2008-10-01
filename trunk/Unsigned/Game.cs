@@ -255,6 +255,26 @@ namespace Unsigned
             GameUIMaster.GetSingleton().texButtonRed = content.Load<Texture2D>("graphics\\large_face_b");
             GameUIMaster.GetSingleton().texButtonYellow = content.Load<Texture2D>("graphics\\large_face_y");
             Global.texWhite = content.Load<Texture2D>("graphics\\white");
+            SFXAudioMaster.CreateSingleton(UnsignedGame.GetSingleton().Window.Handle);
+        }
+
+        protected override void UnloadContent()
+        {
+            sfMenu = null;
+            Global.texDefaultBM.Dispose();
+            Global.texDefaultBM = null;
+            Global.DefaultFont = null;
+            Global.BigFont = null;
+            Global.SmallFont = null;
+            Global.HandwrittenFont = null;
+            Global.gradient.Dispose();
+            Global.gradient = null;
+            gradientMask.Dispose();
+            gradientMask = null;
+            GameUIMaster.DestroySingleton();
+            Global.texWhite.Dispose();
+            Global.texWhite = null;
+            SFXAudioMaster.DestroySingleton();
         }
 
 #region oldload
@@ -1039,6 +1059,12 @@ namespace Unsigned
         internal void EndSong()
         {
             throw new Exception("The method or operation is not implemented.");
+        }
+
+        internal void ClearStateStack()
+        {
+            while (currentState.Count > 0)
+                PopState();
         }
     }
 }

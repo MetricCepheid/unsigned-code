@@ -101,6 +101,9 @@ namespace Unsigned
                 {
                     int collective = 0;
                     bool green = false, red = false;
+                    PeripheralManager.GetSingleton().ReloadDLLs();
+                    PeripheralManager.GetSingleton().CheckConnections();
+                    PeripheralManager.GetSingleton().QueryAll();
                     Peripheral[] controllers = PeripheralManager.GetSingleton().GetPeripherals();
                     for (int i = 0; i < controllers.Length; i++)
                     {
