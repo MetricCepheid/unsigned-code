@@ -6,7 +6,7 @@
 // By Louis Ingenthron
 // 06.07.08
 
-// VERSION 18
+// VERSION 20
 
 
 //HEADER CHUNK
@@ -22,15 +22,13 @@ byte Version
 
 uint numInstruments;
 
-//offsets are in bytes from start of file
-uint offsetToInstruments[numInstruments];
-uint offsetToGBE;
-
 String name, artist;
 
 uint year;//year song was published (not charted)
 
-String genre, formattedTime; //time is formatted in HH:MM:SS format
+String genre;
+
+ubyte formattedTimeH, formattedTimeM, formattedTimeS;
 
 String[8] quotes;
 
@@ -38,13 +36,10 @@ String[8] quotes;
 uint numCharters;
 String[numCharters] charters;
 
-uint numDifficulties;
-byte[numDifficulties] difficulties;
-
 struct BarLine
 {
 	uint time;
-	uint numBeats;	
+	ubyte numBeats;	
 }
 
 uint barLinesCount;
@@ -62,7 +57,7 @@ uint numHarmonies;
 struct Harmony
 {
 	uint start, end;
-	int instruments;//bitwise instruments
+	ulong instruments;//bitwise instruments
 }
 
 Harmony[numHarmonies] harmonies;
@@ -72,15 +67,15 @@ Harmony[numHarmonies] harmonies;
 
 char[3] InstrumentType;
 
-uint numOverdrivePhrases
+uint numRockPowerPhrases
 
-struct OverdrivePhrase
+struct RockPowerPhrase
 {
 	uint time;
 	uint len;
 }
 
-OverdrivePhrase[numOverdrivePhrases] spph;
+RockPowerPhrase[numRockPowerPhrases] spph;
 
 if(instrument HasSolos)
 {
@@ -110,7 +105,7 @@ if((instrument RPEnableType)&FILLS != 0)
 
 struct Note
 {
-	long value;//bitwise, bits 1-NumTracks=frets, bit NumTracks=HOPOable
+	ulong value;//bitwise, bits 1-NumTracks=frets, bit NumTracks=HOPOable
 	if(instrument PitchShifts)
 	{
 		long endvalue;
@@ -133,6 +128,8 @@ struct Phrase
 		uint time;//in MS from start
 		byte type;
 		bool rockpower;
+		if(instrument TypesOfPhrases & RHYTHM)
+			byte rhythmType;
 	}
 	uint numNotes;
 	Note[numNotes] notes;
@@ -146,7 +143,9 @@ Struct DifficultySet
 	uint[6] starScoreLevels;
 }
 
-DifficultySet[4] notedata;
+uint numDiffSets;
+
+DifficultySet[numDiffSets] notedata;
 
 
 //GBE CHUNK sfx
