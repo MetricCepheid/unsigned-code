@@ -37,7 +37,6 @@ namespace Unsigned
             coolbg2 = content.Load<Texture2D>("graphics\\coolbg2");
             resultsScroller = content.Load<Texture2D>("graphics\\resultscroller");
             failbg = content.Load<Texture2D>("graphics\\faildialog");
-            
         }
 
         public override void Unload()
@@ -68,7 +67,9 @@ namespace Unsigned
                 if (green)
                 { 
                     totalresults = null;
-                    UnsignedGame.GetSingleton().PushState(new MainMenuScreen());
+                    UnsignedGame.GetSingleton().PopState();
+                    UnsignedGame.GetSingleton().PopState();
+                    UnsignedGame.GetSingleton().PopState();
                 }
 
 #if !DEBUG

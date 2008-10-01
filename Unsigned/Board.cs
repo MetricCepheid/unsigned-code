@@ -53,7 +53,6 @@ namespace Unsigned
             return ret;
         }
 
-
         public bool IsGood(Instrument instr, bool HOPOable)
         {
             if(!instr.NeedsStrum)
@@ -79,6 +78,11 @@ namespace Unsigned
             if (!instrument.CanHOPO)
                 return false;
             return (type & (((ulong)1) << instrument.NumTracks)) != 0;
+        }
+
+        internal bool HasStrummed()
+        {
+            throw new Exception("The method or operation is not implemented.");
         }
     }
 
@@ -866,7 +870,9 @@ namespace Unsigned
 
         public byte Strum()
         {
-            if (index < Notes.Length && Notes[index].time - PILLOW < RhythmMaster.GetSingleton().GetCurrentTime()*1000)
+            if (!GetBoardType().NeedsStrum)
+                return 0;
+            if (index < Notes.Length && Notes[index].time - PILLOW < RhythmMaster.GetSingleton().GetCurrentTime()*1000 && Notes[index].HasStrummed())
                 Notes[index].Strum();
             else
             { multiplier = 1; Hurt(); }
@@ -1755,7 +1761,7 @@ namespace Unsigned
                         float ct = (float)rtm.GetCurrentTime();
                         float Y = ((Notes[p].time / 1000f) - ct);
                         if (Y > eFade)
-                            continue;
+                            break;
 
                         if ((Notes[p].type & (((ulong)1) << r)) == 0)
                             continue;
