@@ -89,7 +89,7 @@ namespace Unsigned
         // which notes, when hit, cause the board to bump. bitwise
         public ulong BumpNotes;
 
-        // for instruments with fret boards that are out of order.  default is value=index
+        // for instruments with fret boards that are out of order.  default is value=currentNoteIndex
         public int[] colorIndices;
 
         public Instrument()
@@ -137,7 +137,7 @@ namespace Unsigned
             {
                 BumpNotes = 0;
                 value = value.Trim();
-                int index = 0;
+                int currentNoteIndex = 0;
                 while (value.Length > 0)
                 {
                     if (value.IndexOf(',') < 0)
@@ -155,14 +155,14 @@ namespace Unsigned
             else if (variable.ToLower().Trim().Equals("colors"))
             {
                 value = value.Trim();
-                int index = 0; ;
+                int currentNoteIndex = 0; ;
                 while (value.Length > 0)
                 {
                     if(value.IndexOf(',')<0)
                         break;
-                    colorIndices[index] = Int32.Parse(value.Substring(0, value.IndexOf(',')).Trim());
+                    colorIndices[currentNoteIndex] = Int32.Parse(value.Substring(0, value.IndexOf(',')).Trim());
                     value = value.Substring(value.IndexOf(',') + 1).Trim();
-                    index++;
+                    currentNoteIndex++;
                 }
             }
             else

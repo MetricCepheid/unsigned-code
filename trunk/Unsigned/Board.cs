@@ -82,7 +82,7 @@ namespace Unsigned
 
         internal bool HasStrummed()
         {
-            throw new Exception("The method or operation is not implemented.");
+            return strummed;
         }
     }
 
@@ -167,60 +167,86 @@ namespace Unsigned
             public bool rotDir;
             public float alpha;
         }
-        public static float vocalheight, vocaly, vocalzerox, vocalwidth;
-        public static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
-        public static Texture2D[][] boardTexPlain;
-        public static float WaveDetail = 50f;
-        public static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
-        public static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
-        public static int[] boardValidBPM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
-        public static int[] boardBeatsIndex = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
-        public static GBVertexFormat[] arrBoard;
-        public static VertexBuffer mdlBoard, mdlSPM;
-        public static VertexBuffer mdlTrigger, mdlTriggerBorder;
-        public static Model mdlNote, mdlNoteInside;
-        public static Texture2D[] texNotes, texBarNotes, texTriggers, texTriggersLit;
-        public static Texture2D texTriggerBorder, texTriggerBorderLit;
+        // scaling values
+        private static float vocalheight, vocaly, vocalzerox, vocalwidth;
+        private static float width, length, curveHeight, height, rotate, zeroZ, sFade, eFade, spShift;
+        public static float Width { get { return width; } }
+        public static float Length { get { return length; } }
+        public static float Height { get { return height; } }
+        public static float Rotate { get { return rotate; } }
+        public static float ZeroZOffset { get { return zeroZ; } }
+
+        // textures, models
+        private static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
+        private static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
+        private static VertexBuffer mdlBoard, mdlSPM;
+        private static VertexBuffer mdlTrigger, mdlTriggerBorder;
+        private static Model mdlNote, mdlNoteInside;
+        private static Texture2D[] texNotes, texBarNotes, texTriggers, texTriggersLit;
+        private static Texture2D texTriggerBorder, texTriggerBorderLit;
         private static Texture2D texLine, texLineEnd;
-        public static float BOARD_BUMP_COEF = 0.002f;
-        public static float spMeterYScale = 0.4f;
         private static Texture2D texGlow;
-        private static SPCircle[] spcircles = new SPCircle[50];
+        private static Texture2D[] texMult;
+
+        // texture for board paths
+        private static String[] boardBGs;
+
+        // const values
+        private const float BOARD_FADE_RATIO = 7 / 8f;
+        private static float BOARD_BUMP_COEF = 0.002f;
+        private static float RP_METER_Y_SCALE = 0.4f;
         private static uint PILLOW = 100;//padding in front of and behind note
-        private static Texture2D[] boardBackgrounds, texMult;
 
-        private const float BOARD_FADE_RATIO =  7 / 8f;
+        // sp circles (yes, they are actually static!)
+        private static SPCircle[] spcircles = new SPCircle[50];
 
+        // generic info
         private Instrument type;
-        private int xOffset;
-        private float yRotate=0;
-        private Texture2D texBoard, texWaves;
-        private float multSlide=0;
-        private float SPMFlash=0, SPMFVel=0;
-        private int spMeterShift = 7, spMeterShiftDrums=10;
-        private float flashRot;
-        private byte difficulty;
-        private int index;
-        private float multiplier=1;
-        private byte lastPressed=0;
-        private float score;
-        private bool LeftySwitch = false;
-        private float[] popup, popupSpeed;
-        private float StarPowerAmount = 0, SPADisplay = 0;
-        private int RPIndex, FillIndex;
-        private bool SPGood = true;
-        private bool SPActivated = false;
-        private List<Wave> whammyValues;
-        private double sinwavestart=0;
-        Results myResults;
-        private float rockMeterLevel;
-        private int boardBackground;
-        private byte numFails;
-        Peripheral controller; 
+        private Peripheral controller;
+        private Results myResults;
+
+        // gfx
+        // what is used to draw onscreen
+        private RenderTarget2D rtBoard, rtWaves;
+        // the current background
+        private Texture2D boardBackground;
+        // the final render
         private RenderTarget2D boardTarget;
-        bool SPDelayStart;
-        public RenderTarget2D rtBoard, rtWaves;
-        private int[] colorIndices;
+
+        // look & feel info (gui)
+        private int xOffset;
+        // the rotate of the flashes so they dont get stale
+        private float flashRot;
+        // which difficulty is being played
+        private byte difficulty;
+        // the multiplier before RP x2
+        private float multiplier;
+        // a float for more accurate wave addition
+        private float score;
+        // false is righty, true is lefty
+        private bool LeftySwitch = false;
+        // for fret boards popping up on strum/bang
+        private float[] popup, popupSpeed;
+        // StarPowerAmount is the actual value, SPADisplay follows for "filling up" and "draining"
+        private float StarPowerAmount = 0, SPADisplay = 0;
+        // which phrase is next/current
+        private int RPIndex, FillIndex;
+        // is false when player misses a note in the current RP phrase
+        private bool RPGood = true;
+        // pretty self explanatory...
+        private bool SPActivated = false;
+        // the values relative to currenttime
+        private List<Wave> whammyValues;
+        // this is just pushed along so the sin waves moves
+        private double sinwavestart=0;
+        // level 0-100
+        private float rockMeterLevel;
+        // if its 3, they can't be saved
+        private byte numFails;
+        // if true, activates rock power after current fill
+        private bool SPDelayStart;
+        // the next note
+        private int currentNoteIndex;
 
         //public const byte NS_GREEN = 1, NS_RED = 2, NS_YELLOW = 4, NS_BLUE = 8, NS_ORANGE = 16, NS_HOPO = 32;
 
@@ -329,6 +355,17 @@ namespace Unsigned
                 whammyValues = new List<Wave>();
             }
             rockMeterLevel = 80.0f;
+
+            flashRot = 0;
+
+            Board.curveHeight = 0.03f;
+            Board.height = -2.0f;
+            Board.length = 3f;
+            Board.width = 0.7f;
+            Board.rotate = .5f;
+            Board.zeroZ = 2.8f;
+            Board.sFade = 0.8f;
+            Board.eFade = 1.2f;
         }
 
         public Instrument GetBoardType()
@@ -363,6 +400,7 @@ namespace Unsigned
                     dist = PILLOW;
                 notes[i].late = notes[i].time + dist;
             }
+            boardBackground = Texture2D.FromFile(RenderMaster.GetSingleton().graphics.GraphicsDevice, boardBGs[Global.random.Next(boardBGs.Length)]);
         }
 
         public static void Load(ContentManager content)
@@ -406,14 +444,14 @@ namespace Unsigned
             vFuzz = content.Load<Texture2D>("graphics\\vocalfuzz");
             vHeadBar = content.Load<Texture2D>("graphics\\vocalheadbar");
             vGlow = content.Load<Texture2D>("graphics\\vGlow");
-            List<Texture2D> texBGs = new List<Texture2D>();
+            List<String> texBGs = new List<String>();
             String[] files = System.IO.Directory.GetFiles(System.IO.Directory.GetCurrentDirectory() + "\\boards\\");
             for (int i = 0; i < files.Length; i++)
             {
                 if(files[i].ToLower().EndsWith(".png") || files[i].ToLower().EndsWith(".bmp") || files[i].ToLower().EndsWith(".jpg"))
-                    texBGs.Add(Texture2D.FromFile(RenderMaster.GetSingleton().graphics.GraphicsDevice,files[i]));
+                    texBGs.Add(files[i]);
             }
-            boardBackgrounds = texBGs.ToArray();
+            boardBGs = texBGs.ToArray();
             texMult = new Texture2D[8];
             for (int i = 0; i < Global.multToIndex.Length; i++)
                 if (Global.multToIndex[i] >= 0)
@@ -431,7 +469,6 @@ namespace Unsigned
                     zmdlBoard[i + xs.Length] = new GBVertexFormat(new Vector3(-xs[i], ys[i], (zs[i] + 1) / 2), new Vector3(0f, 0f, 0f), new Vector2(((-xs[i]) + 1) / 2, (1 + zs[i]) / 2), new Vector3(0f, 0f, 0f));
                 }
 
-                arrBoard = zmdlBoard;
                 mdlBoard = new VertexBuffer(graphics.GraphicsDevice, 2 * xs.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
                 mdlBoard.SetData<GBVertexFormat>(zmdlBoard);
             }
@@ -495,88 +532,6 @@ namespace Unsigned
             }
         }
 
-        //float[] drumxvals = { 1f, -1f, -1 / 3f, 1 / 3f, 0f };
-        /*public void GetNotes(long currenttime, long viewdistance)
-        {
-            int k;
-            for (k = 0; k < Notes.Length; k++)
-                if ((long)Notes[k].time*(Global.TicksPerSecond/1000) > (currenttime) - (viewdistance / 3))
-                    break;
-            int count = 0;
-            for (int i = k; i<Notes.Length && (long)Notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
-            {
-                if (Notes[i].visible[0]==NoteSet.VIS_STATE.INVISIBLE)
-                    continue;
-                if (type.CanHOPO && Notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
-                    continue;
-                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || Notes[i].time < FillStart[FillIndex] || Notes[i].time > FillEnd[FillIndex]))
-                    continue;
-                for (int r = 0; r < type.NumTracks;r++ )
-                    if ((Notes[i].type & (1 << r)) != 0)
-                        count++;
-            }
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
-            {
-                if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) > FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) < FillEnd[FillIndex] && FillAmount[FillIndex] >= 1)
-                    count++;
-            }
-
-            if(OutNotes.Length < count)
-                OutNotes = new Vector4[count];
-            notesLen = count;
-            int indx = 0;
-            int plus = 0;
-            for (int i = k; i < Notes.Length && (long)Notes[i].time*(Global.TicksPerSecond/1000) < currenttime + viewdistance; i++)
-            {
-                float sp = 0f;
-                if (RPIndex<SPStart.Length && i >= SPStart[RPIndex] && i <= SPEnd[RPIndex] && SPGood)
-                    sp = 1f;
-
-                if (Notes[i].visible[0] == NoteSet.VIS_STATE.INVISIBLE)
-                    continue;
-                if (type.CanHOPO && Notes[i].visible[0] == NoteSet.VIS_STATE.HOPOED)
-                    continue;
-                if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0 && (SPActivated || StarPowerAmount < 0.5 || FillIndex >= FillStart.Length || Notes[i].time < FillStart[FillIndex] || Notes[i].time > FillEnd[FillIndex]))
-                    continue;
-                for (int r = 0; r < type.NumTracks; r++)
-                    if ((Notes[i].type & (1 << r)) != 0)
-                    {
-                        OutNotes[indx].X = -1f + ((2.0f/(type.NumTracks-1)) * r);
-                        OutNotes[indx].Y = (long)Notes[i].time * (Global.TicksPerSecond / 1000);
-                        OutNotes[indx].Z = ((Notes[i].type & NS_HOPO) != 0 && type.CanHOPO) ? 1f : -1f;
-                        OutNotes[indx].W = sp;
-                        indx++;
-                    }
-            }
-
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
-            {
-                if (!SPActivated && StarPowerAmount>=0.5 && FillIndex < FillStart.Length && (currenttime / (Global.TicksPerSecond / 1000)) >= FillStart[FillIndex] && (currenttime / (Global.TicksPerSecond / 1000)) <= FillEnd[FillIndex] && FillAmount[FillIndex] >= 0.95)
-                {
-                    OutNotes[indx].X = 1;
-                    OutNotes[indx].Y = (long)(FillEnd[FillIndex] - 50) * (Global.TicksPerSecond / 1000);
-                    OutNotes[indx].Z = 0;
-                    OutNotes[indx].W = 0;
-                }
-            }
-            for (int i = 0; i < notesLen; i++)
-                OutNotes[i].Y = (OutNotes[i].Y - currenttime) / (float)Global.TicksPerSecond;
-
-            for (int i = 0; i < 4; i++)
-                OutFills[i] = new Vector4(0, 0, 0, 0);
-            if ((type.RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
-            if(!SPActivated && StarPowerAmount>=0.5)
-            for (int i = 0; i < 4; i++)
-            {
-                if (FillIndex + i >= FillStart.Length)
-                    return;
-                OutFills[i].X = (FillStart[FillIndex + i] - (currenttime/(Global.TicksPerSecond/1000)))/1000f;
-                OutFills[i].Y = (FillEnd[FillIndex + i] - (currenttime / (Global.TicksPerSecond / 1000))) / 1000f;
-                OutFills[i].Z = FillAmount[FillIndex + i] * 0.75f + 0.25f;
-                OutFills[i].W = 100;
-            }
-        }*/
-
         public static bool IsValidFrettage(ulong note, ulong pressed, Instrument instr)
         {
             ulong NOT_HOPO_VALUE = ~(((ulong)1) << instr.NumTracks);
@@ -637,52 +592,52 @@ namespace Unsigned
                     }
                     popup[i] += popupSpeed[i] * (gameTime.ElapsedGameTime.Milliseconds / 100f);
                 }
-                if (Global.DemoMode)
+                /*if (Global.DemoMode)
                 {
-                    if(index<Notes.Length)
-                        if (Notes[index].time - (rm.GetCurrentTime()*1000) < 0)
+                    if(currentNoteIndex<Notes.Length)
+                        if (Notes[currentNoteIndex].time - (rm.GetCurrentTime()*1000) < 0)
                         {
-                            if(!Notes[index].burning)
+                            if(!Notes[currentNoteIndex].burning)
                             {
-                                if (GetBoardType().ContainsHeldNotes && Notes[index].length > 0)
+                                if (GetBoardType().ContainsHeldNotes && Notes[currentNoteIndex].length > 0)
                                 {
-                                    for(int i=0;i<Notes[index].visible.Length;i++)
-                                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
-                                    Notes[index].burning = true;
+                                    for(int i=0;i<Notes[currentNoteIndex].visible.Length;i++)
+                                        Notes[currentNoteIndex].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
+                                    Notes[currentNoteIndex].burning = true;
                                     for (int i = 0; i < 5; i++)
-                                        if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                        if ((Notes[currentNoteIndex].type & (((ulong)1) << i)) != 0)
                                             popupSpeed[i] += 100;
                                     flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
-                                    return Notes[index].type;
+                                    return Notes[currentNoteIndex].type;
                                 }
                                 else
                                 {
-                                    for (int i = 0; i < Notes[index].visible.Length; i++)
-                                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
+                                    for (int i = 0; i < Notes[currentNoteIndex].visible.Length; i++)
+                                        Notes[currentNoteIndex].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
                                     for (int i = 0; i < 5; i++)
-                                        if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                        if ((Notes[currentNoteIndex].type & (((ulong)1) << i)) != 0)
                                                popupSpeed[i] += 100;
-                                    index++;
+                                    currentNoteIndex++;
                                     flashRot = (float)(UnsignedGame.r.Next() * Math.PI * 2);
-                                    return Notes[index - 1].type;
+                                    return Notes[currentNoteIndex - 1].type;
                                 }
                             }
                             else //well, i'm just gonna assume we support held Notes
                             {
-                                if ((Notes[index].end) - (rm.GetCurrentTime()*1000) < 0)
+                                if ((Notes[currentNoteIndex].end) - (rm.GetCurrentTime()*1000) < 0)
                                 {
-                                    index++;
+                                    currentNoteIndex++;
                                     return 0;
                                 }
                                 else
                                 {
-                                    Burn(gameTime,Notes[index].type);
-                                    return 0;// (byte)(Game1.bits[7] | Notes[index].type);
+                                    Burn(gameTime,Notes[currentNoteIndex].type);
+                                    return 0;// (byte)(Game1.bits[7] | Notes[currentNoteIndex].type);
                                 }
                             }
                         }
                     return 0;
-                }
+                }*/
                 sinwavestart -= gameTime.ElapsedGameTime.TotalSeconds*0.2;
 
                 if (GetBoardType().CanWhammy)
@@ -709,19 +664,19 @@ namespace Unsigned
                                 Fills[FillIndex].amount += 1f / (((Fills[FillIndex].len) / 1000f) * 7);
                                 Fills[FillIndex].amount = Math.Min(Fills[FillIndex].amount, 1);
                             }
-                        while (Notes[index].time <= Fills[FillIndex].end+100)
-                        { index++; myResults.hitNotes++; }
+                        while (Notes[currentNoteIndex].time <= Fills[FillIndex].end+100)
+                        { currentNoteIndex++; myResults.hitNotes++; }
                         if (rm.GetCurrentTime()*1000 >= (Fills[FillIndex].end) - 100 && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
                             if ((newPressed | 1) != 0)
                                 if (Fills[FillIndex].amount >= 1)
                                     SPDelayStart = true;
                     }
                 }
-                if (index< Notes.Length && Notes[index].time - PILLOW < rm.GetCurrentTime()*1000)
+                if (currentNoteIndex< Notes.Length && Notes[currentNoteIndex].time - PILLOW < rm.GetCurrentTime()*1000)
                 {
                     if (!GetBoardType().NeedsStrum)
                     {
-                        ulong flash = Notes[index].AddPressedDrums(GetBoardType(),newPressed);
+                        ulong flash = Notes[currentNoteIndex].AddPressedDrums(GetBoardType(),newPressed);
                         for (int i = 0; i < 5; i++)
                             if ((flash & (((ulong)1) << i)) != 0)
                             {
@@ -731,20 +686,20 @@ namespace Unsigned
                         for (int i = 0; i < 5; i++)
                             if ((flash & (((ulong)1) << i)) != 0)
                             { score += 100 * (int)multiplier; }
-                        if (Notes[index].IsGood(GetBoardType(),false))
+                        if (Notes[currentNoteIndex].IsGood(GetBoardType(),false))
                         {
-                            Notes[index].Kill();
+                            Notes[currentNoteIndex].Kill();
                             Help();
-                            index++;
+                            currentNoteIndex++;
                             myResults.hitNotes++;
-                            ParticleMaster.GetSingleton().AddShards(Notes[index - 1].type, this, 10);
-                            return Notes[index - 1].type;
+                            ParticleMaster.GetSingleton().AddShards(Notes[currentNoteIndex - 1].type, this, 10);
+                            return Notes[currentNoteIndex - 1].type;
                         }
-                        if (Notes[index].late <= rm.GetCurrentTime()*1000)
+                        if (Notes[currentNoteIndex].late <= rm.GetCurrentTime()*1000)
                         {
-                            if (RPIndex < RPPhrases.Length && Notes[index].time >= RPPhrases[RPIndex].time && Notes[index].time <= RPPhrases[RPIndex].end)
-                                SPGood = false;
-                            index++;
+                            if (RPIndex < RPPhrases.Length && Notes[currentNoteIndex].time >= RPPhrases[RPIndex].time && Notes[currentNoteIndex].time <= RPPhrases[RPIndex].end)
+                                RPGood = false;
+                            currentNoteIndex++;
                             multiplier = 1;
                             Hurt();
                             myResults.missedNotes++;
@@ -755,51 +710,51 @@ namespace Unsigned
                         if (controller.WasPressed(PeripheralButton.UP) || controller.WasPressed(PeripheralButton.DOWN))
                             Strum();
 
-                        if (GetBoardType().ContainsHeldNotes && Notes[index].burning)
+                        if (GetBoardType().ContainsHeldNotes && Notes[currentNoteIndex].burning)
                         {
                             for(int k=0;k<whammyValues.Count;k++)
                             {
                                 whammyValues[k].Time += (float)gameTime.ElapsedGameTime.TotalSeconds;
                             }
-                            if (Notes[index].end <= rm.GetCurrentTime()*1000)
-                                index++;
-                            else if (!IsValidFrettage(Notes[index].type, pressed,GetBoardType()))
-                                index++;
+                            if (Notes[currentNoteIndex].end <= rm.GetCurrentTime()*1000)
+                                currentNoteIndex++;
+                            else if (!IsValidFrettage(Notes[currentNoteIndex].type, pressed,GetBoardType()))
+                                currentNoteIndex++;
                             else
                             {
-                                Burn(gameTime, Notes[index].type);
+                                Burn(gameTime, Notes[currentNoteIndex].type);
                             }
                         }
                         else
                         {
-                            Notes[index].AddPressedGuitar(GetBoardType(),pressed);
-                            if (Notes[index].IsGood(GetBoardType(), index > 0 && Notes[index - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                            Notes[currentNoteIndex].AddPressedGuitar(GetBoardType(),pressed);
+                            if (Notes[currentNoteIndex].IsGood(GetBoardType(), currentNoteIndex > 0 && Notes[currentNoteIndex - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
                             {
-                                Notes[index].Kill();
+                                Notes[currentNoteIndex].Kill();
                                 for (int i = 0; i < GetBoardType().NumTracks; i++)
-                                    if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                    if ((Notes[currentNoteIndex].type & (((ulong)1) << i)) != 0)
                                         popupSpeed[i] += 100f;
                                 multiplier += 0.1f;
                                 for (int i = 0; i < GetBoardType().NumTracks; i++)
-                                    if ((Notes[index].type & (((ulong)1) << i)) != 0)
+                                    if ((Notes[currentNoteIndex].type & (((ulong)1) << i)) != 0)
                                     { score += 100 * (int)multiplier; }
                                 myResults.hitNotes++;
-                                ParticleMaster.GetSingleton().AddShards(Notes[index].type, this, 10);
+                                ParticleMaster.GetSingleton().AddShards(Notes[currentNoteIndex].type, this, 10);
                                 Help();
-                                if (Notes[index].length > 0)
+                                if (Notes[currentNoteIndex].length > 0)
                                 {
-                                    Notes[index].burning = true;
-                                    return Notes[index].type;
+                                    Notes[currentNoteIndex].burning = true;
+                                    return Notes[currentNoteIndex].type;
                                 }
                                 else
-                                    index++;
-                                return Notes[index - 1].type;
+                                    currentNoteIndex++;
+                                return Notes[currentNoteIndex - 1].type;
                             }
-                            if (Notes[index].late <= rm.GetCurrentTime()*1000)
+                            if (Notes[currentNoteIndex].late <= rm.GetCurrentTime()*1000)
                             {
-                                if (RPIndex < RPPhrases.Length && Notes[index].time >= RPPhrases[RPIndex].time && Notes[index].time <= RPPhrases[RPIndex].end)
-                                    SPGood = false;
-                                index++;
+                                if (RPIndex < RPPhrases.Length && Notes[currentNoteIndex].time >= RPPhrases[RPIndex].time && Notes[currentNoteIndex].time <= RPPhrases[RPIndex].end)
+                                    RPGood = false;
+                                currentNoteIndex++;
                                 multiplier = 1;
                                 Hurt();
                                 myResults.missedNotes++;
@@ -815,16 +770,16 @@ namespace Unsigned
                     multiplier = 1;
                 }
 
-                if (RPIndex < RPPhrases.Length && Notes[index].end > RPPhrases[RPIndex].end)
+                if (RPIndex < RPPhrases.Length && Notes[currentNoteIndex].end > RPPhrases[RPIndex].end)
                 {
-                    if (SPGood)
+                    if (RPGood)
                     {
                         StarPowerAmount += 0.25f;
                         myResults.hitSPPH++;
                     }
                     else 
                         myResults.missedSPPH++;
-                    SPGood = true;
+                    RPGood = true;
                     RPIndex++;
                 }
 
@@ -872,178 +827,16 @@ namespace Unsigned
         {
             if (!GetBoardType().NeedsStrum)
                 return 0;
-            if (index < Notes.Length && Notes[index].time - PILLOW < RhythmMaster.GetSingleton().GetCurrentTime()*1000 && Notes[index].HasStrummed())
-                Notes[index].Strum();
+            if (currentNoteIndex < Notes.Length && Notes[currentNoteIndex].time - PILLOW < RhythmMaster.GetSingleton().GetCurrentTime()*1000 && !Notes[currentNoteIndex].HasStrummed())
+                Notes[currentNoteIndex].Strum();
             else
             { multiplier = 1; Hurt(); }
             return 0;
-            /*if (index >= Notes.Length)
-                return 0;
-            if (Math.Abs(Notes[index].time - (long)currenttime) < 100)
-            {
-                if (!(Notes[index].burning && index + 1 < Notes.Length && Math.Abs(Notes[index + 1].time - (long)currenttime) < 100))
-                {
-                    if (IsValidFrettage(Notes[index].type, pressed))
-                    {
-                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
-                        {
-                            int scre = 0;
-                            for (int i = 0; i < 5; i++)
-                                if ((Notes[index].type & Game1.bits[i]) > 0)
-                                {
-                                    scre++;
-                                    popupSpeed[i] += 100f;
-                                }
-                            scre *= 100 * (int)(multiplier);
-                            score += scre;
-                            multiplier += .1f;
-                        }
-                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (Notes[index].burning)
-                        {
-                            Notes[index].burning = false;
-                            game.Hurt(ind);
-                            if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
-                                SPGood = false;
-                            multiplier = 1;
-                            return 0;
-                        }
-                        if (Notes[index].length > 0)
-                        {
-                            Notes[index].burning = true;
-                            myResults.hitNotes++;
-                            return Notes[index].type;
-                        }
-                        //else
-                        myResults.hitNotes++;
-                        index++;
-                        return Notes[index - 1].type;
-                    }
-                }
-                else
-                {
-                    index++;
-                    if (IsValidFrettage(Notes[index].type, pressed))
-                    {
-                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
-                        {
-                            int scre = 0;
-                            for (int i = 0; i < 5; i++)
-                                if ((Notes[index].type & Game1.bits[i]) > 0)
-                                {
-                                    scre++;
-                                    popupSpeed[i] += 100f;
-                                }
-                            scre *= 100 * (int)(multiplier);
-                            score += scre;
-                            multiplier += .1f;
-                        }
-                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (Notes[index].length > 0)
-                        {
-                            Notes[index].burning = true;
-                            myResults.hitNotes++;
-                            return Notes[index].type;
-                        }
-                        //else
-                        myResults.hitNotes++;
-                        index++;
-                        return Notes[index - 1].type;
-                    }
-                }
-            }
-            else if (Notes[index].burning && index + 1 < Notes.Length && Math.Abs(Notes[index + 1].time - (long)currenttime) < 100)
-            {
-                index++;
-                    if (IsValidFrettage(Notes[index].type, pressed))
-                    {
-                        if (Notes[index].visible[0] != NoteSet.VIS_STATE.HOPOED && !Notes[index].burning)
-                        {
-                            int scre = 0;
-                            for (int i = 0; i < 5; i++)
-                                if ((Notes[index].type & Game1.bits[i]) > 0)
-                                {
-                                    scre++;
-                                    popupSpeed[i] += 100f;
-                                }
-                            scre *= 100 * (int)(multiplier);
-                            score += scre;
-                            multiplier += .1f;
-                        }
-                        Notes[index].visible[0] = NoteSet.VIS_STATE.INVISIBLE;
-                        if (Notes[index].length > 0)
-                        {
-                            Notes[index].burning = true;
-                            myResults.hitNotes++;
-                            return Notes[index].type;
-                        }
-                        //else
-                        myResults.hitNotes++;
-                        index++;
-                        return Notes[index - 1].type;
-                    }
-            }
-            else if (currenttime > (long)Notes[index].time && currenttime < ((long)Notes[index].time + (long)Notes[index].length))
-            {
-                Notes[index].burning = false; multiplier = 1; game.Hurt(ind);
-                if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
-                    SPGood = false; return 0;
-            }
-            
-            if (RPIndex < SPStart.Length && Notes[index].time >= SPStart[RPIndex] && Notes[index].time < SPEnd[RPIndex])
-                            SPGood = false;
-            game.Hurt(ind);
-            multiplier = 1;
-            return 0;*/
         }
 
         public byte Bang(byte pressed, long currenttime, UnsignedGame game)
         {
             return 0;
-            /*byte newPressed = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                if ((lastPressed & Game1.bits[i]) == 0 && (pressed & Game1.bits[i]) != 0)
-                    newPressed |= Game1.bits[i];
-            }
-            if (newPressed == 0)
-                return 0;
-            if (index >= Notes.Length)
-                return 0;
-            if (StarPowerAmount>=0.5 && !SPActivated && FillIndex<FillEnd.Length && currenttime >= (long)FillStart[FillIndex] && currenttime <= (long)FillEnd[FillIndex])
-            {
-                if ((newPressed & Game1.bits[0]) != 0)
-                    if (Math.Abs((FillEnd[FillIndex] - 100) - (long)currenttime) < 100)
-                    { SPActivated = true; DFHitGreen[FillIndex] = true; }
-                float numperfill = 4f * (FillEnd[FillIndex] - FillStart[FillIndex]) / 1000f;
-                int numhit = 0;
-                for (int i = 0; i < 5; i++)
-                    if ((newPressed & Game1.bits[i]) != 0)
-                        numhit++;
-                FillAmount[FillIndex] += numhit / numperfill;
-                if (FillAmount[FillIndex] > 1)
-                    FillAmount[FillIndex] = 1f;
-                return (byte)(newPressed | Game1.bits[7]);
-            }
-            else if ((Notes[index].time - (long)currenttime) < 100)
-            {
-                byte ret = 0;
-                for (int i = 0; i < 5; i++)
-                    if ((Notes[index].type & Game1.bits[i]) != 0 && (newPressed & Game1.bits[i]) != 0 && Notes[index].visible[i]==0)
-                    {
-                        ret |= Game1.bits[i];
-                        Notes[index].visible[i] = NoteSet.VIS_STATE.INVISIBLE;
-                        popupSpeed[drumsToGuitar[i]] += 100f;
-                    }
-                    else if ((Notes[index].type & Game1.bits[i]) == 0 && (newPressed & Game1.bits[i]) != 0)
-                    {
-                        Notes[index].visible[i] = NoteSet.VIS_STATE.OVERDONE;
-                    }
-                return ret;
-            }
-            game.Hurt(2);
-            multiplier = 1;
-            return 0;*/
         }
 
         public float GetStars()
@@ -1085,79 +878,6 @@ namespace Unsigned
             return (int)multiplier*(SPActivated?2:1);
         }
 
-        /*public bool GetWaves(long currenttime)
-        {
-            int count = 0;
-            for (int i = index; i<Notes.Length && Notes[i].time < currenttime + (eFade*1000) && Notes[i].time+Notes[i].length>(long)currenttime; i++)
-            {
-                if (Notes[i].length > 0)
-                    count++;
-            }
-            if (wavesLen < count)
-            { waves = new WaveNode[count][]; wavesSubLen = new int[count]; }
-            wavesLen = count;
-            if (count == 0)
-                return false;
-            count = 0;
-            for (int i = index; i < Notes.Length && Notes[i].time < currenttime + (eFade*1000) && Notes[i].time+Notes[i].length>(long)currenttime; i++)
-            {
-                if (Notes[i].length > 0)
-                {
-                    bool white = false;
-                    if (RPIndex < RPPhrases.Length && SPGood && i >= SPStart[RPIndex] && i <= SPEnd[RPIndex])
-                        white = true;
-                    if (Notes[i].burning)
-                    {
-                        
-                        int num = (int)((Math.Min(Notes[i].length, eFade * 1000f - (Notes[i].time - (long)currenttime)) - ((Notes[i].time < (long)currenttime) ? (long)currenttime - Notes[i].time : 0) - WaveDetail) / WaveDetail);
-                        num += 2;
-                        if (wavesSubLen[count] < num)
-                        { waves[count] = new WaveNode[num];  }
-                        wavesSubLen[count] = num;
-                        waves[count][0].X = 0f;
-                        waves[count][0].Y = (Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
-                        waves[count][0].White = white;
-                        float varyPower;
-                        for (int n = 0; n < num - 1; n++)
-                        {
-                            waves[count][n].White = white;
-                            waves[count][n].Y = ((Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime)) + (WaveDetail * n);
-                            varyPower = GetWhammy(waves[count][n].Y,currenttime);
-                            if(varyPower<0.1)
-                                waves[count][n].X = 0.2f-((float)(Math.Sin(waveoffset + (waves[count][n].Y / 100f))+1)*0.1f*(varyPower*10));
-                            else
-                                waves[count][n].X = (float)Math.Sin(waveoffset + (waves[count][n].Y / 100f)) * (varyPower);
-                            waves[count][n].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
-                        }
-                        waves[count][num-1].White = white;
-                        waves[count][num - 1].Y = Math.Min(((Notes[i].time + Notes[i].length) - (long)currenttime), ((eFade * 1000f)));
-                        //waves[count][num - 1].X = (float)Math.Sin(waveoffset + (waves[count][num - 1].Y / 100f));
-                        waves[count][num - 1].X = (float)Math.Sign(waves[count][num - 1].X) * 0.1f;
-                        waves[count][num - 1].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime?0:128)|64);
-                        count++;
-                    }
-                    else
-                    {
-                        if (wavesSubLen[count] < 2)
-                        { waves[count] = new WaveNode[2]; }
-                         wavesSubLen[count] = 2;
-                        waves[count][0].White = white;
-                        waves[count][0].X = 0.2f;
-                        waves[count][0].Y = (Notes[i].time < (long)currenttime) ? 0 : (Notes[i].time - (long)currenttime);
-                        waves[count][0].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime-100?0:128)|(Notes[i].time >= (long)currenttime?64:0));
-
-                        waves[count][1].White = white;
-                        waves[count][1].Y = Math.Min(((Notes[i].time + Notes[i].length) - (long)currenttime), (eFade * 1000f));
-                        waves[count][1].X = 0.2f;
-                        waves[count][1].Z = (byte)(Notes[i].type|(Notes[i].burning||Notes[i].time>(long)currenttime-100?0:128)|(Notes[i].time >= (long)currenttime?64:0));
-                        count++;
-                    }
-                }
-            }
-            return true;
-        }*/
-
         public float GetSPAmount()
         {
             return SPADisplay;
@@ -1170,18 +890,18 @@ namespace Unsigned
 
         public void Whammy(float whammyAmount,GameTime gametime)
         {
-            if (index >= Notes.Length)
+            if (currentNoteIndex >= Notes.Length)
                 return;
             float bpm = RhythmMaster.GetSingleton().GetBPM();
             long currenttime = (long)(RhythmMaster.GetSingleton().GetCurrentTime()*1000);
-            if (Notes[index].burning && Notes[index].time < currenttime && Notes[index].end > currenttime)
+            if (Notes[currentNoteIndex].burning && Notes[currentNoteIndex].time < currenttime && Notes[currentNoteIndex].end > currenttime)
             {
                 if(whammyValues.Count<=0 || whammyValues[0].Value!=whammyAmount)
                     whammyValues.Insert(0, new Wave(whammyAmount, 0));
                 score += (int)(gametime.ElapsedGameTime.TotalSeconds * bpm);
-                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                if (RPIndex < RPPhrases.Length && currentNoteIndex >= RPPhrases[RPIndex].time && currentNoteIndex <= RPPhrases[RPIndex].end)
                     StarPowerAmount += (float)(((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
-                if (RPIndex < RPPhrases.Length && index >= RPPhrases[RPIndex].time && index <= RPPhrases[RPIndex].end)
+                if (RPIndex < RPPhrases.Length && currentNoteIndex >= RPPhrases[RPIndex].time && currentNoteIndex <= RPPhrases[RPIndex].end)
                     StarPowerAmount += (float)(0.05f * ((gametime.ElapsedGameTime.TotalSeconds * 1000) * bpm));
             }
             else
@@ -1190,7 +910,7 @@ namespace Unsigned
                 whammyValues.RemoveAt(whammyValues.Count - 1);
         }
 
-        private float GetWaveWidth(double time)
+        private float GetWaveWidth(double time, bool timesWidth)
         {
             float sinRet, whammyRet=0;
 
@@ -1233,7 +953,7 @@ namespace Unsigned
             sinRet = (float)Math.Sin((sinwavestart+time)*20f);
 
             // part three: multiply <-- this is the hard one
-            return sinRet*whammyRet;
+            return sinRet*(timesWidth?whammyRet:0.1f);
         }
 
         public void Burn(GameTime gt, ulong note)
@@ -1269,7 +989,7 @@ namespace Unsigned
                 float height = vFuzz.Height * vScale;
                 Color glow = new Color(150, 255, 150, 255);
                 spritebatch.Draw(vBGInt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
-                for (int i = index; i < Phrases.Length; i++)
+                for (int i = currentNoteIndex; i < Phrases.Length; i++)
                 {
                     spritebatch.Draw(vBar, new Rectangle((int)(vocalzerox + (vocalwidth * (Phrases[i].time - (long)currenttime))), (int)vocaly, 8, (int)vocalheight), Color.White);
 
@@ -1286,7 +1006,7 @@ namespace Unsigned
 
                 spritebatch.Draw(vBGExt, new Rectangle(0, (int)vocaly, 1024, (int)vocalheight), Color.White);
 
-                for (int i = index; i < Phrases.Length; i++)
+                for (int i = currentNoteIndex; i < Phrases.Length; i++)
                     for (int k = 0; k < Phrases[i].notes.Length; k++)
                         spritebatch.DrawString(Global.DefaultFont, Phrases[i].notes[k].text, new Vector2((vocalzerox + (vocalwidth * (Phrases[i].notes[k].time - currenttime))), vocaly + (0.75f * vocalheight)), Color.White);
                 spritebatch.Draw(vHeadBar, new Rectangle((int)vocalzerox, (int)vocaly, 8, (int)vocalheight), Color.White);
@@ -1396,12 +1116,26 @@ namespace Unsigned
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
             spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
             double currentTime = RhythmMaster.GetSingleton().GetCurrentTime();
-            for (int i = Math.Max(0,index-1); i < Notes.Length; i++)
+            for (int i = Math.Max(0,currentNoteIndex-1); i < Notes.Length; i++)
             {
                 if (Notes[i].time / 1000f > currentTime + eFade)
                     break;
                 if (Notes[i].length <= 0)
                     continue;
+                bool isGray = false;
+                bool isSP = false;
+                for (int spi = 0; spi < RPPhrases.Length; spi++)
+                {
+                    if (Notes[i].time >= RPPhrases[spi].time && Notes[i].time <= RPPhrases[spi].end)
+                    {
+                        if (spi != RPIndex)
+                            isSP = true;
+                        else if (RPGood)
+                            isSP = true;
+                    }
+                }
+                if (i<currentNoteIndex || (Notes[i].time < currentTime * 1000 && Notes[i].end > currentTime * 1000 && !Notes[i].burning))
+                    isGray = true;
 
                 float LineWidth = 0.8f;
 
@@ -1413,8 +1147,8 @@ namespace Unsigned
                 {
                     float Z1 = GetBoardPos(k + currentTime, 1 - ratio) * rtWaves.Height;
                     float Z2 = GetBoardPos(k + spaceBetween + currentTime, 1 - ratio) * rtWaves.Height;
-                    float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
-                    float X2base = ((GetWaveWidth(k + spaceBetween) + 1) / 2.0f);
+                    float X1base = ((GetWaveWidth(k,Notes[i].burning) + 1) / 2.0f);
+                    float X2base = ((GetWaveWidth(k + spaceBetween, Notes[i].burning) + 1) / 2.0f);
                     float X3base = (((((X1base * 2) - 1) * -1) + 1) / 2.0f);
                     float X4base = (((((X2base * 2) - 1) * -1) + 1) / 2.0f);
 
@@ -1440,8 +1174,8 @@ namespace Unsigned
                         float X1a = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
                         float X1b = ((X3base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
 
-                        spritebatch.Draw(texLine, new Vector2(X1a, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle1, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
-                        spritebatch.Draw(texLine, new Vector2(X1b, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle2, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1a, Z1), null, isGray? Color.Gray : isSP ? Color.White : Global.FretColors[GetBoardType().colorIndices[r]], Angle1, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1b, Z1), null, isGray ? Color.Gray : isSP ? Color.White : Global.FretColors[GetBoardType().colorIndices[r]], Angle2, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                     }
                 }
                 //last one :P
@@ -1449,8 +1183,8 @@ namespace Unsigned
                 {
                     float Z1 = GetBoardPos(k + currentTime, 1 - ratio) * rtWaves.Height;
                     float Z2 = GetBoardPos(Notes[i].end/1000.0f, 1 - ratio) * rtWaves.Height;
-                    float X1base = ((GetWaveWidth(k) + 1) / 2.0f);
-                    float X2base = ((GetWaveWidth(Math.Min(Notes[i].end / 1000.0f - (float)currentTime,eFade)) + 1) / 2.0f);
+                    float X1base = ((GetWaveWidth(k, Notes[i].burning) + 1) / 2.0f);
+                    float X2base = ((GetWaveWidth(Math.Min(Notes[i].end / 1000.0f - (float)currentTime, eFade), Notes[i].burning) + 1) / 2.0f);
 
 
                     for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
@@ -1464,7 +1198,7 @@ namespace Unsigned
                         float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
                         float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);
 
-                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, Global.FretColors[GetBoardType().colorIndices[r]], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
+                        spritebatch.Draw(texLine, new Vector2(X1, Z1), null, isGray ? Color.Gray : (isSP) ? Color.White : Global.FretColors[GetBoardType().colorIndices[r]], Angle, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                     }
                 }
             }
@@ -1472,7 +1206,7 @@ namespace Unsigned
 
 
             graphics.GraphicsDevice.SetRenderTarget(0, null);
-            texWaves = rtWaves.GetTexture();
+            Texture2D texWaves = rtWaves.GetTexture();
             graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
 
@@ -1530,7 +1264,7 @@ namespace Unsigned
                 if (i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length - 1)
                 {
                     float Y2 = GetBoardPos(barlines[i + 1].time / 1000.0, 1 - ratio) * rtBoard.Height;
-                    spritebatch.Draw(boardBackgrounds[boardBackground],new Rectangle(0,(int)Y2,rtBoard.Width,(int)(Y-Y2)),bgColor);
+                    spritebatch.Draw(boardBackground,new Rectangle(0,(int)Y2,rtBoard.Width,(int)(Y-Y2)),bgColor);
                 }
             }
             for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().info.barlines.Length; i++)
@@ -1555,52 +1289,6 @@ namespace Unsigned
             {
                 spritebatch.Draw(Global.texWhite, new Rectangle((int)(((float)i / (float)GetBoardType().NumDrawnTracks) * rtBoard.Width), 0, 1, rtBoard.Height), Color.White);
             }
-
-            /*for (int k = -4; k < 8; k++)
-            {
-                if (IsSPActivated())
-                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(128, 128, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                else if (isFailing)
-                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(255 * failTime), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                else if (rockMeterLevel < 20)
-                {
-                    if (RhythmMaster.GetSingleton().GetPercentBeat() > 0.5)
-                        spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((song.percentBeat - 0.5) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                    else
-                        spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)((0.5 - song.percentBeat) * 255), 0, 0), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                }
-                else if (rockMeterLevel > 80)
-                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, (byte)(30 + ((rockMeterLevel[i] - 80) / 20f) * 50), 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                else if (rockMeterLevel < 40)
-                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color((byte)(30 + (1 - ((rockMeterLevel[i] - 20) / 20f)) * 50), 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-                else
-                    spritebatch.Draw(boardBackgrounds[boardBackground], new Rectangle(0, (int)(((((started < 2 ? -CurrentTime : CurrentTime) % (float)TicksPerSecond) / (float)TicksPerSecond) + (k / bgyscale)) * (rtBoard.Height / (Board.eFade * (1 / ratio)))), rtBoard.Width, 1 + (int)(rtBoard.Height / (Board.eFade * (1 / ratio) * bgyscale))), null, new Color(30, 30, 30), 0, new Vector2(0, 0), SpriteEffects.None, 1);
-            }
-
-            int fiver = i == 0 || i == 3 ? 1 : 0;
-            int lowestPoint = 0;
-            //spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard.Width,rtBoard.Height),null,Color.White);// (int)y, rtBoard.Width, (int)height), null, Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.9f);
-            for (int k = 0; k < songtimes.Length - 1; k++)
-            {
-                if (started < 2 && CurrentTime < 30 * TicksPerSecond)
-                {
-                    if ((int)(rtBoard.Height * ratio) - (int)(songtimes[k].X * scale) > lowestPoint)
-                        lowestPoint = (int)(rtBoard.Height * ratio) - (int)(songtimes[k].X * scale);
-                }
-
-                {
-                    float height = (songtimes[k + 1].X - songtimes[k].X) * scale;
-                    float y = (rtBoard.Height * ratio) - (int)(songtimes[k].X * scale) - (int)((songtimes[k + 1].X - songtimes[k].X) * scale);
-
-                    for (int j = 0; j < (int)(songtimes[k].Y + 0.5); j++)
-                    {
-                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + ((j / songtimes[k].Y) * height)) - 1, rtBoard.Width, 5), Color.DarkGray);
-                        spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((j + 0.5) / songtimes[k].Y) * height)), rtBoard.Width, 3), Color.DarkGray);
-                    }
-                    spritebatch.Draw(texWhite, new Rectangle(0, (int)(y + (((0.5) / songtimes[k].Y) * height)), rtBoard.Width, 3), Color.DarkGray);
-                    spritebatch.Draw(texWhite, new Rectangle(0, (int)y - 2, rtBoard.Width, 5), Color.DarkGray);
-                }
-            }*/
 
             // Draw Board Fills
             if ((GetBoardType().RPEnableType&Instrument.RockPowerEnableTypes.FILL)!=0)
@@ -1627,9 +1315,11 @@ namespace Unsigned
                 // this should? be compounded on rpWidth
                 float rpMeterWidth = 0.9375f;
                 // the height of the overal console thingy
-                int rpHeight = (int)((rtBoard.Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.spMeterYScale);
+                int rpHeight = (int)((rtBoard.Width / (float)Board.spMeterBG.Width) * Board.spMeterBG.Height * Board.RP_METER_Y_SCALE);
                 // this should be compounded on rpHeight
                 float rpMeterHeight = 0.21875f;
+                // the shift so it isnt covered by the fretboard
+                int spMeterShift = 7;
                 // draw the console thingy background
                 spritebatch.Draw(Board.spMeterBG, 
                                  new Rectangle((int)(rtBoard.Width * ((1-rpWidth)/2) + 0.5f), 
@@ -1691,7 +1381,7 @@ namespace Unsigned
             spritebatch.End();
 
             graphics.GraphicsDevice.SetRenderTarget(0, null);
-            texBoard = rtBoard.GetTexture();
+            Texture2D texBoard = rtBoard.GetTexture();
             graphics.GraphicsDevice.SetRenderTarget(0, rtBoard);
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
 
@@ -1709,7 +1399,6 @@ namespace Unsigned
             fader.CurrentTechnique.Passes[0].End();
             fader.End();
             graphics.GraphicsDevice.SetRenderTarget(0, null);
-            texBoard = rtBoard.GetTexture();
         }
 
         private void DrawNotes(Matrix fling)
@@ -1740,12 +1429,17 @@ namespace Unsigned
                     else
                         effect.Texture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
                     whited = false;
-                    for (int p = Math.Max(index-32,0); p < Notes.Length; p++)
+                    for (int p = Math.Max(currentNoteIndex-32,0); p < Notes.Length; p++)
                     {
                         bool IsWhite = false;
                         for(int i=0;i<RPPhrases.Length;i++)
-                            if(Notes[p].time>=RPPhrases[i].time && Notes[p].time<=RPPhrases[i].end)
-                                IsWhite = true;
+                            if (Notes[p].time >= RPPhrases[i].time && Notes[p].time <= RPPhrases[i].end)
+                            {
+                                if (i != RPIndex)
+                                    IsWhite = true;
+                                else if (RPGood)
+                                    IsWhite = true;
+                            }
                         if (IsWhite && !whited)
                         { effect.Texture = Global.texWhite; whited = true; }
                         else if (!IsWhite && whited)

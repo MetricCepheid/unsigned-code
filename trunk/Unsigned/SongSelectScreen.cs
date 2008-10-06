@@ -155,7 +155,7 @@ namespace Unsigned
                         List<String> drawListName = new List<String>();
                         List<String> drawListArtist = new List<String>();
                         List<String> drawListLength = new List<String>();
-                        int index = 0;
+                        int currentNoteIndex = 0;
                         
                         for (int i = 0; i < subsets.Count; i++)
                         {
@@ -170,12 +170,12 @@ namespace Unsigned
                                 drawListArtist.Add(subsets[i].GetSongList()[j].ArtistName);
                                 drawListLength.Add(subsets[i].GetSongList()[j].Length.ToString());
                                 if (i == selectedSubSet && j == selectedSong)
-                                    index = drawListName.Count - 1;
+                                    currentNoteIndex = drawListName.Count - 1;
                             }
                         }
 
-                        int low = index - 4;
-                        int high = index + 4;
+                        int low = currentNoteIndex - 4;
+                        int high = currentNoteIndex + 4;
                         if (low < 0)
                         {
                             high += -low;
@@ -186,7 +186,7 @@ namespace Unsigned
                             low = Math.Max(0, low - (high - drawListName.Count));
                             high = drawListName.Count - 1;
                         }
-                        rm.spritebatch.Draw(SongHiLi, new Rectangle(20, (index-low) * 40 + 93, SongListRT.Width - 40, 60), Color.White);
+                        rm.spritebatch.Draw(SongHiLi, new Rectangle(20, (currentNoteIndex-low) * 40 + 93, SongListRT.Width - 40, 60), Color.White);
                         for (int i = low; i <= high; i++)
                         {
                             rm.spritebatch.DrawString(Global.DefaultFont, drawListName[i].StartsWith("@@@") ? drawListName[i].Substring(3) : drawListName[i], new Vector2(10 + (drawListName[i].StartsWith("@@@") ? 20 : 50), (i - low) * 40 + 100), drawListName[i].StartsWith("@@@") ? new Color(new Vector3(.75f, .375f, 0)) : Color.Black);

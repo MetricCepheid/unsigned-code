@@ -58,7 +58,7 @@ namespace Unsigned
         /// Adds new shards on the triggers
         /// </summary>
         /// <param name="note">the bitwise notes to hit</param>
-        /// <param name="lane">the player lane index</param>
+        /// <param name="lane">the player lane currentNoteIndex</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
         public void AddShards(ulong note, Board board, float density)
@@ -95,12 +95,12 @@ namespace Unsigned
                     glassArr[i].rot = new Vector3((float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2), (float)(r.NextDouble() * Math.PI * 2));
                     glassArr[i].col = noteage;
                     glassArr[i].frame = r.Next(5);
-                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
+                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.ZeroZOffset), Matrix.CreateRotationX(Board.Rotate));
                     
-                    glassArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
-                    glassArr[i].loc.Y = Board.height + rval.Y;
+                    glassArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.Width * lefty;
+                    glassArr[i].loc.Y = Board.Height + rval.Y;
                     glassArr[i].loc.Z = rval.Z;
-                    glassArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
+                    glassArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.Width / (float)board.GetBoardType().NumTracks);
                     glassArr[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= density)
@@ -121,7 +121,7 @@ namespace Unsigned
         /// Adds new sparks on the triggers
         /// </summary>
         /// <param name="note">the bitwise notes to shoot sparks from</param>
-        /// <param name="lane">the player lane index</param>
+        /// <param name="lane">the player lane currentNoteIndex</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
         public void AddSparks(ulong note, Board board, float density)
@@ -156,12 +156,12 @@ namespace Unsigned
                     sparkArr[i].scale = 0.25f * (float)r.NextDouble();
                     sparkArr[i].dir = new Vector3(((float)(r.NextDouble()) * 2) - 1, ((float)(r.NextDouble()) * 10f) + 15f, (float)(r.NextDouble() * 15)) * 0.2f;
                     sparkArr[i].col = noteage;
-                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.zeroZ), Matrix.CreateRotationX(Board.rotate));
+                    Vector3 rval = Vector3.Transform(new Vector3(0, 0, -Board.ZeroZOffset), Matrix.CreateRotationX(Board.Rotate));
 
-                    sparkArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.width * lefty;
-                    sparkArr[i].loc.Y = Board.height + rval.Y;
+                    sparkArr[i].loc.X = (((noteage * 2 / (float)board.GetBoardType().NumTracks) - 1) + (1.0f / board.GetBoardType().NumTracks)) * Board.Width * lefty;
+                    sparkArr[i].loc.Y = Board.Height + rval.Y;
                     sparkArr[i].loc.Z = rval.Z;
-                    sparkArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.width / (float)board.GetBoardType().NumTracks);
+                    sparkArr[i].loc.X += (float)(r.NextDouble() - 0.5) * (Board.Width / (float)board.GetBoardType().NumTracks);
                     sparkArr[i].loc.Y += (float)(r.NextDouble() - 0.5) * 0.3f;
                     count++;
                     if (count >= density)
