@@ -501,17 +501,17 @@ namespace Unsigned
             public CONT_TYPE type;
             public float loc;
             public int nextLoc;
-            public PlayerIndex index;
+            public PlayerIndex currentNoteIndex;
             public Vector4 info;
             public byte status;//0-none,1-finalized,2-chosen
             int wait;
 
-            public ContGUIData(CONT_TYPE type, PlayerIndex index)
+            public ContGUIData(CONT_TYPE type, PlayerIndex currentNoteIndex)
             {
                 this.type = type;
                 loc = -1f;
                 nextLoc = 0;
-                this.index = index;
+                this.currentNoteIndex = currentNoteIndex;
                 info = Vector4.Zero;
                 wait = 0;
                 status = 0;
@@ -531,7 +531,7 @@ namespace Unsigned
                 Vector3[] nfo = { new Vector3(-140, 180, -120), new Vector3(-140, 190, -110), new Vector3(-96, 128, -110), new Vector3(-32, 128, -110), new Vector3(32, 128, -110), new Vector3(96, 128, -110), new Vector3(96, 128, -110) };
                 if (loc < 0)
                 {
-                    info = new Vector4(nfo[0].X + 100 * loc, nfo[0].Y-(int)(index+1)*32, nfo[0].Z, (float)Math.PI / 2);
+                    info = new Vector4(nfo[0].X + 100 * loc, nfo[0].Y-(int)(currentNoteIndex+1)*32, nfo[0].Z, (float)Math.PI / 2);
                 }
                 else if (loc >= 0)
                 {
@@ -547,7 +547,7 @@ namespace Unsigned
                     else
                     {
                         if (loc < 1)
-                            info = new Vector4((new Vector3(nfo[0].X,nfo[0].Y-32*(int)(index+1),nfo[0].Z) * (1 - (loc - (int)(loc)))) + (nfo[(int)loc + 2] * (loc - (int)(loc))), 0);
+                            info = new Vector4((new Vector3(nfo[0].X,nfo[0].Y-32*(int)(currentNoteIndex+1),nfo[0].Z) * (1 - (loc - (int)(loc)))) + (nfo[(int)loc + 2] * (loc - (int)(loc))), 0);
                         else
                             info = new Vector4((nfo[(int)loc + 1] * (1 - (loc - (int)(loc)))) + (nfo[(int)loc + 2] * (loc - (int)(loc))), 0);
                     }
@@ -577,7 +577,7 @@ namespace Unsigned
                 }
                 else
                 {
-                    GamePadState gps = GamePad.GetState(index);
+                    GamePadState gps = GamePad.GetState(currentNoteIndex);
                     if (gps.IsButtonDown(Buttons.A))
                         green = true;
                     if (gps.IsButtonDown(Buttons.B))
@@ -776,12 +776,12 @@ namespace Unsigned
 
             public override bool Equals(object obj)
             {
-                return index == ((ContGUIData)obj).index;
+                return currentNoteIndex == ((ContGUIData)obj).currentNoteIndex;
             }
 
             public override int GetHashCode()
             {
-                return (int)index;
+                return (int)currentNoteIndex;
             }
 
             public int GetLeaderVal()
@@ -1394,8 +1394,8 @@ namespace Unsigned
                 for (int i = 0; i < 4; i++)
                     if (instruments[i])
                     {
-                        int index = r.Next(strs.Length);
-                        boardBackgrounds[i] = content.Load<Texture2D>(strs[index].Substring(0, strs[index].LastIndexOf('.')));
+                        int currentNoteIndex = r.Next(strs.Length);
+                        boardBackgrounds[i] = content.Load<Texture2D>(strs[currentNoteIndex].Substring(0, strs[currentNoteIndex].LastIndexOf('.')));
                     }
 
                 Board.texTriggers = new Texture2D[5];
@@ -2439,7 +2439,7 @@ namespace Unsigned
                                         {
                                             rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
                                             instruments[(int)contguis[k].loc - 1] = true;
-                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
+                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].currentNoteIndex >= 0 ? (int)contguis[k].currentNoteIndex : 4);
                                         }
                                     mmenu_ticker = 200;
                                 }
@@ -2487,8 +2487,8 @@ namespace Unsigned
                     }
 
                     for (int i = 0; i < 5; i++)
-                        if (contguis[i].index >= 0)
-                            if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && controllers[(int)contguis[i].index].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
+                        if (contguis[i].currentNoteIndex >= 0)
+                            if ((((int)contguis[i].currentNoteIndex == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].currentNoteIndex != 4 && controllers[(int)contguis[i].currentNoteIndex].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
                             { screen = S_MAINMENU; mmenu_ticker = 200; }
 #if !DEBUG
                 }
@@ -8212,12 +8212,12 @@ namespace Unsigned
             graphics.GraphicsDevice.SetRenderTarget(0, null);
             boards[i].texBoard = rtBoard[i].GetTexture();
         }
-        private void DrawBoardTargetFS(int index)
+        private void DrawBoardTargetFS(int currentNoteIndex)
         {
 
             fader.CurrentTechnique = fader.Techniques["Fade"];
             float fh = (Board.eFade - Board.sFade) / (Board.eFade * (1/ratio));
-            if (index == 1)
+            if (currentNoteIndex == 1)
                 return;
             for (int i = 0; i < 4; i++)
             {
@@ -8236,7 +8236,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.BackToFront, SaveStateMode.SaveState);
 
-                    int fiver = index == 0 || index == 3 ? 1 : 0;
+                    int fiver = currentNoteIndex == 0 || currentNoteIndex == 3 ? 1 : 0;
                     spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard[i].Width, rtBoard[i].Height),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);
 
                     spritebatch.End();
@@ -9532,26 +9532,26 @@ namespace Unsigned
             }
         }
 
-        private void DrawFlashes(int index, Matrix fling)
+        private void DrawFlashes(int currentNoteIndex, Matrix fling)
         {
             int lefty = 1;
-            if (boards[index].IsLefty())
+            if (boards[currentNoteIndex].IsLefty())
                 lefty = -1;
-            float[] arr = boards[index].GetPopups();
-            for (int i = 0; index==2 ? i < 4 : i < 5; i++)
+            float[] arr = boards[currentNoteIndex].GetPopups();
+            for (int i = 0; currentNoteIndex==2 ? i < 4 : i < 5; i++)
                 if (arr[i]>0)
                 {
                     Matrix matRot, matTransl, matOrbit, matScale;
-                    matRot = Matrix.CreateRotationY(boards[index].flashRot)*Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
-                    if (index == 2)
+                    matRot = Matrix.CreateRotationY(boards[currentNoteIndex].flashRot)*Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
+                    if (currentNoteIndex == 2)
                     {
-                        matTransl = Matrix.CreateTranslation((-.75f + (i * .5f)) * (Board.width), 0.1f + Board.height + (boards[index].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[index].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
+                        matTransl = Matrix.CreateTranslation((-.75f + (i * .5f)) * (Board.width), 0.1f + Board.height + (boards[currentNoteIndex].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[currentNoteIndex].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
                     }
                     else
                     {
-                        matTransl = Matrix.CreateTranslation((-.8f + (i * 0.4f)) * lefty * Board.width, 0.1f+Board.height + (boards[index].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[index].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
+                        matTransl = Matrix.CreateTranslation((-.8f + (i * 0.4f)) * lefty * Board.width, 0.1f+Board.height + (boards[currentNoteIndex].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[currentNoteIndex].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
                     }
                     matScale = Matrix.CreateScale(new Vector3(0.2f, 0.2f, 0.2f));
 
@@ -9559,7 +9559,7 @@ namespace Unsigned
                     engine.Parameters["world"].SetValue(matScale * matRot * matOrbit * matTransl);
 
                     engine.Parameters["diffuseTexture"].SetValue(Board.texBlast);
-                    engine.Parameters["diffuseColor"].SetValue(index==2?FretColorsV4[Board.guitarToDrums[i]]:FretColorsV4[i]);
+                    engine.Parameters["diffuseColor"].SetValue(currentNoteIndex==2?FretColorsV4[Board.guitarToDrums[i]]:FretColorsV4[i]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives

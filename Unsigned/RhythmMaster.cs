@@ -67,14 +67,6 @@ namespace Unsigned
                         count3D++;
 
                 }
-            Board.curveHeight = 0.03f;
-            Board.height = -2.0f;
-            Board.length = 3f;
-            Board.width = 0.7f;
-            Board.rotate = .5f;
-            Board.zeroZ = 2.8f;
-            Board.sFade = 0.8f;
-            Board.eFade = 1.2f;
         }
 
         public static void CreateSingleton()
@@ -130,8 +122,14 @@ namespace Unsigned
             CurrentTime += gameTime.ElapsedGameTime.TotalSeconds;
 
             for (int i = 0; i < 4; i++)
+            {
                 if (boards[i] != null)
+                {
+                    if ((boards[i].GetBoardType().RPEnableType & Instrument.RockPowerEnableTypes.SELECT) != 0 && boards[i].Peripheral.IsPressed(PeripheralButton.SELECT))
+                        StarPowerAction(i);
                     boards[i].Update(gameTime);
+                }
+            }
 
             bool allFail = true;
             int anyFail = 0;
@@ -160,14 +158,14 @@ namespace Unsigned
             if (started == 1)
             {
                 if (CurrentTime < 3)
-                    fling = Matrix.CreateRotationX(Board.rotate);
+                    fling = Matrix.CreateRotationX(Board.Rotate);
                 else if (CurrentTime < 4)
-                    fling = Matrix.CreateRotationX(((-((float)CurrentTime - 4f)) * Board.rotate * 4) - (Board.rotate * 3));
+                    fling = Matrix.CreateRotationX(((-((float)CurrentTime - 4f)) * Board.Rotate * 4) - (Board.Rotate * 3));
                 else
                     fling = Matrix.CreateRotationX((float)Math.PI / 2);
             }
             else
-                fling = Matrix.CreateRotationX(Board.rotate);
+                fling = Matrix.CreateRotationX(Board.Rotate);
 
             for (int i = 0; i < boards.Length; i++)
             if(boards[i]!=null)
@@ -179,11 +177,11 @@ namespace Unsigned
         /// <summary>
         /// Returns whether or not a player is using this instrument slot (0-3)
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="currentNoteIndex"></param>
         /// <returns></returns>
-        public bool IsInstrumentAvailable(int index)
+        public bool IsInstrumentAvailable(int currentNoteIndex)
         {
-            return boards[index]!=null;
+            return boards[currentNoteIndex]!=null;
         }
 
         public float GetRockstarAmount()
@@ -216,7 +214,7 @@ namespace Unsigned
             if (failTime > 0)
             {
                 for (int k = 0; k < boards.Length; k++)
-                    if (boards[i]!=null && boards[k].IsFailing)
+                    if (boards[k]!=null && boards[k].IsFailing)
                     {
                         boards[i].Save();
                         boards[i].EatHalfSP();
@@ -310,8 +308,6 @@ namespace Unsigned
             for (int i = 0; i < 4; i++)
                 if(boards[i]!=null)
                     spritebatch.Draw(boards[i].GetRender(), new Rectangle(0, 0, GameSettings.windowwidth, GameSettings.windowheight), Color.White);
-            spritebatch.Draw(boards[0].rtBoard.GetTexture(), new Rectangle(0, 0, 100, 100), Color.White);
-            spritebatch.Draw(boards[0].rtWaves.GetTexture(), new Rectangle(100, 0, 100, 100), Color.White);
         }
 
         private void ProcessInput(GameTime gameTime, long currenttime)
@@ -320,6 +316,9 @@ namespace Unsigned
             for (int i = 0; i < 4; i++)
                 if (boards[i] != null)
                 {
+                    if ((boards[i].GetBoardType().RPEnableType & Instrument.RockPowerEnableTypes.SELECT) != 0 && boards[i].Peripheral.IsPressed(PeripheralButton.SELECT))
+                        StarPowerAction(i);
+
                     boards[i].Update(gameTime);
 
                     /*if (i == 0 || i == 3)

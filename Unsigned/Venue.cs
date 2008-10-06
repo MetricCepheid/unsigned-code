@@ -78,7 +78,7 @@ namespace Unsigned
     public struct DLight
     {
         public float on;
-        public uint index;
+        public uint currentNoteIndex;
         public Vector3 pos;
         public float innerAngle, outerAngle;
         public LIGHT_TYPE type;
@@ -495,25 +495,25 @@ namespace Unsigned
                 {
                     uint num = fin.ReadUInt32();
                     Vector3[] pos = new Vector3[num], angle = new Vector3[num];
-                    uint[] index = new uint[num], part = new uint[num], tpe = new uint[num];
+                    uint[] currentNoteIndex = new uint[num], part = new uint[num], tpe = new uint[num];
                     uint numcams = 0;
                     for (int j = 0; j < num; j++)
                     {
-                        index[j] = fin.ReadUInt32();
+                        currentNoteIndex[j] = fin.ReadUInt32();
                         part[j] = fin.ReadUInt32();
                         tpe[j] = fin.ReadUInt32();
                         pos[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
                         angle[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
-                        if (index[j] > numcams)
-                            numcams = index[j];
+                        if (currentNoteIndex[j] > numcams)
+                            numcams = currentNoteIndex[j];
                     }
                     uint[] lens = new uint[numcams];
                     uint[] amts = new uint[numcams];
                     for (int j = 0; j < num; j++)
                     {
-                        if (lens[index[j] - 1] < part[j])
-                            lens[index[j] - 1] = part[j];
-                        amts[index[j]-1]++;
+                        if (lens[currentNoteIndex[j] - 1] < part[j])
+                            lens[currentNoteIndex[j] - 1] = part[j];
+                        amts[currentNoteIndex[j]-1]++;
                     }
                     CamBlends = new CamBlendPos[numcams];
                     for (int k = 0; k < numcams; k++)
@@ -526,12 +526,12 @@ namespace Unsigned
                     //fill it up
                     for ( int k = 0; k < num; k++)
                     {
-                        CamBlends[index[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[k];
-                        CamBlends[index[k]-1].marks[amts[index[k]-1]-1] = part[k] / (float)lens[index[k]-1];
-                        CamBlends[index[k]-1].pos[amts[index[k]-1] - 1] = pos[k];
-                        CamBlends[index[k]-1].target[amts[index[k]-1] - 1] = angle[k];
-                        CamBlends[index[k]-1].up[amts[index[k]-1] - 1] = Vector3.Up;
-                        amts[index[k]-1]--;
+                        CamBlends[currentNoteIndex[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[k];
+                        CamBlends[currentNoteIndex[k]-1].marks[amts[currentNoteIndex[k]-1]-1] = part[k] / (float)lens[currentNoteIndex[k]-1];
+                        CamBlends[currentNoteIndex[k]-1].pos[amts[currentNoteIndex[k]-1] - 1] = pos[k];
+                        CamBlends[currentNoteIndex[k]-1].target[amts[currentNoteIndex[k]-1] - 1] = angle[k];
+                        CamBlends[currentNoteIndex[k]-1].up[amts[currentNoteIndex[k]-1] - 1] = Vector3.Up;
+                        amts[currentNoteIndex[k]-1]--;
                     }
                     //sort it
                     for (int k = 0; k < CamBlends.Length; k++)
@@ -566,7 +566,7 @@ namespace Unsigned
                     for (int j = 0; j < num; j++)
                     {
                         lights[j].on = 0f;
-                        lights[j].index = fin.ReadUInt32();
+                        lights[j].currentNoteIndex = fin.ReadUInt32();
                         lights[j].type = (DLight.LIGHT_TYPE)fin.ReadInt32();
                         lights[j].innerAngle = fin.ReadSingle();
                         lights[j].outerAngle = fin.ReadSingle();

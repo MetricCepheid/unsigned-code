@@ -13,7 +13,7 @@ namespace Unsigned
         /// The XNA PlayerIndex of this controller 
         /// (which green light in the xbox360 ring is on)
         /// </summary>
-        private PlayerIndex index;
+        private PlayerIndex currentNoteIndex;
 
         /// <summary>
         /// Stores the previous state for buffered input
@@ -105,13 +105,21 @@ namespace Unsigned
                         return true;
                     return false;
                 }
+            case PeripheralButton.SELECT:
+                {
+                    if (currentState.Buttons.Back == ButtonState.Pressed)
+                        return true;
+                    else if (currentState.ThumbSticks.Right.Y > 0.75f)
+                        return true;
+                    return false;
+                }
             }
             throw new ArgumentException("Invalid Button");
         }
 
         public override bool IsConnected()
         {
-            return GamePad.GetCapabilities(index).IsConnected;
+            return GamePad.GetCapabilities(currentNoteIndex).IsConnected;
         }
 
         public override Peripheral[] GetControllers()
@@ -128,7 +136,7 @@ namespace Unsigned
                 if (c.IsConnected)
                 {
                     ret[k] = new Xbox360Peripheral();
-                    ret[k].index = (PlayerIndex)i;
+                    ret[k].currentNoteIndex = (PlayerIndex)i;
                     if (c.GamePadType == GamePadType.Guitar || c.GamePadType == (GamePadType)7)
                         ret[k].pType = PeripheralType.GUITAR;
                     else if (c.GamePadType == GamePadType.DrumKit)
@@ -145,12 +153,16 @@ namespace Unsigned
 
         public override void Query()
         {
-            currentState = GamePad.GetState(index);
+            currentState = GamePad.GetState(currentNoteIndex);
 
             if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.CONFIRM] = true;
             else
                 bufferedMap[(int)PeripheralButton.CONFIRM] = false;
+            if (currentState.Buttons.B == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.BACK] = true;
+            else
+                bufferedMap[(int)PeripheralButton.BACK] = false;
             if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.FRET0] = true;
             else
@@ -159,6 +171,18 @@ namespace Unsigned
                 bufferedMap[(int)PeripheralButton.FRET1] = true;
             else
                 bufferedMap[(int)PeripheralButton.FRET1] = false;
+            if (currentState.Buttons.Y == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.FRET2] = true;
+            else
+                bufferedMap[(int)PeripheralButton.FRET2] = false;
+            if (currentState.Buttons.X == ButtonState.Pressed && previousState.Buttons.B == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.FRET3] = true;
+            else
+                bufferedMap[(int)PeripheralButton.FRET3] = false;
+            if (currentState.Buttons.LeftShoulder == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.FRET4] = true;
+            else
+                bufferedMap[(int)PeripheralButton.FRET4] = false;
             if (currentState.DPad.Up == ButtonState.Pressed && previousState.DPad.Up == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.UP] = true;
             else
@@ -167,6 +191,10 @@ namespace Unsigned
                 bufferedMap[(int)PeripheralButton.DOWN] = true;
             else
                 bufferedMap[(int)PeripheralButton.DOWN] = false;
+            if (currentState.Buttons.Back == ButtonState.Pressed && previousState.DPad.Down == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.SELECT] = true;
+            else
+                bufferedMap[(int)PeripheralButton.SELECT] = false;
 
             previousState = currentState;
         }
