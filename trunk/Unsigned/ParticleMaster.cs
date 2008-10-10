@@ -128,6 +128,9 @@ namespace Unsigned
         {
             CheckGenerateArray(board);
 
+            if (note == 0)
+                return;
+
             if (density >= 1)
                 density = (float)((int)density);
             else
@@ -145,6 +148,8 @@ namespace Unsigned
             for (noteage = 0; noteage < board.GetBoardType().NumTracks; noteage++)
                 if ((note & (((ulong)1) << noteage)) > 0)
                     break;
+            if (noteage >= board.GetBoardType().NumTracks)
+                return;
             Random r = Global.random;
 
             ShatterSpark[] sparkArr = sparks[board];

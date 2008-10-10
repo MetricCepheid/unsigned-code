@@ -335,6 +335,7 @@ namespace Unsigned
             for (int i = 0; i < drums.fills.Length; i++)
             {
                 drums.fills[i] = new Fill(reader.ReadUInt32(), reader.ReadUInt32());
+                drums.fills[i].len = drums.fills[i].len - drums.fills[i].time;
             }
             drums.diffSets = new SongData.DifficultySet[4];
             for (int i = 0; i < 4; i++)
