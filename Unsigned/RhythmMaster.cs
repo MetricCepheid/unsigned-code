@@ -288,11 +288,6 @@ namespace Unsigned
             return songData;
         }
 
-        internal void AddSparks(ulong note, Board board)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
         internal float GetMeasureProgress()
         {
             throw new Exception("The method or operation is not implemented.");

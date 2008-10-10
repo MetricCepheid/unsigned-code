@@ -43,6 +43,8 @@ namespace Unsigned
         public ulong AddPressedDrums(Instrument instr, ulong pressed)
         {
             ulong ret = 0;
+            if (pressed == 0)
+                return 0;
             for (int i = 0; i < instr.NumTracks; i++)
             {
                 if ((pressed & (((ulong)1) << i)) != 0 && (this.pressed & (((ulong)1) << i)) == 0)
@@ -56,7 +58,10 @@ namespace Unsigned
         public bool IsGood(Instrument instr, bool HOPOable)
         {
             if(!instr.NeedsStrum)
-                return (pressed) == (type);
+                if(pressed!=0)
+                    return (pressed) == (type);
+                else
+                    return (pressed) == (type);
             if ((instr.CanHOPO && HOPOable && (type&(((ulong)1)<<instr.NumTracks))!=0) || strummed)
                 return good;
             return false;
@@ -645,7 +650,12 @@ namespace Unsigned
 
                 if (GetBoardType().RPEnableType == Instrument.RockPowerEnableTypes.FILL)
                 {
-                    if (FillIndex < Fills.Length && rm.GetCurrentTime() > Fills[FillIndex].end)
+                    if ((StarPowerAmount < 0.5 || SPActivated) &&
+                        (FillIndex < Fills.Length && rm.GetCurrentTime()*1000 > Fills[FillIndex].time))
+                    {
+                        FillIndex++;
+                    }
+                    if (FillIndex < Fills.Length && rm.GetCurrentTime()*1000 > Fills[FillIndex].end)
                     {
                         if (SPDelayStart)
                         {
@@ -656,18 +666,18 @@ namespace Unsigned
                     }
                     if (StarPowerAmount >= 0.5 && !SPActivated && FillIndex < Fills.Length && rm.GetCurrentTime()*1000 >= Fills[FillIndex].time && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
                     {
-                        rm.AddSparks(newPressed, this);
+                        ParticleMaster.GetSingleton().AddSparks(newPressed, this, 10);
                         for (int i = 0; i < 5; i++)
                             if ((newPressed & (((ulong)1) << i)) != 0)
                             {
                                 popupSpeed[i] += 100f;
-                                Fills[FillIndex].amount += 1f / (((Fills[FillIndex].len) / 1000f) * 7);
+                                Fills[FillIndex].amount += 1f / (((Fills[FillIndex].len) / 1000f) * 6);
                                 Fills[FillIndex].amount = Math.Min(Fills[FillIndex].amount, 1);
                             }
-                        while (Notes[currentNoteIndex].time <= Fills[FillIndex].end+100)
-                        { currentNoteIndex++; myResults.hitNotes++; }
+                        while (Notes[currentNoteIndex].time <= Fills[FillIndex].end + 100)
+                        { myResults.hitNotes++; for (int q = 0; q < GetBoardType().NumTracks; q++) Notes[currentNoteIndex].visible[q] = NoteSet.VIS_STATE.INVISIBLE; currentNoteIndex++; }
                         if (rm.GetCurrentTime()*1000 >= (Fills[FillIndex].end) - 100 && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
-                            if ((newPressed | 1) != 0)
+                            if ((newPressed & 0x8) != 0)
                                 if (Fills[FillIndex].amount >= 1)
                                     SPDelayStart = true;
                     }
@@ -1291,21 +1301,21 @@ namespace Unsigned
             }
 
             // Draw Board Fills
-            if ((GetBoardType().RPEnableType&Instrument.RockPowerEnableTypes.FILL)!=0)
-                for (int k = 0; k < Fills.Length; k++)
+            if ((GetBoardType().RPEnableType&Instrument.RockPowerEnableTypes.FILL)!=0 && StarPowerAmount>=0.5f && !SPActivated)
+            {
+                int k = FillIndex;
+                float halfMaxWidth = rtBoard.Width / (float)(GetBoardType().NumDrawnTracks*2);
+                if (!Fills[k].hitGreen)
                 {
-                    float halfMaxWidth = rtBoard.Width / (float)(GetBoardType().NumDrawnTracks*2);
-                    if (!Fills[k].hitGreen)
+                    float y1 = GetBoardPos(Fills[k].end / 1000.0f, 1 - ratio) * rtBoard.Height;
+                    float y2 = GetBoardPos(Fills[k].time / 1000.0f, 1 - ratio) * rtBoard.Height;
+                    for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
                     {
-                        float y1 = GetBoardPos(Fills[k].end, 1/ratio);
-                        float y2 = GetBoardPos(Fills[k].time, 1/ratio);
-                        for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
-                        {
-                            float center = ((r * 2 + 1) / (float)(GetBoardType().NumDrawnTracks*2)) * rtBoard.Width;
-                            spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * Fills[k].amount)), (int)y1, (int)(2 * (halfMaxWidth * Fills[k].amount)), (int)((y2 - y1) + 0.5f)), Global.FretColors[GetBoardType().colorIndices[r]]);
-                        }
+                        float center = ((r * 2 + 1) / (float)(GetBoardType().NumDrawnTracks*2)) * rtBoard.Width;
+                        spritebatch.Draw(Board.drumfillTex, new Rectangle((int)(center - (halfMaxWidth * Fills[k].amount)), (int)y1, (int)(2 * (halfMaxWidth * ((Fills[k].amount*0.8f)+0.2f))), (int)((y2 - y1) + 0.5f)), Global.FretColors[GetBoardType().colorIndices[r]]);
                     }
                 }
+            }
 
             // Draw metainfo under frets
             if (!Global.DemoMode)
@@ -1431,6 +1441,10 @@ namespace Unsigned
                     whited = false;
                     for (int p = Math.Max(currentNoteIndex-32,0); p < Notes.Length; p++)
                     {
+                        if (StarPowerAmount >= 0.5f && !SPActivated)
+                            if (FillIndex < Fills.Length)
+                                if(Notes[p].time >= Fills[FillIndex].time && Notes[p].time <= Fills[FillIndex].end)
+                                    continue;
                         bool IsWhite = false;
                         for(int i=0;i<RPPhrases.Length;i++)
                             if (Notes[p].time >= RPPhrases[i].time && Notes[p].time <= RPPhrases[i].end)
@@ -1544,6 +1558,91 @@ namespace Unsigned
                         }
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         
+                    }
+                }
+                if((GetBoardType().RPEnableType& Instrument.RockPowerEnableTypes.FILL)!=0)
+                if(FillIndex<Fills.Length && Fills[FillIndex].time/1000f<rtm.GetCurrentTime()+eFade)
+                for(int r=3;r<4;r++)
+                {
+                    if (r < GetBoardType().NumDrawnTracks)
+                        effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
+                    
+                    {
+                        // how far along the board... should be called Z probly
+                        float ct = (float)rtm.GetCurrentTime();
+                        float Y = (((Fills[FillIndex].end-50) / 1000f) - ct);
+                        if (Y > eFade)
+                            break;
+
+                        Matrix matIdentity, matTransl, matScale, matOrbit;
+                        matIdentity = Matrix.Identity;
+                        matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF) + 0.02f, 0f);
+
+                        matOrbit = Matrix.CreateTranslation((((((GetBoardType().NumDrawnTracks-1) * 2) + 1) / (float)(GetBoardType().NumDrawnTracks * 2)) - 0.5f) * lefty * Board.width * 2.0f, 0f, -(Board.length * Y) - Board.zeroZ) * fling;
+
+                        matOrbit = Matrix.CreateRotationX(-Y * MathHelper.Pi) * matOrbit;
+                        float sc = (Fills[FillIndex].amount - 0.8f) * 5;
+                        if (sc > 1)
+                            sc = 1;
+                        if (sc < 0)
+                            break;
+                        matScale = Matrix.CreateScale(new Vector3(sc * 0.125f * Board.width, 2 * sc * 0.05f * Board.length, 2 * sc * 0.05f * Board.length));
+
+                        float alpha;
+                        if (Y < Board.sFade)
+                            alpha = 1;
+                        else if (Y < Board.eFade)
+                            alpha = 1 - ((Y - Board.sFade) / (Board.eFade - Board.sFade));
+                        else
+                            alpha = 0;
+
+
+                        effect.Alpha = alpha;
+
+                        // identity, scale, rotate, orbit(translate & rotate), translate
+                        effect.World = matIdentity * matScale * matOrbit * matTransl;
+
+
+
+                        effect.CommitChanges();
+
+                        GraphicsDeviceManager graphics = rm.graphics;
+                        // 5: draw object - select vertex type, primitive type, # of primitives
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                        
+                        foreach (ModelMesh mesh in mdlNoteInside.Meshes)
+                        {
+                            foreach (ModelMeshPart part in mesh.MeshParts)
+                            {
+                                //effect.Parameters["diffuseTexture"].SetValue(texWhite);
+                                effect.CommitChanges();
+                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                            }
+                        }
+                        effect.SpecularPower = 32f;
+                        effect.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
+                        effect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
+                        foreach (ModelMesh mesh in mdlNote.Meshes)
+                        {
+                            foreach (ModelMeshPart part in mesh.MeshParts)
+                            {
+
+                                //effect.Parameters["diffuseTexture"].SetValue(texWhite);
+                                effect.CommitChanges();
+                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
+                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
+                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
+                            }
+                        }
+                        effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
+                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
                     }
                 }
             }
