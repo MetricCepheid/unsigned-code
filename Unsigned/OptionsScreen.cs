@@ -4,12 +4,13 @@ using System.Text;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using UnsignedPeripheralPlugins;
 
 namespace Unsigned
 {
     class OptionsScreen : BaseState
     {
-        private Texture2D whitishTex, whitishBM;
+        private Texture2D concrTex, concrBM;
         private Texture2D tamp1, tamp2;
         private Texture2D tknob, ttape;
         private Texture2D tledon, tledoff, tswitchon, tswitchoff;
@@ -19,10 +20,28 @@ namespace Unsigned
         private String[] guiStyle = { "Unsigned", "Rock Band" };
 
         private float optionsOffset = 0;
-        private int optionsSelected;
-        private bool optionsSelectFull;
+        private OPTIONS optionsSelected;
+
+        private float knobBroken;
 
         private float intro;
+
+        private int rockLevel;
+
+        private enum OPTIONS
+        {
+            OPT_ROCKLEVEL=1,
+            OPT_RESOLUTION,
+            OPT_GUISTYLE,
+            OPT_RENDERLEVEL,
+            OPT_RENDER3D,
+            OPT_FULLSCREEN,
+            OPT_SHOWFPS,
+            MAX,
+        };
+
+        private int resIndex;
+        private bool fullScreen;
 
         public OptionsScreen()
         {
@@ -31,16 +50,97 @@ namespace Unsigned
 
         public override void Load(ContentManager content)
         {
-
+            mamp1 = content.Load<Model>("meshes\\amp1");
+            tamp1 = content.Load<Texture2D>("graphics\\amp");
+            mamp2 = content.Load<Model>("meshes\\amppanel");
+            tamp2 = content.Load<Texture2D>("graphics\\amppanel");
+            tknob = content.Load<Texture2D>("graphics\\knob");
+            ttape = content.Load<Texture2D>("graphics\\tape");
+            tledon = content.Load<Texture2D>("graphics\\ledon");
+            tledoff = content.Load<Texture2D>("graphics\\ledoff");
+            tswitchon = content.Load<Texture2D>("graphics\\switchon");
+            tswitchoff = content.Load<Texture2D>("graphics\\switchoff");
+            concrTex = content.Load<Texture2D>("graphics\\concr");
+            concrBM = content.Load<Texture2D>("graphics\\concrBM");
+            resIndex = GameSettings.resIndex;
+            fullScreen = GameSettings.fullScreen;
+            optionsSelected = OPTIONS.OPT_RESOLUTION;
+            rockLevel = 11;
         }
 
         public override void Unload()
         {
-
+            GameSettings.resIndex = resIndex;
+            GameSettings.fullScreen = fullScreen;
         }
 
         public override void Update(GameTime gameTime)
         {
+            Peripheral[] conts = PeripheralManager.GetSingleton().GetPeripherals();
+
+            int offset = 0;
+            bool green = false, red = false;
+            for (int i = 0; i < conts.Length; i++)
+            {
+                if (conts[i].WasPressed(PeripheralButton.DOWN))
+                    offset++;
+                if (conts[i].WasPressed(PeripheralButton.UP))
+                    offset--;
+                if (conts[i].WasPressed(PeripheralButton.CONFIRM))
+                    green = true;
+                if (conts[i].WasPressed(PeripheralButton.BACK))
+                    red = true;
+            }
+            optionsSelected += offset;
+            if (optionsSelected < (OPTIONS)1)
+                optionsSelected = OPTIONS.MAX - 1;
+            if (optionsSelected >= OPTIONS.MAX)
+                optionsSelected = (OPTIONS)1;
+
+            if (green)
+            {
+                switch (optionsSelected)
+                {
+                    case OPTIONS.OPT_ROCKLEVEL:
+                        knobBroken = 5;
+                        break;
+                    case OPTIONS.OPT_RESOLUTION:
+                        resIndex++;
+                        if (resIndex >= GameSettings.resX.Length)
+                            resIndex = 0;
+                        else if (GameSettings.resX[resIndex] > RenderMaster.GetSingleton().graphics.GraphicsDevice.DisplayMode.Width
+                                || GameSettings.resY[resIndex] > RenderMaster.GetSingleton().graphics.GraphicsDevice.DisplayMode.Height)
+                            resIndex = 0;
+                        break;
+                    case OPTIONS.OPT_GUISTYLE:
+                        if (GameSettings.guiStyle == GameUIMaster.GUIStyle.RB)
+                            GameSettings.guiStyle = GameUIMaster.GUIStyle.UN;
+                        else if (GameSettings.guiStyle == GameUIMaster.GUIStyle.UN)
+                            GameSettings.guiStyle = GameUIMaster.GUIStyle.RB;
+                        break;
+                    case OPTIONS.OPT_RENDERLEVEL:
+                        GameSettings.renderLevel++;
+                        if (GameSettings.renderLevel > 10)
+                            GameSettings.renderLevel = 1;
+                        break;
+                    case OPTIONS.OPT_RENDER3D:
+                        GameSettings.render3D = !GameSettings.render3D;
+                        break;
+                    case OPTIONS.OPT_FULLSCREEN:
+                        fullScreen = !fullScreen;
+                        break;
+                    case OPTIONS.OPT_SHOWFPS:
+                        GameSettings.ShowFPS = !GameSettings.ShowFPS;
+                        break;
+                }
+            }
+            if (red)
+                UnsignedGame.GetSingleton().PopState();
+
+            optionsOffset = (((int)optionsSelected-3) * 0.2f) + (optionsOffset * 0.8f);
+
+            if (knobBroken > 0)
+                knobBroken -= (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
         public override void Render(GameTime gameTime)
         {
@@ -112,8 +212,9 @@ namespace Unsigned
 
                 intro += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 float introlerp = (Math.Min(intro, 0.5f) * 2);
-                Vector3 campos = ((1 - introlerp) * (new Vector3(-8, 112, 24))) + ((introlerp) * (new Vector3(-2.2f, 106.3f, 1f)));
-                Matrix matView = Matrix.CreateLookAt(campos, new Vector3(-2.2f, 106.3f, 0), new Vector3(0, 1, 0));
+                Vector3 campos = ((1 - introlerp) * (new Vector3(-8, 112, 24))) + ((introlerp) * (new Vector3(-0.2f+(optionsOffset*0.2f), 106.3f, 1f)));
+                Matrix matView = Matrix.CreateLookAt(campos, new Vector3(-0.2f + (optionsOffset * 0.2f), 106.3f, 0), new Vector3(0, 1, 0));
+                rm.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, rm.graphics.GraphicsDevice.Viewport.Height / (float)rm.graphics.GraphicsDevice.Viewport.Height, 1.0f, 50);
                 //render the background graphics
                 rm.SetViewMatrix(matView);
 
@@ -125,8 +226,8 @@ namespace Unsigned
 
                     effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                     effect.Parameters["wRot"].SetValue(matRot);
-                    effect.Parameters["diffuseTexture"].SetValue(whitishTex);
-                    effect.Parameters["bumpTexture"].SetValue(whitishBM);
+                    effect.Parameters["diffuseTexture"].SetValue(concrTex);
+                    effect.Parameters["bumpTexture"].SetValue(concrBM);
                     effect.Parameters["shininess"].SetValue(0.25f);
                     effect.Parameters["SpecularEnabled"].SetValue(false);
                     effect.Parameters["vertexAlpha"].SetValue(true);
@@ -148,8 +249,8 @@ namespace Unsigned
 
                     effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                     effect.Parameters["wRot"].SetValue(matRot);
-                    effect.Parameters["diffuseTexture"].SetValue(whitishTex);
-                    effect.Parameters["bumpTexture"].SetValue(whitishBM);
+                    effect.Parameters["diffuseTexture"].SetValue(concrTex);
+                    effect.Parameters["bumpTexture"].SetValue(concrBM);
                     effect.Parameters["shininess"].SetValue(0.25f);
                     effect.Parameters["SpecularEnabled"].SetValue(false);
                     effect.Parameters["vertexAlpha"].SetValue(true);
@@ -171,8 +272,8 @@ namespace Unsigned
 
                     effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                     effect.Parameters["wRot"].SetValue(matRot);
-                    effect.Parameters["diffuseTexture"].SetValue(whitishTex);
-                    effect.Parameters["bumpTexture"].SetValue(whitishBM);
+                    effect.Parameters["diffuseTexture"].SetValue(concrTex);
+                    effect.Parameters["bumpTexture"].SetValue(concrBM);
                     effect.Parameters["shininess"].SetValue(0.25f);
                     effect.Parameters["SpecularEnabled"].SetValue(false);
                     effect.Parameters["vertexAlpha"].SetValue(true);
@@ -230,63 +331,73 @@ namespace Unsigned
                 pass.End();
             }
             effect.End();
-            float xscale = 1, scale = 1;
+            float xscale = -GameSettings.windowwidth*0.2f, scale = 1;
             rm.spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
 
+            {//rocklev
+                float x = 0.2f * (int)OPTIONS.OPT_ROCKLEVEL, y = 0.6f;
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, "Rock Level", new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.DrawString(Global.DefaultFont, "" + rockLevel, new Vector2(((x + 0.1f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_ROCKLEVEL ? Color.White : Color.Gray, (rockLevel / 10f) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+            }
             {//res
-                int resIndex = -1;
-                for (int i = 0; i < GameSettings.resY.Length; i++)
-                {
-                    if (GameSettings.resY[i] == GameSettings.windowheight)
-                        for (int k = i; k < GameSettings.resX.Length; k++)
-                            if (GameSettings.resX[k] == GameSettings.windowwidth)
-                                resIndex = k;
-                }
-                if (resIndex == -1)
-                    resIndex = 0;
-                float x = 0.2f, y = 0.3f;
+                float x = 0.2f*(int)OPTIONS.OPT_RESOLUTION, y = 0.3f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "Resolution", new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
-                rm.spritebatch.DrawString(Global.DefaultFont, "" + GameSettings.resX[GameSettings.resIndex] + "x" + GameSettings.resY[GameSettings.resIndex], new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, ((float)resIndex / (GameSettings.resY.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.DrawString(Global.DefaultFont, "" + GameSettings.resX[resIndex] + "x" + GameSettings.resY[resIndex], new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_RESOLUTION ? Color.White : Color.Gray, (resIndex / (float)(GameSettings.resY.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//gui
-                float x = 0.4f, y = 0.6f;
+                float x = 0.2f * (int)OPTIONS.OPT_GUISTYLE, y = 0.6f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "HUD Style", new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, guiStyle[(int)GameSettings.guiStyle], new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, ((float)GameSettings.guiStyle / (guiStyle.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_GUISTYLE ? Color.White : Color.Gray, ((float)GameSettings.guiStyle / (guiStyle.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//gfxqual
-                float x = 0.6f, y = 0.3f;
+                float x = 0.2f * (int)OPTIONS.OPT_RENDERLEVEL, y = 0.3f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.2f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "Graphics Level", new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, "" + GameSettings.renderLevel, new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, ((float)GameSettings.renderLevel / (10f - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_RENDERLEVEL ? Color.White : Color.Gray, ((float)(GameSettings.renderLevel-1) / (10f - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//3don
-                float x = 0.8f, y = 0.6f;
+                float x = 0.2f * (int)OPTIONS.OPT_RENDER3D, y = 0.6f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "3D Mode?", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.render3D ? "On" : "Off", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(GameSettings.render3D ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(GameSettings.render3D ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_RENDER3D ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.render3D ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//fulls
-                float x = 1f, y = 0.4f;
+                float x = 0.2f * (int)OPTIONS.OPT_FULLSCREEN, y = 0.4f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "Full Screen?", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
-                rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.fullScreen ? "On" : "Off", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(GameSettings.fullScreen ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(GameSettings.fullScreen ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.DrawString(Global.DefaultFont, fullScreen ? "On" : "Off", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(fullScreen ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_FULLSCREEN ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(fullScreen ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
             }
             {//fps
-                float x = 1.2f, y = 0.6f;
+                float x = 0.2f * (int)OPTIONS.OPT_SHOWFPS, y = 0.6f;
                 rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.15f * GameSettings.windowwidth), (int)(0.1f * GameSettings.windowheight)), Color.White);
                 rm.spritebatch.DrawString(Global.DefaultFont, "Show FPS?", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.ShowFPS ? "On" : "Off", new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
-                rm.spritebatch.Draw(GameSettings.ShowFPS ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, Color.White, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+                rm.spritebatch.Draw(GameSettings.ShowFPS ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_SHOWFPS ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.ShowFPS ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale * (GameSettings.windowwidth / 1024f), SpriteEffects.None, 0);
+            }
+
+            if (knobBroken > 4)
+            {
+                rm.spritebatch.DrawString(Global.DefaultFont, "This knob appears to be broken", new Vector2(GameSettings.windowwidth * 0.1f, GameSettings.windowheight * 0.7f), new Color(Global.Orange1.R,Global.Orange1.G,Global.Orange1.B,(byte)((1-(knobBroken-4))*255)));
+            }
+            else if (knobBroken > 1)
+            {
+                rm.spritebatch.DrawString(Global.DefaultFont, "This knob appears to be broken", new Vector2(GameSettings.windowwidth * 0.1f, GameSettings.windowheight * 0.7f), Global.Orange1);
+            }
+            else if (knobBroken > 0)
+            {
+                rm.spritebatch.DrawString(Global.DefaultFont, "This knob appears to be broken", new Vector2(GameSettings.windowwidth * 0.1f, GameSettings.windowheight * 0.7f), new Color(Global.Orange1.R, Global.Orange1.G, Global.Orange1.B, (byte)(knobBroken * 255)));
             }
 
             rm.spritebatch.Draw(GameUIMaster.GetSingleton().texButtonGreen, new Rectangle((int)(0.1f * GameSettings.windowwidth), (int)(0.80f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight)), Color.White);

@@ -217,5 +217,11 @@ namespace Unsigned
             }
             return 0.0f;
         }
+
+        private static String[] suppInstr = { "LGT", "RGT", "BAS", "SET", "LVX", "BVX", "BVA", "BVB" };
+        public override String[] GetSupportedInstruments()
+        {
+            return suppInstr;
+        }
     }
 }

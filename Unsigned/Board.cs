@@ -228,8 +228,6 @@ namespace Unsigned
         private float multiplier;
         // a float for more accurate wave addition
         private float score;
-        // false is righty, true is lefty
-        private bool LeftySwitch = false;
         // for fret boards popping up on strum/bang
         private float[] popup, popupSpeed;
         // StarPowerAmount is the actual value, SPADisplay follows for "filling up" and "draining"
@@ -339,7 +337,7 @@ namespace Unsigned
 
         public bool IsLefty
         {
-            get { return LeftySwitch; }
+            get { return controller.LeftySwitch; }
         }
 
 #endregion
@@ -1079,11 +1077,6 @@ namespace Unsigned
             StarPowerAmount -= 0.5f;
         }
 
-        internal void ToggleLefty()
-        {
-            LeftySwitch = !LeftySwitch;
-        }
-
         /// <summary>
         /// Turns a "time" into a position on the board
         /// </summary>
@@ -1441,10 +1434,11 @@ namespace Unsigned
                     whited = false;
                     for (int p = Math.Max(currentNoteIndex-32,0); p < Notes.Length; p++)
                     {
-                        if (StarPowerAmount >= 0.5f && !SPActivated)
-                            if (FillIndex < Fills.Length)
-                                if(Notes[p].time >= Fills[FillIndex].time && Notes[p].time <= Fills[FillIndex].end)
-                                    continue;
+                        if((GetBoardType().RPEnableType & Instrument.RockPowerEnableTypes.FILL)!=0)
+                            if (StarPowerAmount >= 0.5f && !SPActivated)
+                                if (FillIndex < Fills.Length)
+                                    if(Notes[p].time >= Fills[FillIndex].time && Notes[p].time <= Fills[FillIndex].end)
+                                        continue;
                         bool IsWhite = false;
                         for(int i=0;i<RPPhrases.Length;i++)
                             if (Notes[p].time >= RPPhrases[i].time && Notes[p].time <= RPPhrases[i].end)

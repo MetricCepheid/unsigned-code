@@ -35,22 +35,10 @@ namespace Unsigned
 
         private Stack<BaseState> currentState;
 
-        public static bool TEST_SONG = false;
-
-
         GraphicsDeviceManager graphics;
         ContentManager content;
-        public static Random r;
+
         private bool demomodepress = false;
-
-        private Texture2D gradientMask;
-
-        SpriteFont sfMenu;
-        int menuSnakeRotOffset;
-        bool[][] diffExists;
-
-
-
 
         public static UnsignedGame GetSingleton() { return SINGLETON; }
 
@@ -61,19 +49,17 @@ namespace Unsigned
 
             SINGLETON = this;
 
-            r = new Random((int)DateTime.Now.Ticks);
-
             content.RootDirectory = "";
         }
 
         protected override void Initialize()
         {
-            Configurate();
-
             RenderMaster.CreateSingleton();
             RenderMaster.GetSingleton().graphics = graphics;
             RenderMaster.GetSingleton().spritebatch = new SpriteBatch(graphics.GraphicsDevice);
             RenderMaster.GetSingleton().Load(content);
+
+            Configurate();
 
             GameUIMaster.CreateSingleton();
             GameUIMaster.GetSingleton().Load(content);
@@ -179,10 +165,7 @@ namespace Unsigned
                     if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("3dbkground"))
                     {
                         int val = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
-                        if (val == 0)
-                            GameSettings.renderLevel = 0;
-                        else
-                            GameSettings.renderLevel = 10;
+                        GameSettings.renderLevel = Math.Max(1,Math.Min(10,val));
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("wavedetail"))
                     {
@@ -190,8 +173,12 @@ namespace Unsigned
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("resolution"))
                     {
-                        GameSettings.windowwidth = Int32.Parse(str.Substring(str.IndexOf('=') + 1, Math.Max(str.IndexOf('x'), str.IndexOf('X')) - (str.IndexOf('=') + 1)).Trim());
-                        GameSettings.windowheight = Int32.Parse(str.Substring(Math.Max(str.IndexOf('x'), str.IndexOf('X')) + 1).Trim());
+                        int windowwidth = Int32.Parse(str.Substring(str.IndexOf('=') + 1, Math.Max(str.IndexOf('x'), str.IndexOf('X')) - (str.IndexOf('=') + 1)).Trim());
+                        int windowheight = Int32.Parse(str.Substring(Math.Max(str.IndexOf('x'), str.IndexOf('X')) + 1).Trim());
+                        GameSettings.resIndex = 0;
+                        for (int i = 0; i < GameSettings.resX.Length; i++)
+                            if (GameSettings.resX[i] == windowwidth && GameSettings.resY[i] == windowheight)
+                                GameSettings.resIndex = i;
                     }
                     else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("fullscreen"))
                     {
@@ -243,14 +230,12 @@ namespace Unsigned
             sfDrummer = content.Load<SpriteFont>("fonts\\drummer");
             sfSinger = content.Load<SpriteFont>("fonts\\singer");
              */
-            sfMenu = content.Load<SpriteFont>("fonts\\menu");
             Global.texDefaultBM = content.Load<Texture2D>("graphics\\blankbm");
             Global.DefaultFont = content.Load<SpriteFont>("BasicFont");
             Global.BigFont = content.Load<SpriteFont>("fonts\\bigfont");
             Global.SmallFont = content.Load<SpriteFont>("fonts\\smallfont");
             Global.HandwrittenFont = content.Load<SpriteFont>("fonts\\manager");
             Global.gradient = content.Load<Texture2D>("graphics\\gradient");
-            gradientMask = content.Load<Texture2D>("graphics\\gradientMask");
             GameUIMaster.GetSingleton().texButtonGreen = content.Load<Texture2D>("graphics\\large_face_a");
             GameUIMaster.GetSingleton().texButtonRed = content.Load<Texture2D>("graphics\\large_face_b");
             GameUIMaster.GetSingleton().texButtonYellow = content.Load<Texture2D>("graphics\\large_face_y");
@@ -260,7 +245,6 @@ namespace Unsigned
 
         protected override void UnloadContent()
         {
-            sfMenu = null;
             Global.texDefaultBM.Dispose();
             Global.texDefaultBM = null;
             Global.DefaultFont = null;
@@ -269,8 +253,6 @@ namespace Unsigned
             Global.HandwrittenFont = null;
             Global.gradient.Dispose();
             Global.gradient = null;
-            gradientMask.Dispose();
-            gradientMask = null;
             GameUIMaster.DestroySingleton();
             Global.texWhite.Dispose();
             Global.texWhite = null;
@@ -506,17 +488,7 @@ namespace Unsigned
                 greyishTex[3]= content.Load<Texture2D>("graphics\\greyishH");
                 greyishTex[4]= content.Load<Texture2D>("graphics\\greyishX");
                 whitishBM = content.Load<Texture2D>("graphics\\whitishbm");
-                mamp1 = content.Load<Model>("meshes\\amp1");
-                tamp1 = content.Load<Texture2D>("graphics\\amp");
-                mamp2 = content.Load<Model>("meshes\\amppanel");
-                tamp2 = content.Load<Texture2D>("graphics\\amppanel");
-                tknob = content.Load<Texture2D>("graphics\\knob");
-                ttape = content.Load<Texture2D>("graphics\\tape");
-                tledon = content.Load<Texture2D>("graphics\\ledon");
-                tledoff = content.Load<Texture2D>("graphics\\ledoff");
-                tswitchon = content.Load<Texture2D>("graphics\\switchon");
-                tswitchoff = content.Load<Texture2D>("graphics\\switchoff");
-                mQuarter = content.Load<Model>("meshes\\quarter");
+                
                 mPick = content.Load<Model>("meshes\\pick");
                 mPoD = content.Load<Model>("meshes\\pod");
                 texQuarter = content.Load<Texture2D>("graphics\\quarter");
@@ -612,8 +584,6 @@ namespace Unsigned
         {
             PeripheralManager.GetSingleton().QueryAll();
             //Thread.Sleep(1);
-            GameSettings.windowheight = graphics.GraphicsDevice.Viewport.Height;
-            GameSettings.windowwidth = graphics.GraphicsDevice.Viewport.Width;
 
             if (demomodepress != Keyboard.GetState().IsKeyDown(Keys.O))
             {
@@ -634,6 +604,8 @@ namespace Unsigned
 
         protected override void Draw(GameTime gameTime)
         {
+            if (currentState.Peek() is PauseScreen)
+                currentState.ToArray()[1].Render(gameTime);
             currentState.Peek().Render(gameTime);
 
             base.Draw(gameTime);
@@ -1065,6 +1037,16 @@ namespace Unsigned
         {
             while (currentState.Count > 0)
                 PopState();
+        }
+
+        internal bool IsPaused()
+        {
+            return currentState.Peek() is PauseScreen;
+        }
+
+        internal BaseState PeekState()
+        {
+            return currentState.Peek();
         }
     }
 }
