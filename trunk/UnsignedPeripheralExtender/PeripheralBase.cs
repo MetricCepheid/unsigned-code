@@ -10,6 +10,12 @@ namespace UnsignedPeripheralPlugins
         protected PeripheralType pType;
         protected String mode = "MNU";
 
+        // false is righty, true is lefty
+        // should not be modified. Only stored
+        // in this class so the option holds
+        // between songs
+        public bool LeftySwitch = false;
+
         public static void AddListener(PeripheralListener listener)
         {
             listeners.Add(listener);
@@ -76,6 +82,13 @@ namespace UnsignedPeripheralPlugins
         /// <param name="analogControl">Which control to query</param>
         /// <returns>The analog value, clamped from 0-1</returns>
         public abstract float GetAnalogValue(PeripheralAnalog analogControl);
+
+        /// <summary>
+        /// Returns an array of 3-letter instrument code-names supported
+        /// by this specific peripheral
+        /// </summary>
+        /// <returns>An array of 3-letter strings</returns>
+        public abstract String[] GetSupportedInstruments();
 
         /// <summary>
         /// Simple parsing function for the scripting

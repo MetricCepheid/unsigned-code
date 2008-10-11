@@ -69,19 +69,19 @@ namespace Unsigned
             for (int i = 0; i < 4; i++)
                 if (nugget.peripherals[i]!=null && nugget.peripherals[i].IsConnected())
                 {
-                    if (peripherals[i].WasPressed(PeripheralButton.DOWN))
+                    if (nugget.peripherals[i].WasPressed(PeripheralButton.DOWN))
                         collective--;
-                    if (peripherals[i].WasPressed(PeripheralButton.UP))
+                    if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                         collective++;
-                    if (peripherals[i].WasPressed(PeripheralButton.BACK))
+                    if (nugget.peripherals[i].WasPressed(PeripheralButton.BACK))
                         red = true;
-                    if (peripherals[i].WasPressed(PeripheralButton.SWITCH))
+                    if (nugget.peripherals[i].WasPressed(PeripheralButton.SWITCH))
                         yellow = true;
                 }
             for(int i=0;i<4;i++)
                 if (nugget.peripherals[i] != null)
                 {
-                    if (peripherals[i].WasPressed(PeripheralButton.CONFIRM))
+                    if (nugget.peripherals[i].WasPressed(PeripheralButton.CONFIRM))
                         green = true;
                     break;
                 }
@@ -89,6 +89,7 @@ namespace Unsigned
             if (yellow)
             {
                 setList.NextSortOrder();
+                chgd = true;
             }
             if (red)
             { UnsignedGame.GetSingleton().PopState(); }

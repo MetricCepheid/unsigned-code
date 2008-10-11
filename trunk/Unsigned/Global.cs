@@ -58,7 +58,7 @@ namespace Unsigned
         public const byte M_GAME = 1, M_FREESTYLE = 2;
         public static byte mode = M_GAME;
         public static Random random;
-        public static Rectangle rect256 = new Rectangle(0, 0, 256, 256);
+        public static Color Orange1 = Color.Orange;
 
         public static void Write(String output)
         {

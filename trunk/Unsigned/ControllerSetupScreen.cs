@@ -71,7 +71,7 @@ namespace Unsigned
             concrBM = content.Load<Texture2D>("graphics\\concrBM");
             hairl = content.Load<Texture2D>("graphics\\hairl");
             hairr = content.Load<Texture2D>("graphics\\hairr");
-            flameTex = content.Load<Texture2D>("graphics\\flame");
+            flameTex = content.Load<Texture2D>("graphics\\flame"); 
         }
 
         public override void Unload()

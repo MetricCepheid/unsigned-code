@@ -17,9 +17,14 @@
 			<key name="Fret4" button="G" />
 			<key name="Down" button="Down" />
 			<key name="Up" button="Up" />
+			<key name="Switch" button="D" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
 			<key name="Whammy" button="Left" />
+			<key name="Confirm" button="Enter" />
+			<key name="Confirm" button="Space" />
+			<key name="Back" button="Back" />
+			<key name="Back" button="Escape" />
 		</map>
 		<map type="BAS">
 			<key name="Fret0" button="A" />
@@ -29,9 +34,14 @@
 			<key name="Fret4" button="G" />
 			<key name="Down" button="Down" />
 			<key name="Up" button="Up" />
+			<key name="Switch" button="D" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
 			<key name="Whammy" button="Left" />
+			<key name="Confirm" button="Enter" />
+			<key name="Confirm" button="Space" />
+			<key name="Back" button="Back" />
+			<key name="Back" button="Escape" />
 		</map>
 		<map type="SET">
 			<key name="Fret0" button="A" />
@@ -40,6 +50,15 @@
 			<key name="Fret3" button="F" />
 			<key name="Fret4" button="Space" />
 			<key name="Start" button="Escape" />
+			<key name="Confirm" button="Enter" />
+			<key name="Switch" button="Space" />
+			<key name="Confirm" button="F" />
+			<key name="Back" button="A" />
+			<key name="Back" button="Back" />
+			<key name="Down" button="Down" />
+			<key name="Up" button="Up" />
+			<key name="Down" button="D" />
+			<key name="Up" button="S" />
 		</map>
 	</player>
 </keymapping>

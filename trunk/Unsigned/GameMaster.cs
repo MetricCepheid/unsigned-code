@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using UnsignedPeripheralPlugins;
 
 namespace Unsigned
 {
     class GameState : BaseState
     {
-
-        private bool IsPaused = false;
 
         SpecialEffectsSettings currentSettings;
 
@@ -35,17 +34,12 @@ namespace Unsigned
 
         public override void Update(GameTime gameTime)
         {
-            if (!IsPaused)
-            {
 
 #if !DEBUG
                 try
                 {
 #endif
                 RhythmMaster.GetSingleton().Update(gameTime);
-
-                
-
 
 #if !DEBUG
             }
@@ -63,7 +57,6 @@ namespace Unsigned
 
                 double currenttime = RhythmMaster.GetSingleton().GetCurrentTime();
 
-
                 if (currenttime >= SongAudioMaster.GetSingleton().GetSongLength().TotalSeconds)
                     UnsignedGame.GetSingleton().PushState(new ResultsScreen());
 
@@ -74,7 +67,6 @@ namespace Unsigned
                 //ProcessInput(gameTime, currenttime);
 
                 GameUIMaster.GetSingleton().Update(gameTime);
-
 
 #if !DEBUG
             }
@@ -87,11 +79,17 @@ namespace Unsigned
                 return;
             }
 #endif
-            }
-            else
-            {
-                
-            }
+                Peripheral[] peripherals = PeripheralManager.GetSingleton().GetPeripherals();
+                for (int i = 0; i < peripherals.Length; i++)
+                    if (peripherals[i].WasPressed(PeripheralButton.START))
+                    {
+                        TogglePause();
+                        if (UnsignedGame.GetSingleton().IsPaused())
+                        {
+                            (UnsignedGame.GetSingleton().PeekState() as PauseScreen).SetOwner(peripherals[i]);
+                            (UnsignedGame.GetSingleton().PeekState() as PauseScreen).SetGameState(this);
+                        }
+                    }
         }
 
         public override void Render(Microsoft.Xna.Framework.GameTime gameTime)
@@ -337,14 +335,15 @@ namespace Unsigned
 
         public void TogglePause()
         {
-            if (!IsPaused)
+            if (!UnsignedGame.GetSingleton().IsPaused())
             {
-                
+                SongAudioMaster.GetSingleton().Pause();
+                UnsignedGame.GetSingleton().PushState(new PauseScreen());
             }
             else
             {
-                IsPaused = false;
                 SongAudioMaster.GetSingleton().Resume();
+                UnsignedGame.GetSingleton().PopState();
             }
         }
     }
