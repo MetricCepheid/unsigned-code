@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using SongDataIO;
 
 namespace VocalEditor
 {
@@ -101,7 +102,7 @@ namespace VocalEditor
             return song;
         }
 
-        private bool SaveToSongData(SongData songdata)
+        public bool SaveToSongData(SongData songdata)
         {
             //first, make sure data is valid:
             // 1:sort
@@ -137,7 +138,7 @@ namespace VocalEditor
 
             SongData.Phrase[] phrases = new SongData.Phrase[notes.Count];
 
-            for (int i = 0; i < notes.Count; i++)
+            for (int i = 0; i < notes.Count-1; i++)
             {
                 phrases[i] = new SongData.Phrase();
                 phrases[i].rockpower = notes[i].overdrive;

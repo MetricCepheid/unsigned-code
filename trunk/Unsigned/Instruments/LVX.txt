@@ -10,3 +10,4 @@ CanHOPO = false
 HasSolos = false
 NeedsStrum = false
 MaxMultiplier = 4
+DiffSame = true

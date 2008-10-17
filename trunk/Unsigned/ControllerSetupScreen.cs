@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using UnsignedPeripheralPlugins;
+using SongDataIO;
 
 namespace Unsigned
 {
@@ -199,13 +200,45 @@ namespace Unsigned
                     }
                     if (nugget.peripherals[i].WasPressed(PeripheralButton.DOWN))
                     {
-                        if (nugget.instruments[i] < InstrumentMaster.GetSingleton().GetNumInstruments() - 1)
+                        nugget.instruments[i]++;
+                        if(nugget.instruments[i]>=InstrumentMaster.GetSingleton().GetNumInstruments())
+                            nugget.instruments[i]=0;
+                        String[] possibles = nugget.peripherals[i].GetSupportedInstruments();
+                        bool good = false;
+                        for(int k=0;k<possibles.Length;k++)
+                            if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                            {good = true;break;}
+                        while (!good)
+                        {
                             nugget.instruments[i]++;
+                            if (nugget.instruments[i] >= InstrumentMaster.GetSingleton().GetNumInstruments())
+                                nugget.instruments[i] = 0;
+                            good = false;
+                            for (int k = 0; k < possibles.Length; k++)
+                                if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                                { good = true; break; }
+                        }
                     }
                     if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                     {
-                        if (nugget.instruments[i] > 0)
+                        nugget.instruments[i]--;
+                        if (nugget.instruments[i] < 0)
+                            nugget.instruments[i] = InstrumentMaster.GetSingleton().GetNumInstruments() - 1;
+                        String[] possibles = nugget.peripherals[i].GetSupportedInstruments();
+                        bool good = false;
+                        for (int k = 0; k < possibles.Length; k++)
+                            if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                            { good = true; break; }
+                        while (!good)
+                        {
                             nugget.instruments[i]--;
+                            if (nugget.instruments[i] < 0)
+                                nugget.instruments[i] = InstrumentMaster.GetSingleton().GetNumInstruments() - 1;
+                            good = false;
+                            for (int k = 0; k < possibles.Length; k++)
+                                if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                                { good = true; break; }
+                        }
                     }
                 }
                 else if (confirmStates[i] == ConfirmState.CHOOSING_NAME)
@@ -233,6 +266,21 @@ namespace Unsigned
                         if (!hassamename)
                         {
                             confirmStates[i] = ConfirmState.CHOOSING_INSTRUMENT;
+                            String[] possibles = nugget.peripherals[i].GetSupportedInstruments();
+                            bool good = false;
+                            for (int k = 0; k < possibles.Length; k++)
+                                if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                                { good = true; break; }
+                            while (!good)
+                            {
+                                nugget.instruments[i]++;
+                                if (nugget.instruments[i] >= InstrumentMaster.GetSingleton().GetNumInstruments())
+                                    nugget.instruments[i] = 0;
+                                good = false;
+                                for (int k = 0; k < possibles.Length; k++)
+                                    if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
+                                    { good = true; break; }
+                            }
                             notesNeedRefreshing = true;
                             continue;
                         }
@@ -249,6 +297,9 @@ namespace Unsigned
                     }
                 }
             }
+
+            bool red = false;
+            bool allfree = true;
 
             // For EMPTY_SLOTs
             for (int i = 0; i < controllers.Length; i++)
@@ -275,8 +326,18 @@ namespace Unsigned
                             break;
                         }
                 }
+                if (controllers[i].WasPressed(PeripheralButton.CONFIRM))
+                {
+                    red = true;
+                }
             }
 
+            for (int k = 0; k < nugget.peripherals.Length; k++)
+                if (confirmStates[k] != ConfirmState.EMPTY_SLOT)
+                    allfree = false;
+
+            if (red && allfree)
+                UnsignedGame.GetSingleton().PopState();
 #if !DEBUG
                 }
                 catch(Exception e)

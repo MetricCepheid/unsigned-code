@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
+using SongDataIO;
 
 namespace Unsigned
 {
@@ -11,7 +12,6 @@ namespace Unsigned
     {
         public float Rot;
         private Model model;
-        private String FileName;
         private Texture2D tex;
         private Vector3 position;
         private int characterIndex;
@@ -63,11 +63,6 @@ namespace Unsigned
             }
             //model.Meshes[0].Effects[0].Parameters["skinned"].SetValue(false);
             model.Meshes[0].Effects[0].Parameters["vertexAlpha"].SetValue(true);
-        }
-
-        public String GetName()
-        {
-            return FileName;
         }
 
         public Vector3 GetPosition()

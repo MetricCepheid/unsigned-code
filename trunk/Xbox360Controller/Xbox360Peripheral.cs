@@ -7,13 +7,16 @@ using UnsignedPeripheralPlugins;
 
 namespace Unsigned
 {
+    /// <summary>
+    /// Represents a plugged in Xbox360 Controller
+    /// </summary>
     class Xbox360Peripheral : Peripheral
     {
         /// <summary>
         /// The XNA PlayerIndex of this controller 
         /// (which green light in the xbox360 ring is on)
         /// </summary>
-        private PlayerIndex currentNoteIndex;
+        private PlayerIndex currentPlayerIndex;
 
         /// <summary>
         /// Stores the previous state for buffered input
@@ -31,16 +34,30 @@ namespace Unsigned
         /// </summary>
         private bool[] bufferedMap;
 
+        /// <summary>
+        /// Creates a new Xbox360Peripheral
+        /// Invalid until currentPlayerIndex is set
+        /// </summary>
         public Xbox360Peripheral()
         {
             bufferedMap = new bool[(int)PeripheralButton.TOTAL];
         }
 
+        /// <summary>
+        /// Returns whether or not the button is pressed since the last query
+        /// </summary>
+        /// <param name="button">Which button to query</param>
+        /// <returns>whether the button was pressed since the last frame</returns>
         public override bool WasPressed(PeripheralButton button)
         {
             return bufferedMap[(int)button];
         }
 
+        /// <summary>
+        /// Returns whether or not the button is currently pressed
+        /// </summary>
+        /// <param name="button">Which button to query</param>
+        /// <returns>whether the button is currently pressed</returns>
         public override bool IsPressed(PeripheralButton button)
         {
             switch (button)
@@ -152,11 +169,20 @@ namespace Unsigned
             throw new ArgumentException("Invalid Button");
         }
 
+        /// <summary>
+        /// Determines whether the hardware represented by this peripheral is connected
+        /// </summary>
+        /// <returns></returns>
         public override bool IsConnected()
         {
-            return GamePad.GetCapabilities(currentNoteIndex).IsConnected;
+            return GamePad.GetCapabilities(currentPlayerIndex).IsConnected;
         }
 
+        /// <summary>
+        /// Returns an array of available connected peripherals
+        /// Must be treated as if static
+        /// </summary>
+        /// <returns></returns>
         public override Peripheral[] GetControllers()
         {
             int len = 0;
@@ -171,7 +197,7 @@ namespace Unsigned
                 if (c.IsConnected)
                 {
                     ret[k] = new Xbox360Peripheral();
-                    ret[k].currentNoteIndex = (PlayerIndex)i;
+                    ret[k].currentPlayerIndex = (PlayerIndex)i;
                     if (c.GamePadType == GamePadType.Guitar || c.GamePadType == (GamePadType)7)
                         ret[k].pType = PeripheralType.GUITAR;
                     else if (c.GamePadType == GamePadType.DrumKit)
@@ -186,9 +212,13 @@ namespace Unsigned
             return ret;
         }
 
+        /// <summary>
+        /// Allows the Peripheral to query the hardware state and update buffered input
+        /// Called every frame
+        /// </summary>
         public override void Query()
         {
-            currentState = GamePad.GetState(currentNoteIndex);
+            currentState = GamePad.GetState(currentPlayerIndex);
             if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.CONFIRM] = true;
             else
@@ -280,6 +310,10 @@ namespace Unsigned
             previousState = currentState;
         }
 
+        /// <summary>
+        /// Returns a bitwise or-ed value indicating which frets are currently down
+        /// </summary>
+        /// <returns></returns>
         public override ulong GetFrets()
         {
             ulong ret = 0;
@@ -296,6 +330,10 @@ namespace Unsigned
             return ret;
         }
 
+        /// <summary>
+        /// Returns a bitwise or-ed value indicating which frets were pressed last frame
+        /// </summary>
+        /// <returns></returns>
         public override ulong GetBufferedFrets()
         {
             ulong ret = 0;
@@ -312,6 +350,11 @@ namespace Unsigned
             return ret;
         }
 
+        /// <summary>
+        /// Gets an analog value from the controller (0-1)
+        /// </summary>
+        /// <param name="analogControl">Which control to query</param>
+        /// <returns>The analog value, clamped from 0-1</returns>
         public override float GetAnalogValue(PeripheralAnalog analogControl)
         {
             switch (analogControl)
@@ -326,9 +369,14 @@ namespace Unsigned
         private String[] gArr = { "LGT", "RGT", "BAS" };
         private String[] dArr = { "SET" };
         private String[] vArr = { "LVX", "BVX", "BVA", "BVB" };
+        /// <summary>
+        /// Returns an array of 3-letter instrument code-names supported
+        /// by this specific peripheral
+        /// </summary>
+        /// <returns>An array of 3-letter strings</returns>
         public override string[] GetSupportedInstruments()
         {
-            GamePadCapabilities gpc = GamePad.GetCapabilities(currentNoteIndex);
+            GamePadCapabilities gpc = GamePad.GetCapabilities(currentPlayerIndex);
             if (pType == PeripheralType.GUITAR)
                 return gArr;
             else if (pType == PeripheralType.DRUMS4)
