@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using SongDataIO;
 
 namespace VocalEditor
 {
@@ -63,6 +62,7 @@ namespace VocalEditor
             t.Tick += new EventHandler(Update);
             t.Interval = 40;
             t.Start();
+            InstrumentMaster.CreateSingleton();
         }
 
         public void Update(Object stateInfo, EventArgs e)
@@ -483,5 +483,45 @@ namespace VocalEditor
             UpdateActivations();
         }
 
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Save();
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveAs();
+        }
+
+        public void Save()
+        {
+            if (song != null)
+            {
+                if(songdata != null && songdata.info.filename != null && songdata.info.filename.Length > 0)
+                {
+                    song.SaveToSongData(songdata);
+                    SongLoader.SaveSong(songdata, songdata.info.filename);
+                }
+                else
+                {
+                    SaveAs();
+                }
+            }
+        }
+        
+        public void SaveAs()
+        {
+            if (song != null)
+            {
+                if (songdata != null)
+                {
+                    SaveFileDialog d = new SaveFileDialog();
+                    d.Filter = "Unsigned SongData files (*.uns)|*.uns";
+                    d.ShowDialog();
+                    song.SaveToSongData(songdata);
+                    SongLoader.SaveSong(songdata, d.FileName);
+                }
+            }
+        }
     }
 }

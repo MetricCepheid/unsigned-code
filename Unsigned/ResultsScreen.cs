@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using UnsignedPeripheralPlugins;
+using SongDataIO;
 
 namespace Unsigned
 {
@@ -54,15 +55,13 @@ namespace Unsigned
 #endif
                 
 
-                bool green = false, red = false;//what should red be used for?
+                bool green = false;//what should red be used for?
                 Peripheral[] peripherals =  PeripheralManager.GetSingleton().GetPeripherals();
                 for (int i = 0; i < peripherals.Length; i++)
                     if (peripherals[i].IsConnected())
                     {
                         if (peripherals[i].WasPressed(PeripheralButton.CONFIRM))
                             green = true;
-                        if (peripherals[i].WasPressed(PeripheralButton.BACK))
-                            red = true;
                     }
                 if (green)
                 { 

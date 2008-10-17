@@ -58,7 +58,6 @@ namespace Unsigned
 
         public void ResetLighting()
         {
-            int linum = 0;
             bool[] plo = new bool[16];
             Vector3[] plp = new Vector3[16];
             float[] pln = new float[16];

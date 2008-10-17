@@ -4,10 +4,24 @@ using System.Text;
 
 namespace UnsignedPeripheralPlugins
 {
+    /// <summary>
+    /// Represents a single piece of plugged in input-hardware
+    /// </summary>
     public abstract class Peripheral
     {
+        /// <summary>
+        /// We may at some time have event-based input
+        /// </summary>
         protected static List<PeripheralListener> listeners;
+        /// <summary>
+        /// The type of peripheral (guitar, drums, etc)
+        /// </summary>
         protected PeripheralType pType;
+        /// <summary>
+        /// This will be set by the game.
+        /// Valid values are "MNU" for menu
+        /// and three letter instrument code names
+        /// </summary>
         protected String mode = "MNU";
 
         // false is righty, true is lefty
@@ -16,11 +30,22 @@ namespace UnsignedPeripheralPlugins
         // between songs
         public bool LeftySwitch = false;
 
+        /// <summary>
+        /// Adds a listener for all peripherals
+        /// to report to.
+        /// </summary>
+        /// <param name="listener">The listener to be added</param>
         public static void AddListener(PeripheralListener listener)
         {
             listeners.Add(listener);
         }
 
+        /// <summary>
+        /// Sets the mode of this instrument.
+        /// Usually sets to either "MNU" for menu
+        /// or a three-letter instrument code name
+        /// </summary>
+        /// <param name="newMode">The new mode</param>
         public void SetMode(String newMode)
         {
             if (newMode.Length == 3)

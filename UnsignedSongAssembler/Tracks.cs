@@ -326,7 +326,7 @@ namespace Unsigned
         public int length;
     }
 
-    public class NormalLightingEffect : Effect
+    public class NormalLightingSpecialEffect : Effect
     {
         public int color;
     }

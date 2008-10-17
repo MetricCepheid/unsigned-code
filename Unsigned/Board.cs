@@ -5,151 +5,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using UnsignedPeripheralPlugins;
+using SongDataIO;
 
 namespace Unsigned
 {
-    public class NoteSet : IComparable
-    {
-        public uint time, length;
-        public ulong type, endtype;
-        public String text;
-        public uint end
-        {
-            get { return time + length; }
-        }
-
-        public VIS_STATE[] visible;//0=visible,1=greyedout,2=invisible,3=invisibleButAvailable(HOPO)
-        public bool burning;//for held Notes
-
-        public uint late;
-
-        public enum VIS_STATE { VISIBLE = 0, GREYED_OUT = 1, INVISIBLE = 2, HOPOED = 3, OVERDONE=4/*drums*/, };
-
-        private bool strummed;
-        private ulong pressed;
-        private bool good;
-
-        public void Strum()
-        {
-            strummed = true;
-        }
-
-        public void AddPressedGuitar(Instrument instr, ulong pressed)
-        {
-            if(Board.IsValidFrettage(type,pressed, instr))
-                 good = true;
-        }
-
-        public ulong AddPressedDrums(Instrument instr, ulong pressed)
-        {
-            ulong ret = 0;
-            if (pressed == 0)
-                return 0;
-            for (int i = 0; i < instr.NumTracks; i++)
-            {
-                if ((pressed & (((ulong)1) << i)) != 0 && (this.pressed & (((ulong)1) << i)) == 0)
-                { ret |= (byte)(1 << i); visible[i] = VIS_STATE.INVISIBLE; }
-            }
-            this.pressed |= pressed;
-            ret &= this.type;
-            return ret;
-        }
-
-        public bool IsGood(Instrument instr, bool HOPOable)
-        {
-            if(!instr.NeedsStrum)
-                if(pressed!=0)
-                    return (pressed) == (type);
-                else
-                    return (pressed) == (type);
-            if ((instr.CanHOPO && HOPOable && (type&(((ulong)1)<<instr.NumTracks))!=0) || strummed)
-                return good;
-            return false;
-        }
-
-        public int CompareTo(object other)
-        {
-            return time.CompareTo(((NoteSet)other).time);
-        }
-
-        public void Kill()
-        {
-            for(int i=0;i<visible.Length;i++)
-                visible[i] = VIS_STATE.INVISIBLE;
-        }
-
-        public bool IsHOPO(Instrument instrument)
-        {
-            if (!instrument.CanHOPO)
-                return false;
-            return (type & (((ulong)1) << instrument.NumTracks)) != 0;
-        }
-
-        internal bool HasStrummed()
-        {
-            return strummed;
-        }
-    }
-
-    public struct Phrase
-    {
-        public uint time;
-        public SongData.TYPE type;
-        public bool rockpower;
-        public SongData.RTYPE rType;
-        public NoteSet[] notes;
-    }
-
-    public struct Fill
-    {
-        public uint time, len;
-        public bool hitGreen;
-        public float amount;
-        public uint end
-        {
-            get { return time + len; }
-        }
-
-        public Fill(uint time, uint len)
-        {
-            this.time = time;
-            this.len = len;
-            hitGreen = false;
-            amount = 0f;
-        }
-    }
-
-    public struct RockPowerPhrase
-    {
-        public uint time, len;
-        public bool okay;//defaulted to true, falsed when note missed
-        public uint end
-        {
-            get { return time + len; }
-        }
-        public RockPowerPhrase(uint time, uint len)
-        {
-            this.time = time;
-            this.len = len;
-            okay = true;
-        }
-    }
-
-    public struct Solo
-    {
-        public uint time, len;
-        public bool okay;//defaulted to true, falsed when note missed
-        public uint end
-        {
-            get { return time + len; }
-        }
-        public Solo(uint time, uint len)
-        {
-            this.time = time;
-            this.len = len;
-            okay = true;
-        }
-    }
 
     class Wave
     {
@@ -256,7 +115,7 @@ namespace Unsigned
         //Legacy
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", }; public static int OFFSET_TO_GBA = 0, OFFSET_TO_GBG = 1, OFFSET_TO_GBB = 2, OFFSET_TO_GBD = 3, OFFSET_TO_GBV = 4, OFFSET_TO_GBE = 5;
 
-        private NoteSet[] Notes
+        private SongData.NoteSet[] Notes
         {
             get
             {
@@ -267,7 +126,7 @@ namespace Unsigned
             }
         }
 
-        private Phrase[] Phrases
+        private SongData.Phrase[] Phrases
         {
             get
             {
@@ -278,7 +137,7 @@ namespace Unsigned
             }
         }
 
-        private Fill[] Fills
+        private SongData.Fill[] Fills
         {
             get
             {
@@ -289,7 +148,7 @@ namespace Unsigned
             }
         }
 
-        private RockPowerPhrase[] RPPhrases
+        private SongData.RockPowerPhrase[] RPPhrases
         {
             get
             {
@@ -300,7 +159,7 @@ namespace Unsigned
             }
         }
 
-        private Solo[] Solos
+        private SongData.Solo[] Solos
         {
             get
             {
@@ -395,7 +254,7 @@ namespace Unsigned
                 rtWaves = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowheight / 2, GameSettings.windowheight, 1, SurfaceFormat.Color);
             }
             boardTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
-            NoteSet[] notes = Notes;
+            SongData.NoteSet[] notes = Notes;
             for (int i = 0; i < notes.Length - 1; i++)
             {
                 uint dist = notes[i + 1].time - notes[i].time;
@@ -535,29 +394,7 @@ namespace Unsigned
             }
         }
 
-        public static bool IsValidFrettage(ulong note, ulong pressed, Instrument instr)
-        {
-            ulong NOT_HOPO_VALUE = ~(((ulong)1) << instr.NumTracks);
-            note &= NOT_HOPO_VALUE;
-            int numNotes = 0;
-            for (int i = 0; i < instr.NumTracks; i++)
-                if ((note & (((ulong)1)<<((int)i))) != 0)
-                    numNotes++;
-            if (numNotes > 1 && pressed == note)
-                return true;
-            else if (numNotes > 1)
-                return false;
-            if ((note & pressed) != note)
-                return false;
-            for (int i = 4; i >= 0; i--)
-            {
-                if ((note & (((ulong)1)<<i)) != 0)
-                    return true;
-                if ((pressed & (((ulong)1)<<i)) != 0)
-                    return false;
-            }
-            return false;
-        }
+        
 
         public ulong Update(GameTime gameTime)
         {
@@ -673,7 +510,7 @@ namespace Unsigned
                                 Fills[FillIndex].amount = Math.Min(Fills[FillIndex].amount, 1);
                             }
                         while (Notes[currentNoteIndex].time <= Fills[FillIndex].end + 100)
-                        { myResults.hitNotes++; for (int q = 0; q < GetBoardType().NumTracks; q++) Notes[currentNoteIndex].visible[q] = NoteSet.VIS_STATE.INVISIBLE; currentNoteIndex++; }
+                        { myResults.hitNotes++; for (int q = 0; q < GetBoardType().NumTracks; q++) Notes[currentNoteIndex].visible[q] = SongData.NoteSet.VIS_STATE.INVISIBLE; currentNoteIndex++; }
                         if (rm.GetCurrentTime()*1000 >= (Fills[FillIndex].end) - 100 && rm.GetCurrentTime()*1000 <= Fills[FillIndex].end)
                             if ((newPressed & 0x8) != 0)
                                 if (Fills[FillIndex].amount >= 1)
@@ -726,7 +563,7 @@ namespace Unsigned
                             }
                             if (Notes[currentNoteIndex].end <= rm.GetCurrentTime()*1000)
                                 currentNoteIndex++;
-                            else if (!IsValidFrettage(Notes[currentNoteIndex].type, pressed,GetBoardType()))
+                            else if (!SongData.NoteSet.IsValidFrettage(Notes[currentNoteIndex].type, pressed,GetBoardType()))
                                 currentNoteIndex++;
                             else
                             {
@@ -736,7 +573,7 @@ namespace Unsigned
                         else
                         {
                             Notes[currentNoteIndex].AddPressedGuitar(GetBoardType(),pressed);
-                            if (Notes[currentNoteIndex].IsGood(GetBoardType(), currentNoteIndex > 0 && Notes[currentNoteIndex - 1].visible[0] == NoteSet.VIS_STATE.INVISIBLE))
+                            if (Notes[currentNoteIndex].IsGood(GetBoardType(), currentNoteIndex > 0 && Notes[currentNoteIndex - 1].visible[0] == SongData.NoteSet.VIS_STATE.INVISIBLE))
                             {
                                 Notes[currentNoteIndex].Kill();
                                 for (int i = 0; i < GetBoardType().NumTracks; i++)
@@ -1239,7 +1076,6 @@ namespace Unsigned
             spritebatch.GraphicsDevice.RenderState.DestinationBlend = Blend.DestinationColor;
             spritebatch.GraphicsDevice.RenderState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
             spritebatch.GraphicsDevice.RenderState.AlphaSourceBlend = Blend.SourceAlpha;
-            float bgyscale = 2.0f;
 
             Color bgColor = Color.Gray;
             if (IsSPActivated())
@@ -1467,7 +1303,7 @@ namespace Unsigned
 
                         if ((Notes[p].type & (((ulong)1) << r)) == 0)
                             continue;
-                        if (Notes[p].visible[r] == NoteSet.VIS_STATE.INVISIBLE)
+                        if (Notes[p].visible[r] == SongData.NoteSet.VIS_STATE.INVISIBLE)
                             continue;
 
                         Matrix matIdentity, matTransl, matScale, matOrbit;
@@ -1710,10 +1546,6 @@ namespace Unsigned
             RenderMaster rm = RenderMaster.GetSingleton();
             BasicEffect effect = rm.bEffect;
             GraphicsDeviceManager graphics = rm.graphics;
-
-            int lefty = 1;
-            if (IsLefty)
-                lefty = -1;
 
             effect.Texture = Board.texBlast;
             for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)

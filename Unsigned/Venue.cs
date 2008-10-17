@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
+using SongDataIO;
 #endregion
 
 namespace Unsigned
@@ -108,7 +109,7 @@ namespace Unsigned
 
         private float fast_strobe_on = 0f;
 
-        private SongData.Effect[] effects;
+        private SongData.SpecialEffect[] effects;
 
         #region DEBUG_VAR
 //#define DEBUG_CAM_CONTROL
@@ -257,7 +258,7 @@ namespace Unsigned
             {
                 if (effects[i].begin <= songtime && effects[i].end > songtime)
                 {
-                    if(effects[i] is SongData.NormalLightingEffect)
+                    if(effects[i] is SongData.NormalLightingSpecialEffect)
                     {
                         for (int j = 0; j < lights.Length; j++)
                         {
@@ -266,7 +267,7 @@ namespace Unsigned
                                 ons[lt] = true;
                                 fars[lt] = lights[j].outerAngle;
                                 nears[lt] = lights[j].innerAngle;
-                                powers[lt] = ((SongData.NormalLightingEffect)effects[i]).color.R/100f;
+                                powers[lt] = ((SongData.NormalLightingSpecialEffect)effects[i]).color.R/100f;
                                 poss[lt] = lights[j].pos;
                                 dirs[lt] = lights[j].targs[0].dir;
                                 lt++;
@@ -598,7 +599,7 @@ namespace Unsigned
             GraphicsDeviceManager graphics = rm.graphics;
 
             lastTexApplied=-1;
-            Matrix matIdentity, matTransl, matScale, matRot, matOrbit, mMatWorld;
+            Matrix matIdentity, matScale, mMatWorld;
 
             effect.Parameters["ambientColor"].SetValue(new Vector4(.2f, .2f, .2f, 1f));
             effect.Parameters["fullbright"].SetValue(false);

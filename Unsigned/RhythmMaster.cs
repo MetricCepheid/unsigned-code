@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using UnsignedPeripheralPlugins;
+using SongDataIO;
 
 namespace Unsigned
 {
@@ -307,7 +308,6 @@ namespace Unsigned
 
         private void ProcessInput(GameTime gameTime, long currenttime)
         {
-            byte er = 0;
             for (int i = 0; i < 4; i++)
                 if (boards[i] != null)
                 {

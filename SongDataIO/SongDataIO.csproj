@@ -4,11 +4,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{35F913CC-D1A5-41B2-A675-BD94BE361A16}</ProjectGuid>
+    <ProjectGuid>{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnsignedPeripheralExtender</RootNamespace>
-    <AssemblyName>UnsignedPeripheralExtender</AssemblyName>
+    <RootNamespace>SongDataIO</RootNamespace>
+    <AssemblyName>SongDataIO</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,10 +33,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Includes.cs" />
-    <Compile Include="PeripheralBase.cs" />
-    <Compile Include="PeripheralListener.cs" />
+    <Compile Include="Instrument.cs" />
+    <Compile Include="InstrumentMaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SongDataIO.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

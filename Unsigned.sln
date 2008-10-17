@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnsignedPeripheralExtender"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox360Controller", "Xbox360Controller\Xbox360Controller.csproj", "{1EDF937F-0372-48C6-BF9E-C15779590FC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongDataIO", "SongDataIO\SongDataIO.csproj", "{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,6 +147,7 @@ Global
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{1DCBC814-56CC-4256-873E-1839F9E5CECD}.Debug|x86.Build.0 = Debug|Any CPU
@@ -223,6 +226,20 @@ Global
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Win32.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|x86.ActiveCfg = Release|x86
 		{ABDF3C7E-2E41-4848-87BF-207CFE71172F}.Release|Xbox 360.ActiveCfg = Release|x86
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Debug|Xbox 360.ActiveCfg = Debug|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Win32.ActiveCfg = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|x86.ActiveCfg = Release|Any CPU
+		{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}.Release|Xbox 360.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -77,8 +77,6 @@
     <Compile Include="GameUIMaster.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="InputPeripherals.cs" />
-    <Compile Include="Instrument.cs" />
-    <Compile Include="InstrumentMaster.cs" />
     <Compile Include="KeyboardManager.cs" />
     <Compile Include="MainMenuState.cs" />
     <Compile Include="OptionsScreen.cs" />
@@ -103,7 +101,6 @@
     <Compile Include="Song.cs">
       <Name>Song</Name>
     </Compile>
-    <Compile Include="SongConverter.cs" />
     <Compile Include="SongSelectScreen.cs" />
     <Compile Include="SpecialEffects.cs" />
     <Compile Include="Venue.cs">
@@ -189,6 +186,10 @@
     </NestedContentProject>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SongDataIO\SongDataIO.csproj">
+      <Project>{8209BAC2-6B0C-4588-AF22-4BCAAB3FA655}</Project>
+      <Name>SongDataIO</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UnsignedPeripheralExtender\UnsignedPeripheralExtender.csproj">
       <Project>{35F913CC-D1A5-41B2-A675-BD94BE361A16}</Project>
       <Name>UnsignedPeripheralExtender</Name>

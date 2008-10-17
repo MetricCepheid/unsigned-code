@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using UnsignedPeripheralPlugins;
+using SongDataIO;
 
 namespace Unsigned
 {
@@ -13,7 +14,6 @@ namespace Unsigned
         SpecialEffectsSettings currentSettings;
 
         private static Venue venue;
-        private string venueName = "tikibar";
 
         private SongData songData;
 
