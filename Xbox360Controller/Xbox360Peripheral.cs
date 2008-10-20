@@ -16,7 +16,7 @@ namespace Unsigned
         /// The XNA PlayerIndex of this controller 
         /// (which green light in the xbox360 ring is on)
         /// </summary>
-        private PlayerIndex currentPlayerIndex;
+        private PlayerIndex index;
 
         /// <summary>
         /// Stores the previous state for buffered input
@@ -175,7 +175,7 @@ namespace Unsigned
         /// <returns></returns>
         public override bool IsConnected()
         {
-            return GamePad.GetCapabilities(currentPlayerIndex).IsConnected;
+            return GamePad.GetCapabilities(index).IsConnected;
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace Unsigned
                 if (c.IsConnected)
                 {
                     ret[k] = new Xbox360Peripheral();
-                    ret[k].currentPlayerIndex = (PlayerIndex)i;
+                    ret[k].index = (PlayerIndex)i;
                     if (c.GamePadType == GamePadType.Guitar || c.GamePadType == (GamePadType)7)
                         ret[k].pType = PeripheralType.GUITAR;
                     else if (c.GamePadType == GamePadType.DrumKit)
@@ -218,7 +218,7 @@ namespace Unsigned
         /// </summary>
         public override void Query()
         {
-            currentState = GamePad.GetState(currentPlayerIndex);
+            currentState = GamePad.GetState(index);
             if (currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.CONFIRM] = true;
             else
@@ -376,7 +376,7 @@ namespace Unsigned
         /// <returns>An array of 3-letter strings</returns>
         public override string[] GetSupportedInstruments()
         {
-            GamePadCapabilities gpc = GamePad.GetCapabilities(currentPlayerIndex);
+            GamePadCapabilities gpc = GamePad.GetCapabilities(index);
             if (pType == PeripheralType.GUITAR)
                 return gArr;
             else if (pType == PeripheralType.DRUMS4)

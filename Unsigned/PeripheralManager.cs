@@ -40,19 +40,19 @@ namespace Unsigned
 
         }
 
-        public Peripheral GetPeripheral(int currentNoteIndex)
+        public Peripheral GetPeripheral(int index)
         {
-            return ownedPeripherals[currentNoteIndex];
+            return ownedPeripherals[index];
         }
 
-        public void ConfirmOwnership(int currentNoteIndex, Peripheral p)
+        public void ConfirmOwnership(int index, Peripheral p)
         {
-            ownedPeripherals[currentNoteIndex] = p;
+            ownedPeripherals[index] = p;
         }
 
-        public void RelinquishOwnership(int currentNoteIndex)
+        public void RelinquishOwnership(int index)
         {
-            ownedPeripherals[currentNoteIndex] = null;
+            ownedPeripherals[index] = null;
         }
 
         public void RelinquishOwnership(Peripheral p)

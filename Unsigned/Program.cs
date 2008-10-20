@@ -9,6 +9,8 @@ namespace Unsigned
         /// </summary>
         static void Main(string[] args)
         {
+            System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0].FullyQualifiedName));
+#if !XBOX
             using (UnsignedGame game = new UnsignedGame())
             {
 #if !DEBUG
@@ -24,6 +26,7 @@ namespace Unsigned
                 }
 #endif
             }
+#endif
         }
     }
 }

@@ -150,24 +150,20 @@ namespace Unsigned
                     instruments[2] = "SET";
                     instruments[3] = "BAS";
                 }
-                else if (this.version == 18)
+                else if (this.version == 20)
                 {
                     instruments = new string[binReader.ReadUInt32()];
-                    int[] offsets = new int[instruments.Length];
-                    for (int i = 0; i < offsets.Length; i++)
-                        offsets[i] = binReader.ReadInt32();
-                    binReader.ReadUInt32();
                     songName = binReader.ReadString();
                     artistName = binReader.ReadString();
                     year = binReader.ReadUInt32();
                     genre = binReader.ReadString();
-                    length = SongLoader.LengthStringToTimeSpan(binReader.ReadString());
-                    for (int i = 0; i < instruments.Length; i++)
+                    length = new TimeSpan(binReader.ReadByte(), binReader.ReadByte(), binReader.ReadByte());
+                    /*for (int i = 0; i < instruments.Length; i++)
                     {
                         int cPos = (int)binReader.BaseStream.Position;
                         binReader.ReadBytes(offsets[i] - cPos);
                         instruments[i] = new String(binReader.ReadChars(3));
-                    }
+                    }*/
                 }
             }
             finally

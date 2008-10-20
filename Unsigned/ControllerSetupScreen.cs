@@ -19,6 +19,8 @@ namespace Unsigned
             FULLY_CONFIRMED
         };
 
+        private ContentManager content;
+
         private const float LEFT = -100.0f;
         private const float SPACING = 65.0f;
         private const float SCALE = 20.0f;
@@ -30,9 +32,14 @@ namespace Unsigned
         private RenderTarget2D[] rtNote;
         private Texture2D[] texNote;
         private Texture2D[] nPadTex;
+        private Texture2D texNoteBM;
         private Texture2D concrTex, concrBM;
         private Texture2D flameTex, hairr, hairl;
-        private Model nPadMdl;
+        private Texture2D texBorder;
+        private VertexBuffer nPadVB;
+        private IndexBuffer nPadIB;
+
+        private float joinAlpha, joinBlue, joinBlueDir;
 
         private ConfirmState[] confirmStates;
         PlayerConfigNugget nugget;
@@ -41,6 +48,10 @@ namespace Unsigned
         private float[] arrowTimer, arrowRot;
         private Vector3[][] flames;
         private bool notesNeedRefreshing;
+
+        float borderScroll = 0;
+
+        float yaw = 0, pitch = 0;
 
         public ControllerSetupScreen()
         {
@@ -53,11 +64,18 @@ namespace Unsigned
             for (int i = 0; i < confirmStates.Length; i++)
                 confirmStates[i] = ConfirmState.EMPTY_SLOT;
             nugget = new PlayerConfigNugget();
+            joinAlpha = 0;
+            joinBlue = 0;
+            joinBlueDir = 1;
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
-            nPadMdl = content.Load<Model>("meshes\\paper1");
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
+            Model PadMdl = content.Load<Model>("meshes\\paper1");
+            ModelConverter.Convert(out nPadVB, PadMdl.Meshes[0].VertexBuffer, PadMdl.Meshes[0].MeshParts[0].VertexDeclaration);
+            nPadIB = PadMdl.Meshes[0].IndexBuffer;
+            texNoteBM = content.Load<Texture2D>("graphics\\notebm");
             nPadTex = new Texture2D[4];
             nPadTex[0] = content.Load<Texture2D>("graphics\\paper1");
             nPadTex[1] = content.Load<Texture2D>("graphics\\paper2");
@@ -72,16 +90,35 @@ namespace Unsigned
             concrBM = content.Load<Texture2D>("graphics\\concrBM");
             hairl = content.Load<Texture2D>("graphics\\hairl");
             hairr = content.Load<Texture2D>("graphics\\hairr");
-            flameTex = content.Load<Texture2D>("graphics\\flame"); 
+            flameTex = content.Load<Texture2D>("graphics\\flame");
+            texBorder = content.Load<Texture2D>("graphics\\songscreenbottom");
         }
 
         public override void Unload()
         {
-            
+            content.Unload();
         }
 
+        
         public override void Update(GameTime gameTime)
         {
+
+            if (joinBlue >= 1)
+                joinBlueDir = -1;
+            if (joinBlue <= 0)
+                joinBlueDir = 1;
+            joinBlue += (float)gameTime.ElapsedGameTime.TotalSeconds * joinBlueDir;
+
+            bool anyfree = false;
+            for (int k = 0; k < 4; k++)
+                if (confirmStates[k] == ConfirmState.EMPTY_SLOT)
+                    anyfree = true;
+
+            if (anyfree)
+                joinAlpha = (float)Math.Min(1.0, joinAlpha + gameTime.ElapsedGameTime.TotalSeconds);
+            else
+                joinAlpha = (float)Math.Max(0.0, joinAlpha - gameTime.ElapsedGameTime.TotalSeconds);
+
             RenderMaster rm = RenderMaster.GetSingleton();
             if (rtNote == null || notesNeedRefreshing)
             {
@@ -113,7 +150,7 @@ namespace Unsigned
                         if(confirmStates[i] >= ConfirmState.CHOOSING_INSTRUMENT)
                             for(int r=0;r<20;r++)
                             rm.spritebatch.DrawString(Global.HandwrittenFont, CharacterMaster.GetSingleton().GetCharacter(nugget.characterIndices[i]).name, new Vector2(70-r, 20-(r/2)),
-                                new Color(0,0,0,(byte)(50-(r*2))), 0, new Vector2(0, 0),
+                                new Color(128,85,0,(byte)(50-(r*2))), 0, new Vector2(0, 0),
                                 (rtNote[i].Width - (80-(r*2))) / Global.HandwrittenFont.MeasureString(CharacterMaster.GetSingleton().GetCharacter(nugget.characterIndices[i]).name).X,
                                 SpriteEffects.None, 0);
                         rm.spritebatch.DrawString(Global.HandwrittenFont, CharacterMaster.GetSingleton().GetCharacter(nugget.characterIndices[i]).name, new Vector2(70, 20),
@@ -127,7 +164,7 @@ namespace Unsigned
                         if (confirmStates[i] >= ConfirmState.FULLY_CONFIRMED)
                             for (int r = 0; r < 20; r++)
                                 rm.spritebatch.DrawString(Global.HandwrittenFont, InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).FullName, new Vector2(70 - r, 200 + (r / 2)),
-                                    new Color(0, 0, 0, (byte)(50 - (r * 2))), 0, new Vector2(0, 0),
+                                    new Color(128, 85, 0, (byte)(50 - (r * 2))), 0, new Vector2(0, 0),
                                     (rtNote[i].Width - (80 - (r * 2))) / Global.HandwrittenFont.MeasureString(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).FullName).X,
                                     SpriteEffects.None, 0);
                         rm.spritebatch.DrawString(Global.HandwrittenFont, InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).FullName, new Vector2(70, 200),
@@ -140,6 +177,7 @@ namespace Unsigned
                     rm.graphics.GraphicsDevice.SetRenderTarget(0, null);
                     texNote[i] = rtNote[i].GetTexture();
                 }
+                notesNeedRefreshing = false;
             }
 #if !DEBUG
             try
@@ -147,6 +185,9 @@ namespace Unsigned
 #endif
             Peripheral[] controllers = PeripheralManager.GetSingleton().GetPeripherals();
 
+            borderScroll += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (borderScroll >= MathHelper.Pi * 2)
+                borderScroll -= MathHelper.Pi * 2;
 
             for (int i = 0; i < nugget.peripherals.Length; i++)
             {
@@ -179,7 +220,7 @@ namespace Unsigned
                     for (int k = 0; k < flames[i].Length; k++)
                         if (flames[i][k].Z <= 0)
                         {
-                            flames[i][k] = new Vector3((LEFT2 + (i * SPACING2)) + (-SCALE2 + (float)(Global.random.NextDouble() * SCALE2 * 2)), 160 + (-SCALE2 + (float)(Global.random.NextDouble() * SCALE2 * 2)), 1);
+                            flames[i][k] = new Vector3((GameSettings.windowwidth * 0.1625f) + (i * 0.1875f * GameSettings.windowwidth) + ((float)(Global.random.NextDouble() * 0.1719f * GameSettings.windowwidth)), (GameSettings.windowheight*0.1667f) + (float)(Global.random.NextDouble() * 0.28f * GameSettings.windowheight), 1);
                             break;
                         }
                 }
@@ -218,6 +259,7 @@ namespace Unsigned
                                 if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
                                 { good = true; break; }
                         }
+                        notesNeedRefreshing = true;
                     }
                     if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                     {
@@ -239,6 +281,7 @@ namespace Unsigned
                                 if (possibles[k].Equals(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName))
                                 { good = true; break; }
                         }
+                        notesNeedRefreshing = true;
                     }
                 }
                 else if (confirmStates[i] == ConfirmState.CHOOSING_NAME)
@@ -289,11 +332,13 @@ namespace Unsigned
                     {
                         if (nugget.characterIndices[i] < CharacterMaster.GetSingleton().GetNumCharacters() - 1)
                             nugget.characterIndices[i]++;
+                        notesNeedRefreshing = true;
                     }
                     if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                     {
                         if (nugget.characterIndices[i] > 0)
                             nugget.characterIndices[i]--;
+                        notesNeedRefreshing = true;
                     }
                 }
             }
@@ -326,18 +371,19 @@ namespace Unsigned
                             break;
                         }
                 }
-                if (controllers[i].WasPressed(PeripheralButton.CONFIRM))
+                if (controllers[i].WasPressed(PeripheralButton.BACK))
                 {
                     red = true;
                 }
             }
 
-            for (int k = 0; k < nugget.peripherals.Length; k++)
+            for (int k = 0; k < 4; k++)
                 if (confirmStates[k] != ConfirmState.EMPTY_SLOT)
                     allfree = false;
 
-            if (red && allfree)
-                UnsignedGame.GetSingleton().PopState();
+            if (red)
+                if(allfree && !notesNeedRefreshing)
+                    UnsignedGame.GetSingleton().PopState();
 #if !DEBUG
                 }
                 catch(Exception e)
@@ -345,7 +391,7 @@ namespace Unsigned
 #if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                    Exit();
+                    UnsignedGame.GetSingleton().Exit();
                     return;
                 }
                     try
@@ -367,7 +413,7 @@ namespace Unsigned
 #if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                    Exit();
+                    UnsignedGame.GetSingleton().Exit();
                     return;
                 }
 #endif
@@ -377,7 +423,7 @@ namespace Unsigned
         {
             UnsignedGame game = UnsignedGame.GetSingleton();
             RenderMaster rm = RenderMaster.GetSingleton();
-            Effect effect = rm.engine;
+            FVShader effect = rm.engine;
 
             float vmul = 2f, hmul = 2f;
             bool[] plo = new bool[16];
@@ -394,34 +440,24 @@ namespace Unsigned
             rm.graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
             rm.graphics.ApplyChanges();
 
-            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
             rm.graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-            effect.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-            effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-            effect.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-            effect.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-            effect.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+            effect.NormalMapTexture = Global.texDefaultBM;
+            effect.AmbientMaterial = new Color(24, 24, 24);
+            effect.DiffuseMaterial = new Color(200, 200, 200);
+            effect.SpecularMaterial = Color.White;
 
-            Random r = new Random();
+            Random r = Global.random;
 
-            effect.Parameters["pLightOn"].SetValue(plo);
-            effect.Parameters["pLightPos"].SetValue(plp);
-            effect.Parameters["pLightNear"].SetValue(pln);
-            effect.Parameters["pLightFar"].SetValue(plf);
-            effect.Parameters["pLightDiffuse"].SetValue(pld);
-            effect.Parameters["pLightSpecular"].SetValue(pls);
-            effect.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
-            effect.Parameters["dLSpecularColor"].SetValue(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            effect.Parameters["dLightDir"].SetValue(new Vector3(0, 1, 1));
+            rm.ResetLighting();
+            effect.TextureEnabled = true;
+            effect.LightingEnabled = GameSettings.Lighting;
+            effect.SpecularEnabled = GameSettings.Specular;
+            effect.NormalMapEnabled = GameSettings.NormalMapping;
+            effect.DirectionalLight = new DirectionalLight(true, new Vector3(0, 1, 1), new Color(100, 100, 100), Color.White);
 
             Version SM =RenderMaster.GetSingleton().graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
-            if (SM.Major >= 3)
-                effect.CurrentTechnique = effect.Techniques["menutechnique"];
-            else if (SM.Major >= 2)
-                effect.CurrentTechnique = effect.Techniques["menutechniquet"];
-            else
+            if(SM.Major<1 || (SM.Major==1 && SM.Minor<1))
             {
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("Whoops! Your graphics card only supports Shader Model "+SM.Major+"."+SM.Minor+"\nYou need at least 2.0 to run Unsigned");
@@ -436,7 +472,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
                     try
@@ -448,13 +484,13 @@ namespace Unsigned
                 pass.Begin();
                 UnsignedGame.SetProjMatrix(GameSettings.windowwidth, GameSettings.windowheight);
 
-
                 Matrix matView;
+                Vector3 tgt = new Vector3(0, 0, -1);
                 if (idleTime < 29.5)
-                    matView = Matrix.CreateLookAt(new Vector3(-8, 128, 150), new Vector3(-8, 128, 0), new Vector3(0, 1, 0));
+                    matView = Matrix.CreateLookAt(new Vector3(-8, 128, 200), new Vector3(-8, 128, 200)+tgt, new Vector3(0, 1, 0));
                 else
                     matView = Matrix.CreateLookAt(new Vector3(-8, 128, 150), new Vector3(-24 + ((idleTime * hmul) % 1 < 0.5 ? (idleTime * hmul) % 0.5f * 32 : (1 - ((idleTime * hmul) % .5f * 2)) * 16), 128 - ((idleTime * vmul) % 1 < 0.5 ? (idleTime * vmul) % 0.5f * 32 : (1 - ((idleTime * vmul) % .5f * 2)) * 16), 0), new Vector3(0, 1, 0));
-                rm.SetViewMatrix(matView);
+                rm.View = matView;
 
                 Matrix matRot, matScale, matTranslate;
                 {
@@ -462,17 +498,14 @@ namespace Unsigned
                     matRot = Matrix.CreateRotationX((float)Math.PI / 2);
                     matScale = Matrix.CreateScale(300, 1, 192);
 
-                    effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    effect.Parameters["wRot"].SetValue(matRot);
-                    effect.Parameters["diffuseTexture"].SetValue(concrTex);
-                    effect.Parameters["bumpTexture"].SetValue(concrBM);
-                    effect.Parameters["shininess"].SetValue(0.25f);
-                    effect.Parameters["SpecularEnabled"].SetValue(false);
-                    effect.Parameters["vertexAlpha"].SetValue(true);
-                    effect.Parameters["BumpMappingEnabled"].SetValue(true);
+                    effect.World = matScale * matRot * matTranslate;
+                    effect.DiffuseTexture = concrTex;
+                    effect.NormalMapTexture =concrBM;
+                    effect.SpecularMaterial = new Color(30, 30, 30);
+                    effect.Shininess = 0.25f;
                     effect.CommitChanges();
 
-                    rm.graphics.GraphicsDevice.VertexDeclaration = vd;
+                    rm.graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
                     rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     rm.graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     rm.graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
@@ -481,72 +514,26 @@ namespace Unsigned
                     rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
 
+                rm.graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
+
                 for (int i = 0; i < 4; i++)
                 {
                     matTranslate = Matrix.CreateTranslation(LEFT + (SPACING * i), 192, -126);
                     matRot = Matrix.Identity;
                     matScale = Matrix.CreateScale(SCALE);
 
-                    effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    effect.Parameters["wRot"].SetValue(matRot);
-                    effect.Parameters["diffuseTexture"].SetValue(texNote[i]);
-                    effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-                    effect.Parameters["shininess"].SetValue(0.25f);
-                    effect.Parameters["SpecularEnabled"].SetValue(false);
-                    effect.Parameters["vertexAlpha"].SetValue(false);
-                    effect.Parameters["BumpMappingEnabled"].SetValue(false);
+                    effect.World = matScale * matRot * matTranslate;
+                    effect.DiffuseTexture = texNote[i];
+                    effect.NormalMapTexture =texNoteBM;
+                    effect.SpecularMaterial = Color.Black;
                     effect.CommitChanges();
 
-                    foreach (ModelMesh mesh in nPadMdl.Meshes)
-                    {
-                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                           rm.graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                           rm.graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                           rm.graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                           rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                        }
-                    }
+                    rm.graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
+                   rm.graphics.GraphicsDevice.Vertices[0].SetSource(nPadVB, 0, GBVertexFormat.SizeInBytes);
+                   rm.graphics.GraphicsDevice.Indices = nPadIB;
+                   rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, nPadIB.SizeInBytes / (nPadIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, nPadIB.SizeInBytes / (nPadIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
                 }
-
-             
-                /*effect.Parameters["diffuseTexture"].SetValue(flameTex);
-                effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                effect.Parameters["ambientColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                effect.Parameters["specularColor"].SetValue(new Vector4(0f, 0f, 0f, 1f));
-                effect.Parameters["fullbright"].SetValue(true);
-                effect.Parameters["SpecularEnabled"].SetValue(false);
-                effect.Parameters["vertexAlpha"].SetValue(true);
-                effect.Parameters["BumpMappingEnabled"].SetValue(false);
-                rm.graphics.GraphicsDevice.VertexDeclaration = vd;
-                rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                rm.graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                rm.graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                rm.graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
-                for (int k = 0; k < 4; k++)
-                    for (int i = 0; i < flames[k].Length; i++)
-                        if (flames[k][i].Z > 0)
-                        {
-                            matTranslate = Matrix.CreateTranslation(new Vector3(flames[k][i].X, flames[k][i].Y, -117 + (k * 0.5f)));
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                            matScale = Matrix.CreateScale(16, 1, 24 * (1 - flames[k][i].Z));
-
-                            effect.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                            effect.Parameters["wRot"].SetValue(matRot);
-                            float alpha = 0;
-                            if (flames[k][i].Z > 3 / 4f)
-                                alpha = 1 - ((flames[k][i].Z - 3 / 4f) * 4);
-                            else
-                                alpha = flames[k][i].Z;
-                            effect.Parameters["wAlpha"].SetValue(alpha);
-                            effect.CommitChanges();
-
-                            rm.graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                        }*/
                 rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                effect.Parameters["fullbright"].SetValue(false);
-                effect.Parameters["wAlpha"].SetValue(1.0f);
 
                 pass.End();
             }
@@ -558,7 +545,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt2\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
                     try
@@ -580,6 +567,12 @@ namespace Unsigned
                     Color.White);
             }
 
+            for (int i = -1; i < 3; i++)
+                rm.spritebatch.Draw(texBorder, new Rectangle((int)((i * GameSettings.windowwidth) + (((borderScroll) / (MathHelper.Pi * 4)) * GameSettings.windowwidth)), (int)(GameSettings.windowheight * (0.6f + (-Math.Sin(borderScroll) * 0.01f))), GameSettings.windowwidth, GameSettings.windowwidth / 4), Color.White);
+            for (int i = 0; i < 4; i++)
+                rm.spritebatch.Draw(texBorder, new Rectangle((int)((i * GameSettings.windowwidth) + (((-borderScroll) / (MathHelper.Pi*4)) * GameSettings.windowwidth)), (int)(GameSettings.windowheight * (0.75f+(Math.Sin(borderScroll)*0.05f))), GameSettings.windowwidth, GameSettings.windowwidth / 4), Color.White);
+            rm.spritebatch.Draw(Global.texWhite, new Rectangle(0, 0, GameSettings.windowwidth, (int)(GameSettings.windowheight * 0.05f)), new Color(255, 190, 0));
+
             for (int i = 0; i < 4; i++)
                 for (int k = 0; k < flames[i].Length; k++)
                 {
@@ -587,6 +580,8 @@ namespace Unsigned
                     if(flames[i][k].Z<1 && flames[i][k].Z>0)
                         rm.spritebatch.Draw(flameTex, new Rectangle((int)(flames[i][k].X - 4 - scale), (int)(flames[i][k].Y - 8 - scale), (int)(8+(scale*2)), (int)(12+(scale*1.5f))), new Color(255, 255, 255, (byte)(flames[i][k].Z * 255)));
                 }
+
+            rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Press Green to Join"), new Vector2((GameSettings.windowwidth / 2) - (Global.DefaultFont.MeasureString(Localizer.Get("Press Green to Join")).X / 2), GameSettings.windowheight * 0.8f), new Color(0, (byte)(joinBlue * 128), 0, (byte)(joinAlpha * 255)));
 
             /*rm.spritebatch.Draw(GameUIMaster.GetSingleton().texButtonGreen, new Rectangle((int)(0.1f * GameSettings.windowwidth), (int)(0.80f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight)), Color.White);
             if (leader >= 0 && contguis[leader].status == 2)
@@ -600,9 +595,9 @@ namespace Unsigned
             //spritebatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
             if (Global.DemoMode)
             {
-                rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
-                rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
-                rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
+                rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
+                rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
+                rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
             }
             rm.spritebatch.End();
 #if !DEBUG
@@ -612,7 +607,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CCS/Pt3\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 #endif

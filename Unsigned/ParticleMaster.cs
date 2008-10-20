@@ -58,7 +58,6 @@ namespace Unsigned
         /// Adds new shards on the triggers
         /// </summary>
         /// <param name="note">the bitwise notes to hit</param>
-        /// <param name="lane">the player lane currentNoteIndex</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
         public void AddShards(ulong note, Board board, float density)
@@ -121,7 +120,6 @@ namespace Unsigned
         /// Adds new sparks on the triggers
         /// </summary>
         /// <param name="note">the bitwise notes to shoot sparks from</param>
-        /// <param name="lane">the player lane currentNoteIndex</param>
         /// <param name="board">the board object</param>
         /// <param name="density">number per lane to add, default=16</param>
         public void AddSparks(ulong note, Board board, float density)
@@ -413,13 +411,13 @@ namespace Unsigned
         {
             CheckGenerateArray(b);
 
-            BasicEffect effect = RenderMaster.GetSingleton().bEffect;
+            FVShader effect = RenderMaster.GetSingleton().engine;
             GraphicsDeviceManager graphics = RenderMaster.GetSingleton().graphics;
             ShatterGlass[] glassArr = glass[b];
             ShatterSpark[] sparkArr = sparks[b];
             for (int r = 0; r < texShard.Length; r++)
             {
-                effect.Texture = texShard[r];
+                effect.DiffuseTexture = texShard[r];
                 for (int i = 0; i < glassArr.Length; i++)
                     if (glassArr[i].scale > 0 && glassArr[i].frame == r)
                     {
@@ -432,7 +430,7 @@ namespace Unsigned
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         effect.World = matIdentity * matScale * matOrbit * matTransl;
 
-                        effect.DiffuseColor = Global.FretColors[glassArr[i].col].ToVector3();
+                        effect.DiffuseMaterial = Global.FretColors[glassArr[i].col];
                         effect.Alpha = Global.FretColors[glassArr[i].col].A / 255.0f;
                         effect.CommitChanges();
 
@@ -445,7 +443,7 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
             }
-            effect.Texture = texSpark;
+            effect.DiffuseTexture = texSpark;
             for (int i = 0; i < sparkArr.Length; i++)
                 if (sparkArr[i].scale > 0)
                 {
@@ -457,7 +455,7 @@ namespace Unsigned
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     effect.World = matScale * matRot * matTransl;
 
-                    effect.DiffuseColor = Global.FretColors[sparkArr[i].col].ToVector3();
+                    effect.DiffuseMaterial = Global.FretColors[sparkArr[i].col];
                     effect.Alpha = Global.FretColors[glassArr[i].col].A / 255.0f;
                     effect.CommitChanges();
 
@@ -469,7 +467,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            effect.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+            effect.DiffuseMaterial = new Color(200, 200, 200);
             effect.Alpha = 1.0f;
         }
 

@@ -39,9 +39,9 @@ namespace Unsigned
             idols = list;
         }
 
-        public CharacterIdol GetCharacter(int currentNoteIndex)
+        public CharacterIdol GetCharacter(int index)
         {
-            return idols[currentNoteIndex];
+            return idols[index];
         }
 
         public int GetNumCharacters()
@@ -49,10 +49,10 @@ namespace Unsigned
             return idols.Count;
         }
 
-        public CharacterIdol GetCharacter(String currentNoteIndex)
+        public CharacterIdol GetCharacter(String index)
         {
             for (int i = 0; i < idols.Count; i++)
-                if (idols[i].name.Equals(currentNoteIndex))
+                if (idols[i].name.Equals(index))
                     return idols[i];
             throw new IndexOutOfRangeException();
         }

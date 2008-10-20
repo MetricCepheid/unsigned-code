@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
 using UnsignedPeripheralPlugins;
 using SongDataIO;
 
@@ -11,21 +12,18 @@ namespace Unsigned
     class GameState : BaseState
     {
 
+        private ContentManager content;
+
         SpecialEffectsSettings currentSettings;
 
         private static Venue venue;
 
         private SongData songData;
 
-        private float[] lastframes = new float[60];
-        private int frameIndex;
-
         private PlayerConfigNugget nugget;
 
         public GameState(PlayerConfigNugget nugget)
         {
-            for (int i = 0; i < lastframes.Length; i++)
-                lastframes[i] = 1 / 30f;
             for (int i = 0; i < nugget.peripherals.Length; i++)
                 if(nugget.peripherals[i]!=null)
                     nugget.peripherals[i].SetMode(InstrumentMaster.GetSingleton().GetInstrument(nugget.instruments[i]).CodeName);
@@ -48,7 +46,7 @@ namespace Unsigned
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt0\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                Exit();
+                UnsignedGame.GetSingleton().Exit();
                 return;
             }
                     try
@@ -75,7 +73,7 @@ namespace Unsigned
 #if WINDOWS
                 System.Windows.Forms.MessageBox.Show("Problem in Update/IG/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                Exit();
+                UnsignedGame.GetSingleton().Exit();
                 return;
             }
 #endif
@@ -96,7 +94,7 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             GraphicsDeviceManager graphics = rm.graphics;
-            Effect effect = rm.engine;
+            FVShader effect = rm.engine;
             SpriteBatch spritebatch = rm.spritebatch;
             //long currenttime = (long)(CurrentTime / (long)(TicksPerSecond / 1000));
 #if !DEBUG
@@ -107,18 +105,13 @@ namespace Unsigned
             rm.graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-            VertexDeclaration vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
             //graphics.PreferMultiSampling = true;
             rm.graphics.ApplyChanges();
             Version SM = rm.graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
-            if (SM.Major >= 3)
-                effect.CurrentTechnique = effect.Techniques["maintechnique"];
-            else if (SM.Major >= 2)
-                effect.CurrentTechnique = effect.Techniques["maintechniquet"];
-            else
+            if (SM.Major < 1 || (SM.Major==1 && SM.Minor<1))
             {
 #if !XBOX
-                System.Windows.Forms.MessageBox.Show("Error. Must have minimum of Shader Model 2.0");
+                System.Windows.Forms.MessageBox.Show("Error. Must have minimum of Shader Model 1.1");
 #endif
                 UnsignedGame.GetSingleton().Exit();
             }
@@ -135,35 +128,34 @@ namespace Unsigned
                 else
                     rm.graphics.GraphicsDevice.SetRenderTarget(0, rm.screenTarget);
 
-                effect.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-                effect.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                effect.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                effect.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                effect.NormalMapTexture =Global.texDefaultBM;
+                effect.AmbientMaterial = new Color(24, 24, 24);
+                effect.DiffuseMaterial = new Color(128, 128, 128);
+                effect.SpecularMaterial = Color.White;
 
                 Matrix matProj = venue.GetProjMatrix(GameSettings.windowwidth / (float)GameSettings.windowheight);
                 Matrix matView = venue.GetViewMatrix();
-                effect.Parameters["proj"].SetValue(matProj);
-                rm.SetViewMatrix(matView);
+                rm.Projection = matProj;
+                rm.View = matView;
+
+                effect.LightingEnabled = GameSettings.Lighting;
+                effect.SpecularEnabled = GameSettings.Specular;
+                effect.NormalMapEnabled = GameSettings.NormalMapping;
+
+                effect.CommitChanges();
 
                 graphics.GraphicsDevice.Clear(Color.Black);
-                effect.Parameters["BumpMappingEnabled"].SetValue(false);
-                effect.Parameters["SpecularEnabled"].SetValue(false);
-                effect.Parameters["fullbright"].SetValue(false);
-                if (GameSettings.renderLevel > 0)
+                if (GameSettings.renderLevel>1 && GameSettings.render3D)
                 {
                     effect.Begin();
-
                     foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                     {
                         pass.Begin();
-                        venue.Render(gameTime, matProj, vd);
+                        venue.Render(gameTime, matProj, GBVertexFormat.VertexDeclaration);
                         pass.End();
                     }
                     effect.End();
                 }
-                effect.Parameters["vertexAlpha"].SetValue(true);
-                effect.Parameters["BumpMappingEnabled"].SetValue(true);
-                effect.Parameters["SpecularEnabled"].SetValue(true);
                 graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             }
 #if !DEBUG
@@ -173,7 +165,7 @@ namespace Unsigned
 #if WINDOWS
         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt2\n"+e.Message+"\n"+e.StackTrace);
 #endif
-        Exit();
+        UnsignedGame.GetSingleton().Exit();
         return;
     }
 
@@ -188,7 +180,7 @@ namespace Unsigned
 #if WINDOWS
         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt3\n"+e.Message+"\n"+e.StackTrace);
 #endif
-        Exit();
+        UnsignedGame.GetSingleton().Exit();
         return;
     }
 
@@ -258,7 +250,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt4\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
                     //ppEngine.CurrentTechnique.Passes[0].End();
@@ -271,29 +263,15 @@ namespace Unsigned
 
             GameUIMaster.GetSingleton().Render();
 
-            //draw development info
-            {
-                float fps = 0;
-                lastframes[frameIndex % lastframes.Length] = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-                frameIndex++;
-                for (int i = 0; i < lastframes.Length; i++)
-                    fps += lastframes[i];
-                fps /= lastframes.Length;
-                fps = 1 / fps;
-                if (GameSettings.ShowFPS)
-                    spritebatch.DrawString(Global.DefaultFont, "" + (int)fps, new Vector2(GameSettings.windowwidth - 40, GameSettings.windowheight - 40), Color.Red);
-
-            }
 
             RhythmMaster.GetSingleton().DrawSongInfo();
             
             
             /*if (DemoMode)
             {
-                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
-                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
-                spritebatch.DrawString(BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
             }*/
 
 
@@ -305,15 +283,16 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/IG/Pt5\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 #endif
             spritebatch.End();
         }
 
-        public override void Load(Microsoft.Xna.Framework.Content.ContentManager content)
+        public override void Load()
         {
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
             songData = SongLoader.LoadSong(nugget.songFileName);
             venue = new Venue("tikibar.gbw", songData, content, nugget);
             RhythmMaster.CreateSingleton();
@@ -326,6 +305,7 @@ namespace Unsigned
 
         public override void Unload()
         {
+            content.Unload();
             songData = null;
             venue = null;
             RhythmMaster.DestroySingleton();

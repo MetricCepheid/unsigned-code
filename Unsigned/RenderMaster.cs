@@ -11,18 +11,33 @@ namespace Unsigned
     {
         private static RenderMaster SINGLETON_RenderMaster;
 
-        public Effect engine, ppEngine, fader;
+        public FVShader engine, menuEngine;
+        public Effect ppEngine, fader;
         public GraphicsDeviceManager graphics;
         public SpriteBatch spritebatch;
         public RenderTarget2D screenTarget, screenTargetPre, screenTargetFinal;
         public SpriteFont fontHandwritten;
-        public BasicEffect bEffect;
+        public FVShader bEffect;
 
         public Texture2D lastframe;
 
         public Matrix Projection
         {
-            set { engine.Parameters["proj"].SetValue(value); }
+            set 
+            { 
+                engine.Projection = value;
+                menuEngine.Projection = value;
+            }
+        }
+
+        public Matrix View
+        {
+            set
+            {
+                engine.View = value;
+                menuEngine.View = value;
+                bEffect.View = value;
+            }
         }
 
 
@@ -38,10 +53,12 @@ namespace Unsigned
 
         public void Load(ContentManager content)
         {
-            engine = content.Load<Effect>("shaders\\HFPS_Shader_XNA");//new Effect(graphics.GraphicsDevice,"shaders\\HFPS_Shader_XNA.fxc",CompilerOptions.None,new EffectPool());
+            GBVertexFormat.VertexDeclaration = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
+            engine = new FVShader(RenderMaster.GetSingleton().graphics.GraphicsDevice,content.Load<Effect>("shaders\\UnsignedEngineShader"),"maintechnique");
+            menuEngine = new FVShader(RenderMaster.GetSingleton().graphics.GraphicsDevice,content.Load<Effect>("shaders\\MenuShader"),"menutechnique");
             ppEngine = content.Load<Effect>("shaders\\PP_Shader_XNA");
             fader = content.Load<Effect>("shaders\\BoardFade");
-            bEffect = new BasicEffect(graphics.GraphicsDevice, new EffectPool());
+            bEffect = new FVShader(graphics.GraphicsDevice);
 
             screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
             if (GameSettings.HALF_RENDER)
@@ -58,27 +75,23 @@ namespace Unsigned
 
         public void ResetLighting()
         {
-            bool[] plo = new bool[16];
-            Vector3[] plp = new Vector3[16];
-            float[] pln = new float[16];
-            float[] plf = new float[16];
-            Vector3[] pld = new Vector3[16];
-            Vector3[] pls = new Vector3[16];
+            engine.PointLight0 = PointLight.DisabledLight;
+            engine.PointLight1 = PointLight.DisabledLight;
+            engine.PointLight2 = PointLight.DisabledLight;
+            engine.PointLight3 = PointLight.DisabledLight;
+            engine.SpotLight0 = SpotLight.DisabledLight;
+            engine.SpotLight1 = SpotLight.DisabledLight;
+            engine.SpotLight2 = SpotLight.DisabledLight;
+            engine.SpotLight3 = SpotLight.DisabledLight;
 
-            engine.Parameters["pLightOn"].SetValue(plo);
-            engine.Parameters["pLightPos"].SetValue(plp);
-            engine.Parameters["pLightNear"].SetValue(pln);
-            engine.Parameters["pLightFar"].SetValue(plf);
-            engine.Parameters["pLightDiffuse"].SetValue(pld);
-            engine.Parameters["pLightSpecular"].SetValue(pls);
-
-        }
-
-        public void SetViewMatrix(Matrix matView)
-        {
-            engine.Parameters["view"].SetValue(matView);
-            engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
-            bEffect.View = matView;
+            menuEngine.PointLight0 = PointLight.DisabledLight;
+            menuEngine.PointLight1 = PointLight.DisabledLight;
+            menuEngine.PointLight2 = PointLight.DisabledLight;
+            menuEngine.PointLight3 = PointLight.DisabledLight;
+            menuEngine.SpotLight0 = SpotLight.DisabledLight;
+            menuEngine.SpotLight1 = SpotLight.DisabledLight;
+            menuEngine.SpotLight2 = SpotLight.DisabledLight;
+            menuEngine.SpotLight3 = SpotLight.DisabledLight;
         }
 
         public static void CreateSingleton()

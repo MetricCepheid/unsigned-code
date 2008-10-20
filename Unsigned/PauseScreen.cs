@@ -10,6 +10,7 @@ namespace Unsigned
 {
     class PauseScreen : BaseState
     {
+        private ContentManager content;
         private Vector2 pauseMenuPos, pauseMenuVel, pauseWingRot;
         private float pauseRot;
         private int pauseSelected;
@@ -31,8 +32,9 @@ namespace Unsigned
             gameState = gs;
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
             texPauseBorder = content.Load<Texture2D>("graphics\\pauseborder");
             texPauseWings = content.Load<Texture2D>("graphics\\pausewing");
             texPausePick = content.Load<Texture2D>("graphics\\pickofselect");
@@ -43,20 +45,20 @@ namespace Unsigned
             pauseTextDisp = new String[2][];
 
             pauseTextDisp[0] = new String[4];
-            pauseTextDisp[0][0] = "Continue";
-            pauseTextDisp[0][1] = "Retry";
-            pauseTextDisp[0][2] = "Options";
-            pauseTextDisp[0][3] = "Exit";
+            pauseTextDisp[0][0] = Localizer.Get("Continue");
+            pauseTextDisp[0][1] = Localizer.Get("Retry");
+            pauseTextDisp[0][2] = Localizer.Get("Options");
+            pauseTextDisp[0][3] = Localizer.Get("Exit");
 
             pauseTextDisp[1] = new String[2];
-            pauseTextDisp[1][0] = "Lefty: " + "Maybe";
-            pauseTextDisp[1][1] = "Back";
+            pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + Localizer.Get("Maybe");
+            pauseTextDisp[1][1] = Localizer.Get("Back");
             //song.pause();
         }
 
         public override void Unload()
         {
-            
+            content.Unload();
         }
 
         public override void Update(GameTime gameTime)
@@ -149,15 +151,22 @@ namespace Unsigned
                 else if (pauseSelected == 2)
                 {
                     currentState = 1;
-                    pauseTextDisp[1][0] = "Lefty: " + (pauseSelectOwner.LeftySwitch ? "On" : "Off");
+                    pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off"));
                 }
                 else if (pauseSelected == 3)
-                { UnsignedGame.GetSingleton().EndSong(); }
+                { 
+                    UnsignedGame.GetSingleton().PopState();
+                    UnsignedGame.GetSingleton().PopState();
+                    UnsignedGame.GetSingleton().PopState();
+                }
             }
             else if (currentState == 1)
             {
                 if (pauseSelected == 0)
-                { pauseSelectOwner.LeftySwitch = !pauseSelectOwner.LeftySwitch; pauseTextDisp[1][0] = "Lefty: " + (pauseSelectOwner.LeftySwitch ? "On" : "Off"); }
+                { 
+                    pauseSelectOwner.LeftySwitch = !pauseSelectOwner.LeftySwitch; 
+                    pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off")); 
+                }
                 else if (pauseSelected == 1)
                 {
                     currentState = 0;

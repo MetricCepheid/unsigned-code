@@ -9,32 +9,47 @@ namespace Unsigned
 {
     class FVLogoScreen : BaseState
     {
+        private ContentManager content;
         private float logoTime;
         Texture2D texBarrel, texGoo1, texGoo2, texPresser;
-        Model mBarrel, mGoo1, mGoo2, mPresser;
+        Texture2D texGooBM, texPresserBM;
+        VertexBuffer BarrelVB, Goo1VB, Goo2VB, PresserVB;
+        IndexBuffer BarrelIB, Goo1IB, Goo2IB, PresserIB;
         
 
         public FVLogoScreen()
         {
-
+            
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
             texBarrel = content.Load<Texture2D>("graphics\\barrel");
             texGoo1 = content.Load<Texture2D>("graphics\\goo1");
             texGoo2 = content.Load<Texture2D>("graphics\\goo2");
             texPresser = content.Load<Texture2D>("graphics\\presser");
 
-            mBarrel = content.Load<Model>("meshes\\barrel");
-            mGoo1 = content.Load<Model>("meshes\\goo1");
-            mGoo2 = content.Load<Model>("meshes\\goo2");
-            mPresser = content.Load<Model>("meshes\\presser");
+            texGooBM = content.Load<Texture2D>("graphics\\goobm");
+            texPresserBM = content.Load<Texture2D>("graphics\\presserbm");
+
+            Model mBarrel = content.Load<Model>("meshes\\barrel");
+            BarrelIB = mBarrel.Meshes[0].IndexBuffer;
+            BarrelVB = ModelConverter.Convert(mBarrel.Meshes[0].VertexBuffer, mBarrel.Meshes[0].MeshParts[0].VertexDeclaration);
+            Model mGoo1 = content.Load<Model>("meshes\\goo1");
+            Goo1IB = mGoo1.Meshes[0].IndexBuffer;
+            Goo1VB = ModelConverter.Convert(mGoo1.Meshes[0].VertexBuffer, mGoo1.Meshes[0].MeshParts[0].VertexDeclaration);
+            Model mGoo2 = content.Load<Model>("meshes\\goo2");
+            Goo2IB = mGoo2.Meshes[0].IndexBuffer;
+            Goo2VB = ModelConverter.Convert(mGoo2.Meshes[0].VertexBuffer, mGoo2.Meshes[0].MeshParts[0].VertexDeclaration);
+            Model mPresser = content.Load<Model>("meshes\\presser");
+            PresserIB = mPresser.Meshes[0].IndexBuffer;
+            PresserVB = ModelConverter.Convert(mPresser.Meshes[0].VertexBuffer, mPresser.Meshes[0].MeshParts[0].VertexDeclaration);
         }
 
         public override void Unload()
         {
-
+            content.Unload();
         }
 
         public override void Update(GameTime gameTime)
@@ -48,7 +63,7 @@ namespace Unsigned
         public override void Render(GameTime gameTime)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            BasicEffect bEffect = rm.bEffect;
+            FVShader bEffect = rm.engine;
 
             rm.graphics.GraphicsDevice.Clear(Color.Black);
 
@@ -65,19 +80,20 @@ namespace Unsigned
             //graphics.PreferMultiSampling = true;
             rm.graphics.ApplyChanges();
 
-            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
             rm.graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
 
-            bEffect.DiffuseColor = new Vector3(1f, 1f, 1f);
-            bEffect.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
-            bEffect.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(-1, -3, -1));
-            bEffect.DirectionalLight0.Enabled = true;
-            bEffect.DirectionalLight0.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
-            bEffect.LightingEnabled = true;
-            bEffect.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
-            bEffect.SpecularPower = 12.0f;
+            bEffect.AmbientMaterial = new Color(24, 24, 24);
+            bEffect.DiffuseMaterial = Color.White;
+            bEffect.SpecularMaterial = Color.White;
+            bEffect.DirectionalLight = new DirectionalLight(true, new Vector3(-1, 3, -1), new Color(200, 200, 200), Color.White);
+            bEffect.NormalMapTexture = Global.texDefaultBM;
+            bEffect.LightingEnabled = GameSettings.Lighting;
+            bEffect.SpecularEnabled = GameSettings.Specular;
+            bEffect.NormalMapEnabled = GameSettings.NormalMapping;
+            bEffect.SpecularMaterial = Color.White;
+            bEffect.Shininess = 12.0f;
             bEffect.TextureEnabled = true;
             bEffect.CommitChanges();
 #if !DEBUG
@@ -87,7 +103,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 
@@ -139,34 +155,27 @@ namespace Unsigned
 
                     bEffect.World = matScale * matRot * matTranslate;
                     if (logoTime < 17)
-                        bEffect.Texture = texGoo1;
+                        bEffect.DiffuseTexture = texGoo1;
                     else
-                        bEffect.Texture = texGoo2;
+                        bEffect.DiffuseTexture = texGoo2;
+
+                    bEffect.NormalMapTexture = texGooBM;
+
                     bEffect.CommitChanges();
 
-                    rm.graphics.GraphicsDevice.VertexDeclaration = vd;
+                    rm.graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
                     if (logoTime < 17)
-                        foreach (ModelMesh mesh in mGoo1.Meshes)
-                        {
-                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                            {
-                                rm.graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                rm.graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                rm.graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                            }
-                        }
+                    {
+                        rm.graphics.GraphicsDevice.Vertices[0].SetSource(Goo1VB, 0, GBVertexFormat.SizeInBytes);
+                        rm.graphics.GraphicsDevice.Indices = Goo1IB;
+                        rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Goo1IB.SizeInBytes / (Goo1IB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, Goo1IB.SizeInBytes / (Goo1IB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
+                    }
                     else
-                        foreach (ModelMesh mesh in mGoo2.Meshes)
-                        {
-                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                            {
-                                rm.graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                                rm.graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                                rm.graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                            }
-                        }
+                    {
+                        rm.graphics.GraphicsDevice.Vertices[0].SetSource(Goo2VB, 0, GBVertexFormat.SizeInBytes);
+                        rm.graphics.GraphicsDevice.Indices = Goo2IB;
+                        rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Goo2IB.SizeInBytes / (Goo2IB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, Goo2IB.SizeInBytes / (Goo2IB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
+                    }
                 }
                 {//barrel
                     matTranslate = Matrix.CreateTranslation(-10.2f, 0, -6.8f);
@@ -174,20 +183,13 @@ namespace Unsigned
                     matScale = Matrix.CreateScale(1, 1, 1);
 
                     bEffect.World = matScale * matRot * matTranslate;
-                    bEffect.Texture = texBarrel;
+                    bEffect.DiffuseTexture = texBarrel;
+                    bEffect.NormalMapTexture = texPresserBM;
                     bEffect.CommitChanges();
 
-                    rm.graphics.GraphicsDevice.VertexDeclaration = vd;
-                    foreach (ModelMesh mesh in mBarrel.Meshes)
-                    {
-                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                            rm.graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                            rm.graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                            rm.graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                            rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                        }
-                    }
+                    rm.graphics.GraphicsDevice.Vertices[0].SetSource(BarrelVB, 0, GBVertexFormat.SizeInBytes);
+                    rm.graphics.GraphicsDevice.Indices = BarrelIB;
+                    rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, BarrelIB.SizeInBytes / (BarrelIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, BarrelIB.SizeInBytes / (BarrelIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
                 }
                 {//presser
                     float y = 30;
@@ -202,20 +204,13 @@ namespace Unsigned
                     matScale = Matrix.CreateScale(1, 1, 1);
 
                     bEffect.World = matScale * matRot * matTranslate;
-                    bEffect.Texture = texPresser;
+                    bEffect.DiffuseTexture = texPresser;
+                    bEffect.NormalMapTexture = texPresserBM;
                     bEffect.CommitChanges();
 
-                    rm.graphics.GraphicsDevice.VertexDeclaration = vd;
-                    foreach (ModelMesh mesh in mPresser.Meshes)
-                    {
-                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                            rm.graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
-                            rm.graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
-                            rm.graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                            rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
-                        }
-                    }
+                    rm.graphics.GraphicsDevice.Vertices[0].SetSource(PresserVB, 0, GBVertexFormat.SizeInBytes);
+                    rm.graphics.GraphicsDevice.Indices = PresserIB;
+                    rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PresserIB.SizeInBytes / (PresserIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, PresserIB.SizeInBytes / (PresserIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
                 }
                 pass.End();
             }
@@ -236,7 +231,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/MM/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 

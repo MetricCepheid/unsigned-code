@@ -11,9 +11,11 @@ namespace Unsigned
 {
     class DifficultyScreen : BaseState
     {
+        private ContentManager content;
         bool[] diffConfirm;
         private Texture2D whitishTex, whitishBM;
         private Texture2D[] texMetalTypes;
+        private TextureCube texLight;
         private Texture2D glassboxTex, glassboxBM;
         private Texture2D[][] texStrings;
         private Dictionary<String, Model> instrumentModels;
@@ -30,8 +32,9 @@ namespace Unsigned
             instrRot = 0;
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
             instrumentModels = new Dictionary<string, Model>();
             String dir = System.IO.Directory.GetCurrentDirectory();
             dir += "\\meshes\\instruments\\";
@@ -48,6 +51,19 @@ namespace Unsigned
             texMetalTypes[1] = content.Load<Texture2D>("graphics\\instr_silver");
             texMetalTypes[2] = content.Load<Texture2D>("graphics\\instr_gold");
             texMetalTypes[3] = content.Load<Texture2D>("graphics\\instr_platinum");
+            Texture2D light = content.Load<Texture2D>("graphics\\instr_lightingcube");
+            {
+                texLight = new TextureCube(RenderMaster.GetSingleton().graphics.GraphicsDevice, light.Width, 0, TextureUsage.AutoGenerateMipMap, SurfaceFormat.Color);
+                Color[] data = new Color[light.Width*light.Height];
+                light.GetData<Color>(data);
+                texLight.SetData<Color>(CubeMapFace.NegativeX, data);
+                texLight.SetData<Color>(CubeMapFace.PositiveX, data);
+                texLight.SetData<Color>(CubeMapFace.NegativeY, data);
+                texLight.SetData<Color>(CubeMapFace.PositiveY, data);
+                texLight.SetData<Color>(CubeMapFace.NegativeZ, data);
+                texLight.SetData<Color>(CubeMapFace.PositiveZ, data);
+            }
+            light = null;
             glassboxTex = content.Load<Texture2D>("graphics\\glasscase");
             glassboxBM = content.Load<Texture2D>("graphics\\glasscasebm");
             whitishTex = content.Load<Texture2D>("graphics\\whitish");
@@ -63,7 +79,7 @@ namespace Unsigned
 
         public override void Unload()
         {
-            
+            content.Unload();
         }
 
         public override void Update(GameTime gameTime)
@@ -130,7 +146,7 @@ namespace Unsigned
 #if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/CD/Pt0\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                    Exit();
+                    UnsignedGame.GetSingleton().Exit();
                     return;
                 }
             
@@ -139,29 +155,31 @@ namespace Unsigned
 
         public override void Render(GameTime gameTime)
         {
-            
+
+            FVShader engine = RenderMaster.GetSingleton().menuEngine;
 
 #if !DEBUG
                     try
                     {
 #endif
-            Effect engine = RenderMaster.GetSingleton().engine;
 
             RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
             RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
             //graphics.PreferMultiSampling = true;
             RenderMaster.GetSingleton().graphics.ApplyChanges();
 
-            VertexDeclaration vd = new VertexDeclaration(RenderMaster.GetSingleton().graphics.GraphicsDevice, GBVertexFormat.Elements);
             RenderMaster.GetSingleton().graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
             //graphics.GraphicsDevice.
 
-            engine.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
-            engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-            engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-            engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-            engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+            engine.NormalMapTexture =Global.texDefaultBM;
+            engine.AmbientMaterial = new Color(24, 24, 24);
+            engine.DiffuseMaterial = new Color(200, 200, 200);
+            engine.SpecularMaterial = Color.White;
+
+            engine.LightingEnabled = GameSettings.Lighting;
+            engine.SpecularEnabled = GameSettings.Specular;
+            engine.NormalMapEnabled = GameSettings.NormalMapping;
+            
             RenderMaster.GetSingleton().RenderState.CullMode = CullMode.None;
             RenderMaster.GetSingleton().RenderState.DepthBufferEnable = true;
             RenderMaster.GetSingleton().RenderState.DepthBufferWriteEnable = true;
@@ -171,17 +189,11 @@ namespace Unsigned
 
             Version SM =RenderMaster.GetSingleton().graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
 
-            engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-            engine.Parameters["dLSpecularColor"].SetValue(new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-            engine.Parameters["dLightDir"].SetValue(Vector3.Normalize(new Vector3(0.1f, -1f, 0.5f)));
-            if (SM.Major >= 3)
-                engine.CurrentTechnique = RenderMaster.GetSingleton().engine.Techniques["menutechnique"];
-            else if (SM.Major >= 2)
-                engine.CurrentTechnique = RenderMaster.GetSingleton().engine.Techniques["menutechniquet"];
-            else
+            engine.DirectionalLight = new DirectionalLight(true, new Vector3(0.1f, -1f, 0.5f), new Color(200, 200, 200), Color.White);
+            if (SM.Major < 1 || (SM.Major==1 && SM.Minor<1))
             {
 #if WINDOWS
-                System.Windows.Forms.MessageBox.Show("Whoops! Your graphics card only supports Shader Model " + SM.Major + "." + SM.Minor + "\nYou need at least 2.0 to run Unsigned");
+                System.Windows.Forms.MessageBox.Show("Whoops! Your graphics card only supports Shader Model " + SM.Major + "." + SM.Minor + "\nYou need at least 1.1 to run Unsigned");
 #endif
                 UnsignedGame.GetSingleton().Exit();
             }
@@ -193,7 +205,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt1\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 
@@ -207,13 +219,12 @@ namespace Unsigned
                 Matrix matProj = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4.0f,
                   GameSettings.windowwidth / (float)GameSettings.windowheight,
                   10f, 80.0f);
-                engine.Parameters["fullbright"].SetValue(false);
+                
 
                 Matrix matView = Matrix.CreateLookAt(new Vector3(0, 108, 22), new Vector3(0, 104, 0), new Vector3(0, 1, 0));
                 //render the background graphics
-                engine.Parameters["view"].SetValue(matView);
-                engine.Parameters["proj"].SetValue(matProj);
-                engine.Parameters["viewInverse"].SetValue(Matrix.Invert(matView));
+                engine.View = matView;
+                engine.Projection = matProj;
 
                 Matrix matRot, matScale, matTranslate;
                 {//basebottom
@@ -221,17 +232,14 @@ namespace Unsigned
                     matRot = Matrix.CreateRotationX((float)Math.PI);
                     matScale = Matrix.CreateScale(40, 0, 32);
 
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(whitishTex);
-                    engine.Parameters["bumpTexture"].SetValue(whitishBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                    engine.World = matScale * matRot * matTranslate;
+                    engine.DiffuseTexture = whitishTex;
+                    engine.NormalMapTexture =whitishBM;
+                    engine.Shininess = 0.25f;
+                    engine.SpecularMaterial = Color.Black;
                     engine.CommitChanges();
 
-                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
@@ -244,17 +252,13 @@ namespace Unsigned
                     matRot = Matrix.CreateRotationX((float)Math.PI / 2);
                     matScale = Matrix.CreateScale(40, 0, 32);
 
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(whitishTex);
-                    engine.Parameters["bumpTexture"].SetValue(whitishBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
+                    engine.World = matScale * matRot * matTranslate;
+                    engine.DiffuseTexture = whitishTex;
+                    engine.NormalMapTexture =whitishBM;
+                    engine.Shininess = 0.25f;
                     engine.CommitChanges();
 
-                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
+                    RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
@@ -263,6 +267,17 @@ namespace Unsigned
                     RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
                 
+
+                pass.End();
+            }
+            engine.End();
+            engine.CurrentTechnique = engine.Techniques["spheremappingtechnique"];
+            engine.Begin();
+            foreach(EffectPass pass in engine.CurrentTechnique.Passes)
+            {
+                pass.Begin();
+
+                Matrix matRot, matScale, matTranslate;
                 for(int k=0;k<4;k++)
                     if (nugget.peripherals[k]!=null)
                     {
@@ -271,16 +286,14 @@ namespace Unsigned
                         matRot = Matrix.CreateRotationY(instrRot)*Matrix.CreateRotationZ(0.1f)*Matrix.CreateRotationY(-instrRot)*Matrix.CreateRotationX(MathHelper.PiOver4);
                         matScale = Matrix.CreateScale(1.25f, 1.25f, 1.25f);
 
-                        engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                        engine.Parameters["wRot"].SetValue(matRot * Matrix.CreateRotationX(MathHelper.Pi / 2));
+                        engine.World = matScale * matRot * matTranslate;
 
-                        engine.Parameters["shininess"].SetValue(1.0f);
-                        engine.Parameters["SpecularEnabled"].SetValue(true);
-                        engine.Parameters["specularColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                        engine.Parameters["vertexAlpha"].SetValue(false);
-                        engine.Parameters["BumpMappingEnabled"].SetValue(false);
+                        engine.Shininess = 1.0f;
+                        engine.SpecularMaterial = new Color(128, 128, 128);
+                        engine.NormalMapTexture = Global.texDefaultBM;
 
-                        engine.Parameters["diffuseTexture"].SetValue(texMetalTypes[nugget.difficulties[k]]);
+                        engine.DiffuseTexture = texMetalTypes[nugget.difficulties[k]];
+                        engine.CubeMapTexture = texLight;
                         engine.CommitChanges();
                         foreach (ModelMesh mesh in model.Meshes)
                         {
@@ -294,102 +307,11 @@ namespace Unsigned
                         }
                     }
 
-                {//gctop
-                    matTranslate = Matrix.CreateTranslation(0, 112, -16);
-                    matRot = Matrix.CreateRotationX(-(float)Math.PI);
-                    matScale = Matrix.CreateScale(20, 0, 16);
-
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
-                    engine.Parameters["bumpTexture"].SetValue(glassboxBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                    engine.CommitChanges();
-
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                {//gcright
-                    matTranslate = Matrix.CreateTranslation(20, 106, -16);
-                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationY(-MathHelper.PiOver2);
-                    matScale = Matrix.CreateScale(16, 0, 6);
-
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
-                    engine.Parameters["bumpTexture"].SetValue(glassboxBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                    engine.CommitChanges();
-
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                {//gcleft
-                    matTranslate = Matrix.CreateTranslation(-20, 106, -16);
-                    matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationY(MathHelper.PiOver2);
-                    matScale = Matrix.CreateScale(16, 0, 6);
-
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
-                    engine.Parameters["bumpTexture"].SetValue(glassboxBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                    engine.CommitChanges();
-
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
-                {//gcfront
-                    matTranslate = Matrix.CreateTranslation(0, 106, 0);
-                    matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                    matScale = Matrix.CreateScale(20, 0, 6);
-
-                    engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
-                    engine.Parameters["wRot"].SetValue(matRot);
-                    engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
-                    engine.Parameters["bumpTexture"].SetValue(glassboxBM);
-                    engine.Parameters["shininess"].SetValue(0.25f);
-                    engine.Parameters["SpecularEnabled"].SetValue(false);
-                    engine.Parameters["vertexAlpha"].SetValue(true);
-                    engine.Parameters["BumpMappingEnabled"].SetValue(true);
-                    engine.CommitChanges();
-
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.VertexDeclaration = vd;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.Vertices[0].SetSource(Global.square, 0, GBVertexFormat.SizeInBytes);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
-                   RenderMaster.GetSingleton().graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                }
 
                 pass.End();
             }
             engine.End();
+            engine.UpdateTechnique();
 
             SpriteBatch spritebatch = RenderMaster.GetSingleton().spritebatch;
 
@@ -398,7 +320,7 @@ namespace Unsigned
                 if(nugget.peripherals[i]!=null)
                 {
                     Texture2D tex = texStrings[nugget.difficulties[i]][diffConfirm[i]?1:0];
-                    spritebatch.Draw(tex, new Rectangle((int)((GameSettings.windowwidth * 0.125f) + (GameSettings.windowwidth * 0.25f * i) - (tex.Width / 2)), 400, tex.Width, tex.Height), Color.White);
+                    spritebatch.Draw(tex, new Rectangle((int)((GameSettings.windowwidth * 0.125f) + (GameSettings.windowwidth * 0.25f * i) - ((tex.Width * (GameSettings.windowwidth / 800f)) / 2)), (int)(GameSettings.windowheight * 0.7f), (int)(tex.Width * (GameSettings.windowwidth / 800f)), (int)(tex.Height * (GameSettings.windowwidth / 800f))), Color.White);
                 }
             /*
             spritebatch.Draw(GameUIMaster.GetSingleton().texButtonGreen, new Rectangle((int)(0.1f * GameSettings.windowwidth), (int)(0.80f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight), (int)(0.09f * GameSettings.windowheight)), Color.White);
@@ -408,9 +330,9 @@ namespace Unsigned
             */
             if (Global.DemoMode)
             {
-                spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
-                spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
-                spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
+                spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
             }
             spritebatch.End();
 #if !DEBUG
@@ -420,7 +342,7 @@ namespace Unsigned
 #if WINDOWS
                         System.Windows.Forms.MessageBox.Show("Problem in Draw/CD/Pt2\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                        Exit();
+                        UnsignedGame.GetSingleton().Exit();
                         return;
                     }
 #endif
