@@ -1002,8 +1002,8 @@ namespace Unsigned
                 for (int i = 0; i < 4; i++)
                     if (instruments[i])
                     {
-                        int currentNoteIndex = r.Next(strs.Length);
-                        boardBackgrounds[i] = content.Load<Texture2D>(strs[currentNoteIndex].Substring(0, strs[currentNoteIndex].LastIndexOf('.')));
+                        int index = r.Next(strs.Length);
+                        boardBackgrounds[i] = content.Load<Texture2D>(strs[index].Substring(0, strs[index].LastIndexOf('.')));
                     }
 
                 Board.texTriggers = new Texture2D[5];
@@ -2047,7 +2047,7 @@ namespace Unsigned
                                         {
                                             rockerNames[(int)contguis[k].loc - 1] = charNameSelected[(int)contguis[k].loc - 1] > 0 ? charNames[(int)contguis[k].loc - 1 > 2 ? 0 : (int)contguis[k].loc - 1][charNameSelected[(int)contguis[k].loc - 1]] : "Default";
                                             instruments[(int)contguis[k].loc - 1] = true;
-                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].currentNoteIndex >= 0 ? (int)contguis[k].currentNoteIndex : 4);
+                                            contInput[(int)contguis[k].loc - 1] = (byte)((int)contguis[k].index >= 0 ? (int)contguis[k].index : 4);
                                         }
                                     mmenu_ticker = 200;
                                 }
@@ -2095,8 +2095,8 @@ namespace Unsigned
                     }
 
                     for (int i = 0; i < 5; i++)
-                        if (contguis[i].currentNoteIndex >= 0)
-                            if ((((int)contguis[i].currentNoteIndex == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].currentNoteIndex != 4 && controllers[(int)contguis[i].currentNoteIndex].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
+                        if (contguis[i].index >= 0)
+                            if ((((int)contguis[i].index == 4 && Keyboard.GetState().IsKeyDown(Keys.Back)) || ((int)contguis[i].index != 4 && controllers[(int)contguis[i].index].IsButtonDown(Buttons.B))) && contguis[i].status == 0)
                             { screen = S_MAINMENU; mmenu_ticker = 200; }
 #if !DEBUG
                 }
@@ -3085,9 +3085,9 @@ namespace Unsigned
                         vd = new VertexDeclaration(graphics.GraphicsDevice, GBVertexFormat.Elements);
                         graphics.GraphicsDevice.Clear(new Color(0,0,30,255));
                         //graphics.GraphicsDevice.
-                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                        engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
                     graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                             graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                             graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
@@ -3163,7 +3163,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(texSnake);
+                                engine.DiffuseTexture = texSnake;
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["SpecularEnabled"].SetValue(true);
                                 engine.Parameters["vertexAlpha"].SetValue(false);
@@ -3297,11 +3297,11 @@ namespace Unsigned
                     //graphics.GraphicsDevice.
 
                     engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+                    engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
+                    engine.Parameters["dLightDiffuse"].SetValue(new Vector4(0, 0, 0, 0));
+                    engine.Parameters["dLightSpecular"].SetValue(new Vector4(0, 0, 0, 0));
                     graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                     graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                     graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
@@ -3365,7 +3365,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                            engine.DiffuseTexture = whitishTex;
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3388,7 +3388,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                            engine.DiffuseTexture = whitishTex;
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3411,7 +3411,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                            engine.DiffuseTexture = whitishTex;
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3440,7 +3440,7 @@ namespace Unsigned
                             engine.Parameters["SpecularEnabled"].SetValue(false);
                             engine.Parameters["vertexAlpha"].SetValue(false);
                             engine.Parameters["BumpMappingEnabled"].SetValue(false);
-                            engine.Parameters["diffuseTexture"].SetValue(tamp1);
+                            engine.DiffuseTexture = tamp1;
                             engine.CommitChanges();
                             foreach (ModelMesh mesh in mamp1.Meshes)
                             {
@@ -3453,7 +3453,7 @@ namespace Unsigned
                                 }
                             }
 
-                            engine.Parameters["diffuseTexture"].SetValue(tamp2);
+                            engine.DiffuseTexture = tamp2;
                             engine.CommitChanges();
                             foreach (ModelMesh mesh in mamp2.Meshes)
                             {
@@ -3579,11 +3579,11 @@ namespace Unsigned
                     //graphics.GraphicsDevice.
 
                     engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+                    engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
+                    engine.Parameters["dLightDiffuse"].SetValue(new Vector3(0, 0, 0));
+                    engine.Parameters["dLightSpecular"].SetValue(new Vector3(0, 0, 0));
                     graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                     graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                     graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
@@ -3659,7 +3659,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                            engine.DiffuseTexture = whitishTex;
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3682,7 +3682,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(whitishTex);
+                            engine.DiffuseTexture = whitishTex;
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3706,8 +3706,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(!instruments[3] ? greyishTex[0] : greyishTex[diff[3] + 1]);
-                            engine.Parameters["diffuseColor"].SetValue(diffConfirm[3] ? new Vector4(0, 0, 1, 1) : new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.DiffuseTexture = !instruments[3] ? greyishTex[0] : greyishTex[diff[3] + 1];
+                            engine.Parameters["diffuseMaterialColor"].SetValue(diffConfirm[3] ? new Vector3(0, 0, 1) : new Vector3(0.8f, 0.8f, 0.8f));
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3722,7 +3722,7 @@ namespace Unsigned
                             graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                             graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
                         }
                         {//ssright
                             matTranslate = Matrix.CreateTranslation(9, 101, -12);
@@ -3731,7 +3731,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0];
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3754,7 +3754,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0];
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3777,8 +3777,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(!instruments[2] ? greyishTex[0] : greyishTex[diff[2] + 1]);
-                            engine.Parameters["diffuseColor"].SetValue(diffConfirm[2] ? new Vector4(0, 0, 1, 1) : new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.DiffuseTexture = !instruments[2] ? greyishTex[0] : greyishTex[diff[2] + 1];
+                            engine.Parameters["diffuseMaterialColor"].SetValue(diffConfirm[2] ? new Vector3(0, 0, 1) : new Vector3(0.8f, 0.8f, 0.8f));
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3793,7 +3793,7 @@ namespace Unsigned
                             graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                             graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
                         }
                         {//dsright
                             matTranslate = Matrix.CreateTranslation(2, 101, -16);
@@ -3802,7 +3802,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0];
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3825,7 +3825,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3849,8 +3849,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(!instruments[0] ? greyishTex[0] : greyishTex[diff[0] + 1]);
-                            engine.Parameters["diffuseColor"].SetValue(diffConfirm[0] ? new Vector4(0, 0, 1, 1) : new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.DiffuseTexture = !instruments[0] ? greyishTex[0] : greyishTex[diff[0] + 1]);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(diffConfirm[0] ? new Vector3(0, 0, 1) : new Vector3(0.8f, 0.8f, 0.8f));
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3865,7 +3865,7 @@ namespace Unsigned
                             graphics.GraphicsDevice.Vertices[0].SetSource(square, 0, GBVertexFormat.SizeInBytes);
                             graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
                         }
                         {//psright
                             matTranslate = Matrix.CreateTranslation(-9, 101, -8);
@@ -3874,7 +3874,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3897,7 +3897,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3921,7 +3921,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(!instruments[1] ? greyishTex[0] : greyishTex[diff[1] + 1]);
+                            engine.DiffuseTexture = !instruments[1] ? greyishTex[0] : greyishTex[diff[1] + 1]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3944,7 +3944,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -3967,7 +3967,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(greyishTex[0]);
+                            engine.DiffuseTexture = greyishTex[0]);
                             engine.Parameters["bumpTexture"].SetValue(whitishBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4002,7 +4002,7 @@ namespace Unsigned
 
                             if (diff[0] == 0)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texQuarter);
+                                engine.DiffuseTexture = texQuarter);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mQuarter.Meshes)
                                 {
@@ -4017,7 +4017,7 @@ namespace Unsigned
                             }
                             else if (diff[0] == 1)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texPickGP);
+                                engine.DiffuseTexture = texPickGP);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mPick.Meshes)
                                 {
@@ -4032,7 +4032,7 @@ namespace Unsigned
                             }
                             else if (diff[0] == 2)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texPickTit);
+                                engine.DiffuseTexture = texPickTit);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mPick.Meshes)
                                 {
@@ -4047,7 +4047,7 @@ namespace Unsigned
                             }
                             else
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texPoD);
+                                engine.DiffuseTexture = texPoD);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mPoD.Meshes)
                                 {
@@ -4078,7 +4078,7 @@ namespace Unsigned
 
                             if (diff[2] == 0)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texSticks);
+                                engine.DiffuseTexture = texSticks);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mSticks.Meshes)
                                 {
@@ -4093,7 +4093,7 @@ namespace Unsigned
                             }
                             else if (diff[2] == 1)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texDTDSticks);
+                                engine.DiffuseTexture = texDTDSticks);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mDrumsticks.Meshes)
                                 {
@@ -4108,7 +4108,7 @@ namespace Unsigned
                             }
                             else if (diff[2] == 2)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texDSticks);
+                                engine.DiffuseTexture = texDSticks);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mDrumsticks.Meshes)
                                 {
@@ -4123,7 +4123,7 @@ namespace Unsigned
                             }
                             else
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texTitDSticks);
+                                engine.DiffuseTexture = texTitDSticks);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mDrumsticks.Meshes)
                                 {
@@ -4154,7 +4154,7 @@ namespace Unsigned
 
                             if (diff[1] == 0)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texTube);
+                                engine.DiffuseTexture = texTube);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mTube.Meshes)
                                 {
@@ -4169,7 +4169,7 @@ namespace Unsigned
                             }
                             else if (diff[1] == 1)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texCMic);
+                                engine.DiffuseTexture = texCMic);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mCMic.Meshes)
                                 {
@@ -4184,7 +4184,7 @@ namespace Unsigned
                             }
                             else if (diff[1] == 2)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texMic);
+                                engine.DiffuseTexture = texMic);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mMic.Meshes)
                                 {
@@ -4199,7 +4199,7 @@ namespace Unsigned
                             }
                             else
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texAMic);
+                                engine.DiffuseTexture = texAMic);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mAMic.Meshes)
                                 {
@@ -4230,7 +4230,7 @@ namespace Unsigned
 
                             if (diff[3] == 0)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texString);
+                                engine.DiffuseTexture = texString);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mString.Meshes)
                                 {
@@ -4245,7 +4245,7 @@ namespace Unsigned
                             }
                             else if (diff[3] == 1)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texStrap1);
+                                engine.DiffuseTexture = texStrap1);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mStrap.Meshes)
                                 {
@@ -4260,7 +4260,7 @@ namespace Unsigned
                             }
                             else if (diff[3] == 2)
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texStrap2);
+                                engine.DiffuseTexture = texStrap2);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mStrap.Meshes)
                                 {
@@ -4275,7 +4275,7 @@ namespace Unsigned
                             }
                             else
                             {
-                                engine.Parameters["diffuseTexture"].SetValue(texStrap3);
+                                engine.DiffuseTexture = texStrap3);
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in mStrap.Meshes)
                                 {
@@ -4298,7 +4298,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
+                            engine.DiffuseTexture = glassboxTex);
                             engine.Parameters["bumpTexture"].SetValue(glassboxBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4321,7 +4321,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
+                            engine.DiffuseTexture = glassboxTex);
                             engine.Parameters["bumpTexture"].SetValue(glassboxBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4344,7 +4344,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
+                            engine.DiffuseTexture = glassboxTex);
                             engine.Parameters["bumpTexture"].SetValue(glassboxBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4367,7 +4367,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(glassboxTex);
+                            engine.DiffuseTexture = glassboxTex);
                             engine.Parameters["bumpTexture"].SetValue(glassboxBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4431,9 +4431,9 @@ namespace Unsigned
                     //graphics.GraphicsDevice.
 
                     engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.4f, 0.4f, 0.4f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                    engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.4f, 0.4f, 0.4f));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
 
                     bool[] plo = new bool[16];
                     Vector3[] plp = new Vector3[16];
@@ -4483,7 +4483,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(concrTex);
+                            engine.DiffuseTexture = concrTex);
                             engine.Parameters["bumpTexture"].SetValue(concrBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4539,7 +4539,7 @@ namespace Unsigned
                             matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH, 1, 1));
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(SongListTex);
+                            engine.DiffuseTexture = SongListTex);
                             engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4614,11 +4614,11 @@ namespace Unsigned
                     //graphics.GraphicsDevice.
 
                     engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                    engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
-                    engine.Parameters["dLDiffuseColor"].SetValue(new Vector4(0, 0, 0, 0));
-                    engine.Parameters["dLSpecularColor"].SetValue(new Vector4(0, 0, 0, 0));
+                    engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
+                    engine.Parameters["dLightDiffuse"].SetValue(new Vector3(0, 0, 0));
+                    engine.Parameters["dLightSpecular"].SetValue(new Vector3(0, 0, 0));
 
                     Random r = new Random();
 
@@ -4692,7 +4692,7 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(concrTex);
+                            engine.DiffuseTexture = concrTex);
                             engine.Parameters["bumpTexture"].SetValue(concrBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4717,8 +4717,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseTexture"].SetValue(texNote[i]);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                            engine.DiffuseTexture = texNote[i]);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
                             engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                             engine.Parameters["shininess"].SetValue(0.25f);
                             engine.Parameters["SpecularEnabled"].SetValue(false);
@@ -4748,10 +4748,10 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(arrowTex);
+                                engine.DiffuseTexture = arrowTex);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                                engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
-                                engine.Parameters["specularColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                engine.Parameters["diffuseMaterialColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector3(0f, 1f, 0f) : new Vector3(1f, 0f, 0f));
+                                engine.Parameters["specularMaterialColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] > -1 ? new Vector3(0f, 1f, 0f) : new Vector3(1f, 0f, 0f));
                                 engine.Parameters["SpecularEnabled"].SetValue(true);
                                 engine.Parameters["shininess"].SetValue(4f);
                                 engine.Parameters["vertexAlpha"].SetValue(false);
@@ -4774,7 +4774,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] < charNames[(int)(contguis[i].loc - 1) < 3 ? (int)(contguis[i].loc - 1) : 0].Length - 1 ? new Vector4(0f, 1f, 0f, 1f) : new Vector4(1f, 0f, 0f, 1f));
+                                engine.Parameters["diffuseMaterialColor"].SetValue(charNameSelected[(int)(contguis[i].loc - 1)] < charNames[(int)(contguis[i].loc - 1) < 3 ? (int)(contguis[i].loc - 1) : 0].Length - 1 ? new Vector3(0f, 1f, 0f) : new Vector3(1f, 0f, 0f));
                                 engine.CommitChanges();
                                 foreach (ModelMesh mesh in arrowMdl.Meshes)
                                 {
@@ -4797,8 +4797,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(rustyTex);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                            engine.DiffuseTexture = rustyTex);
                             engine.CommitChanges();
                             foreach (ModelMesh mesh in nailMdl.Meshes)
                             {
@@ -4818,8 +4818,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.2f, 0.2f, 0.2f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.2f, 0.2f, 0.2f));
+                            engine.DiffuseTexture = texWhite);
                             engine.CommitChanges();
                             foreach (ModelMesh mesh in stand.Meshes)
                             {
@@ -4839,8 +4839,8 @@ namespace Unsigned
 
                             engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                             engine.Parameters["wRot"].SetValue(matRot);
-                            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                            engine.Parameters["diffuseTexture"].SetValue(stratTex);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                            engine.DiffuseTexture = stratTex);
                             engine.CommitChanges();
                             foreach (ModelMesh mesh in strat.Meshes)
                             {
@@ -4863,15 +4863,15 @@ namespace Unsigned
 
                                     engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                     engine.Parameters["wRot"].SetValue(matRot);
-                                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                                    engine.Parameters["specularColor"].SetValue(new Vector4(0f, 0f, 0f, 1f));
+                                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(0f, 0f, 0f));
                                     float alpha = 0;
                                     if (flames[k][i].Z > 3 / 4f)
                                         alpha = 1 - ((flames[k][i].Z - 3 / 4f) * 4);
                                     else
                                         alpha = flames[k][i].Z;
                                     engine.Parameters["wAlpha"].SetValue(alpha);
-                                    engine.Parameters["diffuseTexture"].SetValue(flameTex);
+                                    engine.DiffuseTexture = flameTex);
                                     engine.Parameters["fullbright"].SetValue(true);
                                     engine.Parameters["SpecularEnabled"].SetValue(false);
                                     engine.Parameters["vertexAlpha"].SetValue(true);
@@ -4896,7 +4896,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                engine.DiffuseTexture = contguis[0].loc <= 0.99 ? ContGUIData.KB_ICO_BLUR : contguis[0].loc <= 1.99 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2.99 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3.99 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["wAlpha"].SetValue(1);
@@ -4921,7 +4921,7 @@ namespace Unsigned
 
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
-                                engine.Parameters["diffuseTexture"].SetValue(contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
+                                engine.DiffuseTexture = contguis[0].loc <= 1 ? ContGUIData.KB_ICO_GUITAR : contguis[0].loc <= 2 ? ContGUIData.KB_ICO_VOCAL : contguis[0].loc <= 3 ? ContGUIData.KB_ICO_DRUM : ContGUIData.KB_ICO_GUITAR);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0);
                                 engine.Parameters["wAlpha"].SetValue(contguis[0].loc - (int)contguis[0].loc);
@@ -4951,13 +4951,13 @@ namespace Unsigned
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
                                 if (contguis[j].type == ContGUIData.CONT_TYPE.DRUMSET)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.DRUMS_ICO_BLUR : ContGUIData.DRUMS_ICO);
+                                    engine.DiffuseTexture = contguis[j].loc <= 0.99 ? ContGUIData.DRUMS_ICO_BLUR : ContGUIData.DRUMS_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.STRATOCASTER)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITAR_ICO_BLUR : ContGUIData.GUITAR_ICO);
+                                    engine.DiffuseTexture = contguis[j].loc <= 0.99 ? ContGUIData.GUITAR_ICO_BLUR : ContGUIData.GUITAR_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.XPLORER)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.GUITARX_ICO_BLUR : ContGUIData.GUITARX_ICO);
+                                    engine.DiffuseTexture = contguis[j].loc <= 0.99 ? ContGUIData.GUITARX_ICO_BLUR : ContGUIData.GUITARX_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.MICROPHONE)
-                                    engine.Parameters["diffuseTexture"].SetValue(contguis[j].loc <= 0.99 ? ContGUIData.MICROPHONE_ICO_BLUR : ContGUIData.MICROPHONE_ICO);
+                                    engine.DiffuseTexture = contguis[j].loc <= 0.99 ? ContGUIData.MICROPHONE_ICO_BLUR : ContGUIData.MICROPHONE_ICO);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0.25f);
                                 engine.Parameters["wAlpha"].SetValue(1);
@@ -4983,13 +4983,13 @@ namespace Unsigned
                                 engine.Parameters["world"].SetValue(matScale * matRot * matTranslate);
                                 engine.Parameters["wRot"].SetValue(matRot);
                                 if (contguis[j].type == ContGUIData.CONT_TYPE.DRUMSET)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.DRUMS_ICO);
+                                    engine.DiffuseTexture = ContGUIData.DRUMS_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.STRATOCASTER)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITAR_ICO);
+                                    engine.DiffuseTexture = ContGUIData.GUITAR_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.XPLORER)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.GUITARX_ICO);
+                                    engine.DiffuseTexture = ContGUIData.GUITARX_ICO);
                                 else if (contguis[j].type == ContGUIData.CONT_TYPE.MICROPHONE)
-                                    engine.Parameters["diffuseTexture"].SetValue(ContGUIData.MICROPHONE_ICO);
+                                    engine.DiffuseTexture = ContGUIData.MICROPHONE_ICO);
                                 engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
                                 engine.Parameters["shininess"].SetValue(0);
                                 engine.Parameters["wAlpha"].SetValue(contguis[j].loc);
@@ -5108,9 +5108,9 @@ namespace Unsigned
                             graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
 
                         engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.5f, 0.5f, 0.5f));
+                        engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
 
                         matProj = venue.GetProjMatrix(windowwidth / (float)windowheight);
                         graphics.GraphicsDevice.Clear(Color.Black);
@@ -5464,9 +5464,9 @@ namespace Unsigned
                             graphics.GraphicsDevice.SetRenderTarget(0, screenTarget);
 
                         engine.Parameters["bumpTexture"].SetValue(texDefaultBM);
-                        engine.Parameters["ambientColor"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                        engine.Parameters["specularColor"].SetValue(new Vector4(1f, 1f, 1f, 1.0f));
+                        engine.Parameters["ambientMaterialColor"].SetValue(new Vector3(0.1f, 0.1f, 0.1f));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.5f, 0.5f, 0.5f));
+                        engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1f, 1f, 1f));
 
 
                         engine.CurrentTechnique = engine.Techniques["maintechnique"];
@@ -6701,7 +6701,7 @@ namespace Unsigned
             int k = board;
             for (int r = 0; r < texShard.Length; r++)
             {
-                engine.Parameters["diffuseTexture"].SetValue(texShard[r]);
+                engine.DiffuseTexture = texShard[r];
                 for (int i = 0; i < glass[k].Length; i++)
                     if (glass[k][i].scale > 0 && glass[k][i].frame==r)
                     {
@@ -6718,7 +6718,7 @@ namespace Unsigned
 
 
                         
-                        engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
+                        engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[glass[k][i].col]);
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -6731,7 +6731,7 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
             }
-            engine.Parameters["diffuseTexture"].SetValue(texSpark);
+            engine.DiffuseTexture = texSpark;
             for (int i = 0; i < sparks[k].Length; i++)
                 if (sparks[k][i].scale > 0)
                 {
@@ -6743,7 +6743,7 @@ namespace Unsigned
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
 
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
+                    engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[sparks[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -6755,7 +6755,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
         }
 
         private void ProcessInput(GameTime gameTime, long currenttime)
@@ -7627,12 +7627,12 @@ namespace Unsigned
                                 tmpMdl[5].Alpha = hiA;*/
 
                                 /*if (q >= boards[i].wavesSubLen[p] - 2)
-                                    engine.Parameters["diffuseTexture"].SetValue(texLineEnd);
+                                    engine.DiffuseTexture = texLineEnd);
                                 else
-                                    engine.Parameters["diffuseTexture"].SetValue(texLine);
-                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[r]);
+                                    engine.DiffuseTexture = texLine);
+                                engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[r]);
                                 if(((byte)(boards[i].waves[p][q].Z)&128)!=0)
-                                    engine.Parameters["diffuseColor"].SetValue(new Vector4(.5f,.5f,.5f,1.0f));
+                                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(.5f,.5f,.5f));
                                 engine.CommitChanges();*/
 
                                 /*hide = !hide;
@@ -7820,12 +7820,12 @@ namespace Unsigned
             graphics.GraphicsDevice.SetRenderTarget(0, null);
             boards[i].texBoard = rtBoard[i].GetTexture();
         }
-        private void DrawBoardTargetFS(int currentNoteIndex)
+        private void DrawBoardTargetFS(int index)
         {
 
             fader.CurrentTechnique = fader.Techniques["Fade"];
             float fh = (Board.eFade - Board.sFade) / (Board.eFade * (1/ratio));
-            if (currentNoteIndex == 1)
+            if (index == 1)
                 return;
             for (int i = 0; i < 4; i++)
             {
@@ -7844,7 +7844,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.BackToFront, SaveStateMode.SaveState);
 
-                    int fiver = currentNoteIndex == 0 || currentNoteIndex == 3 ? 1 : 0;
+                    int fiver = index == 0 || index == 3 ? 1 : 0;
                     spritebatch.Draw(Board.boardTexPlain[fiver][0], new Rectangle(0, 0, rtBoard[i].Width, rtBoard[i].Height),null, Color.White,0,new Vector2(0,0),SpriteEffects.None,0.9f);
 
                     spritebatch.End();
@@ -7886,7 +7886,7 @@ namespace Unsigned
                 matOrbit = Matrix.CreateTranslation(0f, 0f, /*-(Board.length * Math.Min(lenvals[0].X, Board.sFade))*/ - Board.zeroZ - (Board.eFade*Board.length)) * fling;
                 matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length*Board.eFade*(1/ratio)));
                 engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-                engine.Parameters["diffuseTexture"].SetValue(mode==M_GAME?boards[i].texBoard:FStexBoard[i]);
+                engine.DiffuseTexture = mode==M_GAME?boards[i].texBoard:FStexBoard[i];
                 engine.Parameters["wAlpha"].SetValue(1.0f);
                 engine.CommitChanges();
                 graphics.GraphicsDevice.VertexDeclaration = vd;
@@ -7908,12 +7908,12 @@ namespace Unsigned
                     engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
                     if (!SP)
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
+                        engine.DiffuseTexture = Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
                         engine.Parameters["wAlpha"].SetValue(1.0f);
                     }
                     else
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                        engine.DiffuseTexture = Board.SPBoardTex);
                         engine.Parameters["wAlpha"].SetValue(0.5f);
                     }
                     engine.CommitChanges();
@@ -7942,12 +7942,12 @@ namespace Unsigned
                         engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
                         if (!SP)
                         {
-                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                            engine.DiffuseTexture = Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
                             engine.Parameters["wAlpha"].SetValue(1.0f);
                         }
                         else
                         {
-                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                            engine.DiffuseTexture = Board.SPBoardTex);
                             engine.Parameters["wAlpha"].SetValue(0.5f);
                         }
                         engine.CommitChanges();
@@ -7984,12 +7984,12 @@ namespace Unsigned
 
                     if (!SP)
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                        engine.DiffuseTexture = Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
                         engine.Parameters["wAlpha"].SetValue(1.0f);
                     }
                     else
                     {
-                        engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                        engine.DiffuseTexture = Board.SPBoardTex);
                         engine.Parameters["wAlpha"].SetValue(0.5f);
                     }
                     engine.CommitChanges();
@@ -8026,16 +8026,16 @@ namespace Unsigned
                     if (lenvals[0].X > Board.eFade)
                     {
                         if (!SP)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
+                            engine.DiffuseTexture = Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][0]);
                         else
-                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                            engine.DiffuseTexture = Board.SPBoardTex);
                     }
                     else
                     {
                         if (!SP)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
+                            engine.DiffuseTexture = Board.boardTexPlain[(boards[i].GetBoardType() == GUITAR || boards[i].GetBoardType() == BASS) ? 1 : 0][Board.boardBeatsIndex[(int)lenvals[i].Y]]);
                         else
-                            engine.Parameters["diffuseTexture"].SetValue(Board.SPBoardTex);
+                            engine.DiffuseTexture = Board.SPBoardTex);
                     }
                     if (SP)
                         engine.Parameters["wAlpha"].SetValue(0.5f);
@@ -8068,7 +8068,7 @@ namespace Unsigned
             matOrbit = Matrix.CreateTranslation(0f, 0.01f, /*-(Board.length * Math.Min(lenvals[0].X, Board.sFade))*/ - Board.zeroZ - (Board.eFade*Board.length)) * fling;
             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length*Board.eFade*(1/ratio)));
             engine.Parameters["world"].SetValue(matScale * matOrbit * matTransl);
-            engine.Parameters["diffuseTexture"].SetValue(boards[i].texWaves);
+            engine.DiffuseTexture = boards[i].texWaves;
             engine.Parameters["wAlpha"].SetValue(1.0f);
             engine.CommitChanges();
             graphics.GraphicsDevice.VertexDeclaration = vd;
@@ -8141,12 +8141,12 @@ namespace Unsigned
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                             if (q >= boards[i].wavesSubLen[p] - 2)
-                                engine.Parameters["diffuseTexture"].SetValue(texLineEnd);
+                                engine.DiffuseTexture = texLineEnd);
                             else
-                                engine.Parameters["diffuseTexture"].SetValue(texLine);
-                            engine.Parameters["diffuseColor"].SetValue(FretColorsV4[r]);
+                                engine.DiffuseTexture = texLine);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[r]);
                             if(((byte)(boards[i].waves[p][q].Z)&128)!=0)
-                                engine.Parameters["diffuseColor"].SetValue(new Vector4(.5f,.5f,.5f,1.0f));
+                                engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(.5f,.5f,.5f));
                             engine.CommitChanges();
 
                             hide = !hide;
@@ -8188,7 +8188,7 @@ namespace Unsigned
             engine.Parameters["SpecularEnabled"].SetValue(false);
             engine.Parameters["fullbright"].SetValue(true);
             engine.Parameters["BumpMappingEnabled"].SetValue(false);
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1));*/
+            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));*/
         }
 
         private void DrawNotes(int i, Matrix fling, long currenttime)
@@ -8211,11 +8211,11 @@ namespace Unsigned
                     }
                     else if (boards[i].GetBoardType() == PERCUSSIONIST && boards[i].OutNotes[p].Z > 0.5)
                     {
-                        engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 0));
+                        engine.Parameters["specularMaterialColor"].SetValue(new Vector3(0, 0, 0));
                         engine.Parameters["SpecularEnabled"].SetValue(false);
                         engine.Parameters["fullbright"].SetValue(true);
                         Matrix matIdentity, matTransl, matRot, matScale, matOrbit;
-                        engine.Parameters["diffuseTexture"].SetValue(Board.drumfillTex);
+                        engine.DiffuseTexture = Board.drumfillTex);
                         for (int k = 0; k < 4; k++)
                         {
                             float height = 0;
@@ -8231,7 +8231,7 @@ namespace Unsigned
 
                             engine.Parameters["wAlpha"].SetValue(1);
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matRot * matOrbit * matTransl);
-                            engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[k]]);
+                            engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV4[Board.guitarToDrums[k]]);
                             engine.CommitChanges();
 
                             // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8267,7 +8267,7 @@ namespace Unsigned
                             // identity, scale, rotate, orbit(translate & rotate), translate
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[0]);
+                            engine.DiffuseTexture = Board.texNotes[0]);
                             engine.CommitChanges();
 
                             // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8298,8 +8298,8 @@ namespace Unsigned
                             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         }
 
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-                        engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                        engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1, 1, 1));
                         engine.Parameters["SpecularEnabled"].SetValue(true);
                     }
                 }*/
@@ -8307,20 +8307,20 @@ namespace Unsigned
                 for (int r = 0; r < 6; r++)
                 {
                     if (r < 5)
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                        engine.DiffuseTexture = Board.texNotes[r];
                     else
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                        engine.DiffuseTexture = Board.texTriggerBorderLit;
                     whited = false;
                     for (int p = 0; p < boards[i].notesLen; p++)
                     {
                         if (boards[i].OutNotes[p].W > 0.5 && !whited)
-                        { engine.Parameters["diffuseTexture"].SetValue(texWhite); whited = true; }
+                        { engine.DiffuseTexture = texWhite; whited = true; }
                         else if (boards[i].OutNotes[p].W <= 0.5 && whited)
                         {
                             if (r < 5)
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texNotes[r]);
+                                engine.DiffuseTexture = Board.texNotes[r];
                             else
-                                engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorderLit);
+                                engine.DiffuseTexture = Board.texTriggerBorderLit;
                             whited = false;
                         }
 
@@ -8401,7 +8401,7 @@ namespace Unsigned
                                 {
                                     foreach (ModelMeshPart part in mesh.MeshParts)
                                     {
-                                        //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                        //engine.DiffuseTexture = texWhite);
                                         engine.CommitChanges();
                                         graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
                                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
@@ -8414,7 +8414,7 @@ namespace Unsigned
                                     foreach (ModelMeshPart part in mesh.MeshParts)
                                     {
 
-                                        //engine.Parameters["diffuseTexture"].SetValue(texWhite);
+                                        //engine.DiffuseTexture = texWhite);
                                         engine.CommitChanges();
                                         graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
                                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
@@ -8463,45 +8463,45 @@ namespace Unsigned
 
                         engine.Parameters["proj"].SetValue(matProj);
 
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
+                        engine.DiffuseTexture = Board.texTriggers[p];
                         if (contInput[boards[i].GetBoardType()] < 4)
                         {
                             if (p == 0 && controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 1 && controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 2 && controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 3 && controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 4 && controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                         }
                         else if (contInput[boards[i].GetBoardType()] == 4 && boards[i].IsLefty())
                         {
                             if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.G))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[0]; glow[0] = true; }
                             if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.F))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[1]; glow[1] = true; }
                             if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[2]; glow[2] = true; }
                             if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.S))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[3]; glow[3] = true; }
                             if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.A))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[4]; glow[4] = true; }
                         }
                         else if (contInput[boards[i].GetBoardType()] == 4 && !boards[i].IsLefty())
                         {
                             if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.G))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[4]; glow[4] = true; }
                             if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.F))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[3]; glow[3] = true; }
                             if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[2]; glow[2] = true; }
                             if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.S))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[1]; glow[1] = true; }
                             if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.A))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[0]; glow[0] = true; }
                         }
 
                         engine.CommitChanges();
@@ -8531,9 +8531,9 @@ namespace Unsigned
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                         engine.Parameters["proj"].SetValue(matProj);
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(FretColors[p].ToVector3(), 0.5f));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(FretColors[p].ToVector3());
                         engine.Parameters["wAlpha"].SetValue(pop[i]);
-                        engine.Parameters["diffuseTexture"].SetValue(texGlow);
+                        engine.DiffuseTexture = texGlow);
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8566,7 +8566,7 @@ namespace Unsigned
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                        engine.DiffuseTexture = Board.texTriggerBorder;
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8590,9 +8590,9 @@ namespace Unsigned
                             // identity, scale, rotate, orbit(translate & rotate), translate
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
+                            engine.DiffuseTexture = Board.texTriggers[Board.guitarToDrums[p]];
                         if (glow[p] && p < 4)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
+                            engine.DiffuseTexture = Board.texTriggersLit[Board.guitarToDrums[p]];
 
                         engine.CommitChanges();
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8614,7 +8614,7 @@ namespace Unsigned
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                        engine.DiffuseTexture = Board.texTriggerBorder;
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8642,12 +8642,12 @@ namespace Unsigned
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                             if (boards[i].GetBoardType() != PERCUSSIONIST)
-                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
+                                engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[p]);
                             else
-                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
-                            engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
+                                engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[Board.guitarToDrums[p]]);
+                            engine.Parameters["specularMaterialColor"].SetValue(new Vector3(0, 0, 0));
 
-                            engine.Parameters["diffuseTexture"].SetValue(texGlow);
+                            engine.DiffuseTexture = texGlow;
                             engine.CommitChanges();
 
                             // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8661,8 +8661,8 @@ namespace Unsigned
                         }
                     }
 
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1, 1, 1));
                     engine.Parameters["fullbright"].SetValue(false);
                 }
                 engine.Parameters["wAlpha"].SetValue(1.0f);
@@ -8698,45 +8698,45 @@ namespace Unsigned
 
                         engine.Parameters["proj"].SetValue(matProj);
 
-                        engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[p]);
+                        engine.DiffuseTexture = Board.texTriggers[p];
                         if (contInput[i] < 4)
                         {
                             if (p == 0 && controllers[contInput[i]].Buttons.A == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 1 && controllers[contInput[i]].Buttons.B == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 2 && controllers[contInput[i]].Buttons.Y == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 3 && controllers[contInput[i]].Buttons.X == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                             if (p == 4 && controllers[contInput[i]].Buttons.LeftShoulder == ButtonState.Pressed)
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[p]); glow[p] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[p]; glow[p] = true; }
                         }
                         else if (contInput[i] == 4 && FSIsLefty[i])
                         {
                             if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.G))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[0]; glow[0] = true; }
                             if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.F))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[1]; glow[1] = true; }
                             if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[2]; glow[2] = true; }
                             if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.S))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[3]; glow[3] = true; }
                             if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.A))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[4]; glow[4] = true; }
                         }
                         else if (contInput[i] == 4 && !FSIsLefty[i])
                         {
                             if (p == 4 && Keyboard.GetState().IsKeyDown(Keys.G))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[4]); glow[4] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[4]; glow[4] = true; }
                             if (p == 3 && Keyboard.GetState().IsKeyDown(Keys.F))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[3]); glow[3] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[3]; glow[3] = true; }
                             if (p == 2 && Keyboard.GetState().IsKeyDown(Keys.D))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[2]); glow[2] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[2]; glow[2] = true; }
                             if (p == 1 && Keyboard.GetState().IsKeyDown(Keys.S))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[1]); glow[1] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[1]; glow[1] = true; }
                             if (p == 0 && Keyboard.GetState().IsKeyDown(Keys.A))
-                            { engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[0]); glow[0] = true; }
+                            { engine.DiffuseTexture = Board.texTriggersLit[0]; glow[0] = true; }
                         }
 
                         engine.CommitChanges();
@@ -8766,9 +8766,9 @@ namespace Unsigned
                         engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                         engine.Parameters["proj"].SetValue(matProj);
-                        engine.Parameters["diffuseColor"].SetValue(new Vector4(FretColors[p].ToVector3(), 0.5f));
+                        engine.Parameters["diffuseMaterialColor"].SetValue(FretColors[p].ToVector3());
                         engine.Parameters["wAlpha"].SetValue(pop[i]);
-                        engine.Parameters["diffuseTexture"].SetValue(texGlow);
+                        engine.DiffuseTexture = texGlow);
                         engine.CommitChanges();
 
                         // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8806,12 +8806,12 @@ namespace Unsigned
                             // identity, scale, rotate, orbit(translate & rotate), translate
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggers[Board.guitarToDrums[p]]);
+                            engine.DiffuseTexture = Board.texTriggers[Board.guitarToDrums[p]];
                         }
                         else
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggerBorder);
+                            engine.DiffuseTexture = Board.texTriggerBorder;
                         if (glow[p] && p < 4)
-                            engine.Parameters["diffuseTexture"].SetValue(Board.texTriggersLit[Board.guitarToDrums[p]]);
+                            engine.DiffuseTexture = Board.texTriggersLit[Board.guitarToDrums[p]];
 
                         engine.CommitChanges();
 
@@ -8882,12 +8882,12 @@ namespace Unsigned
                             engine.Parameters["world"].SetValue(matIdentity * matScale * matOrbit * matTransl);
 
                             if (boards[i].GetBoardType() != PERCUSSIONIST)
-                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[p]);
+                                engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[p]);
                             else
-                                engine.Parameters["diffuseColor"].SetValue(FretColorsV4[Board.guitarToDrums[p]]);
-                            engine.Parameters["specularColor"].SetValue(new Vector4(0, 0, 0, 1));
+                                engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[Board.guitarToDrums[p]]);
+                            engine.Parameters["specularMaterialColor"].SetValue(new Vector3(0, 0, 0));
 
-                            engine.Parameters["diffuseTexture"].SetValue(texGlow);
+                            engine.DiffuseTexture = texGlow;
                             engine.CommitChanges();
 
                             // 5: draw object - select vertex type, primitive type, # of primitives
@@ -8901,8 +8901,8 @@ namespace Unsigned
                         }
                     }
 
-                    engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-                    engine.Parameters["specularColor"].SetValue(new Vector4(1, 1, 1, 1));
+                    engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
+                    engine.Parameters["specularMaterialColor"].SetValue(new Vector3(1, 1, 1));
                     engine.Parameters["fullbright"].SetValue(false);
                 }
                 engine.Parameters["wAlpha"].SetValue(1.0f);
@@ -9140,34 +9140,34 @@ namespace Unsigned
             }
         }
 
-        private void DrawFlashes(int currentNoteIndex, Matrix fling)
+        private void DrawFlashes(int index, Matrix fling)
         {
             int lefty = 1;
-            if (boards[currentNoteIndex].IsLefty())
+            if (boards[index].IsLefty())
                 lefty = -1;
-            float[] arr = boards[currentNoteIndex].GetPopups();
-            for (int i = 0; currentNoteIndex==2 ? i < 4 : i < 5; i++)
+            float[] arr = boards[index].GetPopups();
+            for (int i = 0; index==2 ? i < 4 : i < 5; i++)
                 if (arr[i]>0)
                 {
                     Matrix matRot, matTransl, matOrbit, matScale;
-                    matRot = Matrix.CreateRotationY(boards[currentNoteIndex].flashRot)*Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
-                    if (currentNoteIndex == 2)
+                    matRot = Matrix.CreateRotationY(boards[index].flashRot)*Matrix.CreateRotationX(MathHelper.PiOver4);// *Matrix.CreateRotationY((float)(hvdistTOdir(venue.GetCamFor().X, venue.GetCamFor().Z) / 180 * Math.PI) + MathHelper.PiOver2);
+                    if (index == 2)
                     {
-                        matTransl = Matrix.CreateTranslation((-.75f + (i * .5f)) * (Board.width), 0.1f + Board.height + (boards[currentNoteIndex].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[currentNoteIndex].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
+                        matTransl = Matrix.CreateTranslation((-.75f + (i * .5f)) * (Board.width), 0.1f + Board.height + (boards[index].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[index].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
                     }
                     else
                     {
-                        matTransl = Matrix.CreateTranslation((-.8f + (i * 0.4f)) * lefty * Board.width, 0.1f+Board.height + (boards[currentNoteIndex].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[currentNoteIndex].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
+                        matTransl = Matrix.CreateTranslation((-.8f + (i * 0.4f)) * lefty * Board.width, 0.1f+Board.height + (boards[index].GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
+                        matOrbit = Matrix.CreateTranslation(0f, Board.curveHeight * (1 - Math.Abs(-.8f + (i * 0.4f))) + ((boards[index].GetPopups()[i]) * 0.001f), -Board.zeroZ) * fling;
                     }
                     matScale = Matrix.CreateScale(new Vector3(0.2f, 0.2f, 0.2f));
 
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matRot * matOrbit * matTransl);
 
-                    engine.Parameters["diffuseTexture"].SetValue(Board.texBlast);
-                    engine.Parameters["diffuseColor"].SetValue(currentNoteIndex==2?FretColorsV4[Board.guitarToDrums[i]]:FretColorsV4[i]);
+                    engine.DiffuseTexture = Board.texBlast;
+                    engine.Parameters["diffuseMaterialColor"].SetValue(index==2?FretColorsV3[Board.guitarToDrums[i]]:FretColorsV3[i]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -9179,7 +9179,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(1,1,1,1));
+            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(1,1,1));
         }
         private void DrawGibsFS(int board)
         {
@@ -9199,8 +9199,8 @@ namespace Unsigned
                     engine.Parameters["proj"].SetValue(matProj);
 
 
-                    engine.Parameters["diffuseTexture"].SetValue(texShard[glass[k][i].frame]);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[glass[k][i].col]);
+                    engine.DiffuseTexture = texShard[glass[k][i].frame];
+                    engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[glass[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -9223,8 +9223,8 @@ namespace Unsigned
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     engine.Parameters["world"].SetValue(matScale * matRot * matTransl);
 
-                    engine.Parameters["diffuseTexture"].SetValue(texSpark);
-                    engine.Parameters["diffuseColor"].SetValue(FretColorsV4[sparks[k][i].col]);
+                    engine.DiffuseTexture = texSpark;
+                    engine.Parameters["diffuseMaterialColor"].SetValue(FretColorsV3[sparks[k][i].col]);
                     engine.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -9236,7 +9236,7 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            engine.Parameters["diffuseColor"].SetValue(new Vector4(0.8f,0.8f,0.8f,1.0f));
+            engine.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f,0.8f,0.8f));
         }
 
         private void GetContGUIData()

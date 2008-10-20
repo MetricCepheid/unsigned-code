@@ -36,6 +36,9 @@ namespace Unsigned
         GraphicsDeviceManager graphics;
         ContentManager content;
 
+        private float[] lastframes = new float[60];
+        private int frameIndex;
+
         private bool demomodepress = false;
 
         public static UnsignedGame GetSingleton() { return SINGLETON; }
@@ -52,6 +55,12 @@ namespace Unsigned
 
         protected override void Initialize()
         {
+            for (int i = 0; i < lastframes.Length; i++)
+                lastframes[i] = 1 / 30f;
+
+            Localizer.Load();
+            Localizer.CurrentLanguage = Localizer.Language.FRENCH;
+
             RenderMaster.CreateSingleton();
             RenderMaster.GetSingleton().graphics = graphics;
             RenderMaster.GetSingleton().spritebatch = new SpriteBatch(graphics.GraphicsDevice);
@@ -138,6 +147,7 @@ namespace Unsigned
         private void Configurate()
         {
             System.IO.StreamReader fin;
+            bool l=true, n=false, s=false;
 #if !DEBUG
             try
             {
@@ -195,8 +205,27 @@ namespace Unsigned
                         String strn = str.Substring(str.IndexOf('=') + 1).Trim();
                         GameSettings.guiStyle = strn.ToLower().Equals("rockband") ? GameUIMaster.GUIStyle.RB : GameUIMaster.GUIStyle.UN;
                     }
-
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("lightingon"))
+                    {
+                        l = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("nrmmapping"))
+                    {
+                        n = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("specularhl"))
+                    {
+                        s = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                    }
                 } while (!fin.EndOfStream);
+
+                GameSettings.Lighting = l;
+                if (l)
+                {
+                    GameSettings.NormalMapping = n;
+                    if (n)
+                        GameSettings.Specular = s;
+                }
 #if !DEBUG
             }
             catch (FormatException)
@@ -211,7 +240,68 @@ namespace Unsigned
                 System.Windows.Forms.MessageBox.Show("config.cfg general error");
 #endif
             }
+            finally
+            {
 #endif
+                fin.Close();
+#if !DEBUG
+            }
+#endif
+        }
+
+        private void SaveConfiguration()
+        {
+            System.IO.StreamWriter fout;
+#if !DEBUG
+            try
+            {
+#endif
+            fout = new System.IO.StreamWriter("config.cfg");
+
+#if !DEBUG
+            }
+            catch (Exception)
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("config.cfg could not be opened");
+#endif
+                return;
+            }
+            try
+            {
+#endif
+                fout.WriteLine("3dbkground = "+GameSettings.renderLevel);
+                fout.WriteLine("wavedetail = "+GameSettings.waveDetail);
+                fout.WriteLine("resolution = "+GameSettings.Resolution.Width+"x"+GameSettings.Resolution.Height);
+                fout.WriteLine("fullscreen = "+GameSettings.fullScreen);
+                fout.WriteLine("halfrender = "+GameSettings.HALF_RENDER);
+                fout.WriteLine("iguihasfps = "+GameSettings.ShowFPS);
+                fout.WriteLine("igguistyle = "+(GameSettings.guiStyle== GameUIMaster.GUIStyle.GH?"guitarhero":GameSettings.guiStyle== GameUIMaster.GUIStyle.RB?"rockband":"unsigned"));
+                fout.WriteLine("lightingon = "+GameSettings.Lighting);
+                fout.WriteLine("nrmmapping = "+GameSettings.NormalMapping);
+                fout.WriteLine("specularhl = "+GameSettings.Specular);
+
+#if !DEBUG
+            }
+            catch (Exception)
+            {
+#if WINDOWS
+                System.Windows.Forms.MessageBox.Show("config.cfg general error");
+#endif
+            }
+            finally
+            {
+#endif
+                fout.Close();
+#if !DEBUG
+            }
+#endif
+        }
+
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            SaveConfiguration();
+            base.OnExiting(sender, args);
         }
 
         public static void SetProjMatrix(int w, int h)
@@ -580,6 +670,7 @@ namespace Unsigned
 
         protected override void Update(GameTime gameTime)
         {
+
             PeripheralManager.GetSingleton().QueryAll();
             //Thread.Sleep(1);
 
@@ -605,6 +696,22 @@ namespace Unsigned
             if (currentState.Peek() is PauseScreen)
                 currentState.ToArray()[1].Render(gameTime);
             currentState.Peek().Render(gameTime);
+
+            RenderMaster.GetSingleton().spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+            {
+                float fps = 0;
+                lastframes[frameIndex % lastframes.Length] = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                frameIndex++;
+                for (int i = 0; i < lastframes.Length; i++)
+                    fps += lastframes[i];
+                fps /= lastframes.Length;
+                fps = 1 / fps;
+                if (GameSettings.ShowFPS)
+                    RenderMaster.GetSingleton().spritebatch.DrawString(Global.DefaultFont, "" + (int)fps, new Vector2(GameSettings.windowwidth - 40, GameSettings.windowheight - 40), Color.Red);
+
+            }
+            RenderMaster.GetSingleton().spritebatch.End();
 
             base.Draw(gameTime);
         }
@@ -1011,7 +1118,9 @@ namespace Unsigned
 
         public void PushState(BaseState state)
         {
-            state.Load(content);
+            if (currentState.Count>0 && !(currentState.Peek() is GameState))
+                currentState.Peek().Unload();
+            state.Load();
             currentState.Push(state);
         }
 
@@ -1019,16 +1128,10 @@ namespace Unsigned
         {
             currentState.Peek().Unload();
             currentState.Pop();
-        }
-
-        internal void RestartSong()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        internal void EndSong()
-        {
-            throw new Exception("The method or operation is not implemented.");
+            if (currentState.Count <= 0)
+            { Exit(); return; }
+            if (!(currentState.Peek() is GameState))
+                currentState.Peek().Load();
         }
 
         internal void ClearStateStack()

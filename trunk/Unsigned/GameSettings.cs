@@ -49,5 +49,6 @@ namespace Unsigned
         {
             get { return new Rectangle(0, 0, resX[resIndex], resY[resIndex]); }
         }
+        public static bool NormalMapping=false, Specular=false, Lighting=true;
     }
 }

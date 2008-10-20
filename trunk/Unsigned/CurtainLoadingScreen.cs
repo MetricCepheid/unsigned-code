@@ -9,6 +9,7 @@ namespace Unsigned
 {
     class CurtainLoadingScreen : BaseState
     {
+        private ContentManager content;
         private Model mCurtain;
         private Texture2D texCurtainLeft, texCurtainRight;
 
@@ -17,14 +18,14 @@ namespace Unsigned
 
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
-
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
         }
 
         public override void Unload()
         {
-
+            content.Unload();
         }
 
         public override void Update(GameTime gameTime)
@@ -34,7 +35,7 @@ namespace Unsigned
         public override void Render(GameTime gameTime)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            BasicEffect bEffect = rm.bEffect;
+            FVShader bEffect = rm.engine;
 
             rm.graphics.GraphicsDevice.Clear(Color.Black);
 
@@ -43,20 +44,20 @@ namespace Unsigned
             //graphics.PreferMultiSampling = true;
             rm.graphics.ApplyChanges();
 
-            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
             rm.graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
             rm.graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
 
-            bEffect.DiffuseColor = new Vector3(1f, 1f, 1f);
-            bEffect.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
-            bEffect.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(-1, -3, -1));
-            bEffect.DirectionalLight0.Enabled = true;
-            bEffect.DirectionalLight0.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
-            bEffect.LightingEnabled = true;
-            bEffect.SpecularColor = new Vector3(0, 0, 0);
-            bEffect.SpecularPower = 12.0f;
+            bEffect.DiffuseMaterial = Color.White;
+            bEffect.DirectionalLight = new DirectionalLight(true, new Vector3(-1, -3, -1), new Color(200, 200, 200), Color.White);
+            bEffect.SpecularMaterial = Color.Black;
+            bEffect.Shininess = 12.0f;
             bEffect.TextureEnabled = true;
+
+            bEffect.LightingEnabled = GameSettings.Lighting;
+            bEffect.SpecularEnabled = GameSettings.Specular;
+            bEffect.NormalMapEnabled = GameSettings.NormalMapping;
+
             bEffect.CommitChanges();
             bEffect.Begin();
             foreach (EffectPass pass in bEffect.CurrentTechnique.Passes)
@@ -78,7 +79,7 @@ namespace Unsigned
                 matScale = Matrix.CreateScale(1, 2, 1);
 
                 bEffect.World = matScale * matRot * matTranslate;
-                bEffect.Texture = texCurtainLeft;
+                bEffect.DiffuseTexture = texCurtainLeft;
                 bEffect.CommitChanges();
 
                 foreach (ModelMesh mesh in mCurtain.Meshes)
@@ -97,7 +98,7 @@ namespace Unsigned
                 matScale = Matrix.CreateScale(1, 2, 1);
 
                 bEffect.World = matScale * matRot * matTranslate;
-                bEffect.Texture = texCurtainRight;
+                bEffect.DiffuseTexture = texCurtainRight;
                 bEffect.CommitChanges();
 
                 foreach (ModelMesh mesh in mCurtain.Meshes)

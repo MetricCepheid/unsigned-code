@@ -40,6 +40,7 @@ namespace Unsigned
                  new VertexElement(0, sizeof(float)*8, VertexElementFormat.Vector3, VertexElementMethod.Default, VertexElementUsage.Tangent, 0),
                  new VertexElement(0, sizeof(float)*11, VertexElementFormat.Single,VertexElementMethod.Default,VertexElementUsage.Fog,0),
              };
+        public static VertexDeclaration VertexDeclaration;
         public static int SizeInBytes = sizeof(float) * (3 + 2 + 3 + 3 + 1);
     }
 

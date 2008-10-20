@@ -16,7 +16,7 @@ namespace Unsigned
         protected Entity parent;
         protected Vector3 relLoc;
         public abstract void Update(GameTime gameTime);
-        public abstract void Draw(Effect engine, GraphicsDeviceManager graphics, Vector3 CamPos);
+        public abstract void Draw(FVShader engine, GraphicsDeviceManager graphics, Vector3 CamPos);
         public virtual Matrix GetTransform()
         {
             if(parent!=null)
@@ -81,7 +81,7 @@ namespace Unsigned
             return matRot * Matrix.CreateTranslation(relLoc) * parent.GetTransform();
         }
 
-        public override void Draw(Effect engine, GraphicsDeviceManager graphics, Vector3 CamPos)
+        public override void Draw(FVShader engine, GraphicsDeviceManager graphics, Vector3 CamPos)
         {
             Matrix matIdentity = Matrix.Identity;
             float xval = (float)UnsignedGame.dirdistTOhdist(rotVal * 180 / Math.PI,swingAmt);
@@ -93,11 +93,10 @@ namespace Unsigned
             // identity, scale, rotate, orbit(translate & rotate), translate
             Matrix matWorld = matIdentity * matScale * transform;
             if (fullBright)
-                engine.Parameters["fullbright"].SetValue(true);
-            engine.Parameters["world"].SetValue(matWorld);
-            engine.Parameters["wRot"].SetValue(transform);
-            engine.Parameters["diffuseTexture"].SetValue(Venue.StaticTexture[texture].tex);
-            engine.Parameters["bumpTexture"].SetValue(Global.texDefaultBM);
+            { engine.AmbientMaterial = Color.White; engine.SpecularMaterial = Color.Black; }
+            engine.World = matWorld;
+            engine.DiffuseTexture = Venue.StaticTexture[texture].tex;
+            engine.NormalMapTexture =Global.texDefaultBM;
             engine.CommitChanges();
 
             foreach (ModelMesh mesh in Venue.Models[model].Meshes)
@@ -110,7 +109,8 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, meshpart.BaseVertex, 0, meshpart.NumVertices, meshpart.StartIndex, meshpart.PrimitiveCount);
                 }
             }
-            engine.Parameters["fullbright"].SetValue(false);
+            engine.AmbientMaterial = new Color(24,24,24); 
+            engine.SpecularMaterial = Color.White;
         }
     }
     /*public class LightEntity : Entity

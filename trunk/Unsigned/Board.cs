@@ -44,8 +44,8 @@ namespace Unsigned
         private static Texture2D drumfillTex, spMeterBG, spMeterLED, spMeterFill, spMeterCurl;
         private static Texture2D vBar, vBGExt, vBGInt, vFuzz, vHeadBar, vGlow, texBlast;
         private static VertexBuffer mdlBoard, mdlSPM;
-        private static VertexBuffer mdlTrigger, mdlTriggerBorder;
-        private static Model mdlNote, mdlNoteInside;
+        private static VertexBuffer triggerVB, noteVB, noteInsideVB, mdlTriggerBorder;
+        private static IndexBuffer triggerIB, noteIB, noteInsideIB;
         private static Texture2D[] texNotes, texBarNotes, texTriggers, texTriggersLit;
         private static Texture2D texTriggerBorder, texTriggerBorderLit;
         private static Texture2D texLine, texLineEnd;
@@ -115,58 +115,98 @@ namespace Unsigned
         //Legacy
         private static string[] SETTINGS_EXT = { ".gbg", ".gbv", ".gbd", ".gbb", }; public static int OFFSET_TO_GBA = 0, OFFSET_TO_GBG = 1, OFFSET_TO_GBB = 2, OFFSET_TO_GBD = 3, OFFSET_TO_GBV = 4, OFFSET_TO_GBE = 5;
 
+        private SongData.NoteSet[] _notes;
         private SongData.NoteSet[] Notes
         {
             get
             {
-                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
-                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
-                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases[0].notes;
-                return null;
+                if (_notes == null)
+                {
+                    for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                        if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        {
+                            _notes = RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases[0].notes;
+                            return _notes;
+                        }
+                    return null;
+                }
+                return _notes;
             }
         }
 
+        private SongData.Phrase[] _phrases;
         private SongData.Phrase[] Phrases
         {
             get
             {
-                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
-                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
-                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases;
-                return null;
+                if (_phrases == null)
+                {
+                    for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                        if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        {
+                            _phrases = RhythmMaster.GetSingleton().GetSongData().instruments[i].diffSets[difficulty].phrases;
+                            return _phrases;
+                        }
+                    return null;
+                }
+                return _phrases;
             }
         }
 
+        private SongData.Fill[] _fills;
         private SongData.Fill[] Fills
         {
             get
             {
-                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
-                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
-                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].fills;
-                return null;
+                if (_fills == null)
+                {
+                    for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                        if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        {
+                            _fills = RhythmMaster.GetSingleton().GetSongData().instruments[i].fills;
+                            return _fills;
+                        }
+                    return null;
+                }
+                return _fills;
             }
         }
 
+        private SongData.RockPowerPhrase[] _rpphrases;
         private SongData.RockPowerPhrase[] RPPhrases
         {
             get
             {
-                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
-                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
-                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].rpPhrases;
-                return null;
+                if (_rpphrases == null)
+                {
+                    for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                        if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        {
+                            _rpphrases = RhythmMaster.GetSingleton().GetSongData().instruments[i].rpPhrases;
+                            return _rpphrases;
+                        }
+                    return null;
+                }
+                return _rpphrases;
             }
         }
 
+        private SongData.Solo[] _solos;
         private SongData.Solo[] Solos
         {
             get
             {
-                for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
-                    if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
-                        return RhythmMaster.GetSingleton().GetSongData().instruments[i].solos;
-                return null;
+                if (_solos == null)
+                {
+                    for (int i = 0; i < RhythmMaster.GetSingleton().GetSongData().instruments.Length; i++)
+                        if (RhythmMaster.GetSingleton().GetSongData().instruments[i].instrumentType.Equals(GetBoardType().CodeName))
+                        {
+                            _solos = RhythmMaster.GetSingleton().GetSongData().instruments[i].solos;
+                            return _solos;
+                        }
+                    return null;
+                }
+                return _solos;
             }
         }
 
@@ -263,6 +303,12 @@ namespace Unsigned
                 notes[i].late = notes[i].time + dist;
             }
             boardBackground = Texture2D.FromFile(RenderMaster.GetSingleton().graphics.GraphicsDevice, boardBGs[Global.random.Next(boardBGs.Length)]);
+            for (int i = 0; i < Notes.Length; i++)
+            {
+                Notes[i].visible = new SongData.NoteSet.VIS_STATE[GetBoardType().NumTracks];
+                for (int r = 0; r < Notes[i].visible.Length; r++)
+                    Notes[i].visible[r] = SongData.NoteSet.VIS_STATE.VISIBLE;
+            }
         }
 
         public static void Load(ContentManager content)
@@ -327,8 +373,8 @@ namespace Unsigned
 
                 for (int i = 0; i < xs.Length; i++)
                 {
-                    zmdlBoard[i] = new GBVertexFormat(new Vector3(xs[i], ys[i], (zs[i] + 1) / 2), new Vector3(0f, 0f, 0f), new Vector2((xs[i] + 1) / 2, (1 + zs[i]) / 2), new Vector3(0f, 0f, 0f));
-                    zmdlBoard[i + xs.Length] = new GBVertexFormat(new Vector3(-xs[i], ys[i], (zs[i] + 1) / 2), new Vector3(0f, 0f, 0f), new Vector2(((-xs[i]) + 1) / 2, (1 + zs[i]) / 2), new Vector3(0f, 0f, 0f));
+                    zmdlBoard[i] = new GBVertexFormat(new Vector3(xs[i], ys[i], (zs[i] + 1) / 2), new Vector3(0f, 1f, 0f), new Vector2((xs[i] + 1) / 2, (1 + zs[i]) / 2), new Vector3(0f, 0f, 1f));
+                    zmdlBoard[i + xs.Length] = new GBVertexFormat(new Vector3(-xs[i], ys[i], (zs[i] + 1) / 2), new Vector3(0f, 1f, 0f), new Vector2(((-xs[i]) + 1) / 2, (1 + zs[i]) / 2), new Vector3(0f, 0f, 1f));
                 }
 
                 mdlBoard = new VertexBuffer(graphics.GraphicsDevice, 2 * xs.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
@@ -351,14 +397,12 @@ namespace Unsigned
                 mdlSPM.SetData<GBVertexFormat>(zmdlBoard);
             }
             {
-                mdlNoteInside = content.Load<Model>("meshes\\noteinside");
-                foreach (ModelMesh mesh in mdlNoteInside.Meshes)
-                    foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = RenderMaster.GetSingleton().engine;
-                mdlNote = content.Load<Model>("meshes\\note");
-                foreach (ModelMesh mesh in mdlNote.Meshes)
-                    foreach(ModelMeshPart part in mesh.MeshParts)
-                        part.Effect = RenderMaster.GetSingleton().engine;      
+                Model mdlNoteInside = content.Load<Model>("meshes\\noteinside");
+                noteInsideVB = ModelConverter.Convert(mdlNoteInside.Meshes[0].VertexBuffer, mdlNoteInside.Meshes[0].MeshParts[0].VertexDeclaration);
+                noteInsideIB = mdlNoteInside.Meshes[0].IndexBuffer;
+                Model mdlNote = content.Load<Model>("meshes\\note");
+                noteVB = ModelConverter.Convert(mdlNote.Meshes[0].VertexBuffer, mdlNote.Meshes[0].MeshParts[0].VertexDeclaration);
+                noteIB = mdlNote.Meshes[0].IndexBuffer;
             }
             {
                 float[] xs = { -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     -1f, -1f, -.65f, -.65f, -.65f, -1f,     -.65f, -.65f, -.35f, -.65f, -.35f, -.35f,     -.35f, -.35f,    0f, -.35f,    0f,    0f,     };
@@ -376,25 +420,12 @@ namespace Unsigned
                 mdlTriggerBorder.SetData<GBVertexFormat>(zmdlTriggerBorder);
             }
             {
-                float[] xs = { -1f, -1f,  1f, -1f,  1f,  1f,      -1f, -1f,  1f, -1f,  1f,  1f,     -1f, -1f, -1f, -1f, -1f, -1f,      1f,  1f,  1f,  1f,  1f,  1f,     };
-                float[] ys = {  1f,  1f,  1f,  1f,  1f,  1f,       0f,  1f,  0f,  1f,  0f,  1f,      0f,  1f,  0f,  0f,  1f,  1f,      0f,  1f,  0f,  0f,  1f,  1f,     };
-                float[] zs = { .5f,  0f, .5f,  0f, .5f,  0f,       1f, .5f,  1f, .5f,  1f, .5f,      1f, .5f,  0f,  0f,  0f, .5f,      1f, .5f,  0f,  0f,  0f, .5f,     };
-                float[] us = {  0f,  0f,  1f,  0f,  1f,  1f,       0f,  0f,  1f,  0f,  1f,  1f,      0f,  0f,  0f,  0f,  0f,  0f,      0f,  0f,  0f,  0f,  0f,  0f,     };
-                float[] vs = {.25f,  0f,.25f,  0f,.25f,  0f,       1f,.25f,  1f,.25f,  1f,.25f,      1f, .5f,  0f,  0f,  0f, .5f,      1f, .5f,  0f,  0f,  0f, .5f,     };
-
-                GBVertexFormat[] zmdlTrigger = new GBVertexFormat[xs.Length * 2];
-                for (int i = 0; i < xs.Length; i++)
-                {
-                    zmdlTrigger[i] = new GBVertexFormat(new Vector3(xs[i], ys[i], zs[i]), new Vector3(0f, 0f, 0f), new Vector2(us[i], vs[i]), new Vector3(0f, 0f, 0f));
-                    zmdlTrigger[i + xs.Length] = new GBVertexFormat(new Vector3(xs[i], ys[i], -zs[i]), new Vector3(0f, 0f, 0f), new Vector2(us[i], vs[i]), new Vector3(0f, 0f, 0f));
-                }
-
-                mdlTrigger = new VertexBuffer(graphics.GraphicsDevice, 2 * xs.Length * GBVertexFormat.SizeInBytes, BufferUsage.WriteOnly);
-                mdlTrigger.SetData<GBVertexFormat>(zmdlTrigger);
+                Model mdl = content.Load<Model>("meshes\\triggerdown");
+                triggerVB =  ModelConverter.Convert(mdl.Meshes[0].VertexBuffer, mdl.Meshes[0].MeshParts[0].VertexDeclaration);
+                triggerIB = mdl.Meshes[0].IndexBuffer;
             }
+            
         }
-
-        
 
         public ulong Update(GameTime gameTime)
         {
@@ -823,7 +854,7 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             SpriteBatch spritebatch = rm.spritebatch;
-            BasicEffect effect = rm.bEffect;
+            FVShader effect = rm.engine;
             GraphicsDeviceManager graphics = rm.graphics;
 
             if (GetBoardType().Dimensions == Instrument.BoardDimensions.TWO_DIMENSIONAL)
@@ -872,7 +903,7 @@ namespace Unsigned
                           boardTarget.Width / (float)boardTarget.Height,
                           0.01f, 1000.0f);
 
-                rm.SetViewMatrix(Matrix.Identity);
+                rm.View = Matrix.Identity;
                 effect.Projection = matProj;
 
                 //get board measure world lengths
@@ -882,7 +913,14 @@ namespace Unsigned
 #endif
 
                 Matrix matTransl = Matrix.CreateTranslation(0f, Board.height + (GetBoardBump() * Board.BOARD_BUMP_COEF), 0f);
-                effect.AmbientLightColor = new Vector3(1, 1, 1);
+                effect.AmbientMaterial = Color.White;
+
+                effect.LightingEnabled = GameSettings.Lighting;
+                effect.SpecularEnabled = GameSettings.Specular;
+                effect.NormalMapEnabled = GameSettings.NormalMapping;
+
+                effect.CommitChanges();
+
                 effect.Begin();
                 foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                 {
@@ -954,7 +992,7 @@ namespace Unsigned
                 return;
             graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
             double currentTime = RhythmMaster.GetSingleton().GetCurrentTime();
             for (int i = Math.Max(0,currentNoteIndex-1); i < Notes.Length; i++)
             {
@@ -1045,22 +1083,7 @@ namespace Unsigned
             spritebatch.End();
 
 
-            graphics.GraphicsDevice.SetRenderTarget(0, null);
-            Texture2D texWaves = rtWaves.GetTexture();
-            graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
-            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
-
-            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
-            fader.Begin();
-            fader.CurrentTechnique.Passes[0].Begin();
-
-            fader.Parameters["blend"].SetValue(fh);
-            spritebatch.Draw(texWaves, new Rectangle(0, 0, rtWaves.Width, rtWaves.Height), Color.White);
-
-
-            spritebatch.End();
-            fader.CurrentTechnique.Passes[0].End();
-            fader.End();
+            
             graphics.GraphicsDevice.SetRenderTarget(0, rtBoard);
 
             //float scale = (Board.eFade - Board.sFade) / (Board.eFade * 1.5f);
@@ -1219,7 +1242,22 @@ namespace Unsigned
             }
             spritebatch.End();
 
-            graphics.GraphicsDevice.SetRenderTarget(0, null);
+            Texture2D texWaves = rtWaves.GetTexture();
+            graphics.GraphicsDevice.SetRenderTarget(0, rtWaves);
+            graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
+
+            spritebatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+            fader.Begin();
+            fader.CurrentTechnique.Passes[0].Begin();
+
+            fader.Parameters["blend"].SetValue(fh);
+            spritebatch.Draw(texWaves, new Rectangle(0, 0, rtWaves.Width, rtWaves.Height), Color.White);
+
+
+            spritebatch.End();
+            fader.CurrentTechnique.Passes[0].End();
+            fader.End();
+
             Texture2D texBoard = rtBoard.GetTexture();
             graphics.GraphicsDevice.SetRenderTarget(0, rtBoard);
             graphics.GraphicsDevice.Clear(new Color(0, 0, 0, 0));
@@ -1244,15 +1282,17 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             RhythmMaster rtm = RhythmMaster.GetSingleton();
-            BasicEffect effect = rm.bEffect;
+            FVShader effect = rm.engine;
 
-            effect.DirectionalLight0.SpecularColor = new Vector3(0.6f, 0.6f, 0.6f);
-            effect.DirectionalLight0.Enabled = true;
-            effect.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(0, -2, -1));
-            effect.DirectionalLight0.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
-            effect.DirectionalLight1.Enabled = false;
-            effect.DirectionalLight2.Enabled = false;
-            effect.DiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+            GraphicsDeviceManager graphics = rm.graphics;
+
+            effect.DirectionalLight = new DirectionalLight(true,new Vector3(0, 2, 1),new Color(200, 200, 200),new Color(150, 150, 150));
+            effect.DiffuseMaterial = new Color(200, 200, 200);
+
+            graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+            graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+            graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+
 
             if (GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
             {
@@ -1264,9 +1304,9 @@ namespace Unsigned
                 for (int r = 0; r < GetBoardType().NumTracks; r++)
                 {
                     if (r < GetBoardType().NumDrawnTracks)
-                        effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
+                        effect.DiffuseTexture = Board.texNotes[GetBoardType().colorIndices[r]];
                     else
-                        effect.Texture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
+                        effect.DiffuseTexture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
                     whited = false;
                     for (int p = Math.Max(currentNoteIndex-32,0); p < Notes.Length; p++)
                     {
@@ -1285,13 +1325,13 @@ namespace Unsigned
                                     IsWhite = true;
                             }
                         if (IsWhite && !whited)
-                        { effect.Texture = Global.texWhite; whited = true; }
+                        { effect.DiffuseTexture = Global.texWhite; whited = true; }
                         else if (!IsWhite && whited)
                         {
                             if (r < GetBoardType().NumDrawnTracks)
-                                effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
+                                effect.DiffuseTexture = Board.texNotes[GetBoardType().colorIndices[r]];
                             else
-                                effect.Texture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
+                                effect.DiffuseTexture = Board.texBarNotes[GetBoardType().colorIndices[r - GetBoardType().NumDrawnTracks]];
                             whited = false;
                         }
 
@@ -1334,21 +1374,16 @@ namespace Unsigned
                         else
                             alpha = 0;
 
+                        effect.DiffuseMaterial = Color.White;
 
                         effect.Alpha = alpha;
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         effect.World = matIdentity * matScale * matOrbit * matTransl;
 
-
+                        graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
 
                         effect.CommitChanges();
-
-                        GraphicsDeviceManager graphics = rm.graphics;
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
                         if (r>=GetBoardType().NumDrawnTracks)
                         {
                             graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTriggerBorder, 0, GBVertexFormat.SizeInBytes);
@@ -1356,37 +1391,21 @@ namespace Unsigned
                         }
                         else
                         {
-                            foreach (ModelMesh mesh in mdlNoteInside.Meshes)
-                            {
-                                foreach (ModelMeshPart part in mesh.MeshParts)
-                                {
-                                    //effect.Parameters["diffuseTexture"].SetValue(texWhite);
-                                    effect.CommitChanges();
-                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                                }
-                            }
-                            effect.SpecularPower = 32f;
-                            effect.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
-                            effect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
-                            foreach (ModelMesh mesh in mdlNote.Meshes)
-                            {
-                                foreach (ModelMeshPart part in mesh.MeshParts)
-                                {
+                            graphics.GraphicsDevice.Vertices[0].SetSource(noteInsideVB, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.Indices = noteInsideIB;
+                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, noteInsideIB.SizeInBytes / (noteInsideIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, noteInsideIB.SizeInBytes / (noteInsideIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
 
-                                    //effect.Parameters["diffuseTexture"].SetValue(texWhite);
-                                    effect.CommitChanges();
-                                    graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                    graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                    graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                    graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                                }
-                            }
-                            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
+                            effect.Shininess = 32f;
+                            effect.SpecularMaterial = Color.White;
+                            effect.AmbientMaterial = new Color(50, 50, 50);
+                            effect.CommitChanges();
+
+                            graphics.GraphicsDevice.Vertices[0].SetSource(noteVB, 0, GBVertexFormat.SizeInBytes);
+                            graphics.GraphicsDevice.Indices = noteIB;
+                            graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, noteIB.SizeInBytes / (noteIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, noteIB.SizeInBytes / (noteIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
+
+                            effect.AmbientMaterial = Color.White;
                         }
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                         
                     }
                 }
@@ -1395,7 +1414,7 @@ namespace Unsigned
                 for(int r=3;r<4;r++)
                 {
                     if (r < GetBoardType().NumDrawnTracks)
-                        effect.Texture = Board.texNotes[GetBoardType().colorIndices[r]];
+                        effect.DiffuseTexture = Board.texNotes[GetBoardType().colorIndices[r]];
                     
                     {
                         // how far along the board... should be called Z probly
@@ -1428,51 +1447,28 @@ namespace Unsigned
 
 
                         effect.Alpha = alpha;
+                        effect.DiffuseMaterial = Color.White;
 
                         // identity, scale, rotate, orbit(translate & rotate), translate
                         effect.World = matIdentity * matScale * matOrbit * matTransl;
 
+                        effect.CommitChanges();
+                        // 5: draw object - select vertex type, primitive type, # of primitives
 
+                        graphics.GraphicsDevice.Vertices[0].SetSource(noteInsideVB, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.Indices = noteInsideIB;
+                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, noteInsideIB.SizeInBytes / (noteInsideIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, noteInsideIB.SizeInBytes / (noteInsideIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
 
+                        effect.Shininess = 32f;
+                        effect.SpecularMaterial = Color.White;
+                        effect.AmbientMaterial = new Color(50, 50, 50);
                         effect.CommitChanges();
 
-                        GraphicsDeviceManager graphics = rm.graphics;
-                        // 5: draw object - select vertex type, primitive type, # of primitives
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
-                        graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
-                        graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        
-                        foreach (ModelMesh mesh in mdlNoteInside.Meshes)
-                        {
-                            foreach (ModelMeshPart part in mesh.MeshParts)
-                            {
-                                //effect.Parameters["diffuseTexture"].SetValue(texWhite);
-                                effect.CommitChanges();
-                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                            }
-                        }
-                        effect.SpecularPower = 32f;
-                        effect.SpecularColor = new Vector3(1.0f, 1.0f, 1.0f);
-                        effect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
-                        foreach (ModelMesh mesh in mdlNote.Meshes)
-                        {
-                            foreach (ModelMeshPart part in mesh.MeshParts)
-                            {
+                        graphics.GraphicsDevice.Vertices[0].SetSource(noteVB, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.Indices = noteIB;
+                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, noteIB.SizeInBytes / (noteIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2), 0, noteIB.SizeInBytes / (noteIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6));
 
-                                //effect.Parameters["diffuseTexture"].SetValue(texWhite);
-                                effect.CommitChanges();
-                                graphics.GraphicsDevice.VertexDeclaration = part.VertexDeclaration;
-                                graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, part.StreamOffset, part.VertexStride);
-                                graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
-                                graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, part.BaseVertex, 0, part.NumVertices, part.StartIndex, part.PrimitiveCount);
-                            }
-                        }
-                        effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
-                        graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
-
+                        effect.AmbientMaterial = Color.White;
                     }
                 }
             }
@@ -1483,17 +1479,16 @@ namespace Unsigned
             if (GetBoardType().Dimensions==Instrument.BoardDimensions.THREE_DIMENSIONAL)
             {
                 RenderMaster rm = RenderMaster.GetSingleton();
-                BasicEffect effect = rm.bEffect;
+                FVShader effect = rm.engine;
                 SpriteBatch spritebatch = rm.spritebatch;
                 GraphicsDeviceManager graphics = rm.graphics;
 
-                VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
-                graphics.GraphicsDevice.VertexDeclaration = vd;
+                graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
 
                 effect.Alpha = 1.0f;
-                effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
-                effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
-                effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+                effect.AmbientMaterial = Color.White;
+                effect.DiffuseMaterial = new Color(128, 128, 128);
+                effect.SpecularMaterial = Color.Black;
 
                 int lefty = 1;
                 if (IsLefty)
@@ -1523,9 +1518,9 @@ namespace Unsigned
 
                         
                         if((controller.GetFrets()&(((ulong)1)<<p))!=0)
-                        { effect.Texture = Board.texTriggersLit[GetBoardType().colorIndices[p]]; glow[p] = true; }
+                        { effect.DiffuseTexture = Board.texTriggersLit[GetBoardType().colorIndices[p]]; glow[p] = true; }
                         else
-                            effect.Texture = Board.texTriggers[GetBoardType().colorIndices[p]];
+                            effect.DiffuseTexture = Board.texTriggers[GetBoardType().colorIndices[p]];
 
                         effect.CommitChanges();
 
@@ -1533,8 +1528,9 @@ namespace Unsigned
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                         graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                         graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                        graphics.GraphicsDevice.Vertices[0].SetSource(Board.mdlTrigger, 0, GBVertexFormat.SizeInBytes);
-                        graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (Board.mdlTrigger.SizeInBytes / GBVertexFormat.SizeInBytes) / 3);
+                        graphics.GraphicsDevice.Vertices[0].SetSource(triggerVB, 0, GBVertexFormat.SizeInBytes);
+                        graphics.GraphicsDevice.Indices = triggerIB;
+                        graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (triggerIB.SizeInBytes / (triggerIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 4 : 2)), 0, (triggerIB.SizeInBytes / (triggerIB.IndexElementSize == IndexElementSize.ThirtyTwoBits ? 12 : 6)));
                         graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                     }
                 }
@@ -1544,10 +1540,10 @@ namespace Unsigned
         private void DrawFlashes(Matrix fling)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            BasicEffect effect = rm.bEffect;
+            FVShader effect = rm.engine;
             GraphicsDeviceManager graphics = rm.graphics;
 
-            effect.Texture = Board.texBlast;
+            effect.DiffuseTexture = Board.texBlast;
             for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)
                 if (popup[i] > 0)
                 {
@@ -1562,7 +1558,7 @@ namespace Unsigned
                     // identity, scale, rotate, orbit(translate & rotate), translate
                     effect.World = matScale * matRot * matOrbit * matTransl;
 
-                    effect.DiffuseColor = Global.FretColors[GetBoardType().colorIndices[i]].ToVector3();
+                    effect.DiffuseMaterial = Global.FretColors[GetBoardType().colorIndices[i]];
                     effect.CommitChanges();
 
                     // 5: draw object - select vertex type, primitive type, # of primitives
@@ -1573,30 +1569,28 @@ namespace Unsigned
                     graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
                     graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
                 }
-            effect.DiffuseColor = new Vector3(1, 1, 1);
+            effect.DiffuseMaterial = Color.White;
         }
 
         private void DrawBoard(Matrix fling, Matrix matTransl)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             GraphicsDeviceManager graphics = rm.graphics;
-            BasicEffect effect = rm.bEffect;
+            FVShader effect = rm.engine;
 
-
-            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
-            effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
-            effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+            effect.AmbientMaterial = Color.White;
+            effect.DiffuseMaterial = new Color(128, 128, 128);
+            effect.SpecularMaterial = Color.Black;
             effect.TextureEnabled = true;
 
-            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
-            graphics.GraphicsDevice.VertexDeclaration = vd;
+            graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
 
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
             Matrix matScale, matOrbit;
             matOrbit = Matrix.CreateTranslation(0f, 0f, -Board.zeroZ - (Board.eFade * Board.length)) * fling;
             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
             effect.World = matScale * matOrbit * matTransl;
-            effect.Texture = rtBoard.GetTexture();
+            effect.DiffuseTexture = rtBoard.GetTexture();
             effect.Alpha = 1.0f;
             effect.CommitChanges();
             graphics.ApplyChanges();
@@ -1612,21 +1606,20 @@ namespace Unsigned
         {
             RenderMaster rm = RenderMaster.GetSingleton();
             GraphicsDeviceManager graphics = rm.graphics;
-            BasicEffect effect = rm.bEffect;
+            FVShader effect = rm.engine;
 
-            effect.AmbientLightColor = new Vector3(1.0f, 1.0f, 1.0f);
-            effect.DiffuseColor = new Vector3(0.5f, 0.5f, 0.5f);
-            effect.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
+            effect.AmbientMaterial = Color.White;
+            effect.DiffuseMaterial = new Color(128, 128, 128);
+            effect.SpecularMaterial = Color.Black;
             effect.TextureEnabled = true;
 
-            VertexDeclaration vd = new VertexDeclaration(rm.graphics.GraphicsDevice, GBVertexFormat.Elements);
-            graphics.GraphicsDevice.VertexDeclaration = vd;
+            graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
 
             Matrix matScale, matOrbit;
             matOrbit = Matrix.CreateTranslation(0f, 0.01f,  -Board.zeroZ - (Board.eFade * Board.length)) * fling;
             matScale = Matrix.CreateScale(new Vector3(Board.width, Board.curveHeight, Board.length * Board.eFade * (1 / BOARD_FADE_RATIO)));
             effect.World = matScale * matOrbit * matTransl;
-            effect.Texture = rtWaves.GetTexture();
+            effect.DiffuseTexture = rtWaves.GetTexture();
             effect.Alpha = 1.0f;
             effect.CommitChanges();
             graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;

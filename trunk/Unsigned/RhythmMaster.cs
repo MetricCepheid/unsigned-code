@@ -178,11 +178,11 @@ namespace Unsigned
         /// <summary>
         /// Returns whether or not a player is using this instrument slot (0-3)
         /// </summary>
-        /// <param name="currentNoteIndex"></param>
+        /// <param name="index"></param>
         /// <returns></returns>
-        public bool IsInstrumentAvailable(int currentNoteIndex)
+        public bool IsInstrumentAvailable(int index)
         {
-            return boards[currentNoteIndex]!=null;
+            return boards[index]!=null;
         }
 
         public float GetRockstarAmount()

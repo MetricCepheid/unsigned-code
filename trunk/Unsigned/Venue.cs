@@ -79,7 +79,7 @@ namespace Unsigned
     public struct DLight
     {
         public float on;
-        public uint currentNoteIndex;
+        public uint index;
         public Vector3 pos;
         public float innerAngle, outerAngle;
         public LIGHT_TYPE type;
@@ -496,25 +496,25 @@ namespace Unsigned
                 {
                     uint num = fin.ReadUInt32();
                     Vector3[] pos = new Vector3[num], angle = new Vector3[num];
-                    uint[] currentNoteIndex = new uint[num], part = new uint[num], tpe = new uint[num];
+                    uint[] index = new uint[num], part = new uint[num], tpe = new uint[num];
                     uint numcams = 0;
                     for (int j = 0; j < num; j++)
                     {
-                        currentNoteIndex[j] = fin.ReadUInt32();
+                        index[j] = fin.ReadUInt32();
                         part[j] = fin.ReadUInt32();
                         tpe[j] = fin.ReadUInt32();
                         pos[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
                         angle[j] = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
-                        if (currentNoteIndex[j] > numcams)
-                            numcams = currentNoteIndex[j];
+                        if (index[j] > numcams)
+                            numcams = index[j];
                     }
                     uint[] lens = new uint[numcams];
                     uint[] amts = new uint[numcams];
                     for (int j = 0; j < num; j++)
                     {
-                        if (lens[currentNoteIndex[j] - 1] < part[j])
-                            lens[currentNoteIndex[j] - 1] = part[j];
-                        amts[currentNoteIndex[j]-1]++;
+                        if (lens[index[j] - 1] < part[j])
+                            lens[index[j] - 1] = part[j];
+                        amts[index[j]-1]++;
                     }
                     CamBlends = new CamBlendPos[numcams];
                     for (int k = 0; k < numcams; k++)
@@ -527,12 +527,12 @@ namespace Unsigned
                     //fill it up
                     for ( int k = 0; k < num; k++)
                     {
-                        CamBlends[currentNoteIndex[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[k];
-                        CamBlends[currentNoteIndex[k]-1].marks[amts[currentNoteIndex[k]-1]-1] = part[k] / (float)lens[currentNoteIndex[k]-1];
-                        CamBlends[currentNoteIndex[k]-1].pos[amts[currentNoteIndex[k]-1] - 1] = pos[k];
-                        CamBlends[currentNoteIndex[k]-1].target[amts[currentNoteIndex[k]-1] - 1] = angle[k];
-                        CamBlends[currentNoteIndex[k]-1].up[amts[currentNoteIndex[k]-1] - 1] = Vector3.Up;
-                        amts[currentNoteIndex[k]-1]--;
+                        CamBlends[index[k]-1].TYPE = (CamBlendPos.TYPE_LEN)tpe[k];
+                        CamBlends[index[k]-1].marks[amts[index[k]-1]-1] = part[k] / (float)lens[index[k]-1];
+                        CamBlends[index[k]-1].pos[amts[index[k]-1] - 1] = pos[k];
+                        CamBlends[index[k]-1].target[amts[index[k]-1] - 1] = angle[k];
+                        CamBlends[index[k]-1].up[amts[index[k]-1] - 1] = Vector3.Up;
+                        amts[index[k]-1]--;
                     }
                     //sort it
                     for (int k = 0; k < CamBlends.Length; k++)
@@ -567,7 +567,7 @@ namespace Unsigned
                     for (int j = 0; j < num; j++)
                     {
                         lights[j].on = 0f;
-                        lights[j].currentNoteIndex = fin.ReadUInt32();
+                        lights[j].index = fin.ReadUInt32();
                         lights[j].type = (DLight.LIGHT_TYPE)fin.ReadInt32();
                         lights[j].innerAngle = fin.ReadSingle();
                         lights[j].outerAngle = fin.ReadSingle();
@@ -595,14 +595,15 @@ namespace Unsigned
         public void Render(GameTime gameTime, Matrix matProj, VertexDeclaration vd)
         {
             RenderMaster rm = RenderMaster.GetSingleton();
-            Effect effect = rm.engine;
+            FVShader effect = rm.engine;
             GraphicsDeviceManager graphics = rm.graphics;
+
+
 
             lastTexApplied=-1;
             Matrix matIdentity, matScale, mMatWorld;
 
-            effect.Parameters["ambientColor"].SetValue(new Vector4(.2f, .2f, .2f, 1f));
-            effect.Parameters["fullbright"].SetValue(false);
+            effect.AmbientMaterial = new Color(50, 50, 50);
 
             for (int i = 0; i < StaticGeom.Length; i++)
             {
@@ -611,15 +612,14 @@ namespace Unsigned
 
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale;
-                    effect.Parameters["world"].SetValue(mMatWorld);
-                    effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                    effect.Parameters["shininess"].SetValue(StaticTexture[StaticGeom[i].texIndex].shininess);
-                    effect.Parameters["diffuseColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
-                    //effect.Parameters["specularColor"].SetValue(new Vector4(.8f, .8f, .8f, 1f));
+                    effect.World = mMatWorld;
+                    effect.Shininess = StaticTexture[StaticGeom[i].texIndex].shininess;
+                    effect.DiffuseMaterial = new Color(200, 200, 200);
+                    effect.SpecularMaterial = new Color(200, 200, 200);
                     if (lastTexApplied != StaticGeom[i].texIndex)
                     {
-                        effect.Parameters["diffuseTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].tex);
-                        effect.Parameters["bumpTexture"].SetValue(StaticTexture[StaticGeom[i].texIndex].bm);
+                        effect.DiffuseTexture = StaticTexture[StaticGeom[i].texIndex].tex;
+                        effect.NormalMapTexture =StaticTexture[StaticGeom[i].texIndex].bm;
                         lastTexApplied = StaticGeom[i].texIndex;
                     }
                     effect.CommitChanges();
@@ -639,8 +639,6 @@ namespace Unsigned
             {
                 Entities[i].Draw(effect,graphics,camPos);
             }
-            effect.Parameters["vertexAlpha"].SetValue(false);
-            effect.Parameters["BumpMappingEnabled"].SetValue(false);
             //effect.Parameters["SpecularEnabled"].SetValue(false);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
             /*for(int i=0;i<rockers.Length;i++)
@@ -661,18 +659,18 @@ namespace Unsigned
                 // identity, scale, rotate, orbit(translate & rotate), translate
                 mMatWorld = matIdentity * matScale * matOrbit * matTransl;
 
-                //effect.Parameters["diffuseColor"].SetValue(new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+                //effect.Parameters["diffuseMaterialColor"].SetValue(new Vector3(0.8f, 0.8f, 0.8f));
                 //effect.Parameters["fullbright"].SetValue(true);
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_BASSDRUM]);
+                effect.DiffuseTexture = drumsetT[DS_BASSDRUM]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_BASSDRUM].Meshes)
                 {
                     foreach (ModelMeshPart meshpart in mesh.MeshParts)
                     {
-                        //effect.Parameters["diffuseTexture"].SetValue(Game1.texWhite);
+                        //effect.DiffuseTexture = Game1.texWhite);
                         effect.CommitChanges();
                         graphics.GraphicsDevice.VertexDeclaration = meshpart.VertexDeclaration;
                         graphics.GraphicsDevice.Vertices[0].SetSource(mesh.VertexBuffer, meshpart.StreamOffset, meshpart.VertexStride);
@@ -693,7 +691,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_CRASHCYMBAL]);
+                effect.DiffuseTexture = drumsetT[DS_CRASHCYMBAL]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_CRASHCYMBAL].Meshes)
@@ -719,7 +717,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_FLOORTOM]);
+                effect.DiffuseTexture = drumsetT[DS_FLOORTOM]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_FLOORTOM].Meshes)
@@ -743,7 +741,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_TOMTOMS]);
+                effect.DiffuseTexture = drumsetT[DS_TOMTOMS]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_TOMTOMS].Meshes)
@@ -768,7 +766,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_SNARE]);
+                effect.DiffuseTexture = drumsetT[DS_SNARE]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_SNARE].Meshes)
@@ -793,7 +791,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_RIDECYMBAL]);
+                effect.DiffuseTexture = drumsetT[DS_RIDECYMBAL]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_RIDECYMBAL].Meshes)
@@ -818,7 +816,7 @@ namespace Unsigned
 
                 effect.Parameters["world"].SetValue(mMatWorld);
                 effect.Parameters["wRot"].SetValue(Matrix.Identity);
-                effect.Parameters["diffuseTexture"].SetValue(drumsetT[DS_HIHATCYMBAL]);
+                effect.DiffuseTexture = drumsetT[DS_HIHATCYMBAL]);
                 effect.CommitChanges();
 
                 foreach (ModelMesh mesh in drumsetM[DS_HIHATCYMBAL].Meshes)
@@ -834,9 +832,6 @@ namespace Unsigned
                 }
 
             }*/
-            effect.Parameters["vertexAlpha"].SetValue(true);
-            effect.Parameters["BumpMappingEnabled"].SetValue(true);
-            effect.Parameters["SpecularEnabled"].SetValue(true);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
         }
 

@@ -108,7 +108,7 @@ struct Note
 	ulong value;//bitwise, bits 1-NumTracks=frets, bit NumTracks=HOPOable
 	if(instrument PitchShifts)
 	{
-		long endvalue;
+		ulong endvalue;
 	}
 	uint time;//in MS from beginning of song
 	if(instrument ContainsHeldNotes)

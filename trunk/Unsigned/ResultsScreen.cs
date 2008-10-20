@@ -20,6 +20,7 @@ namespace Unsigned
 
     class ResultsScreen : BaseState
     {
+        private ContentManager content;
         private bool failed;
         private Results[] totalresults;
         private Results addedResults;
@@ -32,8 +33,9 @@ namespace Unsigned
 
         }
 
-        public override void Load(ContentManager content)
+        public override void Load()
         {
+            content = new ContentManager(UnsignedGame.GetSingleton().Services);
             coolbg1 = content.Load<Texture2D>("graphics\\coolbg1");
             coolbg2 = content.Load<Texture2D>("graphics\\coolbg2");
             resultsScroller = content.Load<Texture2D>("graphics\\resultscroller");
@@ -42,7 +44,7 @@ namespace Unsigned
 
         public override void Unload()
         {
-            
+            content.Unload();
         }
 
         public override void Update(GameTime gameTime)
@@ -78,7 +80,7 @@ namespace Unsigned
 #if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/R/Pt0\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                    Exit();
+                    UnsignedGame.GetSingleton().Exit();
                     return;
                 }
 #endif
@@ -108,7 +110,7 @@ namespace Unsigned
                 if (red)
                 { totalresults = new Results[0]; UnsignedGame.GetSingleton().PushState(new MainMenuScreen()); }
                 if (green)
-                { totalresults = new Results[0]; UnsignedGame.GetSingleton().RestartSong(); }
+                { totalresults = new Results[0]; UnsignedGame.GetSingleton().PopState(); }
 
 #if !DEBUG
                 }
@@ -117,7 +119,7 @@ namespace Unsigned
 #if WINDOWS
                     System.Windows.Forms.MessageBox.Show("Problem in Update/F/Pt0\n"+e.Message+"\n"+e.StackTrace);
 #endif
-                    Exit();
+                    UnsignedGame.GetSingleton().Exit();
                     return;
                 }
 #endif
@@ -157,9 +159,9 @@ namespace Unsigned
                 rm.spritebatch.DrawString(Global.DefaultFont, "Continue", new Vector2((0.01f * GameSettings.windowwidth) + (0.10f * GameSettings.windowheight), (0.90f * GameSettings.windowheight) + (0.09f * GameSettings.windowheight) - (Global.DefaultFont.MeasureString("Continue").Y)), Color.White);
                 if (Global.DemoMode)
                 {
-                    rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
-                    rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
-                    rm.spritebatch.DrawString(Global.BigFont, "Demo Mode", new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString("Demo Mode").X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
+                    rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.15f), new Color(255, 0, 0, 64));
+                    rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.4f), new Color(255, 0, 0, 64));
+                    rm.spritebatch.DrawString(Global.BigFont, Localizer.Get("Demo Mode"), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get("Demo Mode")).X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
                 }
                 rm.spritebatch.End();
             }

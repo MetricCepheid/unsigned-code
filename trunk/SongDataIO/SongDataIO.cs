@@ -10,10 +10,22 @@ namespace SongDataIO
     /// </summary>
     public class SongData
     {
+        /// <summary>
+        /// Defines a Color in non-XNA environments (such as VocalsEditor)
+        /// </summary>
         public struct Color
         {
+            /// <summary>
+            /// Red, Green, Blue, Alpha... duh
+            /// </summary>
             public byte R, G, B, A;
 
+            /// <summary>
+            /// Generates an opaque Color
+            /// </summary>
+            /// <param name="r">Red Channel</param>
+            /// <param name="g">Green Channel</param>
+            /// <param name="b">Blue Channel</param>
             public Color(byte r, byte g, byte b)
             {
                 R = r;
@@ -22,6 +34,13 @@ namespace SongDataIO
                 A = 255;
             }
 
+            /// <summary>
+            /// Generates a semi-transparent Color
+            /// </summary>
+            /// <param name="r">Red Channel</param>
+            /// <param name="g">Green Channel</param>
+            /// <param name="b">Blue Channel</param>
+            /// <param name="a">Alpha Channel (255=opaque,0=invisible)</param>
             public Color(byte r, byte g, byte b, byte a)
             {
                 R = r;
@@ -31,6 +50,9 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// Represents a single note or chord
+        /// </summary>
         public class NoteSet : IComparable
         {
             public uint time, length;
@@ -138,6 +160,9 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// Represents a section of notes
+        /// </summary>
         public struct Phrase
         {
             public uint time;
@@ -147,6 +172,11 @@ namespace SongDataIO
             public NoteSet[] notes;
         }
 
+        /// <summary>
+        /// Represents a "fill" (think drum fills) that
+        /// can be used for some instruments to activate
+        /// rock power
+        /// </summary>
         public struct Fill
         {
             public uint time, len;
@@ -166,6 +196,11 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// Represents a section of time in which
+        /// all encompassed notes are white and, if
+        /// hit, will give the user 25% rock power
+        /// </summary>
         public struct RockPowerPhrase
         {
             public uint time, len;
@@ -182,6 +217,11 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// Represents a "solo" section where the user
+        /// can recieve a score bonus for high levels
+        /// of hit percentage.
+        /// </summary>
         public struct Solo
         {
             public uint time, len;
@@ -198,7 +238,10 @@ namespace SongDataIO
             }
         }
 
-        public class SpecialEffect
+        /// <summary>
+        /// Represents a special lighting effect.
+        /// </summary>
+        public abstract class SpecialEffect
         {
             public uint time;
             public String type;
@@ -208,17 +251,41 @@ namespace SongDataIO
             public uint end { get { return time+length; } }
         }
 
+        /// <summary>
+        /// Represents a return to normalcy in regards to lighting
+        /// </summary>
         public class NormalLightingSpecialEffect : SpecialEffect
         {
             public Color color;
+            public NormalLightingSpecialEffect(uint time, uint length, Color color)
+            {
+                this.time = time;
+                this.length = length;
+                this.color = color;
+                this.type = "ln";
+            }
         }
 
+        /// <summary>
+        /// Holds all lighting effects in the track
+        /// </summary>
         public struct EffectsTrack
         {
+            /// <summary>
+            /// Array of time values for when the camera
+            /// should switch to a new track.
+            /// Stored in Milliseconds
+            /// </summary>
             public uint[] cameraSwitches;
+            /// <summary>
+            /// An array of lighting effects sorted by time
+            /// </summary>
             public SpecialEffect[] effects;
         }
         
+        /// <summary>
+        /// represents a bar line for visual purposes
+        /// </summary>
         public struct Barline
         {
             public uint time;
@@ -230,17 +297,34 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// represents a big rock ending section
+        /// in which all players play freestyle for
+        /// bonus points at the end of a song
+        /// </summary>
         public struct BigRockEnding
         {
             public bool enabled;
             public uint start, end;
+
+            public BigRockEnding(bool enabled, uint start, uint end)
+            {
+                this.enabled = enabled;
+                this.start = start;
+                this.end = end;
+            }
         }
 
+        /// <summary>
+        /// Represents a section of the song where if all
+        /// specified players hit all notes encompassed by
+        /// the section, they get a bonus
+        /// </summary>
         public struct Harmony
         {
             public uint start, end;
-            public int instruments;
-            public Harmony(uint start, uint end, int instruments)
+            public ulong instruments;
+            public Harmony(uint start, uint end, ulong instruments)
             {
                 this.start = start;
                 this.end = end;
@@ -248,21 +332,75 @@ namespace SongDataIO
             }
         }
 
+        /// <summary>
+        /// Represents information not specific to a 
+        /// single instrument
+        /// </summary>
         public class FullBandChunk
         {
+            /// <summary>
+            /// SongData version, for compatibility purposes
+            /// </summary>
             public byte version;
-            public String filename, name, artist;
+            /// <summary>
+            /// Name of the file
+            /// </summary>
+            public String filename;
+            /// <summary>
+            /// Title of the Song
+            /// </summary>
+            public String name;
+            /// <summary>
+            /// Name of the Composer/Performer of the Song
+            /// </summary>
+            public String artist;
+            /// <summary>
+            /// Year song was released
+            /// </summary>
             public uint year;
+            /// <summary>
+            /// Genre of the song
+            /// Only used for sorting and pre-song header
+            /// </summary>
             public String genre;
+            /// <summary>
+            /// When the song should end in success
+            /// </summary>
             public TimeSpan length;
+            /// <summary>
+            /// Quotes to display during loading
+            /// Always length 8, but not all strings
+            /// need to be valid
+            /// </summary>
             public String[] quotes;
+            /// <summary>
+            /// A list of people involved in charting
+            /// this song
+            /// </summary>
             public String[] charters;
-            public byte[] difficulties;
+            /// <summary>
+            /// The barlines for visual purposes
+            /// </summary>
             public Barline[] barlines;
+            /// <summary>
+            /// After we run out of barlines, how long
+            /// should measures be while the song trails off
+            /// In milliseconds
+            /// </summary>
             public uint trailingBeatLen;
+            /// <summary>
+            /// Notice there is only one BRE
+            /// </summary>
             public BigRockEnding bre;
+            /// <summary>
+            /// Array of harmony sections.
+            /// Sorted by time
+            /// </summary>
             public Harmony[] harmonies;
 
+            /// <summary>
+            /// what is displayed as the song revs up
+            /// </summary>
             public String[] SongDisplayInfo;
 
             public void GenerateSongDisplayInfo()
@@ -275,21 +413,69 @@ namespace SongDataIO
                     SongDisplayInfo[i + 3] = charters[i];
             }
         }
-
+        
+        /// <summary>
+        /// Contains all the information for a specific
+        /// instruments at a specific difficulty
+        /// </summary>
         public class DifficultySet
         {
             public int diff;
             public SongData.Phrase[] phrases;
             public uint[] starScoreLevels;
+
+            public DifficultySet()
+            {
+                diff = -1;
+                phrases = null;
+                starScoreLevels = new uint[6];
+            }
         }
 
+        /// <summary>
+        /// holds all information for each instrument
+        /// including which instrument it maps to
+        /// </summary>
         public class SongDataInstrument
         {
+            /// <summary>
+            /// The 3-character instrument code name
+            /// </summary>
             public String instrumentType;
+            /// <summary>
+            /// How hard this instrument is
+            /// on a scale of 1-100
+            /// </summary>
+            public byte difficulty;
+            /// <summary>
+            /// All rock power phrases
+            /// </summary>
             public SongData.RockPowerPhrase[] rpPhrases;
+            /// <summary>
+            /// All solo sections
+            /// should be length 0 for non solo types
+            /// </summary>
             public SongData.Solo[] solos;
+            /// <summary>
+            /// All fills
+            /// should be length 0 for non fill RPEnable types
+            /// </summary>
             public SongData.Fill[] fills;
+            /// <summary>
+            /// the actual note data
+            /// should be length 4
+            /// </summary>
             public DifficultySet[] diffSets;
+
+            public SongDataInstrument()
+            {
+                instrumentType = "NUL";
+                difficulty = 0;
+                rpPhrases = null;
+                solos = null;
+                fills = null;
+                diffSets = new DifficultySet[SongLoader.NumDifficulties];
+            }
         }
 
         public enum TYPE { REGULAR = 0, BLANK = 1, RHYTHM = 2 };
@@ -302,6 +488,7 @@ namespace SongDataIO
         public SongData()
         {
             info = new FullBandChunk();
+            //make sure quotes is length 8
             info.quotes = new string[8];
             effects = new EffectsTrack();
         }
@@ -312,6 +499,8 @@ namespace SongDataIO
     /// </summary>
     public class SongLoader
     {
+        public const int NumDifficulties = 4;
+
         public static TimeSpan LengthStringToTimeSpan(String songLength)
         {
             String z = songLength;
@@ -418,9 +607,9 @@ namespace SongDataIO
                 chtemp.Add(reader.ReadString());
             ret.info.charters = GetCharters(chtemp);
 
-            ret.info.difficulties = new byte[4];
+            byte[] difficulties = new byte[4];
             for (int i = 0; i < 4; i++)
-                ret.info.difficulties[i] = reader.ReadByte();
+                difficulties[i] = reader.ReadByte();
             ret.info.barlines = new SongData.Barline[reader.ReadInt32()];
             for (int c = 0; c < ret.info.barlines.Length; c++)
             {
@@ -440,6 +629,7 @@ namespace SongDataIO
             {
                 SongData.SongDataInstrument guitar = new SongData.SongDataInstrument();
                 guitar.instrumentType = "LGT";
+                guitar.difficulty = difficulties[0];
 
                 guitar.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
                 for (int i = 0; i < guitar.rpPhrases.Length; i++)
@@ -480,6 +670,7 @@ namespace SongDataIO
 
             SongData.SongDataInstrument bass = new SongData.SongDataInstrument();
             bass.instrumentType = "BAS";
+            bass.difficulty = difficulties[3];
 
             bass.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
             for (int i = 0; i < bass.rpPhrases.Length; i++)
@@ -511,8 +702,10 @@ namespace SongDataIO
 
             reader = new BinaryReader(File.OpenRead(dir + fn + ".gbd"));
 
+
             SongData.SongDataInstrument drums = new SongData.SongDataInstrument();
             drums.instrumentType = "SET";
+            drums.difficulty = difficulties[2];
 
             reader.ReadByte();//version
             drums.rpPhrases = new SongData.RockPowerPhrase[reader.ReadInt32()];
@@ -537,7 +730,13 @@ namespace SongDataIO
                 for (int j = 0; j < arr.Length; j++)
                 {
                     arr[j] = new SongData.NoteSet();
-                    arr[j].type = reader.ReadByte();
+                    byte type = reader.ReadByte();
+                    byte ntp = (byte)(type & 0x0E);
+                    if ((type & 0x10) != 0)
+                        ntp |= 0x01;
+                    if ((type & 0x01) != 0)
+                        ntp |= 0x10;
+                    arr[j].type = ntp;
                     arr[j].time = reader.ReadUInt32();
                 }
                 drums.diffSets[k].starScoreLevels = new uint[6];
@@ -555,6 +754,7 @@ namespace SongDataIO
             reader.ReadByte();//version
 
             vocals.instrumentType = "LVX";
+            vocals.difficulty = difficulties[1];
             vocals.rpPhrases = new SongData.RockPowerPhrase[0];
             vocals.fills = new SongData.Fill[0];
             vocals.diffSets = new SongData.DifficultySet[1];
@@ -682,7 +882,7 @@ namespace SongDataIO
 
             ret.info.harmonies = new SongData.Harmony[reader.ReadUInt32()];
             for (int i = 0; i < ret.info.harmonies.Length; i++)
-                ret.info.harmonies[i] = new SongData.Harmony(reader.ReadUInt32(), reader.ReadUInt32(), (int)reader.ReadByte());
+                ret.info.harmonies[i] = new SongData.Harmony(reader.ReadUInt32(), reader.ReadUInt32(), (ulong)reader.ReadByte());
 
             ret.instruments = new SongData.SongDataInstrument[4];
 
@@ -762,7 +962,13 @@ namespace SongDataIO
                 for (int i = 0; i < ret.instruments[2].diffSets[k].phrases[0].notes.Length; i++)
                 {
                     SongData.NoteSet note = new SongData.NoteSet();
-                    note.type = (ulong)reader.ReadByte();
+                    byte type = reader.ReadByte();
+                    byte ntp = (byte)(type & 0x0E);
+                    if ((type & 0x10) != 0)
+                        ntp |= 0x01;
+                    if ((type & 0x01) != 0)
+                        ntp |= 0x10;
+                    note.type = ntp;
                     note.time = reader.ReadUInt32();
                     ret.instruments[2].diffSets[k].phrases[0].notes[i] = note;
                 }
@@ -852,19 +1058,139 @@ namespace SongDataIO
 
             reader.ReadBytes(3);//UNS
 
-            int offsetToGBA = reader.ReadInt32();
-            int offsetToGBG = reader.ReadInt32();
-            int offsetToGBB = reader.ReadInt32();
-            int offsetToGBD = reader.ReadInt32();
-            int offsetToGBV = reader.ReadInt32();
-            int offsetToGBE = reader.ReadInt32();
+            reader.ReadBytes(6 * 4);//redundant
 
             ret.info.version = reader.ReadByte();
+
             if (ret.info.version != 20)
             {
                 return LoadSong17(filename);
             }
 
+            ret.instruments = new SongData.SongDataInstrument[reader.ReadUInt32()];
+
+            ret.info.name = reader.ReadString();
+
+            ret.info.artist = reader.ReadString();
+
+            ret.info.year = reader.ReadUInt32();
+
+            ret.info.genre = reader.ReadString();
+
+            ret.info.length = new TimeSpan(reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+
+            for (int i = 0; i < 8; i++)
+                ret.info.quotes[i] = reader.ReadString();
+
+            ret.info.charters = new string[reader.ReadUInt32()];
+            for (int i = 0; i < ret.info.charters.Length; i++)
+                ret.info.charters[i] = reader.ReadString();
+
+            ret.info.barlines = new SongData.Barline[reader.ReadUInt32()];
+            for (int i = 0; i < ret.info.barlines.Length; i++)
+            {
+                ret.info.barlines[i].time = reader.ReadUInt32();
+                ret.info.barlines[i].numBeats = reader.ReadByte();
+            }
+
+            ret.info.trailingBeatLen = reader.ReadUInt32();
+
+            ret.info.bre = new SongData.BigRockEnding(reader.ReadByte()!=0, reader.ReadUInt32(), reader.ReadUInt32());
+
+            ret.info.harmonies = new SongData.Harmony[reader.ReadUInt32()];
+
+            for(int i=0;i<ret.info.harmonies.Length;i++)
+            {
+                ret.info.harmonies[i].start = reader.ReadUInt32();
+                ret.info.harmonies[i].end = reader.ReadUInt32();
+                ret.info.harmonies[i].instruments = reader.ReadUInt64();
+            }
+
+            for (int instr = 0; instr < ret.instruments.Length; instr++)
+            {
+                SongData.SongDataInstrument instrument = new SongData.SongDataInstrument();
+                instrument.instrumentType = "";
+                for (int i = 0; i < 3; i++)
+                    instrument.instrumentType += reader.ReadChar();
+                instrument.instrumentType = instrument.instrumentType.ToUpper();
+                Instrument instrType = InstrumentMaster.GetSingleton().GetInstrument(instrument.instrumentType);
+                instrument.rpPhrases = new SongData.RockPowerPhrase[reader.ReadUInt32()];
+                for (int i = 0; i < instrument.rpPhrases.Length; i++)
+                {
+                    instrument.rpPhrases[i].time = reader.ReadUInt32();
+                    instrument.rpPhrases[i].len = reader.ReadUInt32();
+                }
+                if (instrType.HasSolos)
+                {
+                    instrument.solos = new SongData.Solo[reader.ReadUInt32()];
+                    for (int i = 0; i < instrument.solos.Length; i++)
+                    {
+                        instrument.solos[i].time = reader.ReadUInt32();
+                        instrument.solos[i].len = reader.ReadUInt32();
+                    }
+                }
+                if ((instrType.RPEnableType&Instrument.RockPowerEnableTypes.FILL)!=0)
+                {
+                    instrument.fills = new SongData.Fill[reader.ReadUInt32()];
+                    for (int i = 0; i < instrument.fills.Length; i++)
+                    {
+                        instrument.fills[i].time = reader.ReadUInt32();
+                        instrument.fills[i].len = reader.ReadUInt32();
+                    }
+                }
+                instrument.diffSets = new SongData.DifficultySet[reader.ReadUInt32()];
+                for (int ds = 0; ds < instrument.diffSets.Length; ds++)
+                {
+                    instrument.diffSets[ds] = new SongData.DifficultySet();
+                    instrument.diffSets[ds].diff = reader.ReadByte();
+                    instrument.diffSets[ds].phrases = new SongData.Phrase[reader.ReadUInt32()];
+                    for (int ph = 0; ph < instrument.diffSets[ds].phrases.Length; ph++)
+                    {
+                        if(instrType.TypesOfPhrases != Instrument.PhraseType.NONE)
+                        {
+                            instrument.diffSets[ds].phrases[ph].time = reader.ReadUInt32();
+                            instrument.diffSets[ds].phrases[ph].type = (SongData.TYPE)reader.ReadByte();
+                            instrument.diffSets[ds].phrases[ph].rockpower = reader.ReadByte()!=0;
+                            if((instrType.TypesOfPhrases&Instrument.PhraseType.RHYTHM)!=0)
+                                instrument.diffSets[ds].phrases[ph].rType = (SongData.RTYPE)reader.ReadByte();
+                        }
+                        instrument.diffSets[ds].phrases[ph].notes = new SongData.NoteSet[reader.ReadUInt32()];
+                        for (int nt = 0; nt < instrument.diffSets[ds].phrases[ph].notes.Length; nt++)
+                        {
+                            instrument.diffSets[ds].phrases[ph].notes[nt] = new SongData.NoteSet();
+                            instrument.diffSets[ds].phrases[ph].notes[nt].type = reader.ReadUInt64();
+                            if (instrType.PitchShifts)
+                                instrument.diffSets[ds].phrases[ph].notes[nt].endtype = reader.ReadUInt64();
+                            instrument.diffSets[ds].phrases[ph].notes[nt].time = reader.ReadUInt32();
+                            if (instrType.ContainsHeldNotes)
+                                instrument.diffSets[ds].phrases[ph].notes[nt].length = reader.ReadUInt32();
+                            if (instrType.ContainsText)
+                                instrument.diffSets[ds].phrases[ph].notes[nt].text = reader.ReadString();
+                        }
+                    }
+                    instrument.diffSets[ds].starScoreLevels = new uint[6];
+                    for (int i = 0; i < 6; i++)
+                        instrument.diffSets[ds].starScoreLevels[i] = reader.ReadUInt32();
+                }
+                ret.instruments[instr] = instrument;
+            }
+
+            ret.effects.cameraSwitches = new uint[reader.ReadUInt32()];
+            for (int i = 0; i < ret.effects.cameraSwitches.Length; i++)
+                ret.effects.cameraSwitches[i] = reader.ReadUInt32();
+            ret.effects.effects = new SongData.SpecialEffect[reader.ReadUInt32()];
+            for (int i = 0; i < ret.effects.effects.Length; i++)
+            {
+                uint time = reader.ReadUInt32();
+                char[] tp = reader.ReadChars(2);
+                uint len = reader.ReadUInt32();
+                if (tp[0] == 'l' && tp[1] == 'n')
+                {
+                    SongData.NormalLightingSpecialEffect ef = new SongData.NormalLightingSpecialEffect(time, len, new SongData.Color(255, 255, 255));
+                    uint color = reader.ReadUInt32();
+                    ef.color = new SongData.Color((byte)(color & 0x000000FF), (byte)((color & 0x0000FF00) >> 8), (byte)((color & 0x00FF0000) >> 16), (byte)((color & 0xFF000000) >> 24));
+                }
+            }
             return ret;
         }
 
@@ -905,9 +1231,14 @@ namespace SongDataIO
                 for (int i = 0; i < 8; i++)
                     writer.Write(songdata.info.quotes[i] == null ? "" : songdata.info.quotes[i]);
 
-                writer.Write((uint)songdata.info.charters.Length);
-                for (int i = 0; i < songdata.info.charters.Length; i++)
-                    writer.Write(songdata.info.charters[i]);
+                if (songdata.info.charters == null)
+                { writer.Write((uint)0); }
+                else
+                {
+                    writer.Write((uint)songdata.info.charters.Length);
+                    for (int i = 0; i < songdata.info.charters.Length; i++)
+                        writer.Write(songdata.info.charters[i]);
+                }
 
                 writer.Write((uint)songdata.info.barlines.Length);
                 for (int i = 0; i < songdata.info.barlines.Length; i++)
@@ -978,31 +1309,38 @@ namespace SongDataIO
 
                         writer.Write((byte)set.diff);
 
-                        writer.Write((uint)set.phrases.Length);
-
-                        for (int pi = 0; pi < set.phrases.Length; pi++)
+                        if (set.phrases == null)
                         {
-                            if (theType.TypesOfPhrases != Instrument.PhraseType.NONE)
-                            {
-                                writer.Write((uint)set.phrases[pi].time);
-                                writer.Write((byte)set.phrases[pi].type);
-                                writer.Write((bool)set.phrases[pi].rockpower);
-                                if ((theType.TypesOfPhrases & Instrument.PhraseType.RHYTHM) != 0)
-                                    writer.Write((byte)set.phrases[pi].rType);
-                            }
+                            writer.Write((uint)0);
+                        }
+                        else
+                        {
+                            writer.Write((uint)set.phrases.Length);
 
-                            writer.Write((uint)set.phrases[pi].notes.Length);
-
-                            for (int ni = 0; ni < set.phrases[pi].notes.Length; ni++)
+                            for (int pi = 0; pi < set.phrases.Length; pi++)
                             {
-                                writer.Write((ulong)set.phrases[pi].notes[ni].type);
-                                if (theType.PitchShifts)
-                                    writer.Write((ulong)set.phrases[pi].notes[ni].endtype);
-                                writer.Write((uint)set.phrases[pi].notes[ni].time);
-                                if (theType.ContainsHeldNotes)
-                                    writer.Write((uint)set.phrases[pi].notes[ni].length);
-                                if (theType.ContainsText)
-                                    writer.Write(set.phrases[pi].notes[ni].text);
+                                if (theType.TypesOfPhrases != Instrument.PhraseType.NONE)
+                                {
+                                    writer.Write((uint)set.phrases[pi].time);
+                                    writer.Write((byte)set.phrases[pi].type);
+                                    writer.Write((bool)set.phrases[pi].rockpower);
+                                    if ((theType.TypesOfPhrases & Instrument.PhraseType.RHYTHM) != 0)
+                                        writer.Write((byte)set.phrases[pi].rType);
+                                }
+
+                                writer.Write((uint)set.phrases[pi].notes.Length);
+
+                                for (int ni = 0; ni < set.phrases[pi].notes.Length; ni++)
+                                {
+                                    writer.Write((ulong)set.phrases[pi].notes[ni].type);
+                                    if (theType.PitchShifts)
+                                        writer.Write((ulong)set.phrases[pi].notes[ni].endtype);
+                                    writer.Write((uint)set.phrases[pi].notes[ni].time);
+                                    if (theType.ContainsHeldNotes)
+                                        writer.Write((uint)set.phrases[pi].notes[ni].length);
+                                    if (theType.ContainsText)
+                                        writer.Write(set.phrases[pi].notes[ni].text);
+                                }
                             }
                         }
 
@@ -1019,7 +1357,7 @@ namespace SongDataIO
                 for (int ei = 0; ei < songdata.effects.effects.Length; ei++)
                 {
                     SongData.SpecialEffect effect = songdata.effects.effects[ei];
-
+                    
                     writer.Write((uint)effect.time);
                     writer.Write((char)effect.type.ToCharArray()[0]);
                     writer.Write((char)effect.type.ToCharArray()[1]);

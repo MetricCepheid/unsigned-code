@@ -22,6 +22,8 @@ namespace Unsigned
         }
 
         private static Dictionary<String,List<KeyMap>>[] keymaps;
+        // dont ask
+        private static Dictionary<String,Dictionary<PeripheralButton, List<Keys>>>[] keysFromButtons;
 
         private const PeripheralButton Whammy = (PeripheralButton)(PeripheralButton.TOTAL+1);
 
@@ -118,6 +120,34 @@ namespace Unsigned
             }
 
             xin.Close();
+
+            // generate keysFromButtons
+            keysFromButtons = new Dictionary<String,Dictionary<PeripheralButton,List<Keys>>>[keymaps.Length];
+            for(int i=0;i<keymaps.Length;i++)
+            {
+                keysFromButtons[i] = new Dictionary<String,Dictionary<PeripheralButton,List<Keys>>>();
+                
+                foreach(String str in keymaps[i].Keys)
+                {
+                    Dictionary<PeripheralButton,List<Keys>> tdict = new Dictionary<PeripheralButton,List<Keys>>();
+                    List<KeyMap> ls = keymaps[i][str];
+                    
+                    for(int k=0;k<ls.Count;k++)
+                    {
+                        if(tdict.ContainsKey(ls[k].button))
+                        {
+                            tdict[ls[k].button].Add(ls[k].key);
+                        }
+                        else
+                        {
+                            List<Keys> l = new List<Keys>();
+                            l.Add(ls[k].key);
+                            tdict.Add(ls[k].button,l);
+                        }
+                    }
+                    keysFromButtons[i].Add(str,tdict);
+                }
+            }
         }
 
         public override void Query()
@@ -149,10 +179,9 @@ namespace Unsigned
 
         public override bool IsPressed(PeripheralButton peripheralButton)
         {
-            for (int i = 0; i < keymaps[playerIndex][mode].Count; i++)
-                if (keymaps[playerIndex][mode][i].button == peripheralButton)
-                    if (previousState.IsKeyDown(keymaps[playerIndex][mode][i].key))
-                        return true;
+            for (int i = 0; i < keysFromButtons[playerIndex][mode][peripheralButton].Count; i++)
+                if (previousState.IsKeyDown(keysFromButtons[playerIndex][mode][peripheralButton][i]))
+                    return true;
             return false;
         }
 

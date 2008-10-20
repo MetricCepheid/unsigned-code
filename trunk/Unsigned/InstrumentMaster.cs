@@ -38,9 +38,9 @@ namespace Unsigned
             }
         }
 
-        public Instrument GetInstrument(int currentNoteIndex)
+        public Instrument GetInstrument(int index)
         {
-            return instruments[currentNoteIndex];
+            return instruments[index];
         }
 
         public int GetNumInstruments()

@@ -1,5 +1,5 @@
 <keymapping>
-	<player currentNoteIndex="0">
+	<player index="0">
 		<map type="MNU">
 			<key name="Confirm" button="Enter" />
 			<key name="Confirm" button="Space" />

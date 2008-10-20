@@ -72,13 +72,16 @@
     <Compile Include="Entity.cs" />
     <Compile Include="FVLogoScreen.cs" />
     <Compile Include="FVMath.cs" />
+    <Compile Include="FVShader.cs" />
     <Compile Include="GameMaster.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="GameUIMaster.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="InputPeripherals.cs" />
     <Compile Include="KeyboardManager.cs" />
+    <Compile Include="Localizer.cs" />
     <Compile Include="MainMenuState.cs" />
+    <Compile Include="ModelConverter.cs" />
     <Compile Include="OptionsScreen.cs" />
     <Compile Include="ParticleMaster.cs" />
     <Compile Include="PauseScreen.cs" />
@@ -138,7 +141,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="config.cfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Content Include="boards\board0.PNG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -171,7 +174,15 @@
     <Content Include="msvcr71.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="text\Unsigned_EN.txt" />
+    <Content Include="text\Unsigned_EN.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="text\Unsigned_ES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="text\Unsigned_FR.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="charmodels\Guitarist.mda">
       <Name>Guitarist</Name>
     </None>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework.Graphics;
+using SongDataIO;
 
 namespace chart2unsigned
 {
@@ -19,7 +20,7 @@ namespace chart2unsigned
 
     public struct Note : IComparable
     {
-        public byte value;
+        public ulong value;
         public uint time, len;
         public Note(byte v, uint t, uint l)
         {
@@ -84,10 +85,8 @@ namespace chart2unsigned
 
     public class VocalPhrase
     {
-        public enum TYPE {REGULAR=0, BLANK=1, RHYTHM=2, TALKIE=3};
-        public enum RTYPE { TAMBOURINE = 0, COWBELL = 1, CLAP = 2 };
-        public TYPE type;
-        public RTYPE rType;
+        public SongData.TYPE type;
+        public SongData.RTYPE rType;
         public bool SP;
         public List<VocalWord> words;
         public uint time;
@@ -107,13 +106,14 @@ namespace chart2unsigned
                 return;
             }
 
+            InstrumentMaster.CreateSingleton();
+
             string thisPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             thisPath = thisPath.Substring(0, thisPath.LastIndexOf('\\') + 1);
 
             for (int i = 0; i < args.Length; i++)
                 Console.WriteLine(args[i]);
 
-            byte VERSION = 17;
 
             Console.WriteLine("Initial setup complete");
 
@@ -785,7 +785,7 @@ namespace chart2unsigned
 
                             for (int i = 1; i < newnotes[m][n].Length; i++)
                                 if (newnotes[m][n][i].time - newnotes[m][n][i - 1].time < (resolution/2))
-                                    if (!IsChord(newnotes[m][n][i].value) && (newnotes[m][n][i - 1].value & 0x1F & newnotes[m][n][i].value) == 0)
+                                    if (!IsChord(newnotes[m][n][i].value,5) && (newnotes[m][n][i - 1].value & 0x1F & newnotes[m][n][i].value) == 0)
                                         newnotes[m][n][i].value |= (1 << 5);
                             if (outputLevel >= 3)
                                 Console.WriteLine("HOPOs Configured");
@@ -908,9 +908,9 @@ namespace chart2unsigned
                         int maxscore = 0;
                         for (int i = 0; i < newnotes[m][n].Length; i++)
                         {
-                            maxscore += 100 * CountNotes(newnotes[m][n][i].value);
+                            maxscore += 100 * CountNotes(newnotes[m][n][i].value,m==1?32:5);
 
-                            maxscore += (int)(newnotes[m][n][i].len * CountNotes(newnotes[m][n][i].value) * 0.1f);
+                            maxscore += (int)(newnotes[m][n][i].len * CountNotes(newnotes[m][n][i].value, m == 1 ? 32 : 5) * 0.1f);
 
                         }
                         switch (m)
@@ -1038,19 +1038,19 @@ namespace chart2unsigned
                             continue;
                         if (ev.value.ToUpper().StartsWith("RHYTHM"))
                         {
-                            tempPhrase.type = VocalPhrase.TYPE.RHYTHM;
+                            tempPhrase.type = SongData.TYPE.RHYTHM;
                             string tp = ev.value.ToUpper().Substring(ev.value.IndexOf(':') + 1).Trim();
                             if (tp.Equals("CLAP"))
-                                tempPhrase.rType = VocalPhrase.RTYPE.CLAP;
+                                tempPhrase.rType = SongData.RTYPE.CLAP;
                             else if (tp.Equals("TAMBOURINE"))
-                                tempPhrase.rType = VocalPhrase.RTYPE.TAMBOURINE;
+                                tempPhrase.rType = SongData.RTYPE.TAMBOURINE;
                             else if (tp.Equals("COWBELL"))
-                                tempPhrase.rType = VocalPhrase.RTYPE.COWBELL;
+                                tempPhrase.rType = SongData.RTYPE.COWBELL;
                         }
                     }
                     if ((notes[1][3][i].value & 1) != 0)
                     {
-                        if (tempPhrase.type == VocalPhrase.TYPE.RHYTHM)
+                        if (tempPhrase.type == SongData.TYPE.RHYTHM)
                         {
                             VocalWord tW = new VocalWord();
                             tW.time = notes[1][3][i].time;
@@ -1121,7 +1121,7 @@ namespace chart2unsigned
                                 vocalPhrases[i].words[k].length = (uint)((beatTimes[(int)when + 1] * (when - (int)when)) + (beatTimes[(int)when] * (1 - (when - (int)when))));
                         }
                         if (vocalPhrases[i].words.Count <= 0)
-                            vocalPhrases[i].type = VocalPhrase.TYPE.BLANK;
+                            vocalPhrases[i].type = SongData.TYPE.BLANK;
 
                     }
                     if (outputLevel >= 3)
@@ -1173,407 +1173,196 @@ namespace chart2unsigned
 
                 Console.WriteLine("Finished Processing");
 
-                //OUTPUT
-                string[] strDiff = { "EASY", "MEDIUM", "HARD", "EXPERT", };
-                System.IO.BinaryWriter fout;
 
-                int GBAsize = 0, GBGsize = 0, GBBsize = 0, GBDsize = 0, GBVsize = 0, GBEsize = 0;
+                SongData songData = new SongData();
 
-                Console.Out.WriteLine("Writing...");
-                try
+                songData.info.name = name;
+                songData.info.artist = artist;
+                songData.info.year = (uint)yr;
+                songData.info.genre = genre;
+                int hrs = Int32.Parse(timeS.Substring(0, timeS.IndexOf(':')));
+                int min = Int32.Parse(timeS.Substring(timeS.IndexOf(':')+1,2));
+                int sec = Int32.Parse(timeS.Substring(timeS.LastIndexOf(':')+1));
+                songData.info.length = new TimeSpan(hrs,min,sec);
+                for (int i = 0; i < 8; i++)
+                    songData.info.quotes[i] = Quotes[i];
+                songData.info.barlines = new SongData.Barline[barlines.Count];
+                for (int i = 0; i < barlines.Count; i++)
+                { songData.info.barlines[i].time=barlines[i].time; songData.info.barlines[i].numBeats=(uint)barlines[i].beats; }
+                songData.info.trailingBeatLen = beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2];
+                songData.info.bre = new SongData.BigRockEnding();
+                songData.info.bre.enabled = BREstart >= 0;
+                songData.info.bre.start = BREstart;
+                songData.info.bre.end = BREend;
+                songData.info.harmonies = new SongData.Harmony[harmonies.Length];
+                for (int i = 0; i < harmonies.Length; i++)
                 {
-                    {
-                        GBAsize++;// fout.Write(VERSION);
-                        GBAsize += 1 + name.Length;// fout.Write(name);
-                        GBAsize += 1 + artist.Length;// fout.Write(artist);
-                        GBAsize += 4;// fout.Write(yr);
-                        GBAsize += 1 + genre.Length;// fout.Write(genre);
-                        GBAsize += 1 + timeS.Length;// fout.Write(timeS);
-                        for (int i = 0; i < 8; i++)
-                            GBAsize += 1 + Quotes[i].Length;// fout.Write(Quotes[i]);
-                        GBAsize += 1 + cSync.Length;// fout.Write(cSync);
-                        GBAsize += 1 + cEffects.Length;// fout.Write(cEffects);
-                        GBAsize += 1 + cGuitar.Length;// fout.Write(cGuitar);
-                        GBAsize += 1 + cVocals.Length;// fout.Write(cVocals);
-                        GBAsize += 1 + cDrums.Length;// fout.Write(cDrums);
-                        GBAsize += 1 + cBass.Length;// fout.Write(cBass);
-                        for (int i = 0; i < 4; i++)
-                            GBAsize += 1;// fout.Write(totalDiffs[i]);
-                        GBAsize += 4;// fout.Write(barlines.Count);
-                        for (int i = 0; i < barlines.Count; i++)
-                            GBAsize += 8;// { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
-                        GBAsize += 4;// fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
-                        GBAsize += 1;// bre false
-                        GBAsize += 4;// bre start
-                        GBAsize += 4;// bre end
-                        GBAsize += 4;// numHarmonies
-                    }
-                    {
-                        GBGsize += 4;//fout.Write(newSPs[0][3].Length);
-                        for (int i = 0; i < newSPs[0][3].Length; i++)
-                        {
-                            GBGsize += 4;//fout.Write(newSPs[0][3][i].time);
-                            GBGsize += 4;//fout.Write(newSPs[0][3][i].len - newSPs[0][3][i].time);
-                        }
-                        GBGsize += 4;//fout.Write(solos.Length);
-                        for (int i = 0; i < solos.Length; i++)
-                        {
-                            GBGsize += 4;//fout.Write(solos[i].time);
-                            GBGsize += 4;//fout.Write(solos[i].len - solos[i].time);
-                        }
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            GBGsize += 4;//fout.Write(i);
-                            GBGsize += 4;//fout.Write(newnotes[0][i].Length);
-                            for (int k = 0; k < newnotes[0][i].Length; k++)
-                            {
-                                GBGsize += 9;/*fout.Write(newnotes[0][i][k].value);
-                                fout.Write(newnotes[0][i][k].time);
-                                fout.Write(newnotes[0][i][k].len);*/
-                            }
-                            for (int k = 0; k < 5; k++)
-                                GBGsize += 4;// fout.Write(starLevels[0][i][k]);
-                        }
-                    }
-                    {
-                        GBBsize += 4;//fout.Write(newSPs[3][3].Length);
-                        for (int i = 0; i < newSPs[3][3].Length; i++)
-                        {
-                            GBBsize += 8;/*fout.Write(newSPs[3][3][i].time);
-                            fout.Write(newSPs[3][3][i].len - newSPs[3][3][i].time);*/
-                        }
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            GBBsize += 8;/*fout.Write(i);
-                            fout.Write(newnotes[3][i].Length);*/
-                            for (int k = 0; k < newnotes[3][i].Length; k++)
-                            {
-                                GBBsize += 9;/*fout.Write(newnotes[3][i][k].value);
-                                fout.Write(newnotes[3][i][k].time);
-                                fout.Write(newnotes[3][i][k].len);*/
-                            }
-                            for (int k = 0; k < 5; k++)
-                                GBBsize += 4;//fout.Write(starLevels[3][i][k]);
-                        }
-                    }
-                    {
-                        GBDsize += 4;//fout.Write(newSPs[2][3].Length);
-                        for (int i = 0; i < newSPs[2][3].Length; i++)
-                        {
-                            GBDsize += 8;/*fout.Write(newSPs[2][3][i].time);
-                            fout.Write(newSPs[2][3][i].len - newSPs[2][3][i].time);*/
-                        }
-                        GBDsize += 4;//fout.Write(newDFs.Length);
-                        for (int i = 0; i < newDFs.Length; i++)
-                        {
-                            GBDsize += 8;/*fout.Write(newDFs[i].time);
-                            fout.Write(newDFs[i].len);*/
-                        }
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            GBDsize += 8;/*fout.Write(i);
-                            fout.Write(newnotes[2][i].Length);*/
-                            for (int k = 0; k < newnotes[2][i].Length; k++)
-                            {
-                                GBDsize += 5;/*fout.Write(newnotes[2][i][k].value);
-                                fout.Write(newnotes[2][i][k].time);*/
-                            }
-                            for (int k = 0; k < 5; k++)
-                                GBDsize += 4;//fout.Write(starLevels[2][i][k]);
-                        }
-                    }
-                    {
-                        GBVsize += 4;//fout.Write(vocalPhrases.Count);
-                        for (int i = 0; i < vocalPhrases.Count; i++)
-                        {
-                            GBVsize += 9;/*fout.Write(vocalPhrases[i].time);
-                            fout.Write((byte)vocalPhrases[i].type);
-                            fout.Write(vocalPhrases[i].words.Count);*/
-                            switch (vocalPhrases[i].type)
-                            {
-                                case VocalPhrase.TYPE.REGULAR:
-                                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
-                                    {
-                                        GBVsize += 12;/*fout.Write(vocalPhrases[i].words[k].time);
-                                        fout.Write(vocalPhrases[i].words[k].length);
-                                        fout.Write(vocalPhrases[i].words[k].startnote);
-                                        fout.Write(vocalPhrases[i].words[k].endnote);*/
-                                        GBVsize += 1 + vocalPhrases[i].words[k].value.Length;//fout.Write(vocalPhrases[i].words[k].value);
-                                    }
-                                    break;
-                                case VocalPhrase.TYPE.BLANK:
-                                    break;
-                                case VocalPhrase.TYPE.RHYTHM:
-                                    GBVsize += 1;//fout.Write((byte)vocalPhrases[i].rType);
-                                    for (int k = 0; k < vocalPhrases[i].words.Count; k++)
-                                    {
-                                        GBVsize += 4;//fout.Write(vocalPhrases[i].words[k].time);
-                                    }
-                                    break;
-                            }
-                        }
-                        for(int i=0;i<4;i++)
-                        for (int k = 0; k < 5; k++)
-                            GBVsize += 4;//fout.Write(starLevels[1][3][k]);
-                    }
-                    {
-                        GBEsize += 8;/*fout.Write(2 + newcameraSwitches.Length);
-                        fout.Write(0);*/
-                        for (int i = 0; i < newcameraSwitches.Length; i++)
-                            GBEsize += 4;//fout.Write(newcameraSwitches[i]);
-                        GBEsize += 22;/*fout.Write(sLength);
-                        fout.Write(1);
-                        fout.Write(0);
-                        fout.Write('n');
-                        fout.Write('r');
-                        fout.Write(sLength);
-                        fout.Write(100);*/
-                    }
+                    songData.info.harmonies[i].start = harmonies[i].time;
+                    songData.info.harmonies[i].end = harmonies[i].len;
+                    songData.info.harmonies[i].instruments = harmonies[i].value;
                 }
-                catch (Exception e)
-                {
-                    Error("Unknown Error occured:\n" + e.Message);
-                    return;
-                }
+                songData.instruments = new SongData.SongDataInstrument[4];
 
-                Console.Out.WriteLine("Chunk Sizes Calculated");
-
-
-
-
-                try
+                SongData.SongDataInstrument guitar = new SongData.SongDataInstrument();
+                guitar.difficulty = totalDiffs[0];
+                guitar.instrumentType = "LGT";
+                guitar.rpPhrases = new SongData.RockPowerPhrase[newSPs[0][3].Length];
+                for (int i = 0; i < newSPs[0][3].Length; i++)
                 {
-                    fout = new System.IO.BinaryWriter(System.IO.File.OpenWrite(args[files].Substring(0, args[files].LastIndexOf("\\") + 1) + cName + ".uns"));
+                    guitar.rpPhrases[i].time = newSPs[0][3][i].time;
+                    guitar.rpPhrases[i].len = newSPs[0][3][i].len - newSPs[0][3][i].time;
                 }
-                catch (Exception)
+                guitar.solos = new SongData.Solo[solos.Length];
+                for (int i = 0; i < solos.Length; i++)
                 {
-                    Error("Problem opening UNS for writing");
-                    return;
+                    guitar.solos[i].time = solos[i].time;
+                    guitar.solos[i].len =  solos[i].len - solos[i].time;
                 }
-                int HEADsize = 27;
-                try
+                for (int i = 3; i >= 0; i--)
                 {
-                    fout.Write('U');
-                    fout.Write('N');
-                    fout.Write('S');
-                    fout.Write(HEADsize);
-                    fout.Write(HEADsize + GBAsize);
-                    fout.Write(HEADsize + GBAsize + GBGsize);
-                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize);
-                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize + GBDsize);
-                    fout.Write(HEADsize + GBAsize + GBGsize + GBBsize + GBDsize + GBVsize);
-                }
-                catch (Exception e)
-                {
-                    //if this ever happens, i'll eat my own head... 
-                    // ...so nobody run this program with 0 bytes left on their hard drive, kay?
-                    Error("Unknown Error occured in CHUNK HEAD...eh? wtf mate?:\n" + e.Message);
-                    return;
-                }
-
-                try
-                {
-                    fout.Write(VERSION);
-                    fout.Write(name);
-                    fout.Write(artist);
-                    fout.Write(yr);
-                    fout.Write(genre);
-                    fout.Write(timeS);
-                    for (int i = 0; i < 8; i++)
-                        fout.Write(Quotes[i]);
-                    fout.Write(cSync);
-                    fout.Write(cEffects);
-                    fout.Write(cGuitar);
-                    fout.Write(cVocals);
-                    fout.Write(cDrums);
-                    fout.Write(cBass);
-                    for (int i = 0; i < 4; i++)
-                        fout.Write(totalDiffs[i]);
-                    fout.Write(barlines.Count);
-                    for (int i = 0; i < barlines.Count; i++)
-                    { fout.Write(barlines[i].time); fout.Write(barlines[i].beats); }
-                    fout.Write(beatTimes[beatTimes.Length - 1] - beatTimes[beatTimes.Length - 2]);
-                    fout.Write((byte)0);
-                    fout.Write(BREstart);
-                    fout.Write(BREend);
-                    fout.Write(harmonies.Length);
-                    for (int i = 0; i < harmonies.Length; i++)
+                    SongData.DifficultySet diff = new SongData.DifficultySet();
+                    diff.diff = i;
+                    diff.phrases = new SongData.Phrase[1];
+                    diff.phrases[0].notes = new SongData.NoteSet[newnotes[0][i].Length];
+                    for (int k = 0; k < newnotes[0][i].Length; k++)
                     {
-                        fout.Write(harmonies[i].time);
-                        fout.Write(harmonies[i].len - harmonies[i].time);
-                        fout.Write(harmonies[i].value);
+                        diff.phrases[0].notes[k] = new SongData.NoteSet();
+                        diff.phrases[0].notes[k].type = newnotes[0][i][k].value;
+                        diff.phrases[0].notes[k].time = newnotes[0][i][k].time;
+                        diff.phrases[0].notes[k].length = newnotes[0][i][k].len;
                     }
-
-                }
-                catch (Exception e)
-                {
-                    Error("Unknown Error occured in CHUNK GBA:\n" + e.Message);
-                    return;
-                }
-                Console.Out.WriteLine("GBA written");
-                try
-                {
-                    fout.Write(newSPs[0][3].Length);
-                    for (int i = 0; i < newSPs[0][3].Length; i++)
-                    {
-                        fout.Write(newSPs[0][3][i].time);
-                        fout.Write(newSPs[0][3][i].len - newSPs[0][3][i].time);
-                    }
-                    fout.Write(solos.Length);
-                    for (int i = 0; i < solos.Length; i++)
-                    {
-                        fout.Write(solos[i].time);
-                        fout.Write(solos[i].len - solos[i].time);
-                    }
-                    for (int i = 3; i >= 0; i--)
-                    {
-                        fout.Write(i);
-                        fout.Write(newnotes[0][i].Length);
-                        for (int k = 0; k < newnotes[0][i].Length; k++)
-                        {
-                            fout.Write(newnotes[0][i][k].value);
-                            fout.Write(newnotes[0][i][k].time);
-                            fout.Write(newnotes[0][i][k].len);
-                        }
-                        for (int k = 0; k < 5; k++)
-                            fout.Write(starLevels[0][i][k]);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Error("Unknown Error occured in CHUNK GBG:\n" + e.Message);
-                    return;
-                }
-                Console.Out.WriteLine("GBG Written");
-                try
-                {
-                    fout.Write(newSPs[3][3].Length);
-                    for (int i = 0; i < newSPs[3][3].Length; i++)
-                    {
-                        fout.Write(newSPs[3][3][i].time);
-                        fout.Write(newSPs[3][3][i].len - newSPs[3][3][i].time);
-                    }
-                    for (int i = 3; i >= 0; i--)
-                    {
-                        fout.Write(i);
-                        fout.Write(newnotes[3][i].Length);
-                        for (int k = 0; k < newnotes[3][i].Length; k++)
-                        {
-                            fout.Write(newnotes[3][i][k].value);
-                            fout.Write(newnotes[3][i][k].time);
-                            fout.Write(newnotes[3][i][k].len);
-                        }
-                        for (int k = 0; k < 5; k++)
-                            fout.Write(starLevels[3][i][k]);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Error("Unknown Error occured in CHUNK GBB:\n" + e.Message);
-                    return;
-                }
-                Console.Out.WriteLine("GBB Written");
-                try
-                {
-                    fout.Write(newSPs[2][3].Length);
-                    for (int i = 0; i < newSPs[2][3].Length; i++)
-                    {
-                        fout.Write(newSPs[2][3][i].time);
-                        fout.Write(newSPs[2][3][i].len - newSPs[2][3][i].time);
-                    }
-                    fout.Write(newDFs.Length);
-                    for (int i = 0; i < newDFs.Length; i++)
-                    {
-                        fout.Write(newDFs[i].time);
-                        fout.Write(newDFs[i].len);
-                    }
-                    for (int i = 3; i >= 0; i--)
-                    {
-                        fout.Write(i);
-                        fout.Write(newnotes[2][i].Length);
-                        for (int k = 0; k < newnotes[2][i].Length; k++)
-                        {
-                            fout.Write(newnotes[2][i][k].value);
-                            fout.Write(newnotes[2][i][k].time);
-                        }
-                        for (int k = 0; k < 5; k++)
-                            fout.Write(starLevels[2][i][k]);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Error("Unknown Error occured in CHUNK GBD:\n" + e.Message);
-                    return;
-                }
-                Console.Out.WriteLine("GBD Written");
-                try
-                {
-                    fout.Write(vocalPhrases.Count);
-                    for (int i = 0; i < vocalPhrases.Count; i++)
-                    {
-                        fout.Write(vocalPhrases[i].time);
-                        fout.Write((byte)vocalPhrases[i].type);
-                        fout.Write(false);//sp
-                        fout.Write(vocalPhrases[i].words.Count);
-                        switch (vocalPhrases[i].type)
-                        {
-                            case VocalPhrase.TYPE.REGULAR:
-                                for (int k = 0; k < vocalPhrases[i].words.Count; k++)
-                                {
-                                    fout.Write(vocalPhrases[i].words[k].time);
-                                    fout.Write(vocalPhrases[i].words[k].length);
-                                    fout.Write(vocalPhrases[i].words[k].note);
-                                    fout.Write(vocalPhrases[i].words[k].note);
-                                    fout.Write(vocalPhrases[i].words[k].value);
-                                }
-                                break;
-                            case VocalPhrase.TYPE.BLANK:
-                                break;
-                            case VocalPhrase.TYPE.RHYTHM:
-                                fout.Write((byte)vocalPhrases[i].rType);
-                                for (int k = 0; k < vocalPhrases[i].words.Count; k++)
-                                {
-                                    fout.Write(vocalPhrases[i].words[k].time);
-                                }
-                                break;
-                        }
-                    }
-                    for(int i=0;i<4;i++)
                     for (int k = 0; k < 5; k++)
-                        fout.Write(starLevels[1][i][k]);
+                        diff.starScoreLevels[k] = (uint)starLevels[0][i][k];
+                    guitar.diffSets[i] = diff;
                 }
-                catch (Exception e)
+                songData.instruments[0] = guitar;
+
+
+                SongData.SongDataInstrument bass = new SongData.SongDataInstrument();
+                bass.difficulty = totalDiffs[3];
+                bass.instrumentType = "BAS";
+                bass.rpPhrases = new SongData.RockPowerPhrase[newSPs[3][3].Length];
+                for (int i = 0; i < newSPs[3][3].Length; i++)
                 {
-                    Error("Unknown Error occured in CHUNK GBV:\n" + e.Message);
-                    return;
+                    bass.rpPhrases[i].time = newSPs[3][3][i].time;
+                    bass.rpPhrases[i].len = newSPs[3][3][i].len - newSPs[3][3][i].time;
                 }
-                Console.Out.WriteLine("GBV Written");
-                try
+                for (int i = 3; i >= 0; i--)
                 {
-                    fout.Write(2 + newcameraSwitches.Length);
-                    fout.Write(0);
-                    for (int i = 0; i < newcameraSwitches.Length; i++)
-                        fout.Write(newcameraSwitches[i]);
-                    fout.Write(sLength);
-                    fout.Write(1);
-                    fout.Write(0);
-                    fout.Write('n');
-                    fout.Write('r');
-                    fout.Write(sLength);
-                    fout.Write(100);
+                    SongData.DifficultySet diffSet = new SongData.DifficultySet();
+                    diffSet.diff = i;
+                    diffSet.phrases = new SongData.Phrase[1];
+                    diffSet.phrases[0].notes = new SongData.NoteSet[newnotes[3][i].Length];
+                    for (int k = 0; k < newnotes[3][i].Length; k++)
+                    {
+                        diffSet.phrases[0].notes[k] = new SongData.NoteSet();
+                        diffSet.phrases[0].notes[k].type = newnotes[3][i][k].value;
+                        diffSet.phrases[0].notes[k].time = newnotes[3][i][k].time;
+                        diffSet.phrases[0].notes[k].length = newnotes[3][i][k].len;
+                    }
+                    for (int k = 0; k < 5; k++)
+                        diffSet.starScoreLevels[k] = (uint)starLevels[3][i][k];
+                    bass.diffSets[i] = diffSet;
                 }
-                catch (Exception e)
+                songData.instruments[3] = bass;
+
+
+                SongData.SongDataInstrument drums = new SongData.SongDataInstrument();
+                drums.difficulty = totalDiffs[2];
+                drums.instrumentType = "SET";
+                drums.rpPhrases = new SongData.RockPowerPhrase[newSPs[2][3].Length];
+                for (int i = 0; i < newSPs[2][3].Length; i++)
                 {
-                    Error("Unknown Error occured in CHUNK GBE:\n" + e.Message);
-                    return;
+                    drums.rpPhrases[i].time = newSPs[2][3][i].time;
+                    drums.rpPhrases[i].len = newSPs[2][3][i].len - newSPs[2][3][i].time;
                 }
+                drums.fills = new SongData.Fill[newDFs.Length];
+                for (int i = 0; i < newDFs.Length; i++)
+                {
+                    drums.fills[i].time = newDFs[i].time;
+                    drums.fills[i].len = newDFs[i].len;
+                }
+                for (int i = 3; i >= 0; i--)
+                {
+                    SongData.DifficultySet diffSet = new SongData.DifficultySet();
+                    diffSet.diff = i;
+                    diffSet.phrases = new SongData.Phrase[1];
+                    diffSet.phrases[0].notes = new SongData.NoteSet[newnotes[2][i].Length];
+                    for (int k = 0; k < newnotes[2][i].Length; k++)
+                    {
+                        diffSet.phrases[0].notes[k] = new SongData.NoteSet();
+                        ulong type = newnotes[2][i][k].value;
+                        ulong ntp = type & 0x0E;
+                        if ((type & 0x10) != 0)
+                            ntp |= 0x01;
+                        if ((type & 0x01) != 0)
+                            ntp |= 0x10;
+                        diffSet.phrases[0].notes[k].type = ntp;
+                        diffSet.phrases[0].notes[k].time = newnotes[2][i][k].time;
+                    }
+                    for (int k = 0; k < 5; k++)
+                        diffSet.starScoreLevels[k] = (uint)starLevels[2][i][k];
+                    drums.diffSets[i] = diffSet;
+                }
+                songData.instruments[2] = drums;
 
-                fout.Close();
-                
+                SongData.SongDataInstrument vox = new SongData.SongDataInstrument();
+                vox.difficulty = totalDiffs[1];
+                vox.instrumentType = "LVX";
+                for (int i = 0; i < 4; i++)
+                    vox.diffSets[i] = new SongData.DifficultySet();
+                vox.fills = new SongData.Fill[0];
+                vox.rpPhrases = new SongData.RockPowerPhrase[0];
+                vox.diffSets[3].phrases = new SongData.Phrase[vocalPhrases.Count];
+                for (int i = 0; i < vocalPhrases.Count; i++)
+                {
+                    vox.diffSets[3].phrases[i].time = vocalPhrases[i].time;
+                    vox.diffSets[3].phrases[i].type = vocalPhrases[i].type;
+                    vox.diffSets[3].phrases[i].rockpower = false;
+                    vox.diffSets[3].phrases[i].notes = new SongData.NoteSet[vocalPhrases[i].words.Count];
+                    switch (vocalPhrases[i].type)
+                    {
+                        case SongData.TYPE.REGULAR:
+                            for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                            {
+                                vox.diffSets[3].phrases[i].notes[k] = new SongData.NoteSet();
+                                vox.diffSets[3].phrases[i].notes[k].time = vocalPhrases[i].words[k].time;
+                                vox.diffSets[3].phrases[i].notes[k].length = vocalPhrases[i].words[k].length;
+                                vox.diffSets[3].phrases[i].notes[k].type = (ulong)vocalPhrases[i].words[k].note;
+                                vox.diffSets[3].phrases[i].notes[k].endtype = (ulong)vocalPhrases[i].words[k].note;
+                                vox.diffSets[3].phrases[i].notes[k].text = vocalPhrases[i].words[k].value;
+                            }
+                            break;
+                        case SongData.TYPE.BLANK:
+                            break;
+                        case SongData.TYPE.RHYTHM:
+                            vox.diffSets[3].phrases[i].rType = vocalPhrases[i].rType;
+                            for (int k = 0; k < vocalPhrases[i].words.Count; k++)
+                            {
+                                vox.diffSets[3].phrases[i].notes[k] = new SongData.NoteSet();
+                                vox.diffSets[3].phrases[i].notes[k].time = vocalPhrases[i].words[k].time;
+                            }
+                            break;
+                    }
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int k = 0; k < 5; k++)
+                        vox.diffSets[i].starScoreLevels[k] = (uint)starLevels[1][i][k];
+                }
+                songData.instruments[1] = vox;
 
-                Console.Out.WriteLine("GBE Written");
+                songData.effects.cameraSwitches = new uint[2 + newcameraSwitches.Length];
+                songData.effects.cameraSwitches[0] = 0;
+                for (int i = 0; i < newcameraSwitches.Length; i++)
+                    songData.effects.cameraSwitches[i+1] = newcameraSwitches[i];
+                songData.effects.cameraSwitches[songData.effects.cameraSwitches.Length-1] = sLength;
+                songData.effects.effects = new SongData.SpecialEffect[1];
+                songData.effects.effects[0] = new SongData.NormalLightingSpecialEffect(0,sLength,new SongData.Color(255,255,255));
 
-
+                String outName = args[files];
+                outName = outName.Substring(0,outName.LastIndexOf('.'))+".uns";
+                SongLoader.SaveSong(songData, outName);
 
                 Console.Out.WriteLine("COMPLETED UNS WRITE!");
             }
@@ -1600,20 +1389,20 @@ namespace chart2unsigned
             return;
         }
 
-        private static bool IsChord(byte p)
+        private static bool IsChord(ulong p, int numLanes)
         {
             int count=0;
-            for (int i = 0; i < 5; i++)
-                if ((p & (1 << i)) != 0)
+            for (int i = 0; i < numLanes; i++)
+                if ((p & ((ulong)1 << i)) != 0)
                     count++;
             return count > 1;
         }
 
-        private static int CountNotes(byte p)
+        private static int CountNotes(ulong p, int numLanes)
         {
             int count=0;
-            for (int i = 0; i < 5; i++)
-                if ((p & (1 << i)) != 0)
+            for (int i = 0; i < numLanes; i++)
+                if ((p & ((ulong)1 << i)) != 0)
                     count++;
             return count;
         }
