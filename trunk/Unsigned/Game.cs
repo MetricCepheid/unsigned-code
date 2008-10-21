@@ -217,6 +217,13 @@ namespace Unsigned
                     {
                         s = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                     }
+                    else if (str.Length > 10 && str.Substring(0, 10).ToLower().Equals("txlanguage"))
+                    {
+                        String vl = str.Substring(str.IndexOf('=') + 1).Trim().ToUpper();
+                        for (int i = 0; i < Localizer.LangCodes.Length; i++)
+                            if (vl.Equals(Localizer.LangCodes[i]))
+                                Localizer.CurrentLanguage = (Localizer.Language)i;
+                    }
                 } while (!fin.EndOfStream);
 
                 GameSettings.Lighting = l;
@@ -270,17 +277,17 @@ namespace Unsigned
             try
             {
 #endif
-                fout.WriteLine("3dbkground = "+GameSettings.renderLevel);
-                fout.WriteLine("wavedetail = "+GameSettings.waveDetail);
-                fout.WriteLine("resolution = "+GameSettings.Resolution.Width+"x"+GameSettings.Resolution.Height);
-                fout.WriteLine("fullscreen = "+GameSettings.fullScreen);
-                fout.WriteLine("halfrender = "+GameSettings.HALF_RENDER);
-                fout.WriteLine("iguihasfps = "+GameSettings.ShowFPS);
-                fout.WriteLine("igguistyle = "+(GameSettings.guiStyle== GameUIMaster.GUIStyle.GH?"guitarhero":GameSettings.guiStyle== GameUIMaster.GUIStyle.RB?"rockband":"unsigned"));
-                fout.WriteLine("lightingon = "+GameSettings.Lighting);
-                fout.WriteLine("nrmmapping = "+GameSettings.NormalMapping);
-                fout.WriteLine("specularhl = "+GameSettings.Specular);
-
+                fout.WriteLine("3DBkground = "+GameSettings.renderLevel);
+                fout.WriteLine("WaveDetail = "+GameSettings.waveDetail);
+                fout.WriteLine("Resolution = "+GameSettings.Resolution.Width+"x"+GameSettings.Resolution.Height);
+                fout.WriteLine("FullScreen = "+GameSettings.fullScreen);
+                fout.WriteLine("HalfRender = "+GameSettings.HALF_RENDER);
+                fout.WriteLine("IGUIHasFPS = "+GameSettings.ShowFPS);
+                fout.WriteLine("IGGUIStyle = "+(GameSettings.guiStyle== GameUIMaster.GUIStyle.GH?"guitarhero":GameSettings.guiStyle== GameUIMaster.GUIStyle.RB?"rockband":"unsigned"));
+                fout.WriteLine("LightingOn = "+GameSettings.Lighting);
+                fout.WriteLine("NrmMapping = "+GameSettings.NormalMapping);
+                fout.WriteLine("SpecularHl = "+GameSettings.Specular);
+                fout.WriteLine("TxLanguage = " + Localizer.LangCodes[(int)Localizer.CurrentLanguage]);
 #if !DEBUG
             }
             catch (Exception)

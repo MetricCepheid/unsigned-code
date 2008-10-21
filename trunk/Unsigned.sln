@@ -122,7 +122,6 @@ Global
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Debug|Xbox 360.Deploy.0 = Debug|Xbox 360
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|Any CPU.ActiveCfg = Release|Xbox 360
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|Mixed Platforms.ActiveCfg = Release|Xbox 360
-		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|Mixed Platforms.Deploy.0 = Release|Xbox 360
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|Win32.ActiveCfg = Release|Xbox 360
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|x86.ActiveCfg = Release|Xbox 360
 		{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}.Release|Xbox 360.ActiveCfg = Release|Xbox 360

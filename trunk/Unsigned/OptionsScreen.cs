@@ -21,6 +21,7 @@ namespace Unsigned
         private IndexBuffer ampIB1, ampIB2;
 
         private String[] guiStyle = { "Rock Band", "Guitar Hero", "Unsigned" };
+        private String[] languageNames = { "English", "Français", "Español" };
 
         private float optionsOffset = 0;
         private OPTIONS optionsSelected;
@@ -43,6 +44,7 @@ namespace Unsigned
             OPT_LIGHTING,
             OPT_NORMALMAPPING,
             OPT_SPECULAR,
+            OPT_LANGUAGE,
             MAX,
         };
 
@@ -154,6 +156,11 @@ namespace Unsigned
                         break;
                     case OPTIONS.OPT_SPECULAR:
                         GameSettings.Specular = !GameSettings.Specular;
+                        break;
+                    case OPTIONS.OPT_LANGUAGE:
+                        Localizer.CurrentLanguage++;
+                        if (Localizer.CurrentLanguage >= Localizer.Language.Length)
+                            Localizer.CurrentLanguage = Localizer.Language.ENGLISH;
                         break;
                 }
             }
@@ -377,51 +384,58 @@ namespace Unsigned
             }
             {//3don
                 float x = 0.2f * (int)OPTIONS.OPT_RENDER3D, y = 0.6f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("3D Mode?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("3D Mode?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("3D Mode")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("3D Mode"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.render3D ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.render3D ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_RENDER3D ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.render3D ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
             }
             {//fulls
                 float x = 0.2f * (int)OPTIONS.OPT_FULLSCREEN, y = 0.4f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Full Screen?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Full Screen?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Full Screen")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Full Screen"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, fullScreen ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(fullScreen ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_FULLSCREEN ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(fullScreen ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
             }
             {//fps
                 float x = 0.2f * (int)OPTIONS.OPT_SHOWFPS, y = 0.6f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Show FPS?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Show FPS?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Show FPS")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Show FPS"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.ShowFPS ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.ShowFPS ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_SHOWFPS ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.ShowFPS ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
             }
             {//light
                 float x = 0.2f * (int)OPTIONS.OPT_LIGHTING, y = 0.4f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Lighting?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Lighting?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Lighting")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Lighting"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.Lighting ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.Lighting ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_LIGHTING ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.Lighting ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
             }
             {//normalmapping
                 float x = 0.2f * (int)OPTIONS.OPT_NORMALMAPPING, y = 0.6f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Normal Mapping?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Normal Mapping?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Normal Mapping")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Normal Mapping"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.NormalMapping ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.NormalMapping ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_NORMALMAPPING ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.NormalMapping ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
             }
             {//specular
                 float x = 0.2f * (int)OPTIONS.OPT_SPECULAR, y = 0.4f;
-                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Specular Highlights?")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
-                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Specular Highlights?"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * GameSettings.windowwidth + optionsOffset * xscale), (int)((y - 0.05f) * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Specular Highlights")).X * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Specular Highlights"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.04f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
                 rm.spritebatch.DrawString(Global.DefaultFont, GameSettings.Specular ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * GameSettings.windowwidth + optionsOffset * xscale), (y) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.Specular ? tswitchon : tswitchoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_SPECULAR ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
                 rm.spritebatch.Draw(GameSettings.Specular ? tledon : tledoff, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), (y - 0.13f) * GameSettings.windowheight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
+            }
+            {//language
+                float x = 0.2f * (int)OPTIONS.OPT_LANGUAGE, y = 0.6f;
+                rm.spritebatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * GameSettings.windowwidth + optionsOffset * xscale), (int)(y * GameSettings.windowheight), (int)(0.02f * GameSettings.windowwidth + Global.DefaultFont.MeasureString(Localizer.Get("Language")).X * 1.5f * scale), (int)(0.1f * GameSettings.windowheight)), Color.White);
+                rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Language"), new Vector2(((x + 0.08f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.01f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), GameSettings.windowwidth / 1024f, SpriteEffects.None, 0);
+                rm.spritebatch.DrawString(Global.DefaultFont, "" + languageNames[(int)Localizer.CurrentLanguage], new Vector2(((x + 0.1f) * GameSettings.windowwidth + optionsOffset * xscale), (y + 0.05f) * GameSettings.windowheight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
+                rm.spritebatch.Draw(tknob, new Vector2((x * GameSettings.windowwidth + optionsOffset * xscale), y * GameSettings.windowheight), null, optionsSelected == OPTIONS.OPT_LANGUAGE ? Color.White : Color.Gray, ((int)Localizer.CurrentLanguage / (float)Localizer.Language.Length) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
             }
 
 

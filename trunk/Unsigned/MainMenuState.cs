@@ -389,7 +389,7 @@ namespace Unsigned
                 rm.spritebatch.DrawString(Global.BigFont, Localizer.Get(Localizer.Get("Demo Mode")), new Vector2((GameSettings.windowwidth / 2) - (Global.BigFont.MeasureString(Localizer.Get(Localizer.Get("Demo Mode"))).X / 2), GameSettings.windowheight * 0.65f), new Color(255, 0, 0, 64));
             }
             float txtScale = (float)(GameSettings.windowwidth-20) / Global.DefaultFont.MeasureString(Localizer.Get("Menus in Red are not yet implemented")).X;
-            rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Menus in Red are not yet implemented"), new Vector2(10, GameSettings.windowheight * 0.7f), Color.White, 0, new Vector2(0, 0), new Vector2(txtScale, 1),SpriteEffects.None,0);
+            //rm.spritebatch.DrawString(Global.DefaultFont, Localizer.Get("Menus in Red are not yet implemented"), new Vector2(10, GameSettings.windowheight * 0.7f), Color.White, 0, new Vector2(0, 0), new Vector2(txtScale, 1),SpriteEffects.None,0);
 
             if (mmLogoTime < 1)
                 rm.spritebatch.Draw(Global.texWhite, new Rectangle(0, 0, GameSettings.windowwidth, GameSettings.windowheight), Color.Black);
