@@ -437,7 +437,7 @@ namespace chart2unsigned
                             diff = 0;
                         else if (track.Contains("Medium"))
                             diff = 1;
-                        else if (track.Contains("Hard"))
+                        else if (track.Contains("Hard")) 
                             diff = 2;
                         else
                             diff = 3;
