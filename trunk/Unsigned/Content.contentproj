@@ -1708,6 +1708,25 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="meshes\bar.x">
+      <Name>bar</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="graphics\songdetailsflag.png">
+      <Name>songdetailsflag</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="graphics\songdetailsflagbm.png">
+      <Name>songdetailsflagbm</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="audio\" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

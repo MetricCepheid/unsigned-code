@@ -106,14 +106,19 @@ namespace chart2unsigned
                 return;
             }
 
-            InstrumentMaster.CreateSingleton();
+            for (int i = 0; i < args.Length; i++)
+                Console.WriteLine(args[i]);
 
             string thisPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             thisPath = thisPath.Substring(0, thisPath.LastIndexOf('\\') + 1);
 
-            for (int i = 0; i < args.Length; i++)
-                Console.WriteLine(args[i]);
+            System.IO.Directory.SetCurrentDirectory(thisPath);
 
+            InstrumentMaster.CreateSingleton();
+
+            Console.WriteLine("Instrument Templates Loaded");
+
+            Console.WriteLine("Path Configured");
 
             Console.WriteLine("Initial setup complete");
 

@@ -13,13 +13,16 @@ namespace Unsigned
         private ContentManager content;
         private Texture2D SongListTex, songchoosetop;
         private Texture2D SongListBG, SongHiLi, SongListBM;
+        private Texture2D SongDetailsBG, SongDetailsBM;
         private RenderTarget2D SongListRT;
         private Texture2D concrTex, concrBM;
 
         private int SONGLIST_WAVEQUALITY = 100;
         private GBVertexFormat[] songlistGeom;
-        private VertexBuffer songlistVB;
         private float SONGLIST_WAVE_SPEED = 5, slCurrentWave, slWaveLength = 50f, slWaveStrength = 2, SONGLIST_LENGTH = 170, SONGLIST_WIDTH = 1;
+
+        private VertexBuffer barVB;
+        private IndexBuffer barIB;
 
         private SetList setList;
 
@@ -44,6 +47,11 @@ namespace Unsigned
             SongHiLi = content.Load<Texture2D>("graphics\\songhili");
             setList = new SetList();
             setList.LoadSongFileHeaders();
+            SongDetailsBG = content.Load<Texture2D>("graphics\\songdetailsflag");
+            SongDetailsBM = content.Load<Texture2D>("graphics\\songdetailsflagbm");
+            Model mBar = content.Load<Model>("meshes\\bar");
+            barVB = ModelConverter.Convert(mBar.Meshes[0].VertexBuffer, mBar.Meshes[0].MeshParts[0].VertexDeclaration);
+            barIB = mBar.Meshes[0].IndexBuffer;
         }
 
         public override void Unload()
@@ -316,12 +324,12 @@ namespace Unsigned
                         songlistGeom[(i * 6) + 5] = new GBVertexFormat(new Vector3(64, hi, inh), lastNormal, new Vector2(1, i / (float)SONGLIST_WAVEQUALITY));
                     }
 
-                    songlistVB = new VertexBuffer(rm.graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * (SONGLIST_WAVEQUALITY - 1) * 6, BufferUsage.WriteOnly);
+                    //songlistVB = new VertexBuffer(rm.graphics.GraphicsDevice, GBVertexFormat.SizeInBytes * (SONGLIST_WAVEQUALITY - 1) * 6, BufferUsage.WriteOnly);
 
-                    songlistVB.SetData<GBVertexFormat>(songlistGeom);
+                    //songlistVB.SetData<GBVertexFormat>(songlistGeom);
 
                     matRot = Matrix.CreateRotationY((float)Math.PI / -12);
-                    matTranslate = Matrix.CreateTranslation(-10, 20, 0);
+                    matTranslate = Matrix.CreateTranslation(10, 20, 0);
                     matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH, 1, 1));
                     effect.World = matScale * matRot * matTranslate;
                     effect.DiffuseTexture = SongListTex;
@@ -333,9 +341,46 @@ namespace Unsigned
                     rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
                     rm.graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
                     rm.graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
-                    rm.graphics.GraphicsDevice.Vertices[0].SetSource(songlistVB, 0, GBVertexFormat.SizeInBytes);
-                    rm.graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, (SONGLIST_WAVEQUALITY - 1) * 2);
+                    rm.graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, songlistGeom, 0, (SONGLIST_WAVEQUALITY - 1) * 2);
                     rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+
+
+                    //details
+                    matRot = Matrix.Identity;
+                    matTranslate = Matrix.CreateTranslation(-60, 70, 0);
+                    matScale = Matrix.CreateScale(new Vector3(SONGLIST_WIDTH/2, 0.5f, 0.5f));
+                    effect.World = matScale * matRot * matTranslate;
+                    effect.DiffuseTexture = SongDetailsBG;
+                    effect.NormalMapTexture = SongDetailsBM;
+                    effect.Shininess = 0.25f;
+                    effect.CommitChanges();
+
+                    rm.graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
+                    rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;
+                    rm.graphics.GraphicsDevice.RenderState.SourceBlend = Blend.SourceAlpha;
+                    rm.graphics.GraphicsDevice.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+                    rm.graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, songlistGeom, 0, (SONGLIST_WAVEQUALITY - 1) * 2);
+                    rm.graphics.GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                }
+
+                {
+                    //details bar
+                    matRot = Matrix.Identity;
+                    matTranslate = Matrix.CreateTranslation(-60, 70, 0);
+                    matScale = Matrix.CreateScale(new Vector3(10, 10, 10));
+                    effect.World = matScale * matRot * matTranslate;
+                    effect.DiffuseTexture = Global.texWhite;
+                    effect.NormalMapTexture = Global.texDefaultBM;
+                    effect.Shininess = 0.25f;
+                    effect.DiffuseMaterial = Color.Yellow;
+                    effect.CommitChanges();
+
+                    rm.graphics.GraphicsDevice.VertexDeclaration = GBVertexFormat.VertexDeclaration;
+                    rm.graphics.GraphicsDevice.Vertices[0].SetSource(barVB,0,GBVertexFormat.SizeInBytes);
+                    rm.graphics.GraphicsDevice.Indices = barIB;
+                    rm.graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, barIB.SizeInBytes/2, 0, barIB.SizeInBytes/6);
+
+                    effect.DiffuseMaterial = new Color(200, 200, 200);
                 }
 
                 effect.Alpha = 1.0f;

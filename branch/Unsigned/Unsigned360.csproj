@@ -1,0 +1,106 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{178B1B95-85CE-4976-B2D4-F026ECA7D9A0}</ProjectGuid>
+    <ProjectTypeGuids>{2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">Xbox 360</Platform>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Unsigned</RootNamespace>
+    <AssemblyName>Unsigned</AssemblyName>
+    <XnaFrameworkVersion>v2.0</XnaFrameworkVersion>
+    <XnaPlatform>Xbox 360</XnaPlatform>
+    <ApplicationIcon>Game.ico</ApplicationIcon>
+    <Thumbnail>GameThumbnail.png</Thumbnail>
+    <XnaCrossPlatformGroupID>{6e5133b6-c40f-470e-a26b-552ce782f21a}</XnaCrossPlatformGroupID>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;XBOX;XBOX360</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XBOX</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Game.ico" />
+    <Content Include="GameThumbnail.png">
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <Name>app</Name>
+    </None>
+    <None Include="config.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="characters\dummy.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="charmodels\Guitarist.mda">
+      <Name>Guitarist</Name>
+    </None>
+    <None Include="venues\tikibar.gbw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <NestedContentProject Include="Content.contentproj">
+      <Project>{abdf3c7e-2e41-4848-87bf-207cfe71172f}</Project>
+      <Visible>False</Visible>
+    </NestedContentProject>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.DirectX.DirectSound" />
+    <Reference Include="Microsoft.Xna.Framework">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="mscorlib">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="songdata\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <VisualStudio>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v2.0\Microsoft.Xna.GameStudio.Common.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v2.0\Microsoft.Xna.GameStudio.NestedContent.targets" />
+</Project>
