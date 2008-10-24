@@ -736,6 +736,9 @@ namespace SongDataIO
                         ntp |= 0x01;
                     if ((type & 0x01) != 0)
                         ntp |= 0x10;
+                    if ((ntp & 0x01) != 0)
+                        ntp |= 0x20;
+                    ntp >>= 1;
                     arr[j].type = ntp;
                     arr[j].time = reader.ReadUInt32();
                 }
@@ -968,6 +971,9 @@ namespace SongDataIO
                         ntp |= 0x01;
                     if ((type & 0x01) != 0)
                         ntp |= 0x10;
+                    if ((ntp & 0x01) != 0)
+                        ntp |= 0x20;
+                    ntp >>= 1;
                     note.type = ntp;
                     note.time = reader.ReadUInt32();
                     ret.instruments[2].diffSets[k].phrases[0].notes[i] = note;

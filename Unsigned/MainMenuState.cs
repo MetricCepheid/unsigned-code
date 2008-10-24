@@ -57,6 +57,7 @@ namespace Unsigned
         public override void Unload()
         {
             content.Unload();
+            RenderMaster.GetSingleton().menuEngine.DiffuseTexture = null;
         }
 
         public override void Update(GameTime gameTime)
