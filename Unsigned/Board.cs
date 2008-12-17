@@ -77,7 +77,7 @@ namespace Unsigned
         // the final render
         private RenderTarget2D boardTarget;
 
-        // look & feel info (gui)
+        // where the board is drawn after being rendered
         private int xOffset;
         // the rotate of the flashes so they dont get stale
         private float flashRot;
@@ -1049,8 +1049,8 @@ namespace Unsigned
                         if ((Notes[i].type & (((ulong)1) << r)) == 0)
                             continue;
 
-                        float X1a = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
-                        float X1b = ((X3base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X1a = ((X1base + (IsLefty ? (GetBoardType().NumDrawnTracks - 1) - r : r)) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X1b = ((X3base + (IsLefty ? (GetBoardType().NumDrawnTracks - 1) - r : r)) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
 
                         spritebatch.Draw(texLine, new Vector2(X1a, Z1), null, isGray? Color.Gray : isSP ? Color.White : Global.FretColors[GetBoardType().colorIndices[r]], Angle1, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
                         spritebatch.Draw(texLine, new Vector2(X1b, Z1), null, isGray ? Color.Gray : isSP ? Color.White : Global.FretColors[GetBoardType().colorIndices[r]], Angle2, new Vector2(0, texLine.Height / 2), new Vector2(Length / texLine.Width, LineWidth), SpriteEffects.None, 0);
@@ -1070,8 +1070,8 @@ namespace Unsigned
                         if ((Notes[i].type & (((ulong)1) << r)) == 0)
                             continue;
 
-                        float X1 = ((X1base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
-                        float X2 = ((X2base + r) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X1 = ((X1base + (IsLefty ? (GetBoardType().NumDrawnTracks - 1) - r : r)) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
+                        float X2 = ((X2base + (IsLefty ? (GetBoardType().NumDrawnTracks - 1) - r : r)) / (float)GetBoardType().NumDrawnTracks) * rtWaves.Width;
 
                         float Length = (new Vector2(X2 - X1, Z2 - Z1)).Length();
                         float Angle = (float)Math.Atan2(Z2 - Z1, X2 - X1);

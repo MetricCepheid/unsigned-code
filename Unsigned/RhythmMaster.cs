@@ -60,7 +60,7 @@ namespace Unsigned
                 if(info.peripherals[i]!=null)
                 {
                     boards[i] = new Board(InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]),
-                        InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL ? (int)((((count3D * 2) + 1) / (num3D * 2.0f)) * GameSettings.windowwidth) : 0,
+                        InstrumentMaster.GetSingleton().GetInstrument(info.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL ? (int)(((((count3D * 2) + 1) / (num3D * 2.0f))-0.5f) * GameSettings.windowwidth) : 0,
                         song, info.difficulties[i]);
                     boards[i].LoadInstance(content);
                     boards[i].Peripheral = info.peripherals[i];
@@ -281,7 +281,15 @@ namespace Unsigned
 
         internal double GetPercentBeat()
         {
-            throw new Exception("The method or operation is not implemented.");
+            for (int i = 0; i < songData.info.barlines.Length - 1; i++)
+                if (songData.info.barlines[i].time <= CurrentTime * 1000 && songData.info.barlines[i + 1].time > CurrentTime * 1000)
+                {
+                    double percentBar = ((CurrentTime * 1000) - songData.info.barlines[i].time) / (songData.info.barlines[i + 1].time - songData.info.barlines[i].time);
+                    percentBar *= songData.info.barlines[i].numBeats;
+                    percentBar = percentBar - (int)percentBar;
+                    return percentBar;
+                }
+            return 0;
         }
 
         internal SongData GetSongData()
@@ -301,9 +309,19 @@ namespace Unsigned
 
         internal void DrawBoardRenders(SpriteBatch spritebatch)
         {
+            int num3d = 0;
+            for (int i = 0; i < 4; i++)
+                if(boards[i] != null)
+                    if (boards[i].GetBoardType().Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
+                        num3d++;
+            int width = GameSettings.windowwidth;
+            if (num3d == 2)
+                width = (int)(width * 0.75f);
+            if (num3d == 3)
+                width = (int)(width * 0.5f);
             for (int i = 0; i < 4; i++)
                 if(boards[i]!=null)
-                    spritebatch.Draw(boards[i].GetRender(), new Rectangle(0, 0, GameSettings.windowwidth, GameSettings.windowheight), Color.White);
+                    spritebatch.Draw(boards[i].GetRender(), new Rectangle((GameSettings.windowwidth/2)-(width/2)+boards[i].GetXOffset(), 0, width, GameSettings.windowheight), Color.White);
         }
 
         private void ProcessInput(GameTime gameTime, long currenttime)
