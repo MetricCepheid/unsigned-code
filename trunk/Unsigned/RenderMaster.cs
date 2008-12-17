@@ -73,6 +73,28 @@ namespace Unsigned
             }
         }
 
+        public void ResizeScreen()
+        {
+            screenTargetFinal.Dispose();
+            screenTargetFinal = null;
+            screenTargetPre.Dispose();
+            screenTargetPre = null;
+            screenTarget.Dispose();
+            screenTarget = null;
+            GC.Collect();
+            screenTargetFinal = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
+            if (GameSettings.HALF_RENDER)
+            {
+                screenTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth / 2, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
+                screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth / 2, GameSettings.windowheight / 2, 1, SurfaceFormat.Color);
+            }
+            else
+            {
+                screenTarget = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
+                screenTargetPre = new RenderTarget2D(graphics.GraphicsDevice, GameSettings.windowwidth, GameSettings.windowheight, 1, SurfaceFormat.Color);
+            }
+        }
+
         public void ResetLighting()
         {
             engine.PointLight0 = PointLight.DisabledLight;

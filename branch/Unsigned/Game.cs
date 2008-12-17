@@ -59,14 +59,14 @@ namespace Unsigned
                 lastframes[i] = 1 / 30f;
 
             Localizer.Load();
-            Localizer.CurrentLanguage = Localizer.Language.FRENCH;
 
             RenderMaster.CreateSingleton();
             RenderMaster.GetSingleton().graphics = graphics;
             RenderMaster.GetSingleton().spritebatch = new SpriteBatch(graphics.GraphicsDevice);
-            RenderMaster.GetSingleton().Load(content);
 
             Configurate();
+
+            RenderMaster.GetSingleton().Load(content);
 
             GameUIMaster.CreateSingleton();
             GameUIMaster.GetSingleton().Load(content);
@@ -129,15 +129,7 @@ namespace Unsigned
 
         private void InitXNAApp()
         {
-            Window.Title = "Unsigned";
-
-            graphics.PreferredBackBufferWidth = GameSettings.windowwidth;
-            graphics.PreferredBackBufferHeight = GameSettings.windowheight;
-            graphics.ApplyChanges();
-            if (GameSettings.fullScreen)
-                graphics.ToggleFullScreen();
-
-            
+            Window.Title = "Unsigned";           
 
             //SetProjMatrix(Window.ClientBounds.Width,Window.ClientBounds.Height);
             graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;

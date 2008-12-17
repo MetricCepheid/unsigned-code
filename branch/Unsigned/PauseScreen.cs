@@ -20,6 +20,8 @@ namespace Unsigned
         private Texture2D texPauseBorder, texPauseWings, texPausePick;
         private Vector3[] textPos = new Vector3[16];
 
+        private float scale;
+
         private GameState gameState;
 
         public void SetOwner(Peripheral p)
@@ -51,9 +53,10 @@ namespace Unsigned
             pauseTextDisp[0][3] = Localizer.Get("Exit");
 
             pauseTextDisp[1] = new String[2];
-            pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + Localizer.Get("Maybe");
+            pauseTextDisp[1][0] = Localizer.Get("Lefty Flip") + ": " + Localizer.Get("Maybe");
             pauseTextDisp[1][1] = Localizer.Get("Back");
             //song.pause();
+            scale = GameSettings.windowwidth / 800f;
         }
 
         public override void Unload()
@@ -95,8 +98,6 @@ namespace Unsigned
         {
             SpriteBatch spritebatch = RenderMaster.GetSingleton().spritebatch;
 
-            float scale = 1.5f;
-
             Vector2 origin = new Vector2(texPauseBorder.Width / 2, texPauseBorder.Height / 2);
             Vector3 wingPosR = new Vector3(455, 79, 0);
             Vector3 wingPosL = new Vector3(25, 59, 0);
@@ -133,7 +134,10 @@ namespace Unsigned
             spritebatch.Draw(texPauseWings, new Vector2(wingPosR.X, wingPosR.Y) + pauseMenuPos, null, Color.White, -pauseWingRot.X / 2, new Vector2(32, 69), scale, SpriteEffects.None, 0);
             spritebatch.Draw(texPauseWings, new Vector2(wingPosL.X, wingPosL.Y) + pauseMenuPos, null, Color.White, pauseWingRot.X / 2, new Vector2(texPauseWings.Width - 32, 69), scale, SpriteEffects.FlipHorizontally, 0);
             for (int i = 0; i < pauseTextDisp[currentState].Length; i++)
-                spritebatch.DrawString(Global.DefaultFont, pauseTextDisp[currentState][i], new Vector2(textPos[i].X, textPos[i].Y) + pauseMenuPos, pauseSelected == i ? Color.Red : new Color(100, 128, 100), pauseRot, Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]) * 0.5f, scale * 2, SpriteEffects.None, 0);
+            {
+
+                spritebatch.DrawString(Global.DefaultFont, pauseTextDisp[currentState][i], new Vector2(textPos[i].X, textPos[i].Y) + pauseMenuPos, pauseSelected == i ? Color.Red : new Color(100, 128, 100), pauseRot, Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]) * 0.5f, Math.Min(((250f*scale)/Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]).X),scale*2), SpriteEffects.None, 0);
+            }
             spritebatch.Draw(texPausePick, new Vector2(pickPosL.X, pickPosL.Y) + pauseMenuPos, null, Color.White, pauseRot, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
             spritebatch.Draw(texPausePick, new Vector2(pickPosR.X, pickPosR.Y) + pauseMenuPos, null, Color.White, pauseRot + MathHelper.Pi, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
 
@@ -151,10 +155,10 @@ namespace Unsigned
                 else if (pauseSelected == 2)
                 {
                     currentState = 1;
-                    pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off"));
+                    pauseTextDisp[1][0] = Localizer.Get("Lefty Flip") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off"));
                 }
                 else if (pauseSelected == 3)
-                { 
+                {
                     UnsignedGame.GetSingleton().PopState();
                     UnsignedGame.GetSingleton().PopState();
                     UnsignedGame.GetSingleton().PopState();
@@ -165,7 +169,7 @@ namespace Unsigned
                 if (pauseSelected == 0)
                 { 
                     pauseSelectOwner.LeftySwitch = !pauseSelectOwner.LeftySwitch; 
-                    pauseTextDisp[1][0] = Localizer.Get("Lefty") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off")); 
+                    pauseTextDisp[1][0] = Localizer.Get("Lefty Flip") + ": " + (pauseSelectOwner.LeftySwitch ? Localizer.Get("On") : Localizer.Get("Off")); 
                 }
                 else if (pauseSelected == 1)
                 {

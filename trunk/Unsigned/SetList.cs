@@ -474,6 +474,8 @@ namespace Unsigned
 
             //Grab the .uns files, and add them first
             String unsSearchString = "*.uns";
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\songdata"))
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\songdata");
             String[] unsFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory()+"\\songdata", unsSearchString);
             foreach (string unsFilePath in unsFilePaths)
             {

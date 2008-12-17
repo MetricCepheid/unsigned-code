@@ -1,5 +1,8 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartArguments>"C:\Users\Louis\Desktop\FeedBack0.97b\Songs\Bleeding Hot Sauce.chart"</StartArguments>
+    <StartArguments>"E:\unsignedNew\test20.chart"</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <StartArguments>"C:\Users\Louis\Desktop\Intro-Green Hill.chart"</StartArguments>
   </PropertyGroup>
 </Project>

@@ -158,6 +158,17 @@ namespace SongDataIO
             {
                 return strummed;
             }
+
+            public void Reset()
+            {
+                for (int i = 0; i < visible.Length; i++)
+                    visible[i] = VIS_STATE.VISIBLE;
+                burning = false; 
+                late = 0;
+                strummed = false;
+                pressed = 0;
+                good = false;
+            }
         }
 
         /// <summary>
@@ -902,6 +913,7 @@ namespace SongDataIO
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
+                ret.instruments[0].diffSets[k] = new SongData.DifficultySet();
                 ret.instruments[0].diffSets[k].phrases = new SongData.Phrase[1];
                 ret.instruments[0].diffSets[k].phrases[0] = new SongData.Phrase();
                 ret.instruments[0].diffSets[k].phrases[0].notes = new SongData.NoteSet[reader.ReadUInt32()];
@@ -929,6 +941,7 @@ namespace SongDataIO
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
+                ret.instruments[3].diffSets[k] = new SongData.DifficultySet();
                 ret.instruments[3].diffSets[k].phrases = new SongData.Phrase[1];
                 ret.instruments[3].diffSets[k].phrases[0] = new SongData.Phrase();
                 ret.instruments[3].diffSets[k].phrases[0].notes = new SongData.NoteSet[reader.ReadUInt32()];
@@ -959,6 +972,7 @@ namespace SongDataIO
             for (int ir = 0; ir < 4; ir++)
             {
                 uint k = reader.ReadUInt32();
+                ret.instruments[2].diffSets[k] = new SongData.DifficultySet();
                 ret.instruments[2].diffSets[k].phrases = new SongData.Phrase[1];
                 ret.instruments[2].diffSets[k].phrases[0] = new SongData.Phrase();
                 ret.instruments[2].diffSets[k].phrases[0].notes = new SongData.NoteSet[reader.ReadUInt32()];
@@ -988,6 +1002,8 @@ namespace SongDataIO
             ret.instruments[1] = new SongData.SongDataInstrument();
             ret.instruments[1].instrumentType = "LVX";
             ret.instruments[1].diffSets = new SongData.DifficultySet[4];
+            for(int i=0;i<4;i++)
+                ret.instruments[1].diffSets[i] = new SongData.DifficultySet();
             ret.instruments[1].diffSets[3].phrases = new SongData.Phrase[reader.ReadUInt32()];
             for (int j = 0; j < ret.instruments[1].diffSets[3].phrases.Length; j++)
             {

@@ -284,7 +284,7 @@ float4 EnginePixelShader_NO_LT(EngineVertexToPixel_small input) : COLOR
 {
   float4 diffuseTex = tex2D(DiffuseTextureSampler,input.texCoord.xy);
 
-  return float4(diffuseTex.xyz,diffuseTex.w*alpha*input.alpha);
+  return float4(diffuseTex.xyz*diffuseMaterialColor,diffuseTex.w*alpha*input.alpha);
 }
 
 technique maintechnique {

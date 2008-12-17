@@ -201,5 +201,17 @@ namespace Unsigned
         {
             return new TimeSpan(0, 0, 0, 0, (int)sound.PlayLength);
         }
+
+        internal void Restart()
+        {
+            sound.Stop();
+            sound = sEngine.Play2D(song, false, true, true);
+            if (song == null || sound == null)
+            {
+                System.Windows.Forms.MessageBox.Show("audio not found");
+            }
+            sound.Paused = false;
+            sound.Volume = 0.75f;
+        }
     }
 }

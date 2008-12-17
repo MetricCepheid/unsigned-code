@@ -122,7 +122,7 @@ namespace chart2unsigned
 
             Console.WriteLine("Initial setup complete");
 
-            for (int files = 0; files < args.Length; files++)
+              for (int files = 0; files < args.Length; files++)
             {
                 //SETUP
 
@@ -903,6 +903,8 @@ namespace chart2unsigned
                     Error("Unknown Error occurred\n" + e.Message);
                     return;
                 }
+                for (int i = 0; i < newDFs.Length; i++)
+                    newDFs[i].len = newDFs[i].len - newDFs[i].time;
                 if (outputLevel >= 2)
                     Console.WriteLine("Drum Fills parsed");
 
@@ -1163,7 +1165,10 @@ namespace chart2unsigned
                         for (int l = 0; l < newnotes[i][k].Length; l++)
                             newnotes[i][k][l].time += (uint)(offset * 1000);
                 for (int i = 0; i < newDFs.Length; i++)
+                {
                     newDFs[i].time += (uint)(offset * 1000);
+                    newDFs[i].len += (uint)(offset * 1000);
+                }
                 for (int i = 0; i < vocalPhrases.Count; i++)
                 {
                     vocalPhrases[i].time += (uint)(offset * 1000);

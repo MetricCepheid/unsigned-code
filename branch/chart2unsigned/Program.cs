@@ -106,14 +106,15 @@ namespace chart2unsigned
                 return;
             }
 
-            InstrumentMaster.CreateSingleton();
-
             string thisPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             thisPath = thisPath.Substring(0, thisPath.LastIndexOf('\\') + 1);
 
+            System.IO.Directory.SetCurrentDirectory(thisPath);
+
+            InstrumentMaster.CreateSingleton();
+
             for (int i = 0; i < args.Length; i++)
                 Console.WriteLine(args[i]);
-
 
             Console.WriteLine("Initial setup complete");
 
@@ -898,6 +899,8 @@ namespace chart2unsigned
                     Error("Unknown Error occurred\n" + e.Message);
                     return;
                 }
+                for (int i = 0; i < newDFs.Length; i++)
+                    newDFs[i].len = newDFs[i].len - newDFs[i].time;
                 if (outputLevel >= 2)
                     Console.WriteLine("Drum Fills parsed");
 
@@ -1373,6 +1376,9 @@ namespace chart2unsigned
 
         private static void Error(String a)
         {
+#if DEBUG
+            throw new InvalidOperationException();
+#else
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(a);
@@ -1390,6 +1396,7 @@ namespace chart2unsigned
                 Console.Beep(37+i, 1000);
             }
             return;
+#endif
         }
 
         private static bool IsChord(ulong p, int numLanes)

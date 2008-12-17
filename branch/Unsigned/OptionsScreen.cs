@@ -88,6 +88,7 @@ namespace Unsigned
             content.Unload();
             GameSettings.resIndex = resIndex;
             GameSettings.fullScreen = fullScreen;
+            RenderMaster.GetSingleton().ResizeScreen();
         }
 
         public override void Update(GameTime gameTime)

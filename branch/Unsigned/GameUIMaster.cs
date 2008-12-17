@@ -116,15 +116,15 @@ namespace Unsigned
                     rex = -(rockMeterScale.X * 3) + ((((float)currentTime + 3) * 2) * ((rockMeterLoc.X * 3) + rockMeterScale.X));
                 else
                     rex = -rockMeterScale.X * 3;
-                if (failTime > 0)
+                if (failTime < 10)
                 {
                     if (RhythmMaster.GetSingleton().GetPercentBeat() > 0.5)
                     {
-                        spritebatch.Draw(Global.texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 3) * 0.95f)), new Color((byte)((RhythmMaster.GetSingleton().GetPercentBeat() - 0.5) * 255 + 128), 0, 0));
+                        spritebatch.Draw(Global.texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 30) * 0.95f)), new Color((byte)((RhythmMaster.GetSingleton().GetPercentBeat() - 0.5) * 255 + 128), 0, 0));
                     }
                     else
                     {
-                        spritebatch.Draw(Global.texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 3) * 0.95f)), new Color((byte)((0.5 - RhythmMaster.GetSingleton().GetPercentBeat()) * 255 + 128), 0, 0));
+                        spritebatch.Draw(Global.texWhite, new Rectangle((int)((rockMeterScale.X * 0.2f) + rex), (int)((rockMeterScale.Y * 0.025f) + rockMeterLoc.Y + (rockMeterScale.Y * (1 - (failTime / 3)) * 0.95f)), (int)(rockMeterScale.X * 0.65f), (int)(rockMeterScale.Y * (failTime / 30) * 0.95f)), new Color((byte)((0.5 - RhythmMaster.GetSingleton().GetPercentBeat()) * 255 + 128), 0, 0));
                     }
                 }
                 else
