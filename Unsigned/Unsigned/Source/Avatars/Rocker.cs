@@ -18,9 +18,10 @@ namespace Unsigned
         private int characterIndex;
         private Instrument instrument;
                                      
-        public Rocker(int characterindex)
+        public Rocker(int characterindex, Instrument instr)
         {
             this.characterIndex = characterindex;
+            instrument = instr;
             Yaw = 0;
         }
 

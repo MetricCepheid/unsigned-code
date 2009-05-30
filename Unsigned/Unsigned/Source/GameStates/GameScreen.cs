@@ -241,8 +241,8 @@ namespace Unsigned
                     width = (int)(width * 0.75f);
                 if (num3d == 3)
                     width = (int)(width * 0.5f);
-                for (int i = 0; i < boards.Length; i++)
-                    spriteBatch.Draw(boards[i].GetRender(), new Rectangle((Global.ScreenWidth / 2) - (width / 2) + boards[i].GetXOffset(), 0, width, Global.ScreenHeight), Color.White);
+                //for (int i = 0; i < boards.Length; i++)
+                //    spriteBatch.Draw(boards[i].GetRender(), new Rectangle((Global.ScreenWidth / 2) - (width / 2) + boards[i].GetXOffset(), 0, width, Global.ScreenHeight), Color.White);
                 spriteBatch.End();
 
                 ui.Render();

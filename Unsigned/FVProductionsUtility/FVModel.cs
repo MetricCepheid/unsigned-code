@@ -23,4 +23,20 @@ namespace FVProductions.Utility
             Global.Graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, NumVertices, 0, NumVertices / 3);
         }
     }
+
+    public class FVModelArrays
+    {
+        public VertexTangentBinormal[] VB;
+        public int[] IB;
+        public int NumVertices
+        {
+            get { return IB.Length; }
+        }
+
+        public void Draw()
+        {
+            Global.Graphics.GraphicsDevice.VertexDeclaration = VertexTangentBinormal.VertexDeclaration;
+            Global.Graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexTangentBinormal>(PrimitiveType.TriangleList, VB, 0, NumVertices, IB, 0, IB.Length / 3);
+        }
+    }
 }

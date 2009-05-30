@@ -3,7 +3,7 @@
   <Asset Type="Graphics:NodeContent">
     <Name>triggerdownFrame</Name>
     <Identity>
-      <SourceFilename>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\meshes\Game\triggerdown.x</SourceFilename>
+      <SourceFilename>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\meshes\Game\triggerdown.x</SourceFilename>
       <SourceTool>XImporter</SourceTool>
     </Identity>
     <Transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</Transform>

@@ -90,6 +90,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Source\Avatars\Fan.cs" />
     <Compile Include="Source\GameStates\IBaseState.cs" />
     <Compile Include="Source\Graphics&amp;UI\PostProcessor.cs" />
     <Compile Include="Source\InGame\Board.cs" />

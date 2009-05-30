@@ -3,7 +3,7 @@
   <Asset Type="Graphics:NodeContent">
     <Name>torsoFrame</Name>
     <Identity>
-      <SourceFilename>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\Content\torso.x</SourceFilename>
+      <SourceFilename>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\Content\torso.x</SourceFilename>
       <SourceTool>XImporter</SourceTool>
     </Identity>
     <Transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</Transform>

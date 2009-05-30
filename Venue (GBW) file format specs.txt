@@ -6,9 +6,9 @@
 //By Louis Ingenthron
 //2-23-08
 
-char[] header = "UnsdVnu" + (char)Version;
+char[] header = "UnsdVnu";
 
-ulong fileLen;
+byte Version = 3;
 
 uint nearClippingPlane;
 uint farClippingPlane;
@@ -16,19 +16,9 @@ uint farClippingPlane;
 //musician locations
 Vector3 g, v, d, b;
 
-char 'T'; //textures
-
-char '{';
-
 uint numTexs;
 
 String[numTexs] textures;
-
-char '}';
-
-char 'G'; //geometry
-
-char '{';
 
 struct Vertex
 {
@@ -49,11 +39,8 @@ uint numPolygons;
 
 Polygon[numPolygons] polys;
 
-char '}';
-
-char 'E'; //entities
-
-char '{';
+uint numFans;
+Vector3 fans[numFans];
 
 struct Camera
 {
@@ -82,7 +69,9 @@ struct SLight
 	SLightTarget[numTargets] targets;
 }
 
-while( ! '}' )
+uint numEntities;
+
+repeat( numEntities )
 {
 	char[3] type;
 
@@ -96,8 +85,3 @@ while( ! '}' )
 		SLight[lightCount] sLights;
 	}
 }
-
-char '}';
-
-//finish up with some buffering whitespace
-char[] whitebuffer;

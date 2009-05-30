@@ -137,6 +137,7 @@ namespace Unsigned
                 {
                     selectedSong -= collective;
                     List<SubSet> subsets = setList.GetSubsets();
+                    if(subsets.Count>0)
                     while (selectedSong >= subsets[selectedSubSet].GetSongList().Count)
                     {
                         if (selectedSubSet >= subsets.Count - 1)
@@ -147,6 +148,7 @@ namespace Unsigned
                             selectedSubSet++;
                         }
                     }
+                    if(subsets.Count>=0)
                     while (selectedSong < 0)
                     {
                         if (selectedSubSet <= 0)

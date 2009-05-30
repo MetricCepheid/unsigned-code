@@ -170,7 +170,7 @@ namespace FVProductions.Utility
         private Texture2D diffuseTex, normalTex, specularTex;
         private TextureCube cube;
         private bool textureEnabled, normalMappingEnabled, lightingEnabled, specularEnabled;
-        private Matrix world, wRot, view, viewInverse, projection;
+        private Matrix world, view, viewInverse, projection;
         private DirectionalLight dLight;
         private PointLight[] pLights;
         private SpotLight[] sLights;
@@ -643,7 +643,7 @@ namespace FVProductions.Utility
             get { return normalMappingEnabled; }
         }
 
-        private EffectParameter _ep_world=null, _ep_wrot=null;
+        private EffectParameter _ep_world=null;
         public Matrix World
         {
             set 

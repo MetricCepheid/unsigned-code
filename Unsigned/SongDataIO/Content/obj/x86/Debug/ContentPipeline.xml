@@ -6,10 +6,10 @@
       <TargetPlatform>Windows</TargetPlatform>
       <BuildConfiguration>Debug</BuildConfiguration>
       <CompressContent>false</CompressContent>
-      <RootDirectory>C:\projects\Unsigned3.0\Unsigned\SongDataIO\Content\</RootDirectory>
-      <LoggerRootDirectory>C:\projects\Unsigned3.0\Unsigned\SongDataIO\</LoggerRootDirectory>
-      <IntermediateDirectory>C:\projects\Unsigned3.0\Unsigned\SongDataIO\Content\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>C:\projects\Unsigned3.0\Unsigned\SongDataIO\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>C:\projects\Unsigned2.0\Unsigned\SongDataIO\Content\</RootDirectory>
+      <LoggerRootDirectory>C:\projects\Unsigned2.0\Unsigned\SongDataIO\</LoggerRootDirectory>
+      <IntermediateDirectory>C:\projects\Unsigned2.0\Unsigned\SongDataIO\Content\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>C:\projects\Unsigned2.0\Unsigned\SongDataIO\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>

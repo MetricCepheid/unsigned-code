@@ -18,11 +18,14 @@ namespace Unsigned
         private Texture2D texRockstarRed, texRockstarRing, texRockstarCover,
                           texRockstarCoverGold;
         private Texture2D[] texRockstarRingHiLi;
-        private Texture2D texScoreBoard;
+        private Texture2D texScoreBoard, texBREScoreBG;
         private Texture2D texRockMeterOutline, texRockMeterFiller;
         private Dictionary<String,Texture2D> texRockMeterInstrumentLogos;
         private Texture2D texRockMeterLogoStem;
         private Texture2D rmUNbg, rmUNfg, rmUNstar, rmUNstaro, rmUNstarbg;
+
+        private bool breStarted;
+        private float breScoreAlpha;
 
         private Board[] boards;
         private SongData songData;
@@ -78,13 +81,14 @@ namespace Unsigned
             texRockstarRingHiLi = new Texture2D[11];
             for (int i = 0; i < 11; i++)
                 texRockstarRingHiLi[i] = Content.Load<Texture2D>("textures\\ui\\border" + (i < 10 ? "0" : "") + i);
+            texBREScoreBG = Content.Load<Texture2D>("textures\\Game\\solopercentbg");
         }
 
-        public void Update(SongTime gameTime)
+        public void Update(SongTime songTime)
         {
-            rockstarOrientation = GetBeatTime(gameTime) * (1 / 5f) * MathHelper.TwoPi;
+            rockstarOrientation = GetBeatTime(songTime) * (1 / 5f) * MathHelper.TwoPi;
             int score = 0;
-            draw_SongTime = (float)gameTime.TotalSongTime.TotalSeconds;
+            draw_SongTime = (float)songTime.TotalSongTime.TotalSeconds;
             draw_Failing = false;
             float rmv = 0;
             draw_NumStars = 0;
@@ -98,7 +102,7 @@ namespace Unsigned
             }
             draw_NumStars /= boards.Length;
             rmv /= boards.Length;
-            draw_RockMeterValue += (rmv - draw_RockMeterValue) * (float)(gameTime.ElapsedGameTime.TotalSeconds*20);
+            draw_RockMeterValue += (rmv - draw_RockMeterValue) * (float)(songTime.ElapsedGameTime.TotalSeconds*20);
             draw_Score = "";
             if (score <= 0)
                 draw_Score = "0";
@@ -120,6 +124,15 @@ namespace Unsigned
                 }
                 if (draw_Score.StartsWith(","))
                     draw_Score = draw_Score.Substring(1);
+            }
+
+            if (songData.info.bre.enabled && songTime.TotalSongTime.TotalSeconds >= songData.info.bre.start / 1000f)
+                breStarted = true;
+            if (breStarted && breScoreAlpha < 1)
+            {
+                breScoreAlpha += (float)songTime.ElapsedGameTime.TotalSeconds;
+                if (breScoreAlpha > 1)
+                    breScoreAlpha = 1;
             }
         }
 
@@ -314,6 +327,24 @@ namespace Unsigned
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
             DrawRockMeter();
             DrawScoreStars();
+
+            if (breScoreAlpha > 0)
+            {
+                float scale = -(((breScoreAlpha * 1.2f) - 1) * ((breScoreAlpha * 1.2f) - 1)) + 1;
+                spriteBatch.Draw(texBREScoreBG, new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight * 0.3f), null, new Color(Global.UnsignedOrange, scale), 0, new Vector2(texBREScoreBG.Width / 2, 0), new Vector2(Global.ScreenHeight / 1200f * scale, Global.ScreenHeight / 1800f * scale), SpriteEffects.None, 0);
+                int totalBREScore = 0;
+                for (int i = 0; i < boards.Length; i++)
+                    totalBREScore += boards[i].BREScore;
+                {
+                    Vector2 meas = Global.DefaultFont.MeasureString("" + totalBREScore);
+                    spriteBatch.DrawString(Global.DefaultFont, "" + totalBREScore, new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight * 0.31f), new Color(1f, 1f, 1f, scale), 0, new Vector2(meas.X / 2, 0), Global.ScreenHeight / 600f * scale, SpriteEffects.None, 0);
+                }
+                {
+                    Vector2 meas = Global.DefaultFont.MeasureString("Ending Score");
+                    spriteBatch.DrawString(Global.DefaultFont, "Ending Score", new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight * 0.3f), new Color(1f, 1f, 1f, scale), 0, new Vector2(meas.X / 2, meas.Y), Global.ScreenHeight / 600f * scale, SpriteEffects.None, 0);
+                }
+            }
+
             spriteBatch.End();
         }
 

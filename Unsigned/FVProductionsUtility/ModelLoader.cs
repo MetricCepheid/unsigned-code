@@ -191,5 +191,62 @@ namespace FVProductions.Utility
 
             return mdl;
         }
+
+        public static FVModelArrays LoadModelArrays(string modelName)
+        {
+            ContentManager tContent = new ContentManager(Global.Services);
+            tContent.RootDirectory = "Content\\";
+
+            FVModelArrays mdl = new FVModelArrays();
+
+            {
+
+                Model m = tContent.Load<Model>(modelName);
+
+                int numVerts = 0, numIndices = 0;
+                foreach (ModelMesh mesh in m.Meshes)
+                {
+                    numVerts += mesh.VertexBuffer.SizeInBytes / VertexPositionNormalTexture.SizeInBytes;
+                    numIndices += mesh.IndexBuffer.SizeInBytes / (mesh.IndexBuffer.IndexElementSize == IndexElementSize.SixteenBits ? 2 : 4);
+                }
+
+                VertexPositionNormalTexture[] verts = new VertexPositionNormalTexture[numVerts];
+                int[] indices = new int[numIndices];
+                int currentVerts = 0, currentIndices = 0;
+                foreach (ModelMesh mesh in m.Meshes)
+                {
+                    int nV = mesh.VertexBuffer.SizeInBytes / VertexPositionNormalTexture.SizeInBytes;
+                    int nI = mesh.IndexBuffer.SizeInBytes / (mesh.IndexBuffer.IndexElementSize == IndexElementSize.SixteenBits ? 2 : 4);
+                    VertexPositionNormalTexture[] oldVerts = new VertexPositionNormalTexture[nV];
+                    int[] oldIndices = new int[nI];
+                    mesh.VertexBuffer.GetData<VertexPositionNormalTexture>(oldVerts);
+                    if (mesh.IndexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits)
+                        mesh.IndexBuffer.GetData<int>(oldIndices);
+                    else
+                    {
+                        short[] oI = new short[nI];
+                        mesh.IndexBuffer.GetData<short>(oI);
+                        for (int i = 0; i < nI; i++)
+                            oldIndices[i] = oI[i];
+                    }
+                    for (int i = 0; i < nV; i++)
+                        verts[i + currentVerts] = new VertexPositionNormalTexture(oldVerts[i].Position, oldVerts[i].Normal, oldVerts[i].TextureCoordinate);
+                    for (int i = 0; i < nI; i++)
+                        indices[i + currentIndices] = oldIndices[i] + currentVerts;
+                    currentVerts += nV;
+                    currentIndices += nI;
+                }
+
+                VertexTangentBinormal[] moreVerts = ConvertVerts(verts, indices);
+
+                mdl.VB = moreVerts;
+                mdl.IB = indices;
+            }
+
+            tContent.Unload();
+            tContent.Dispose();
+
+            return mdl;
+        }
     }
 }

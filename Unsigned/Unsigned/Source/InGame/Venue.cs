@@ -110,7 +110,11 @@ namespace Unsigned
 
         private uint cNear, cFar;
 
-        private SongData.SpecialEffect[] effects;
+        private SongData songData;
+
+        private SongData.SpecialEffect[] effects { get { return songData.effects.effects; } }
+
+        private Fan[] Fans;
 
 #if DEBUG_CAM_CONTROL
         private Vector3 DEBUG_cp;
@@ -124,7 +128,7 @@ namespace Unsigned
         public int camindex;
         private long camtime = -1;
         private float camblendvalue;
-        private uint[] camtimes;
+        private uint[] camtimes { get { return songData.effects.cameraSwitches; } }
 
         private const int DS_BASSDRUM = 0, DS_CRASHCYMBAL = 1, DS_RIDECYMBAL = 2, DS_HIHATCYMBAL = 3, DS_FLOORTOM = 4, DS_TOMTOMS = 5, DS_SNARE = 6;
         private Rocker[] rockers;
@@ -134,7 +138,8 @@ namespace Unsigned
         public Venue(String Filename, SongData songData, SessionInfo nugget)
         {
             this.Filename = Filename;
-            LoadWorld(Filename,songData,nugget);
+            this.songData = songData;
+            LoadWorld(Filename,nugget);
         }
 
         public void Update(SongTime songTime)
@@ -162,8 +167,7 @@ namespace Unsigned
             if(kbs.IsKeyDown(Keys.NumPad6))
                 DEBUG_rot.X-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
 #endif
-
-            if (camtime==-1)
+            if (camtime == -1)
             {//sets the next camera view once the previous one is finished
                 uint len = camtimes[1] - camtimes[0];
                 CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
@@ -187,9 +191,9 @@ namespace Unsigned
             else if (camtime < camtimes.Length - 1 && songTime.TotalSongTime.TotalMilliseconds > camtimes[camtime + 1])
             {//sets up camera movement interpolation
                 int k;
-                do 
+                do
                 {
-                    uint len = camtimes[camtime+1] - camtimes[camtime];
+                    uint len = camtimes[camtime + 1] - camtimes[camtime];
                     CamBlendPos.TYPE_LEN tlen = (CamBlendPos.TYPE_LEN)(-1);
                     if (len < 1000)
                         tlen = CamBlendPos.TYPE_LEN.FLASH;
@@ -207,11 +211,11 @@ namespace Unsigned
                             list.Add(i);
                     k = list[Global.Random.Next(list.Count)];
                 }
-                while (k == camindex && CamBlends.Length>1);
+                while (k == camindex && CamBlends.Length > 1);
                 camindex = k;
                 camtime++;
             }
-            if (camtime >= camtimes.Length-1)//sets flag for new camera
+            if (camtime >= camtimes.Length - 1)//sets flag for new camera
                 camblendvalue = -1;
             else//interpolation math:
                 camblendvalue = ((long)(songTime.TotalSongTime.TotalMilliseconds) - camtimes[camtime]) / (float)(camtimes[camtime + 1] - camtimes[camtime]);
@@ -220,6 +224,14 @@ namespace Unsigned
             {//updates the entities
                 Entities[i].Update(songTime);
             }
+
+            Fan.Update(GetBeatTime(songTime));
+            Vector3 vocalistPos = Vector3.Zero;
+            for(int i=0;i<rockers.Length;i++)
+                if(rockers[i].GetInstrument().CodeName=="LVX")
+                    vocalistPos = rockers[i].Position;
+            for (int i = 0; i < Fans.Length; i++)
+                Fans[i].Update(songTime, vocalistPos);
         }
 
         public void SetLights(Effect engine, uint songtime)
@@ -396,12 +408,12 @@ namespace Unsigned
 
         public Matrix GetProjMatrix()
         {
-            return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2,
+            return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4,
                                                        Global.ScreenWidth/(float)Global.ScreenHeight,
                                                        1f, 1000f);
         }
 
-        private void LoadWorld(String Filename, SongData songData, SessionInfo nugget) 
+        private void LoadWorld(String Filename, SessionInfo nugget) 
         {
             Content = new ContentManager(Global.Services);
             Content.RootDirectory = "Content";
@@ -411,10 +423,10 @@ namespace Unsigned
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
 
             rockers = new Rocker[4];
-            rockers[0] = new Rocker(nugget.characterIndices[0]);
-            rockers[1] = new Rocker(nugget.characterIndices[1]);
-            rockers[2] = new Rocker(nugget.characterIndices[2]);
-            rockers[3] = new Rocker(nugget.characterIndices[3]);
+            rockers[0] = new Rocker(nugget.characterIndices[0], InstrumentMaster.Singleton.GetInstrument("LGT"));
+            rockers[1] = new Rocker(nugget.characterIndices[1], InstrumentMaster.Singleton.GetInstrument("LVX"));
+            rockers[2] = new Rocker(nugget.characterIndices[2], InstrumentMaster.Singleton.GetInstrument("SET"));
+            rockers[3] = new Rocker(nugget.characterIndices[3], InstrumentMaster.Singleton.GetInstrument("BAS"));
 
             //TODO: fix for customized Content
             //String BaseModelDirectory = "meshes\\instruments\\";
@@ -423,9 +435,11 @@ namespace Unsigned
             //String DrumsDirectory = "Drums01\\";
             System.IO.BinaryReader fin = new System.IO.BinaryReader(System.IO.File.Open(Filename,System.IO.FileMode.Open,System.IO.FileAccess.Read));
 
-            char[] header = fin.ReadChars(8);
+            char[] header = fin.ReadChars(7);
 
-            long filesize = fin.ReadInt64();
+            byte version = fin.ReadByte();
+            if (version != 3)
+                return;
 
             cNear = fin.ReadUInt32();
             cFar = fin.ReadUInt32();
@@ -434,8 +448,6 @@ namespace Unsigned
             rockers[1].Position = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
             rockers[2].Position = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
             rockers[3].Position = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
-
-            fin.ReadChars(2);// T{
 
             StaticTexture = new Material[fin.ReadUInt32()];
 
@@ -448,8 +460,6 @@ namespace Unsigned
                 c.GenerateMipMaps(TextureFilter.Anisotropic);
                 StaticTexture[i] = new Material(a, c);
             }
-
-            fin.ReadChars(3);// }G{
 
             StaticGeom = new VenueGeometry[fin.ReadUInt32()];
 
@@ -471,7 +481,15 @@ namespace Unsigned
                 StaticGeom[i].vb.SetData<VertexTangentBinormal>(buffer);
             }
 
-            fin.ReadChars(3);// }E{
+            uint numFans = fin.ReadUInt32();
+
+            Fan.Load(Content);
+
+            Fans = new Fan[numFans];
+            for (int i = 0; i < numFans; i++)
+            {
+                Fans[i] = new Fan(new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle()));
+            }
 
             uint numEs = fin.ReadUInt32();
             Entities = new List<Entity>();
@@ -570,12 +588,7 @@ namespace Unsigned
                 }
             }
 
-            fin.ReadChars(1);// }
             fin.Close();
-
-            camtimes = songData.effects.cameraSwitches;
-
-            effects = songData.effects.effects;
 
         }
 
@@ -588,7 +601,7 @@ namespace Unsigned
             effect.AmbientMaterial = new Color(50, 50, 50);
             effect.View = GetViewMatrix();
             effect.Projection = GetProjMatrix();
-            effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, -3, 1), Color.White, Color.White);
+            effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, 3, -1), new Color(0.5f,0.5f,0.5f), Color.White);
             effect.LightingEnabled = Configuration.Lighting;
             effect.NormalMapEnabled = Configuration.NormalMapping;
             effect.SpecularEnabled = Configuration.Specular;
@@ -622,6 +635,10 @@ namespace Unsigned
                     Global.Graphics.GraphicsDevice.Vertices[0].SetSource(StaticGeom[i].vb, 0, VertexTangentBinormal.SizeInBytes);
                     Global.Graphics.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleFan, 0, (StaticGeom[i].vb.SizeInBytes / VertexTangentBinormal.SizeInBytes) - 2);
                 }
+                for (int i = 0; i < Fans.Length; i++)
+                {
+                    Fans[i].Draw(effect);
+                }
                 for (int i = 0; i < Entities.Count; i++)
                 {
                     Entities[i].Draw(effect, camPos);
@@ -645,6 +662,25 @@ namespace Unsigned
         internal Vector3 GetCamFor()
         {
             return Vector3.Normalize(camFor - camPos);
+        }
+
+        private float GetBeatTime(SongTime songTime)
+        {
+            float currentTime = (float)songTime.TotalSongTime.TotalSeconds;
+            for (int i = 0; i < songData.info.barlines.Length - 1; i++)
+            {
+                if (currentTime * 1000 < songData.info.barlines[i].time)
+                    continue;
+                if (currentTime * 1000 > songData.info.barlines[i + 1].time)
+                    continue;
+                float start = songData.info.barlines[i].time / 1000f;
+                float end = songData.info.barlines[i + 1].time / 1000f;
+                float val = (currentTime - start) / (end - start);
+                val *= songData.info.barlines[i].numBeats;
+                val %= 1.0f;
+                return val;
+            }
+            return 0;
         }
     }
 }

@@ -80,7 +80,7 @@ namespace Unsigned
         private static FVModel mdlTrigger, mdlNote, mdlNoteInside, mdlTriggerBorder;
         private static Texture2D[] texNotes, texBarNotes, texTriggers, texTriggersLit;
         private static Texture2D texTriggerBorder, texTriggerBorderLit;
-        private static Texture2D texLine, texLineEnd;
+        private static Texture2D texLine, texLineEnd, breEndTex, breMiddleTex;
         private static Texture2D texGlow, texRPSheen, texSoloPercentBG;
         private static Texture2D[] texMult, texLightning;
         public  static Color[] DefaultFretColors = { 
@@ -129,7 +129,7 @@ namespace Unsigned
         private float multiplier;
         // a float for more accurate wave addition
         private float score;
-        public int Score { get { return (int)score; } }
+        public int Score { get { return (int)(score); } }
         // for fret boards popping up on strum/bang
         private float[] popup, popupSpeed;
         // RockPowerAmount is the actual value, RockPowerDisplayAmount follows for "filling up" and "draining"
@@ -155,6 +155,15 @@ namespace Unsigned
         private float[] fretLights;
         // the solo percent sign alpha
         private float soloPercentAlpha;
+        // the lit up values of the BRE lanes
+        private float[] breFades;
+        // set to true once we start the BRE. any notes after this cancel BRE score
+        private bool breStarted;
+        // if true, breScore is not added
+        private bool breFailed;
+        // a float for more accurate wave addition
+        private float breScore;
+        public int BREScore { get { return (int)(breScore); } }
 
         private Queue<SoloEndMessage> soloEndMessages;
 
@@ -271,6 +280,8 @@ namespace Unsigned
             texBoardBorderFade = Content.Load<Texture2D>("textures\\Game\\boardFade");
             texRPSheen = Content.Load<Texture2D>("textures\\Game\\rpSheen");
             texSoloPercentBG = Content.Load<Texture2D>("textures\\Game\\solopercentbg");
+            breEndTex = Content.Load<Texture2D>("textures\\Game\\breend");
+            breMiddleTex = Content.Load<Texture2D>("textures\\Game\\bremiddle");
             texLightning = new Texture2D[3];
             for (int i = 0; i < texLightning.Length; i++)
                 texLightning[i] = Content.Load<Texture2D>("textures\\Game\\lightning" + (i + 1));
@@ -355,6 +366,8 @@ namespace Unsigned
 
             flashRot = 0;
 
+            breFades = new float[instrumentType.NumTracks];
+
             curveHeight = 0.03f;
             height = -2.0f;
             Length = 6f;
@@ -435,19 +448,24 @@ namespace Unsigned
                 }
             }
 
-            bool strummed = Peripheral.WasPressed(PeripheralButton.UP) || Peripheral.WasPressed(PeripheralButton.DOWN);
-
-            if (RockPowerAmount >= 0.49999f)
-                if (!RockPowerActivated)
-                    if (Peripheral.IsPressed(PeripheralButton.SELECT))
+            for (int i = 0; i < RPPhrases.Length; i++)
+            {
+                if (RPPhrases[i].Start > songTime.TotalSongTime.TotalSeconds)
+                    break;
+                if (RPPhrases[i].End < songTime.TotalSongTime.TotalSeconds)
+                    if (!RPPhrases[i].Used && RPPhrases[i].Okay)
                     {
-                        RockPowerActivated = true;
-                        rpSheen = 0;
+                        RockPowerAmount += 0.25f;
+                        RPPhrases[i].Use();
+                        myResults.hitSPPH++;
                     }
+            }
+
+            bool strummed = Peripheral.WasPressed(PeripheralButton.UP) || Peripheral.WasPressed(PeripheralButton.DOWN);
 
             if (rpSheen < 1.5f && RockPowerActivated)
                 rpSheen += (float)songTime.ElapsedGameTime.TotalSeconds;
-
+            
             if (RockPowerActivated)
             {
                 RockPowerAmount -= GetBeatsPerMinute(songTime) * (float)songTime.ElapsedGameTime.TotalSeconds * 0.0005f;
@@ -458,201 +476,240 @@ namespace Unsigned
                 }
             }
 
-            Whammy(Peripheral.GetAnalogValue(PeripheralAnalog.WHAMMY_BAR), songTime);
-
-            //pass up notes
-            if (currentNoteIndex < Notes.Length && Notes[currentNoteIndex].Burning)
+            if (songData.info.bre.enabled && songTime.TotalSongTime.TotalSeconds >= songData.info.bre.start/1000f && songTime.TotalSongTime.TotalSeconds <= songData.info.bre.end/1000f)
             {
-                if (Notes[currentNoteIndex].End < songTime.TotalSongTime.TotalSeconds || strummed)
-                    currentNoteIndex++;
+                for(int i=0;i<instrumentType.NumTracks;i++)
+                    if (breFades[i] > 0)
+                    {
+                        breFades[i] -= (float)songTime.ElapsedGameTime.TotalSeconds;
+                        if (breFades[i] < 0)
+                            breFades[i] = 0;
+                    }
+                breStarted = true;
+                if (instrumentType.NeedsStrum)
+                {
+                    if (strummed)
+                    {
+                        for (int i = 0; i < instrumentType.NumTracks; i++)
+                        {
+                            if ((pressed & ((ulong)1 << i)) != 0)
+                            {
+                                breScore += (1.5f - breFades[i]) * 100;
+                                myParticles.AddSparks(i, 4, 1.0f, false);
+                                breFades[i] = 1.5f;
+                                popup[i] = 1;
+                            }
+                        }
+                        flashRot = (float)Global.Random.NextDouble() * MathHelper.TwoPi;
+                    }
+                }
             }
             else
             {
-                while (currentNoteIndex < Notes.Length && ((Notes[currentNoteIndex].Start) - (float)songTime.TotalSongTime.TotalSeconds) < -PILLOW)
-                {
-                    ResetMultiplier();
-                    score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
-                    FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
-                    for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
-                        Hurt();
-                    currentNoteIndex++;
-                    myResults.missedNotes++;
-                    if (streak > myResults.streak)
-                        myResults.streak = streak;
-                    streak = 0;
-                }
-            }
-            if (currentNoteIndex >= Notes.Length || !Notes[currentNoteIndex].Burning)
-            if (currentNoteIndex + 1 < Notes.Length && (Math.Abs(Notes[currentNoteIndex].Start - (float)songTime.TotalSongTime.TotalSeconds) > Math.Abs(Notes[currentNoteIndex + 1].Start - (float)songTime.TotalSongTime.TotalSeconds)))
-            {
-                ResetMultiplier();
-                score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
-                FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
-                for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
-                    Hurt();
-                currentNoteIndex++;
-                myResults.missedNotes++;
-                if (streak > myResults.streak)
-                    myResults.streak = streak;
-                streak = 0;
-            }
 
-            while (currentNoteIndex < Notes.Length && Notes[currentNoteIndex].IsHidden)
-            {
-                currentNoteIndex++;
-            }
+                if (RockPowerAmount >= 0.49999f)
+                    if (!RockPowerActivated)
+                        if (Peripheral.IsPressed(PeripheralButton.SELECT))
+                        {
+                            RockPowerActivated = true;
+                            rpSheen = 0;
+                        }
 
-            if (currentNoteIndex < Notes.Length)
-            {
-                int currentFillIndex = -1;
-                if ((GetBoardType().RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
-                    for (int i = 0; i < Fills.Length; i++)
-                        if(Fills[i].Visible)
-                            if (songTime.TotalSongTime.TotalSeconds >= Fills[i].Start && songTime.TotalSongTime.TotalSeconds <= Fills[i].End)
-                                currentFillIndex = i;
-                if (currentFillIndex >= 0)
+                Whammy(Peripheral.GetAnalogValue(PeripheralAnalog.WHAMMY_BAR), songTime);
+
+                //pass up notes
+                if (currentNoteIndex < Notes.Length && Notes[currentNoteIndex].Burning)
                 {
-                    for (int i = 0; i < GetBoardType().NumTracks; i++)
-                        if ((newPressed & ((ulong)1 << i)) != 0)
-                        {
-                            Fills[currentFillIndex].Hit();
-                            myParticles.AddSparks(i, 4, false);
-                            popup[i] = 1;
-                            flashRot = (float)Global.Random.NextDouble() * MathHelper.TwoPi;
-                        }
-                    if((newPressed&((ulong)8))!=0)
-                        if (Math.Abs(songTime.TotalSongTime.TotalSeconds - Fills[currentFillIndex].GreenNotePos) < PILLOW)
-                        {
-                            if (Fills[currentFillIndex].Use())
-                            {
-                                RockPowerActivated = true;
-                                rpSheen = 0;
-                            }
-                        }
+                    if (Notes[currentNoteIndex].End < songTime.TotalSongTime.TotalSeconds || strummed)
+                        currentNoteIndex++;
                 }
                 else
                 {
-                    float diff = (Notes[currentNoteIndex].Start) - (float)songTime.TotalSongTime.TotalSeconds;
-                    if (Math.Abs(diff) < PILLOW)
+                    while (currentNoteIndex < Notes.Length && ((Notes[currentNoteIndex].Start) - (float)songTime.TotalSongTime.TotalSeconds) < -PILLOW)
                     {
-                        if (instrumentType.NeedsStrum)
-                        {
-                            if (strummed)
+                        ResetMultiplier();
+                        score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                        FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
+                        for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
+                            Hurt();
+                        currentNoteIndex++;
+                        myResults.missedNotes++;
+                        if (streak > myResults.streak)
+                            myResults.streak = streak;
+                        if (breStarted)
+                            breFailed = true;
+                        streak = 0;
+                    }
+                }
+                if (currentNoteIndex >= Notes.Length || !Notes[currentNoteIndex].Burning)
+                    if (currentNoteIndex + 1 < Notes.Length && (Math.Abs(Notes[currentNoteIndex].Start - (float)songTime.TotalSongTime.TotalSeconds) > Math.Abs(Notes[currentNoteIndex + 1].Start - (float)songTime.TotalSongTime.TotalSeconds)))
+                    {
+                        ResetMultiplier();
+                        score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                        FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
+                        for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
+                            Hurt();
+                        currentNoteIndex++;
+                        myResults.missedNotes++;
+                        if (streak > myResults.streak)
+                            myResults.streak = streak;
+                        if (breStarted)
+                            breFailed = true;
+                        streak = 0;
+                    }
+
+                while (currentNoteIndex < Notes.Length && Notes[currentNoteIndex].IsHidden)
+                {
+                    currentNoteIndex++;
+                }
+
+                if (currentNoteIndex < Notes.Length)
+                {
+                    int currentFillIndex = -1;
+                    if ((GetBoardType().RPEnableType & Instrument.RockPowerEnableTypes.FILL) != 0)
+                        for (int i = 0; i < Fills.Length; i++)
+                            if (Fills[i].Visible)
+                                if (songTime.TotalSongTime.TotalSeconds >= Fills[i].Start && songTime.TotalSongTime.TotalSeconds <= Fills[i].End)
+                                    currentFillIndex = i;
+                    if (currentFillIndex >= 0)
+                    {
+                        for (int i = 0; i < GetBoardType().NumTracks; i++)
+                            if ((newPressed & ((ulong)1 << i)) != 0)
                             {
-                                if (!Notes[currentNoteIndex].Strummed)
-                                    Notes[currentNoteIndex].Strum();
-                                else
+                                Fills[currentFillIndex].Hit();
+                                myParticles.AddSparks(i, 4, false);
+                                popup[i] = 1;
+                                flashRot = (float)Global.Random.NextDouble() * MathHelper.TwoPi;
+                            }
+                        if ((newPressed & ((ulong)8)) != 0)
+                            if (Math.Abs(songTime.TotalSongTime.TotalSeconds - Fills[currentFillIndex].GreenNotePos) < PILLOW)
+                            {
+                                if (Fills[currentFillIndex].Use())
                                 {
-                                    ResetMultiplier();
-                                    FailRockPowerPhraseForNow(songTime);
-                                    Hurt();
-                                    if (streak > myResults.streak)
-                                        myResults.streak = streak;
-                                    streak = 0;
+                                    RockPowerActivated = true;
+                                    rpSheen = 0;
                                 }
                             }
-                            Notes[currentNoteIndex].AddHeld(pressed);
-                        }
-                        else
-                        {
-                            bool rp = false;
-                            for (int i = 0; i < RPPhrases.Length; i++)
-                                if (RPPhrases[i].Okay && Notes[currentNoteIndex].Start >= RPPhrases[i].Start && Notes[currentNoteIndex].Start <= RPPhrases[i].End)
-                                    rp = true;
-                            ulong hit = Notes[currentNoteIndex].AddPressed(newPressed);
-                            for (int i = 0; i < instrumentType.NumTracks; i++)
-                                if ((((ulong)1 << i) & newPressed) != 0 && (((ulong)1 << i) & hit) == 0)
-                                {
-                                    ResetMultiplier();
-                                    FailRockPowerPhraseForNow(songTime);
-                                    Hurt();
-                                    if (streak > myResults.streak)
-                                        myResults.streak = streak;
-                                    streak = 0;
-                                }
-                            for (int i = 0; i < instrumentType.NumTracks; i++)
-                                if ((((ulong)1 << i) & hit) != 0)
-                                {
-                                    popup[i] = 1;
-                                    myParticles.AddSparks(i, 2, rp ? 0.5f : 0.25f, rp);
-                                    myParticles.AddShards(i, 5, rp);
-                                    IncreaseMultiplier();
-                                    Help();
-                                }
-                        }
-                        if (!Notes[currentNoteIndex].Burning && Notes[currentNoteIndex].IsGood(currentNoteIndex == 0 ? false : Notes[currentNoteIndex - 1].IsDead))
-                        {
-                            score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
-                            myResults.hitNotes++;
-                            streak++;
-                            bool rp = false;
-                            for (int i = 0; i < RPPhrases.Length; i++)
-                                if (RPPhrases[i].Okay && Notes[currentNoteIndex].Start >= RPPhrases[i].Start && Notes[currentNoteIndex].Start <= RPPhrases[i].End)
-                                    rp = true;
-                            if(GetBoardType().NeedsStrum)
-                                for (int i = 0; i < instrumentType.NumDrawnTracks; i++)
-                                    if (Notes[currentNoteIndex].HasFret(i))
-                                    {
-                                        popup[i] = 1;
-                                        myParticles.AddSparks(i, 5, rp ? 0.7f : 0.5f, rp);
-                                        myParticles.AddShards(i, 6, rp);
-                                    }
-                            if (GetBoardType().HasSolos)
-                                for (int i = 0; i < Solos.Length; i++)
-                                    if (Solos[i].Visible && Notes[currentNoteIndex].Start >= Solos[i].Start && Notes[currentNoteIndex].Start <= Solos[i].End)
-                                        Solos[i].HitNotes++;
-                            flashRot = (float)Global.Random.NextDouble() * MathHelper.TwoPi;
-                            if (GetBoardType().NeedsStrum)
-                            {
-                                IncreaseMultiplier();
-                                for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
-                                    Help();
-                            }
-                            if (Notes[currentNoteIndex].Length > 0)
-                                Notes[currentNoteIndex].Burning = true;
-                            else
-                                currentNoteIndex++;
-                        }
                     }
                     else
                     {
-                        if (instrumentType.NeedsStrum && strummed)
+                        float diff = (Notes[currentNoteIndex].Start) - (float)songTime.TotalSongTime.TotalSeconds;
+                        if (Math.Abs(diff) < PILLOW)
                         {
-                            FailRockPowerPhraseForNow(songTime);
-                            ResetMultiplier();
-                            Hurt();
-                            if (streak > myResults.streak)
-                                myResults.streak = streak;
-                            streak = 0;
-                        }
-                        if (!instrumentType.NeedsStrum && newPressed != 0)
-                        {
-                            for (int i = 0; i < instrumentType.NumTracks; i++)
-                                if ((((ulong)1 << i) & newPressed) != 0)
+                            if (instrumentType.NeedsStrum)
+                            {
+                                if (strummed)
                                 {
-                                    ResetMultiplier();
-                                    FailRockPowerPhraseForNow(songTime);
-                                    Hurt();
-                                    if (streak > myResults.streak)
-                                        myResults.streak = streak;
-                                    streak = 0;
+                                    if (!Notes[currentNoteIndex].Strummed)
+                                        Notes[currentNoteIndex].Strum();
+                                    else
+                                    {
+                                        ResetMultiplier();
+                                        FailRockPowerPhraseForNow(songTime);
+                                        Hurt();
+                                        if (streak > myResults.streak)
+                                            myResults.streak = streak;
+                                        streak = 0;
+                                        if (breStarted)
+                                            breFailed = true;
+                                    }
                                 }
+                                Notes[currentNoteIndex].AddHeld(pressed);
+                            }
+                            else
+                            {
+                                bool rp = false;
+                                for (int i = 0; i < RPPhrases.Length; i++)
+                                    if (RPPhrases[i].Okay && Notes[currentNoteIndex].Start >= RPPhrases[i].Start && Notes[currentNoteIndex].Start <= RPPhrases[i].End)
+                                        rp = true;
+                                ulong hit = Notes[currentNoteIndex].AddPressed(newPressed);
+                                for (int i = 0; i < instrumentType.NumTracks; i++)
+                                    if ((((ulong)1 << i) & newPressed) != 0 && (((ulong)1 << i) & hit) == 0)
+                                    {
+                                        ResetMultiplier();
+                                        FailRockPowerPhraseForNow(songTime);
+                                        Hurt();
+                                        if (streak > myResults.streak)
+                                            myResults.streak = streak;
+                                        streak = 0;
+                                        if (breStarted)
+                                            breFailed = true;
+                                    }
+                                for (int i = 0; i < instrumentType.NumTracks; i++)
+                                    if ((((ulong)1 << i) & hit) != 0)
+                                    {
+                                        popup[i] = 1;
+                                        myParticles.AddSparks(i, 2, rp ? 0.5f : 0.25f, rp);
+                                        myParticles.AddShards(i, 5, rp);
+                                        IncreaseMultiplier();
+                                        Help();
+                                    }
+                            }
+                            if (!Notes[currentNoteIndex].Burning && Notes[currentNoteIndex].IsGood(currentNoteIndex == 0 ? false : Notes[currentNoteIndex - 1].IsDead))
+                            {
+                                score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                                myResults.hitNotes++;
+                                streak++;
+                                bool rp = false;
+                                for (int i = 0; i < RPPhrases.Length; i++)
+                                    if (RPPhrases[i].Okay && Notes[currentNoteIndex].Start >= RPPhrases[i].Start && Notes[currentNoteIndex].Start <= RPPhrases[i].End)
+                                        rp = true;
+                                if (GetBoardType().NeedsStrum)
+                                    for (int i = 0; i < instrumentType.NumDrawnTracks; i++)
+                                        if (Notes[currentNoteIndex].HasFret(i))
+                                        {
+                                            popup[i] = 1;
+                                            myParticles.AddSparks(i, 5, rp ? 0.7f : 0.5f, rp);
+                                            myParticles.AddShards(i, 6, rp);
+                                        }
+                                if (GetBoardType().HasSolos)
+                                    for (int i = 0; i < Solos.Length; i++)
+                                        if (Solos[i].Visible && Notes[currentNoteIndex].Start >= Solos[i].Start && Notes[currentNoteIndex].Start <= Solos[i].End)
+                                            Solos[i].HitNotes++;
+                                flashRot = (float)Global.Random.NextDouble() * MathHelper.TwoPi;
+                                if (GetBoardType().NeedsStrum)
+                                {
+                                    IncreaseMultiplier();
+                                    for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
+                                        Help();
+                                }
+                                if (Notes[currentNoteIndex].Length > 0)
+                                    Notes[currentNoteIndex].Burning = true;
+                                else
+                                    currentNoteIndex++;
+                            }
+                        }
+                        else
+                        {
+                            if (instrumentType.NeedsStrum && strummed)
+                            {
+                                FailRockPowerPhraseForNow(songTime);
+                                ResetMultiplier();
+                                Hurt();
+                                if (streak > myResults.streak)
+                                    myResults.streak = streak;
+                                streak = 0;
+                                if (breStarted)
+                                    breFailed = true;
+                            }
+                            if (!instrumentType.NeedsStrum && newPressed != 0)
+                            {
+                                for (int i = 0; i < instrumentType.NumTracks; i++)
+                                    if ((((ulong)1 << i) & newPressed) != 0)
+                                    {
+                                        ResetMultiplier();
+                                        FailRockPowerPhraseForNow(songTime);
+                                        Hurt();
+                                        if (streak > myResults.streak)
+                                            myResults.streak = streak;
+                                        streak = 0;
+                                        if (breStarted)
+                                            breFailed = true;
+                                    }
+                            }
                         }
                     }
                 }
-            }
-
-            for (int i = 0; i < RPPhrases.Length; i++)
-            {
-                if (RPPhrases[i].Start > songTime.TotalSongTime.TotalSeconds)
-                    break;
-                if(RPPhrases[i].End<songTime.TotalSongTime.TotalSeconds)
-                    if (!RPPhrases[i].Used && RPPhrases[i].Okay)
-                    {
-                        RockPowerAmount += 0.25f;
-                        RPPhrases[i].Use();
-                        myResults.hitSPPH++;
-                    }
             }
 
             for (int i = 0; i < instrumentType.NumDrawnTracks; i++)
@@ -671,7 +728,11 @@ namespace Unsigned
                 RockPowerAmount = 0;
             else if (RockPowerAmount > 1)
                 RockPowerAmount = 1;
-            if (Math.Abs(RockPowerAmount - RockPowerDisplayAmount) > 0.001f)
+            if (Math.Abs(RockPowerAmount - RockPowerDisplayAmount) > 1.0f)
+            {
+                RockPowerDisplayAmount = RockPowerAmount;
+            }
+            else if (Math.Abs(RockPowerAmount - RockPowerDisplayAmount) > 0.001f)
             {
                 RockPowerDisplayAmount = (RockPowerAmount * (float)(songTime.ElapsedGameTime.TotalSeconds*10)) + (RockPowerDisplayAmount * (float)(1-(songTime.ElapsedGameTime.TotalSeconds*10)));
             }
@@ -1332,6 +1393,30 @@ namespace Unsigned
                 }
             }
 
+            // Draw Big Rock Ending
+            if (songData.info.bre.enabled)
+            {
+                float halfMaxWidth = rtBoard.Width / (float)(GetBoardType().NumDrawnTracks * 2);
+                float y1 = GetBoardPos(songTime, songData.info.bre.end/1000f, 1 - ratio) * rtBoard.Height;
+                float y2 = GetBoardPos(songTime, songData.info.bre.start/1000f, 1 - ratio) * rtBoard.Height;
+                for (int r = 0; r < GetBoardType().NumDrawnTracks; r++)
+                {
+                    float center = ((r * 2 + 1) / (float)(GetBoardType().NumDrawnTracks * 2)) * rtBoard.Width;
+                    Rectangle rect = new Rectangle((int)(center - halfMaxWidth), (int)y1, (int)(2 * halfMaxWidth), (int)((y2 - y1) + 0.5f));
+                    Rectangle top = new Rectangle(rect.X, rect.Y, rect.Width, rect.Width / 2);
+                    Rectangle bottom = new Rectangle(rect.X, rect.Bottom-(rect.Width/2), rect.Width, rect.Width / 2);
+                    Rectangle middle = new Rectangle(rect.X, rect.Y+(rect.Width/2), rect.Width, rect.Height-rect.Width);
+                    float colscale = ((((breFades[r] / 0.5f)) * 0.5f) + 0.5f);
+                    if (colscale > 1.0f)
+                        colscale = 1.0f;
+                    Vector3 colBase = (DefaultFretColors[instrumentType.colorIndices[r]].ToVector3()) * colscale;
+                    Color col = new Color(colBase.X, colBase.Y, colBase.Z, 1.0f);
+                    spriteBatch.Draw(breEndTex, top, col);
+                    spriteBatch.Draw(breEndTex, new Rectangle(bottom.Center.X,bottom.Center.Y-(bottom.Height/2),bottom.Width,bottom.Height), null, col, MathHelper.Pi, new Vector2(breEndTex.Width/2,breEndTex.Height), SpriteEffects.None, 0);
+                    spriteBatch.Draw(breMiddleTex, middle, col);
+                }
+            }
+
             // Draw metainfo under frets
             //if (!Global.DemoMode)
             {
@@ -1923,7 +2008,11 @@ namespace Unsigned
                     for (int p = 0; p < songData.instruments[i].diffSets[(int)difficulty].phrases.Length; p++)
                     {
                         for (int k = 0; k < songData.instruments[i].diffSets[(int)difficulty].phrases[p].notes.Length; k++)
-                            list.Add(songData.instruments[i].diffSets[(int)difficulty].phrases[p].notes[k]);
+                        {
+                            if(!songData.info.bre.enabled || songData.instruments[i].diffSets[(int)difficulty].phrases[p].notes[k].time<=songData.info.bre.start ||
+                               songData.instruments[i].diffSets[(int)difficulty].phrases[p].notes[k].time>=songData.info.bre.end)
+                                list.Add(songData.instruments[i].diffSets[(int)difficulty].phrases[p].notes[k]);
+                        }
                     }
                     break;
                 }

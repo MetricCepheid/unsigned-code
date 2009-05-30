@@ -39,5 +39,20 @@ namespace FVProductions.Utility
             }
         }
         public static int SizeInBytes = (3 + 2 + 3 + 3 + 3) * sizeof(float);
+
+        public static VertexTangentBinormal operator *(VertexTangentBinormal v, float f)
+        {
+            return new VertexTangentBinormal(v.position*f,v.texCoords*f,v.normal*f,v.binormal*f,v.tangent*f);
+        }
+
+        public static VertexTangentBinormal operator *(float f, VertexTangentBinormal v)
+        {
+            return v * f;
+        }
+
+        public static VertexTangentBinormal operator +(VertexTangentBinormal v1, VertexTangentBinormal v2)
+        {
+            return new VertexTangentBinormal(v1.position + v2.position, v1.texCoords + v2.texCoords, v1.normal + v2.normal, v1.binormal + v2.binormal, v1.tangent + v2.tangent);
+        }
     }
 }

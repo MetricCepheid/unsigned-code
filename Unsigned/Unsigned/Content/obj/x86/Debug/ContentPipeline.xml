@@ -7,7 +7,7 @@
       <Importer>FontDescriptionImporter</Importer>
       <Processor>FontDescriptionProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\fonts\BasicFont.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\fonts\BasicFont.xnb</Output>
       <Time>2009-05-15T15:45:46.0634944-04:00</Time>
     </Item>
     <Item>
@@ -16,7 +16,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\blankbm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\blankbm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -25,7 +25,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\white.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\white.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -34,7 +34,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\barrel.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\barrel.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -43,7 +43,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goo1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goo1.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -52,7 +52,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goo2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goo2.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -61,7 +61,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goobm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\goobm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -70,7 +70,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\presser.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\presser.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -79,7 +79,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\presserbm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\FVLogo\presserbm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -88,7 +88,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\header.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\header.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -97,7 +97,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\snake.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\snake.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -106,7 +106,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\snakebm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\snakebm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -115,7 +115,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\barbedtop.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\barbedtop.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -124,7 +124,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\wave.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\wave.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -133,7 +133,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\waves.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\MainMenu\waves.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -142,7 +142,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\concr.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\concr.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -151,7 +151,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\concrBM.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\concrBM.xnb</Output>
       <Time>2009-05-12T19:34:26-04:00</Time>
     </Item>
     <Item>
@@ -160,7 +160,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\notebm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\notebm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -169,7 +169,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper1.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -178,7 +178,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper2.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -187,7 +187,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper3.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -196,7 +196,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\paper4.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -205,7 +205,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\songscreenbottom.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\songscreenbottom.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -214,7 +214,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\flame.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\flame.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -223,7 +223,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\hairl.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\hairl.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -232,7 +232,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\hairr.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\ControllerSetup\hairr.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -241,7 +241,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\concr.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\concr.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -250,7 +250,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\concrBM.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\concrBM.xnb</Output>
       <Time>2009-05-12T19:51:50-04:00</Time>
     </Item>
     <Item>
@@ -259,7 +259,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songlistBM.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songlistBM.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -268,7 +268,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songscreentop.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songscreentop.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -277,7 +277,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songhili.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songhili.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -286,7 +286,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songlist.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\SongSelect\songlist.xnb</Output>
       <Time>2009-05-12T19:45:04-04:00</Time>
     </Item>
     <Item>
@@ -295,7 +295,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff00.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff00.xnb</Output>
       <Time>2009-05-14T18:22:19.0381579-04:00</Time>
     </Item>
     <Item>
@@ -304,7 +304,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff01.xnb</Output>
       <Time>2009-05-14T18:43:31.6813129-04:00</Time>
     </Item>
     <Item>
@@ -313,7 +313,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff10.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff10.xnb</Output>
       <Time>2009-05-14T18:27:47.2739854-04:00</Time>
     </Item>
     <Item>
@@ -322,7 +322,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff11.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff11.xnb</Output>
       <Time>2009-05-14T18:46:59.5176199-04:00</Time>
     </Item>
     <Item>
@@ -331,7 +331,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff20.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff20.xnb</Output>
       <Time>2009-05-14T18:28:27.4315714-04:00</Time>
     </Item>
     <Item>
@@ -340,7 +340,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff21.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff21.xnb</Output>
       <Time>2009-05-14T18:52:08.9909764-04:00</Time>
     </Item>
     <Item>
@@ -349,7 +349,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff30.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff30.xnb</Output>
       <Time>2009-05-14T18:28:08.0617174-04:00</Time>
     </Item>
     <Item>
@@ -358,7 +358,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff31.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\diff31.xnb</Output>
       <Time>2009-05-14T18:55:22.5713599-04:00</Time>
     </Item>
     <Item>
@@ -367,7 +367,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\glasscase.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\glasscase.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -376,7 +376,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\glasscasebm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\glasscasebm.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -385,7 +385,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_bronze.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_bronze.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -394,7 +394,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_gold.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_gold.xnb</Output>
       <Time>2009-05-14T18:58:02.7505609-04:00</Time>
     </Item>
     <Item>
@@ -403,7 +403,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_lightingcube.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_lightingcube.xnb</Output>
       <Time>2009-05-14T18:37:51.3515329-04:00</Time>
     </Item>
     <Item>
@@ -412,7 +412,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_platinum.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_platinum.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -421,7 +421,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_silver.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\instr_silver.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -430,7 +430,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\whitish.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\whitish.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -439,7 +439,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\whitishbm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\whitishbm.xnb</Output>
       <Time>2009-05-13T13:16:06-04:00</Time>
     </Item>
     <Item>
@@ -448,7 +448,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\concr.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\concr.xnb</Output>
       <Time>2009-01-04T02:23:14-05:00</Time>
     </Item>
     <Item>
@@ -457,7 +457,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\concrBM.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\DifficultyScreen\concrBM.xnb</Output>
       <Time>2009-05-12T19:34:26-04:00</Time>
     </Item>
     <Item>
@@ -466,7 +466,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\bassdrum01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\bassdrum01.xnb</Output>
       <Time>2009-01-04T02:23:13.4507372-05:00</Time>
     </Item>
     <Item>
@@ -475,7 +475,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\crashcymbal01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\crashcymbal01.xnb</Output>
       <Time>2009-01-04T02:23:12.5689577-05:00</Time>
     </Item>
     <Item>
@@ -484,7 +484,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\floortom01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\floortom01.xnb</Output>
       <Time>2009-01-04T02:23:12.4996262-05:00</Time>
     </Item>
     <Item>
@@ -493,7 +493,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\hihatcymbal01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\hihatcymbal01.xnb</Output>
       <Time>2009-01-04T02:23:12.6529367-05:00</Time>
     </Item>
     <Item>
@@ -502,7 +502,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\ridecymbal01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\ridecymbal01.xnb</Output>
       <Time>2009-01-04T02:23:13.3550402-05:00</Time>
     </Item>
     <Item>
@@ -511,7 +511,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\snaredrum01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\snaredrum01.xnb</Output>
       <Time>2009-01-04T02:23:12.7212917-05:00</Time>
     </Item>
     <Item>
@@ -520,7 +520,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\tomtoms01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\instruments\Drums01\tomtoms01.xnb</Output>
       <Time>2009-01-04T02:23:12.8921792-05:00</Time>
     </Item>
     <Item>
@@ -529,7 +529,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote0.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote0.xnb</Output>
       <Time>2009-01-04T02:23:12.9087797-05:00</Time>
     </Item>
     <Item>
@@ -538,7 +538,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote1.xnb</Output>
       <Time>2009-01-04T02:23:13.4282777-05:00</Time>
     </Item>
     <Item>
@@ -547,7 +547,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote2.xnb</Output>
       <Time>2009-01-04T02:23:12.9380747-05:00</Time>
     </Item>
     <Item>
@@ -556,7 +556,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote3.xnb</Output>
       <Time>2009-01-04T02:23:13.4341367-05:00</Time>
     </Item>
     <Item>
@@ -565,7 +565,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\BarNote4.xnb</Output>
       <Time>2009-01-04T02:23:12.9429572-05:00</Time>
     </Item>
     <Item>
@@ -574,7 +574,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\blast.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\blast.xnb</Output>
       <Time>2009-01-04T02:23:13.2183302-05:00</Time>
     </Item>
     <Item>
@@ -583,7 +583,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\boardmeter.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\boardmeter.xnb</Output>
       <Time>2009-05-15T22:51:38.9514424-04:00</Time>
     </Item>
     <Item>
@@ -592,7 +592,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\bulb.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\bulb.xnb</Output>
       <Time>2009-01-04T02:23:12.5552867-05:00</Time>
     </Item>
     <Item>
@@ -601,7 +601,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\curl.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\curl.xnb</Output>
       <Time>2009-05-15T10:58:08.8731034-04:00</Time>
     </Item>
     <Item>
@@ -610,7 +610,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\drumfill.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\drumfill.xnb</Output>
       <Time>2009-01-04T02:23:13.4399957-05:00</Time>
     </Item>
     <Item>
@@ -619,7 +619,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\line.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\line.xnb</Output>
       <Time>2009-05-15T10:45:21.1829809-04:00</Time>
     </Item>
     <Item>
@@ -628,7 +628,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\linetaper.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\linetaper.xnb</Output>
       <Time>2009-05-15T10:45:38.5285504-04:00</Time>
     </Item>
     <Item>
@@ -637,7 +637,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes0.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes0.xnb</Output>
       <Time>2009-05-15T20:37:40.0519024-04:00</Time>
     </Item>
     <Item>
@@ -646,7 +646,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes1.xnb</Output>
       <Time>2009-05-15T20:38:44.9784109-04:00</Time>
     </Item>
     <Item>
@@ -655,7 +655,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes2.xnb</Output>
       <Time>2009-05-15T20:39:46.2772219-04:00</Time>
     </Item>
     <Item>
@@ -664,7 +664,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes3.xnb</Output>
       <Time>2009-05-15T20:39:32.2605409-04:00</Time>
     </Item>
     <Item>
@@ -673,7 +673,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notes4.xnb</Output>
       <Time>2009-05-15T20:39:13.6972759-04:00</Time>
     </Item>
     <Item>
@@ -682,7 +682,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger1.xnb</Output>
       <Time>2009-01-04T02:23:13.4810087-05:00</Time>
     </Item>
     <Item>
@@ -691,7 +691,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger2.xnb</Output>
       <Time>2009-01-04T02:23:13.3765232-05:00</Time>
     </Item>
     <Item>
@@ -700,7 +700,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger3.xnb</Output>
       <Time>2009-01-04T02:23:12.7974587-05:00</Time>
     </Item>
     <Item>
@@ -709,7 +709,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger4.xnb</Output>
       <Time>2009-01-04T02:23:13.3853117-05:00</Time>
     </Item>
     <Item>
@@ -718,7 +718,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerborder.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerborder.xnb</Output>
       <Time>2009-01-04T02:23:12.8863202-05:00</Time>
     </Item>
     <Item>
@@ -727,7 +727,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerborderlit.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerborderlit.xnb</Output>
       <Time>2009-01-04T02:23:12.5064617-05:00</Time>
     </Item>
     <Item>
@@ -736,7 +736,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerglow.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerglow.xnb</Output>
       <Time>2009-05-15T10:46:03.1412329-04:00</Time>
     </Item>
     <Item>
@@ -745,7 +745,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit0.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit0.xnb</Output>
       <Time>2009-01-04T02:23:12.8374952-05:00</Time>
     </Item>
     <Item>
@@ -754,7 +754,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit1.xnb</Output>
       <Time>2009-01-04T02:23:13.3999592-05:00</Time>
     </Item>
     <Item>
@@ -763,7 +763,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit2.xnb</Output>
       <Time>2009-01-04T02:23:12.8570252-05:00</Time>
     </Item>
     <Item>
@@ -772,7 +772,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit3.xnb</Output>
       <Time>2009-01-04T02:23:13.4097242-05:00</Time>
     </Item>
     <Item>
@@ -781,7 +781,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\triggerlit4.xnb</Output>
       <Time>2009-01-04T02:23:12.4937672-05:00</Time>
     </Item>
     <Item>
@@ -790,7 +790,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vGlow.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vGlow.xnb</Output>
       <Time>2009-01-04T02:23:13.0454897-05:00</Time>
     </Item>
     <Item>
@@ -799,7 +799,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalfuzz.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalfuzz.xnb</Output>
       <Time>2009-01-04T02:23:12.5464982-05:00</Time>
     </Item>
     <Item>
@@ -808,7 +808,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X0.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X0.xnb</Output>
       <Time>2009-01-04T02:23:13.5337397-05:00</Time>
     </Item>
     <Item>
@@ -817,7 +817,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X1.xnb</Output>
       <Time>2009-01-04T02:23:13.0357247-05:00</Time>
     </Item>
     <Item>
@@ -826,7 +826,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X2.xnb</Output>
       <Time>2009-01-04T02:23:13.6206482-05:00</Time>
     </Item>
     <Item>
@@ -835,7 +835,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X3.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X3.xnb</Output>
       <Time>2009-01-04T02:23:13.0396307-05:00</Time>
     </Item>
     <Item>
@@ -844,7 +844,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X4.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X4.xnb</Output>
       <Time>2009-01-04T02:23:12.4586132-05:00</Time>
     </Item>
     <Item>
@@ -853,7 +853,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X5.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X5.xnb</Output>
       <Time>2009-01-04T02:23:12.4918142-05:00</Time>
     </Item>
     <Item>
@@ -862,7 +862,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X6.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X6.xnb</Output>
       <Time>2009-01-04T02:23:13.3433222-05:00</Time>
     </Item>
     <Item>
@@ -871,7 +871,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X7.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\X7.xnb</Output>
       <Time>2009-01-04T02:23:13.3511342-05:00</Time>
     </Item>
     <Item>
@@ -880,7 +880,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbar.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbar.xnb</Output>
       <Time>2009-05-15T11:13:37.9386394-04:00</Time>
     </Item>
     <Item>
@@ -889,7 +889,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbg_ext.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbg_ext.xnb</Output>
       <Time>2009-05-15T11:13:52.4923954-04:00</Time>
     </Item>
     <Item>
@@ -898,7 +898,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbg_int.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalbg_int.xnb</Output>
       <Time>2009-05-15T11:14:09.9619804-04:00</Time>
     </Item>
     <Item>
@@ -907,7 +907,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalheadbar.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\vocalheadbar.xnb</Output>
       <Time>2009-05-15T11:14:26.2626949-04:00</Time>
     </Item>
     <Item>
@@ -916,7 +916,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger0.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\trigger0.xnb</Output>
       <Time>2009-01-04T02:23:13.3696877-05:00</Time>
     </Item>
     <Item>
@@ -925,7 +925,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\black.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\global\black.xnb</Output>
       <Time>2009-05-15T11:19:16.6200874-04:00</Time>
     </Item>
     <Item>
@@ -934,7 +934,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard01.xnb</Output>
       <Time>2009-05-15T11:41:22.7813014-04:00</Time>
     </Item>
     <Item>
@@ -943,7 +943,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard02.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard02.xnb</Output>
       <Time>2009-05-15T11:41:37.3536109-04:00</Time>
     </Item>
     <Item>
@@ -952,7 +952,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard03.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard03.xnb</Output>
       <Time>2009-05-15T11:41:44.1246619-04:00</Time>
     </Item>
     <Item>
@@ -961,7 +961,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard04.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard04.xnb</Output>
       <Time>2009-05-15T11:41:51.9640039-04:00</Time>
     </Item>
     <Item>
@@ -970,7 +970,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard05.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard05.xnb</Output>
       <Time>2009-05-15T11:41:59.8394764-04:00</Time>
     </Item>
     <Item>
@@ -979,7 +979,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard06.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard06.xnb</Output>
       <Time>2009-05-15T11:42:10.9784119-04:00</Time>
     </Item>
     <Item>
@@ -988,7 +988,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard07.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard07.xnb</Output>
       <Time>2009-05-15T11:42:17.8744549-04:00</Time>
     </Item>
     <Item>
@@ -997,7 +997,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard08.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\glassshard08.xnb</Output>
       <Time>2009-05-15T11:42:25.1679334-04:00</Time>
     </Item>
     <Item>
@@ -1006,7 +1006,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\spark.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Particles\spark.xnb</Output>
       <Time>2009-05-15T11:42:32.1040129-04:00</Time>
     </Item>
     <Item>
@@ -1015,7 +1015,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notesWhite.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\notesWhite.xnb</Output>
       <Time>2009-05-15T23:02:41.1297634-04:00</Time>
     </Item>
     <Item>
@@ -1024,7 +1024,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border00.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border00.xnb</Output>
       <Time>2009-05-15T16:03:42.8314909-04:00</Time>
     </Item>
     <Item>
@@ -1033,7 +1033,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border01.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border01.xnb</Output>
       <Time>2009-01-04T02:23:12.5123207-05:00</Time>
     </Item>
     <Item>
@@ -1042,7 +1042,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border02.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border02.xnb</Output>
       <Time>2009-01-04T02:23:13.1118917-05:00</Time>
     </Item>
     <Item>
@@ -1051,7 +1051,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border03.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border03.xnb</Output>
       <Time>2009-01-04T02:23:12.5132972-05:00</Time>
     </Item>
     <Item>
@@ -1060,7 +1060,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border04.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border04.xnb</Output>
       <Time>2009-01-04T02:23:13.1616932-05:00</Time>
     </Item>
     <Item>
@@ -1069,7 +1069,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border05.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border05.xnb</Output>
       <Time>2009-01-04T02:23:12.5152502-05:00</Time>
     </Item>
     <Item>
@@ -1078,7 +1078,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border06.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border06.xnb</Output>
       <Time>2009-01-04T02:23:13.1695052-05:00</Time>
     </Item>
     <Item>
@@ -1087,7 +1087,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border07.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border07.xnb</Output>
       <Time>2009-01-04T02:23:12.5572397-05:00</Time>
     </Item>
     <Item>
@@ -1096,7 +1096,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border08.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border08.xnb</Output>
       <Time>2009-01-04T02:23:13.1851292-05:00</Time>
     </Item>
     <Item>
@@ -1105,7 +1105,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border09.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border09.xnb</Output>
       <Time>2009-01-04T02:23:12.5601692-05:00</Time>
     </Item>
     <Item>
@@ -1114,7 +1114,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border10.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\border10.xnb</Output>
       <Time>2009-01-04T02:23:12.6392657-05:00</Time>
     </Item>
     <Item>
@@ -1123,7 +1123,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\red.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\red.xnb</Output>
       <Time>2009-05-15T16:16:31.7637214-04:00</Time>
     </Item>
     <Item>
@@ -1132,7 +1132,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\ring.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\ring.xnb</Output>
       <Time>2009-05-15T14:54:58.2820024-04:00</Time>
     </Item>
     <Item>
@@ -1141,7 +1141,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\rockmeter.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\rockmeter.xnb</Output>
       <Time>2009-05-15T17:58:14.4453904-04:00</Time>
     </Item>
     <Item>
@@ -1150,7 +1150,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\roundmeterbg.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\roundmeterbg.xnb</Output>
       <Time>2009-01-04T02:23:13.2027062-05:00</Time>
     </Item>
     <Item>
@@ -1159,7 +1159,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\roundmeterfg.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\roundmeterfg.xnb</Output>
       <Time>2009-01-04T02:23:12.5728637-05:00</Time>
     </Item>
     <Item>
@@ -1168,7 +1168,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scoreboard.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scoreboard.xnb</Output>
       <Time>2009-05-15T14:58:31.1863444-04:00</Time>
     </Item>
     <Item>
@@ -1177,7 +1177,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestar.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestar.xnb</Output>
       <Time>2009-01-04T02:23:12.5787227-05:00</Time>
     </Item>
     <Item>
@@ -1186,7 +1186,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestaro.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestaro.xnb</Output>
       <Time>2009-01-04T02:23:13.3745702-05:00</Time>
     </Item>
     <Item>
@@ -1195,7 +1195,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\starcover.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\starcover.xnb</Output>
       <Time>2009-01-04T02:23:13.0835732-05:00</Time>
     </Item>
     <Item>
@@ -1204,7 +1204,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\starcovergold.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\starcovergold.xnb</Output>
       <Time>2009-05-15T16:11:49.4185114-04:00</Time>
     </Item>
     <Item>
@@ -1213,7 +1213,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_BAS.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_BAS.xnb</Output>
       <Time>2009-05-15T14:57:22.7551774-04:00</Time>
     </Item>
     <Item>
@@ -1222,7 +1222,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_LGT.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_LGT.xnb</Output>
       <Time>2009-05-15T14:57:48.7710904-04:00</Time>
     </Item>
     <Item>
@@ -1231,7 +1231,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_LVX.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_LVX.xnb</Output>
       <Time>2009-05-15T14:57:59.4569299-04:00</Time>
     </Item>
     <Item>
@@ -1240,7 +1240,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_SET.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\logo_SET.xnb</Output>
       <Time>2009-05-15T14:57:35.1411034-04:00</Time>
     </Item>
     <Item>
@@ -1249,7 +1249,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\stem.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\stem.xnb</Output>
       <Time>2009-05-15T14:56:13.3523929-04:00</Time>
     </Item>
     <Item>
@@ -1258,7 +1258,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\rockmeterfiller.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\rockmeterfiller.xnb</Output>
       <Time>2009-05-15T18:04:57.6002509-04:00</Time>
     </Item>
     <Item>
@@ -1267,7 +1267,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestarbg.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\UI\scorestarbg.xnb</Output>
       <Time>2009-05-15T21:53:57.3810049-04:00</Time>
     </Item>
     <Item>
@@ -1276,7 +1276,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\rpMeterFill.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\rpMeterFill.xnb</Output>
       <Time>2009-05-15T23:58:54.9948769-04:00</Time>
     </Item>
     <Item>
@@ -1285,8 +1285,224 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\boardFade.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\boardFade.xnb</Output>
       <Time>2009-05-16T00:15:24.5262694-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Results\coolbg1.png</Source>
+      <Name>textures\Results\coolbg1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\coolbg1.xnb</Output>
+      <Time>2009-01-04T02:23:13.1929412-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Results\coolbg2.png</Source>
+      <Name>textures\Results\coolbg2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\coolbg2.xnb</Output>
+      <Time>2009-01-04T02:23:12.5660282-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Results\faildialog.png</Source>
+      <Name>textures\Results\faildialog</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\faildialog.xnb</Output>
+      <Time>2009-05-23T14:43:23.539951-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Game\rpSheen.png</Source>
+      <Name>textures\Game\rpSheen</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\rpSheen.xnb</Output>
+      <Time>2009-05-20T14:56:33.6996766-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Game\lightning1.png</Source>
+      <Name>textures\Game\lightning1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning1.xnb</Output>
+      <Time>2009-05-20T15:31:38.6499121-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Game\lightning2.png</Source>
+      <Name>textures\Game\lightning2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning2.xnb</Output>
+      <Time>2009-05-20T15:31:46.8642301-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Game\lightning3.png</Source>
+      <Name>textures\Game\lightning3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning3.xnb</Output>
+      <Time>2009-05-20T15:31:54.6967366-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Results\resultscroller.PNG</Source>
+      <Name>textures\Results\resultscroller</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\resultscroller.xnb</Output>
+      <Time>2009-05-23T14:12:37.3544035-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\amp.png</Source>
+      <Name>textures\Options\amp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amp.xnb</Output>
+      <Time>2009-01-04T02:21:40.4986787-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\ampBM.png</Source>
+      <Name>textures\Options\ampBM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ampBM.xnb</Output>
+      <Time>2009-01-04T02:23:12.8404247-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\amppanel.png</Source>
+      <Name>textures\Options\amppanel</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amppanel.xnb</Output>
+      <Time>2008-09-26T04:01:08.4779195-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\amppanelBM.png</Source>
+      <Name>textures\Options\amppanelBM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amppanelBM.xnb</Output>
+      <Time>2009-01-04T02:23:13.2329777-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\concr.PNG</Source>
+      <Name>textures\Options\concr</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\concr.xnb</Output>
+      <Time>2009-01-04T02:23:13.2163772-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\concrBM.PNG</Source>
+      <Name>textures\Options\concrBM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\concrBM.xnb</Output>
+      <Time>2009-01-04T02:23:12.6500072-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\knob.png</Source>
+      <Name>textures\Options\knob</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\knob.xnb</Output>
+      <Time>2009-01-04T02:23:13.1948942-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\ledoff.png</Source>
+      <Name>textures\Options\ledoff</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ledoff.xnb</Output>
+      <Time>2009-01-04T02:23:13.4077712-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\ledon.png</Source>
+      <Name>textures\Options\ledon</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ledon.xnb</Output>
+      <Time>2009-01-04T02:23:12.7027382-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\switchoff.png</Source>
+      <Name>textures\Options\switchoff</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\switchoff.xnb</Output>
+      <Time>2009-01-04T02:23:12.5709107-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\switchon.png</Source>
+      <Name>textures\Options\switchon</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\switchon.xnb</Output>
+      <Time>2009-01-04T02:23:13.4028887-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Options\tape.png</Source>
+      <Name>textures\Options\tape</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\tape.xnb</Output>
+      <Time>2009-01-04T02:23:13.3892177-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Pause\pauseborder.png</Source>
+      <Name>textures\Pause\pauseborder</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pauseborder.xnb</Output>
+      <Time>2009-01-04T02:23:13.2280952-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Pause\pausewing.png</Source>
+      <Name>textures\Pause\pausewing</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pausewing.xnb</Output>
+      <Time>2009-01-04T02:23:12.8902262-05:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Pause\pickofselect.png</Source>
+      <Name>textures\Pause\pickofselect</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pickofselect.xnb</Output>
+      <Time>2009-05-23T20:34:28.5071365-04:00</Time>
+    </Item>
+    <Item>
+      <Source>textures\Game\solopercentbg.png</Source>
+      <Name>textures\Game\solopercentbg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\solopercentbg.xnb</Output>
+      <Time>2009-05-29T13:53:33.4102322-04:00</Time>
     </Item>
     <Item>
       <Source>meshes\FVLogo\barrel.x</Source>
@@ -1294,11 +1510,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\barrel.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\barrel.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\FVLogo\barrel_0.xml</Key>
-        <Value>2009-05-18T02:02:39.077574-04:00</Value>
+        <Value>2009-05-30T08:30:35.1889232-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1307,11 +1523,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\goo1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\goo1.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\FVLogo\goo1_0.xml</Key>
-        <Value>2009-05-18T02:02:39.536529-04:00</Value>
+        <Value>2009-05-30T08:30:35.5892882-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1320,11 +1536,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\goo2.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\goo2.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\FVLogo\goo2_0.xml</Key>
-        <Value>2009-05-18T02:02:40.0140375-04:00</Value>
+        <Value>2009-05-30T08:30:36.0267602-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1333,11 +1549,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\presser.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\FVLogo\presser.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\FVLogo\presser_0.xml</Key>
-        <Value>2009-05-18T02:02:40.417332-04:00</Value>
+        <Value>2009-05-30T08:30:36.4359137-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1346,11 +1562,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\MainMenu\snake.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\MainMenu\snake.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\MainMenu\snake_0.xml</Key>
-        <Value>2009-05-18T02:02:40.8323445-04:00</Value>
+        <Value>2009-05-30T08:30:36.8567852-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1359,11 +1575,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\ControllerSetup\paper1.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\ControllerSetup\paper1.xnb</Output>
       <Time>2009-01-04T02:23:28-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\ControllerSetup\paper1_0.xml</Key>
-        <Value>2009-05-18T02:02:41.264934-04:00</Value>
+        <Value>2009-05-30T08:30:37.2630092-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1372,11 +1588,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\BAS.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\BAS.xnb</Output>
       <Time>2009-01-04T02:23:22-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\DifficultyScreen\instruments\BAS_0.xml</Key>
-        <Value>2009-05-18T02:02:41.6486985-04:00</Value>
+        <Value>2009-05-30T08:30:37.6623977-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1385,11 +1601,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\LGT.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\LGT.xnb</Output>
       <Time>2009-01-04T02:23:22-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\DifficultyScreen\instruments\LGT_0.xml</Key>
-        <Value>2009-05-18T02:02:42.05004-04:00</Value>
+        <Value>2009-05-30T08:30:38.0617862-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1398,11 +1614,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\LVX.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\LVX.xnb</Output>
       <Time>2009-01-04T02:23:22-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\DifficultyScreen\instruments\LVX_0.xml</Key>
-        <Value>2009-05-18T02:02:42.4591935-04:00</Value>
+        <Value>2009-05-30T08:30:38.4670337-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1411,11 +1627,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\SET.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\DifficultyScreen\instruments\SET.xnb</Output>
       <Time>2009-01-04T02:23:22-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\DifficultyScreen\instruments\SET_0.xml</Key>
-        <Value>2009-05-18T02:02:42.8829945-04:00</Value>
+        <Value>2009-05-30T08:30:38.8722812-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1424,11 +1640,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\bassdrum.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\bassdrum.xnb</Output>
       <Time>2009-01-04T02:23:27.1285727-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\bassdrum_0.xml</Key>
-        <Value>2009-05-18T02:02:43.4532705-04:00</Value>
+        <Value>2009-05-30T08:30:39.4034972-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1437,11 +1653,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\crashcymbal.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\crashcymbal.xnb</Output>
       <Time>2009-01-04T02:23:27.0543587-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\crashcymbal_0.xml</Key>
-        <Value>2009-05-18T02:02:43.9747215-04:00</Value>
+        <Value>2009-05-30T08:30:39.9054182-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1450,11 +1666,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\floortom.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\floortom.xnb</Output>
       <Time>2009-01-04T02:23:27.1783742-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\floortom_0.xml</Key>
-        <Value>2009-05-18T02:02:44.485431-04:00</Value>
+        <Value>2009-05-30T08:30:40.4200337-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1463,11 +1679,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\hihatcymbal.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\hihatcymbal.xnb</Output>
       <Time>2009-01-04T02:23:27.1373612-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\hihatcymbal_0.xml</Key>
-        <Value>2009-05-18T02:02:45.0508245-04:00</Value>
+        <Value>2009-05-30T08:30:40.9336727-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1476,11 +1692,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\ridecymbal.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\ridecymbal.xnb</Output>
       <Time>2009-01-04T02:23:26.9889332-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\ridecymbal_0.xml</Key>
-        <Value>2009-05-18T02:02:45.555675-04:00</Value>
+        <Value>2009-05-30T08:30:41.4082517-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1489,11 +1705,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\snaredrum.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\snaredrum.xnb</Output>
       <Time>2009-01-04T02:23:27.1744682-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\snaredrum_0.xml</Key>
-        <Value>2009-05-18T02:02:46.0937265-04:00</Value>
+        <Value>2009-05-30T08:30:41.9170082-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1502,11 +1718,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\tomtoms.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\Drums01\tomtoms.xnb</Output>
       <Time>2009-01-04T02:23:27.0729122-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\Drums01\tomtoms_0.xml</Key>
-        <Value>2009-05-18T02:02:46.690368-04:00</Value>
+        <Value>2009-05-30T08:30:42.5038847-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1515,11 +1731,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\GibsonSG\model.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\instruments\GibsonSG\model.xnb</Output>
       <Time>2009-01-04T02:23:27.1227137-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\instruments\GibsonSG\model_0.xml</Key>
-        <Value>2009-05-18T02:02:47.180571-04:00</Value>
+        <Value>2009-05-30T08:30:42.9628397-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1528,11 +1744,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\board.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\board.xnb</Output>
       <Time>2009-05-12T15:19:50-04:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\Game\board_0.xml</Key>
-        <Value>2009-05-18T02:02:47.5721475-04:00</Value>
+        <Value>2009-05-30T08:30:43.3485572-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1541,11 +1757,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\note.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\note.xnb</Output>
       <Time>2009-01-04T02:23:27.0963482-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\Game\note_0.xml</Key>
-        <Value>2009-05-18T02:02:48.022314-04:00</Value>
+        <Value>2009-05-30T08:30:43.7508752-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1554,11 +1770,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\noteinside.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\noteinside.xnb</Output>
       <Time>2009-01-04T02:23:27.0680297-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\Game\noteinside_0.xml</Key>
-        <Value>2009-05-18T02:02:48.424632-04:00</Value>
+        <Value>2009-05-30T08:30:44.1336632-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1567,11 +1783,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\triggerdown.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\triggerdown.xnb</Output>
       <Time>2009-01-04T02:23:27.1647032-05:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\Game\triggerdown_0.xml</Key>
-        <Value>2009-05-18T02:02:48.8201145-04:00</Value>
+        <Value>2009-05-30T08:30:44.5271927-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1580,11 +1796,50 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\boardborder.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\boardborder.xnb</Output>
       <Time>2009-05-16T00:03:38.6466439-04:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\meshes\Game\boardborder_0.xml</Key>
-        <Value>2009-05-18T02:02:49.268328-04:00</Value>
+        <Value>2009-05-30T08:30:44.9304872-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Game\bassline.x</Source>
+      <Name>meshes\Game\bassline</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\bassline.xnb</Output>
+      <Time>2009-05-23T20:10:03.3177115-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Game\bassline_0.xml</Key>
+        <Value>2009-05-30T08:30:45.3406172-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Options\amp.x</Source>
+      <Name>meshes\Options\amp</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Options\amp.xnb</Output>
+      <Time>2008-09-26T04:01:23.5267295-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Options\amp_0.xml</Key>
+        <Value>2009-05-30T08:30:45.7673477-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Options\amppanel.x</Source>
+      <Name>meshes\Options\amppanel</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Options\amppanel.xnb</Output>
+      <Time>2008-09-26T04:01:22.875368-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Options\amppanel_0.xml</Key>
+        <Value>2009-05-30T08:30:46.1520887-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -1593,7 +1848,7 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\BoardFade.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\BoardFade.xnb</Output>
       <Time>2009-01-04T02:21:52-05:00</Time>
     </Item>
     <Item>
@@ -1602,7 +1857,7 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\PP_Shader_XNA.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\PP_Shader_XNA.xnb</Output>
       <Time>2009-01-04T02:21:52-05:00</Time>
     </Item>
     <Item>
@@ -1611,7 +1866,7 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\UnsignedEngineShader.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\UnsignedEngineShader.xnb</Output>
       <Time>2009-05-23T17:32:29.386669-04:00</Time>
     </Item>
     <Item>
@@ -1620,7 +1875,7 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\CubeMappingShader.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\shaders\CubeMappingShader.xnb</Output>
       <Time>2009-05-14T18:36:29.5462219-04:00</Time>
     </Item>
     <Item>
@@ -1785,230 +2040,11 @@
       <Time>2009-05-16T00:03:38.6466439-04:00</Time>
     </Item>
     <Item>
-      <Source>textures\Results\coolbg1.png</Source>
-      <Name>textures\Results\coolbg1</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\coolbg1.xnb</Output>
-      <Time>2009-01-04T02:23:13.1929412-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Results\coolbg2.png</Source>
-      <Name>textures\Results\coolbg2</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\coolbg2.xnb</Output>
-      <Time>2009-01-04T02:23:12.5660282-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Results\faildialog.png</Source>
-      <Name>textures\Results\faildialog</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\faildialog.xnb</Output>
-      <Time>2009-05-23T14:43:23.539951-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Game\rpSheen.png</Source>
-      <Name>textures\Game\rpSheen</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\rpSheen.xnb</Output>
-      <Time>2009-05-20T14:56:33.6996766-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Game\lightning1.png</Source>
-      <Name>textures\Game\lightning1</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning1.xnb</Output>
-      <Time>2009-05-20T15:31:38.6499121-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Game\lightning2.png</Source>
-      <Name>textures\Game\lightning2</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning2.xnb</Output>
-      <Time>2009-05-20T15:31:46.8642301-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Game\lightning3.png</Source>
-      <Name>textures\Game\lightning3</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\lightning3.xnb</Output>
-      <Time>2009-05-20T15:31:54.6967366-04:00</Time>
-    </Item>
-    <Item>
-      <Source>meshes\Game\bassline.x</Source>
-      <Name>meshes\Game\bassline</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Game\bassline.xnb</Output>
-      <Time>2009-05-23T20:10:03.3177115-04:00</Time>
-      <Dependency>
-        <Key>obj\x86\Debug\meshes\Game\bassline_0.xml</Key>
-        <Value>2009-05-23T20:12:25.625986-04:00</Value>
-      </Dependency>
-    </Item>
-    <Item>
       <Source>meshes\Game\bassline.x</Source>
       <Importer>XImporter</Importer>
       <Options>IntermediateFile, DontCacheImportedData</Options>
       <Output>obj\x86\Debug\meshes\Game\bassline_0.xml</Output>
       <Time>2009-05-23T20:10:03.3177115-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Results\resultscroller.PNG</Source>
-      <Name>textures\Results\resultscroller</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Results\resultscroller.xnb</Output>
-      <Time>2009-05-23T14:12:37.3544035-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\amp.png</Source>
-      <Name>textures\Options\amp</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amp.xnb</Output>
-      <Time>2009-01-04T02:21:40.4986787-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\ampBM.png</Source>
-      <Name>textures\Options\ampBM</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ampBM.xnb</Output>
-      <Time>2009-01-04T02:23:12.8404247-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\amppanel.png</Source>
-      <Name>textures\Options\amppanel</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amppanel.xnb</Output>
-      <Time>2008-09-26T04:01:08.4779195-04:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\amppanelBM.png</Source>
-      <Name>textures\Options\amppanelBM</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\amppanelBM.xnb</Output>
-      <Time>2009-01-04T02:23:13.2329777-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\concr.PNG</Source>
-      <Name>textures\Options\concr</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\concr.xnb</Output>
-      <Time>2009-01-04T02:23:13.2163772-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\concrBM.PNG</Source>
-      <Name>textures\Options\concrBM</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\concrBM.xnb</Output>
-      <Time>2009-01-04T02:23:12.6500072-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\knob.png</Source>
-      <Name>textures\Options\knob</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\knob.xnb</Output>
-      <Time>2009-01-04T02:23:13.1948942-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\ledoff.png</Source>
-      <Name>textures\Options\ledoff</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ledoff.xnb</Output>
-      <Time>2009-01-04T02:23:13.4077712-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\ledon.png</Source>
-      <Name>textures\Options\ledon</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\ledon.xnb</Output>
-      <Time>2009-01-04T02:23:12.7027382-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\switchoff.png</Source>
-      <Name>textures\Options\switchoff</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\switchoff.xnb</Output>
-      <Time>2009-01-04T02:23:12.5709107-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\switchon.png</Source>
-      <Name>textures\Options\switchon</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\switchon.xnb</Output>
-      <Time>2009-01-04T02:23:13.4028887-05:00</Time>
-    </Item>
-    <Item>
-      <Source>textures\Options\tape.png</Source>
-      <Name>textures\Options\tape</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Options\tape.xnb</Output>
-      <Time>2009-01-04T02:23:13.3892177-05:00</Time>
-    </Item>
-    <Item>
-      <Source>meshes\Options\amp.x</Source>
-      <Name>meshes\Options\amp</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Options\amp.xnb</Output>
-      <Time>2008-09-26T04:01:23.5267295-04:00</Time>
-      <Dependency>
-        <Key>obj\x86\Debug\meshes\Options\amp_0.xml</Key>
-        <Value>2009-05-23T17:14:42.204973-04:00</Value>
-      </Dependency>
-    </Item>
-    <Item>
-      <Source>meshes\Options\amppanel.x</Source>
-      <Name>meshes\Options\amppanel</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Options\amppanel.xnb</Output>
-      <Time>2008-09-26T04:01:22.875368-04:00</Time>
-      <Dependency>
-        <Key>obj\x86\Debug\meshes\Options\amppanel_0.xml</Key>
-        <Value>2009-05-23T17:14:42.6414685-04:00</Value>
-      </Dependency>
     </Item>
     <Item>
       <Source>meshes\Options\amp.x</Source>
@@ -2025,50 +2061,181 @@
       <Time>2008-09-26T04:01:22.875368-04:00</Time>
     </Item>
     <Item>
-      <Source>textures\Pause\pauseborder.png</Source>
-      <Name>textures\Pause\pauseborder</Name>
+      <Source>textures\Game\breend.png</Source>
+      <Name>textures\Game\breend</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pauseborder.xnb</Output>
-      <Time>2009-01-04T02:23:13.2280952-05:00</Time>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\breend.xnb</Output>
+      <Time>2009-05-30T09:21:35.0311667-04:00</Time>
     </Item>
     <Item>
-      <Source>textures\Pause\pausewing.png</Source>
-      <Name>textures\Pause\pausewing</Name>
+      <Source>textures\Game\bremiddle.png</Source>
+      <Name>textures\Game\bremiddle</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pausewing.xnb</Output>
-      <Time>2009-01-04T02:23:12.8902262-05:00</Time>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\bremiddle.xnb</Output>
+      <Time>2009-05-30T09:21:56.6743127-04:00</Time>
     </Item>
     <Item>
-      <Source>textures\Pause\pickofselect.png</Source>
-      <Name>textures\Pause\pickofselect</Name>
+      <Source>textures\venues\fanTex.jpg</Source>
+      <Name>textures\venues\fanTex</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Pause\pickofselect.xnb</Output>
-      <Time>2009-05-23T20:34:28.5071365-04:00</Time>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\venues\fanTex.xnb</Output>
+      <Time>2009-05-30T15:37:07.0646102-04:00</Time>
     </Item>
     <Item>
-      <Source>textures\Game\solopercentbg.png</Source>
-      <Name>textures\Game\solopercentbg</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
+      <Source>meshes\Venues\fan_pump_0.x</Source>
+      <Name>meshes\Venues\fan_pump_0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\textures\Game\solopercentbg.xnb</Output>
-      <Time>2009-05-29T13:53:33.4102322-04:00</Time>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_pump_0.xnb</Output>
+      <Time>2009-05-30T16:01:27.2162717-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_pump_0_0.xml</Key>
+        <Value>2009-05-30T17:32:26.2750727-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_1.x</Source>
+      <Name>meshes\Venues\fan_pump_1</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_pump_1.xnb</Output>
+      <Time>2009-05-30T16:00:04.3387637-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_pump_1_0.xml</Key>
+        <Value>2009-05-30T17:32:26.7721112-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_0.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_pump_0_0.xml</Output>
+      <Time>2009-05-30T16:01:27.2162717-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_1.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_pump_1_0.xml</Output>
+      <Time>2009-05-30T16:00:04.3387637-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_2.x</Source>
+      <Name>meshes\Venues\fan_pump_2</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_pump_2.xnb</Output>
+      <Time>2009-05-30T17:41:03.0427787-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_pump_2_0.xml</Key>
+        <Value>2009-05-30T17:52:09.2110787-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_3.x</Source>
+      <Name>meshes\Venues\fan_pump_3</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_pump_3.xnb</Output>
+      <Time>2009-05-30T17:48:34.5968852-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_pump_3_0.xml</Key>
+        <Value>2009-05-30T17:52:09.6856577-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_2.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_pump_2_0.xml</Output>
+      <Time>2009-05-30T17:41:03.0427787-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_pump_3.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_pump_3_0.xml</Output>
+      <Time>2009-05-30T17:48:34.5968852-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_0.x</Source>
+      <Name>meshes\Venues\fan_headbang_0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_headbang_0.xnb</Output>
+      <Time>2009-05-30T18:49:00.4614947-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_headbang_0_0.xml</Key>
+        <Value>2009-05-30T18:52:52.5735917-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_1.x</Source>
+      <Name>meshes\Venues\fan_headbang_1</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_headbang_1.xnb</Output>
+      <Time>2009-05-30T18:49:21.3166052-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_headbang_1_0.xml</Key>
+        <Value>2009-05-30T18:52:53.0374292-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_2.x</Source>
+      <Name>meshes\Venues\fan_headbang_2</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\meshes\Venues\fan_headbang_2.xnb</Output>
+      <Time>2009-05-30T18:48:25.1864087-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\meshes\Venues\fan_headbang_2_0.xml</Key>
+        <Value>2009-05-30T18:52:53.4768542-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_0.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_headbang_0_0.xml</Output>
+      <Time>2009-05-30T18:49:00.4614947-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_1.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_headbang_1_0.xml</Output>
+      <Time>2009-05-30T18:49:21.3166052-04:00</Time>
+    </Item>
+    <Item>
+      <Source>meshes\Venues\fan_headbang_2.x</Source>
+      <Importer>XImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\meshes\Venues\fan_headbang_2_0.xml</Output>
+      <Time>2009-05-30T18:48:25.1864087-04:00</Time>
     </Item>
     <BuildSuccessful>true</BuildSuccessful>
     <Settings>
       <TargetPlatform>Windows</TargetPlatform>
       <BuildConfiguration>Debug</BuildConfiguration>
       <CompressContent>false</CompressContent>
-      <RootDirectory>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\</RootDirectory>
-      <LoggerRootDirectory>C:\projects\Unsigned3.0\Unsigned\Unsigned\</LoggerRootDirectory>
-      <IntermediateDirectory>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>C:\projects\Unsigned3.0\Unsigned\Unsigned\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\</RootDirectory>
+      <LoggerRootDirectory>C:\projects\Unsigned2.0\Unsigned\Unsigned\</LoggerRootDirectory>
+      <IntermediateDirectory>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>C:\projects\Unsigned2.0\Unsigned\Unsigned\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>

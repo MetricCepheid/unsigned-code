@@ -3,7 +3,7 @@
   <Asset Type="Graphics:NodeContent">
     <Name>tomtoms01Frame</Name>
     <Identity>
-      <SourceFilename>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
+      <SourceFilename>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
       <SourceTool>XImporter</SourceTool>
     </Identity>
     <Transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</Transform>
@@ -53,7 +53,7 @@
   <Resources>
     <Resource ID="#Resource1" Type="Graphics:BasicMaterialContent">
       <Identity>
-        <SourceFilename>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
+        <SourceFilename>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
         <SourceTool>XImporter</SourceTool>
       </Identity>
       <OpaqueData>
@@ -66,7 +66,7 @@
     </Resource>
     <Resource ID="#Resource2" Type="Graphics:BasicMaterialContent">
       <Identity>
-        <SourceFilename>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
+        <SourceFilename>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
         <SourceTool>XImporter</SourceTool>
       </Identity>
       <OpaqueData>
@@ -78,7 +78,7 @@
     </Resource>
     <Resource ID="#Resource3" Type="Graphics:BasicMaterialContent">
       <Identity>
-        <SourceFilename>C:\projects\Unsigned3.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
+        <SourceFilename>C:\projects\Unsigned2.0\Unsigned\Unsigned\Content\meshes\instruments\Drums01\tomtoms.x</SourceFilename>
         <SourceTool>XImporter</SourceTool>
       </Identity>
       <OpaqueData>

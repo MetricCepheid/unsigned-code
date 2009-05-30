@@ -7,7 +7,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\white.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\white.xnb</Output>
       <Time>2009-05-16T20:51:44.64257-04:00</Time>
     </Item>
     <Item>
@@ -16,7 +16,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\eyeTex.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\eyeTex.xnb</Output>
       <Time>2009-05-18T02:01:17.676534-04:00</Time>
     </Item>
     <Item>
@@ -25,7 +25,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\headtex.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\headtex.xnb</Output>
       <Time>2009-05-18T01:11:50.37036-04:00</Time>
     </Item>
     <Item>
@@ -34,7 +34,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\headtexbm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\headtexbm.xnb</Output>
       <Time>2009-05-18T01:52:51.6708345-04:00</Time>
     </Item>
     <Item>
@@ -43,8 +43,17 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\defaultnm.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\defaultnm.xnb</Output>
       <Time>2009-05-18T01:46:16.0574835-04:00</Time>
+    </Item>
+    <Item>
+      <Source>bodyTex.jpg</Source>
+      <Name>bodyTex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\bodyTex.xnb</Output>
+      <Time>2009-05-26T18:36:58.0938235-04:00</Time>
     </Item>
     <Item>
       <Source>head.x</Source>
@@ -52,11 +61,11 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\head.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\head.xnb</Output>
       <Time>2009-05-26T06:58:49.9721375-04:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\head_0.xml</Key>
-        <Value>2009-05-26T07:03:43.4728835-04:00</Value>
+        <Value>2009-05-30T08:29:15.8658752-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -65,11 +74,37 @@
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\eye.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\eye.xnb</Output>
       <Time>2009-05-18T02:34:57.5326065-04:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\eye_0.xml</Key>
-        <Value>2009-05-18T02:35:01.427865-04:00</Value>
+        <Value>2009-05-30T08:29:16.4019737-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>legs.x</Source>
+      <Name>legs</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\legs.xnb</Output>
+      <Time>2009-05-26T07:06:29.75228-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\legs_0.xml</Key>
+        <Value>2009-05-30T08:29:16.8511637-04:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>torso.x</Source>
+      <Name>torso</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\torso.xnb</Output>
+      <Time>2009-05-26T07:06:08.9635715-04:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\torso_0.xml</Key>
+        <Value>2009-05-30T08:29:17.2905887-04:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -78,7 +113,7 @@
       <Importer>FontDescriptionImporter</Importer>
       <Processor>FontDescriptionProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\defaultFont.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\defaultFont.xnb</Output>
       <Time>2009-05-17T04:37:58.5152135-04:00</Time>
     </Item>
     <Item>
@@ -87,7 +122,7 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\NormalMappedShader.xnb</Output>
+      <Output>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\NormalMappedShader.xnb</Output>
       <Time>2009-05-18T02:32:41.1604755-04:00</Time>
     </Item>
     <Item>
@@ -106,32 +141,6 @@
     </Item>
     <Item>
       <Source>legs.x</Source>
-      <Name>legs</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\legs.xnb</Output>
-      <Time>2009-05-26T07:06:29.75228-04:00</Time>
-      <Dependency>
-        <Key>obj\x86\Debug\legs_0.xml</Key>
-        <Value>2009-05-26T07:06:46.055924-04:00</Value>
-      </Dependency>
-    </Item>
-    <Item>
-      <Source>torso.x</Source>
-      <Name>torso</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\torso.xnb</Output>
-      <Time>2009-05-26T07:06:08.9635715-04:00</Time>
-      <Dependency>
-        <Key>obj\x86\Debug\torso_0.xml</Key>
-        <Value>2009-05-26T07:06:46.499255-04:00</Value>
-      </Dependency>
-    </Item>
-    <Item>
-      <Source>legs.x</Source>
       <Importer>XImporter</Importer>
       <Options>IntermediateFile, DontCacheImportedData</Options>
       <Output>obj\x86\Debug\legs_0.xml</Output>
@@ -144,24 +153,15 @@
       <Output>obj\x86\Debug\torso_0.xml</Output>
       <Time>2009-05-26T07:06:08.9635715-04:00</Time>
     </Item>
-    <Item>
-      <Source>bodyTex.jpg</Source>
-      <Name>bodyTex</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-      <Options>None</Options>
-      <Output>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\bodyTex.xnb</Output>
-      <Time>2009-05-26T18:36:58.0938235-04:00</Time>
-    </Item>
     <BuildSuccessful>true</BuildSuccessful>
     <Settings>
       <TargetPlatform>Windows</TargetPlatform>
       <BuildConfiguration>Debug</BuildConfiguration>
       <CompressContent>false</CompressContent>
-      <RootDirectory>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\Content\</RootDirectory>
-      <LoggerRootDirectory>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\</LoggerRootDirectory>
-      <IntermediateDirectory>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\Content\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>C:\projects\Unsigned3.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\Content\</RootDirectory>
+      <LoggerRootDirectory>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\</LoggerRootDirectory>
+      <IntermediateDirectory>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\Content\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>C:\projects\Unsigned2.0\Unsigned\AnimationEditor\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>
