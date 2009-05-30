@@ -6,7 +6,10 @@
 // By Louis Ingenthron
 // 06.07.08
 
-// VERSION 20
+// VERSION 21
+
+
+// Strings are C# style
 
 
 //HEADER CHUNK
@@ -16,7 +19,7 @@ char[] signature = {'U', 'N', 'S'};
 
 byte[6*4] redundancy;
 
-//GBA CHUNK Song/FullBand
+//FullBand Chunk
 
 byte Version
 
@@ -57,7 +60,9 @@ uint numHarmonies;
 struct Harmony
 {
 	uint start, end;
-	ulong instruments;//bitwise instruments
+    // a series of instrument code names
+    // length is always a multiple of 3
+	String instruments;
 }
 
 Harmony[numHarmonies] harmonies;
