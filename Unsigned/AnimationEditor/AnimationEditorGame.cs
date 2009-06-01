@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+using FVProductions.Utility;
 
 namespace AnimationEditor
 {
@@ -23,11 +24,15 @@ namespace AnimationEditor
 
         private RightClickMenu rcMenu;
 
-        public AnimationEditorGame()
+        private IntPtr DrawSurface;
+
+        public AnimationEditorGame(IntPtr drawSurface)
         {
             Global.Graphics = new GraphicsDeviceManager(this);
             Global.Services = Services;
             Global.Random = new Random();
+            Global.Graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(graphics_PreparingDeviceSettings);
+            System.Windows.Forms.Control.FromHandle((this.Window.Handle)).VisibleChanged += new EventHandler(Game1_VisibleChanged);
             Content.RootDirectory = "Content";
         }
 
@@ -39,25 +44,26 @@ namespace AnimationEditor
         /// </summary>
         protected override void Initialize()
         {
+
+            base.Initialize();
+            return;
             AnimationInfo info = new AnimationInfo();
             info.Add(new AnimationInfo.AnimationValue("Mouth Open", 0));
             info.Add(new AnimationInfo.AnimationValue("Mouth Pinch", 1));
 
             components = new XNAComponentCollection();
-            components.Add(new EditorViewer("Viewer"));
+            components.Add(new AnimationEditorViewer("Viewer"));
             components.Add(new Menu("TopMenu"));
-            components.Add(new ControlPanel("ControlPanel",info));
+            //components.Add(new ControlPanel("ControlPanel",info));
             components["Viewer"].Bounds = new Rectangle(0, 24, Global.ScreenHeight - 24, Global.ScreenHeight - 24);
-            components["ControlPanel"].Bounds = new Rectangle(Global.ScreenHeight - 24, 24, Global.ScreenWidth - (Global.ScreenHeight - 24), Global.ScreenHeight - 24);
+            //components["ControlPanel"].Bounds = new Rectangle(Global.ScreenHeight - 24, 24, Global.ScreenWidth - (Global.ScreenHeight - 24), Global.ScreenHeight - 24);
             components["TopMenu"].Bounds = new Rectangle(0,0,Global.ScreenWidth, 24);
 
-            ((EditorViewer)components["Viewer"]).animInfo = info;
+            //((EditorViewer)components["Viewer"]).animInfo = info;
 
-            ((ControlPanel)components["ControlPanel"]).EditorViewer = ((EditorViewer)components["Viewer"]);
+            //((ControlPanel)components["ControlPanel"]).EditorViewer = ((AnimationEditorViewer)components["Viewer"]);
 
             this.IsMouseVisible = true;
-
-            base.Initialize();
         }
 
         /// <summary>
@@ -66,8 +72,8 @@ namespace AnimationEditor
         /// </summary>
         protected override void LoadContent()
         {
-            for (int i = 0; i < components.Count; i++)
-                components[i].Load(Content);
+            //for (int i = 0; i < components.Count; i++)
+            //    components[i].Load(Content);
 
             spriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
             Global.TexWhite = Content.Load<Texture2D>("white");
@@ -91,6 +97,8 @@ namespace AnimationEditor
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+
+            return;
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
@@ -123,6 +131,8 @@ namespace AnimationEditor
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            return;
+
             for (int i = 0; i < components.Count; i++)
                 components[i].Draw();
 
@@ -143,5 +153,27 @@ namespace AnimationEditor
 
             base.Draw(gameTime);
         }
+
+        /// <summary>  
+        /// Event capturing the construction of a draw surface and makes sure this gets redirected to  
+        /// a predesignated drawsurface marked by pointer drawSurface  
+        /// </summary>  
+        /// <param name="sender"></param>  
+        /// <param name="e"></param>  
+        void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)  
+        {  
+                e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle =  DrawSurface;  
+        }  
+          
+        /// <summary>  
+        /// Occurs when the original gamewindows' visibility changes and makes sure it stays invisible  
+        /// </summary>  
+        /// <param name="sender"></param>  
+        /// <param name="e"></param>  
+        private void Game1_VisibleChanged(object sender, EventArgs e)  
+        {  
+                if (System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible == true)  
+                    System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible = false;  
+        }  
     }
 }

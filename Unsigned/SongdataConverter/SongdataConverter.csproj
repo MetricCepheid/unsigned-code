@@ -80,6 +80,12 @@
     <Compile Include="BandBonusesViewerControl.Designer.cs">
       <DependentUpon>BandBonusesViewerControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ColorPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ColorPanel.Designer.cs">
+      <DependentUpon>ColorPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="ConfirmDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -91,6 +97,24 @@
     </Compile>
     <Compile Include="BandBonusesDataViewer.Designer.cs">
       <DependentUpon>BandBonusesDataViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LightingEffectDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LightingEffectDialog.Designer.cs">
+      <DependentUpon>LightingEffectDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RoadieViewerControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RoadieViewerControl.Designer.cs">
+      <DependentUpon>RoadieViewerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RoadieDataViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RoadieDataViewer.Designer.cs">
+      <DependentUpon>RoadieDataViewer.cs</DependentUpon>
     </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -121,12 +145,28 @@
       <DependentUpon>BandBonusesViewerControl.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="ColorPanel.resx">
+      <DependentUpon>ColorPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="ConfirmDialog.resx">
       <DependentUpon>ConfirmDialog.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="BandBonusesDataViewer.resx">
       <DependentUpon>BandBonusesDataViewer.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LightingEffectDialog.resx">
+      <DependentUpon>LightingEffectDialog.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RoadieViewerControl.resx">
+      <DependentUpon>RoadieViewerControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RoadieDataViewer.resx">
+      <DependentUpon>RoadieDataViewer.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">

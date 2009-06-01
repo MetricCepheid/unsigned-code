@@ -708,6 +708,9 @@ namespace FVProductions.Utility
             get { return innerShader.Techniques; }
         }
 
+        private bool _cartoon;
+        public bool Cartoon { get { return _cartoon; } set { _cartoon = value; UpdateTechnique(); } }
+
         // ******************************************************************************************************
         // Functions
         // ******************************************************************************************************
@@ -806,13 +809,13 @@ namespace FVProductions.Utility
                 if (light.Enabled)
                 {
                     innerShader.Parameters["LightDirection"].SetValue(light.Direction);
-                    innerShader.Parameters["LightDiffuse"].SetValue(light.Diffuse.ToVector4());
-                    innerShader.Parameters["LightSpecular"].SetValue(SpecularEnabled ? light.Specular.ToVector4() : new Vector4(0, 0, 0, 1));
+                    //innerShader.Parameters["LightDiffuse"].SetValue(light.Diffuse.ToVector4());
+                    //innerShader.Parameters["LightSpecular"].SetValue(SpecularEnabled ? light.Specular.ToVector4() : new Vector4(0, 0, 0, 1));
                 }
                 else
                 {
-                    innerShader.Parameters["LightDiffuse"].SetValue(new Vector4(0, 0, 0, 1));
-                    innerShader.Parameters["LightSpecular"].SetValue(new Vector4(0, 0, 0, 1));
+                    //innerShader.Parameters["LightDiffuse"].SetValue(new Vector4(0, 0, 0, 1));
+                    //innerShader.Parameters["LightSpecular"].SetValue(new Vector4(0, 0, 0, 1));
                 }
             }
         }
@@ -823,25 +826,32 @@ namespace FVProductions.Utility
             {
                 if (!(innerShader is BasicEffect))
                 {
-                    if (lightingEnabled)
+                    if (Cartoon)
                     {
-                        if (NormalMapEnabled)
-                        {
-                            if (SpecularEnabled)
-                                innerShader.CurrentTechnique = innerShader.Techniques[techniqueName];
-                            else
-                                innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_SP"];
-                        }
-                        else
-                        {
-                            if (SpecularEnabled)
-                                innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_NM"];
-                            else
-                                innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_NMSP"];
-                        }
+                        innerShader.CurrentTechnique = innerShader.Techniques[techniqueName+"_CARTOON"];
                     }
                     else
-                        innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_LT"];
+                    {
+                        if (lightingEnabled)
+                        {
+                            if (NormalMapEnabled)
+                            {
+                                if (SpecularEnabled)
+                                    innerShader.CurrentTechnique = innerShader.Techniques[techniqueName];
+                                else
+                                    innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_SP"];
+                            }
+                            else
+                            {
+                                if (SpecularEnabled)
+                                    innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_NM"];
+                                else
+                                    innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_NMSP"];
+                            }
+                        }
+                        else
+                            innerShader.CurrentTechnique = innerShader.Techniques[techniqueName + "_NO_LT"];
+                    }
                 }
                 return true;
             }

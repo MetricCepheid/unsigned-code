@@ -9,10 +9,10 @@ namespace AnimationEditor
         /// </summary>
         static void Main(string[] args)
         {
-            using (AnimationEditorGame game = new AnimationEditorGame())
-            {
-                game.Run();
-            }
+            Form1 form = new Form1();
+            form.Show();
+            AnimationEditorGame game = new AnimationEditorGame(form.GetDrawSurface());
+            game.Run(); 
         }
     }
 }

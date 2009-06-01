@@ -1136,13 +1136,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\venues\fanTex.jpg">
-      <Name>fanTex</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="meshes\Venues\fan_pump_2.x">
       <Name>fan_pump_2</Name>
       <Importer>XImporter</Importer>
@@ -1167,6 +1160,57 @@
     </Compile>
     <Compile Include="meshes\Venues\fan_headbang_2.x">
       <Name>fan_headbang_2</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\venues\fanTex0.jpg">
+      <Name>fanTex0</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\venues\fanTex1.jpg">
+      <Name>fanTex1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\venues\fanTex2.jpg">
+      <Name>fanTex2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\venues\fanTex3.jpg">
+      <Name>fanTex3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\venues\fanTex4.jpg">
+      <Name>fanTex4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\Venues\fan_bored_0.x">
+      <Name>fan_bored_0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\Venues\fan_idle_0.x">
+      <Name>fan_idle_0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\Venues\fan_idle_1.x">
+      <Name>fan_idle_1</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\Venues\fan_idle_2.x">
+      <Name>fan_idle_2</Name>
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
     </Compile>

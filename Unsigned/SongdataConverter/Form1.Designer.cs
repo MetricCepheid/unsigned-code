@@ -52,8 +52,9 @@
             this.drumsDataViewer = new SongdataConverter.InstrumentDataViewer();
             this.vocalsTab = new System.Windows.Forms.TabPage();
             this.bandBonusesTab = new System.Windows.Forms.TabPage();
-            this.effectsTab = new System.Windows.Forms.TabPage();
             this.bandBonusesDataViewer1 = new SongdataConverter.BandBonusesDataViewer();
+            this.effectsTab = new System.Windows.Forms.TabPage();
+            this.roadieDataViewer1 = new SongdataConverter.RoadieDataViewer();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.songTab.SuspendLayout();
@@ -62,6 +63,7 @@
             this.bassTab.SuspendLayout();
             this.drumsTab.SuspendLayout();
             this.bandBonusesTab.SuspendLayout();
+            this.effectsTab.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -284,16 +286,6 @@
             this.bandBonusesTab.TabIndex = 9;
             this.bandBonusesTab.Text = "Band Bonuses";
             // 
-            // effectsTab
-            // 
-            this.effectsTab.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.effectsTab.Location = new System.Drawing.Point(4, 25);
-            this.effectsTab.Name = "effectsTab";
-            this.effectsTab.Padding = new System.Windows.Forms.Padding(3);
-            this.effectsTab.Size = new System.Drawing.Size(750, 485);
-            this.effectsTab.TabIndex = 8;
-            this.effectsTab.Text = "Roadie Work";
-            // 
             // bandBonusesDataViewer1
             // 
             this.bandBonusesDataViewer1.Location = new System.Drawing.Point(6, 6);
@@ -301,6 +293,25 @@
             this.bandBonusesDataViewer1.Size = new System.Drawing.Size(738, 473);
             this.bandBonusesDataViewer1.SongData = null;
             this.bandBonusesDataViewer1.TabIndex = 0;
+            // 
+            // effectsTab
+            // 
+            this.effectsTab.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.effectsTab.Controls.Add(this.roadieDataViewer1);
+            this.effectsTab.Location = new System.Drawing.Point(4, 25);
+            this.effectsTab.Name = "effectsTab";
+            this.effectsTab.Padding = new System.Windows.Forms.Padding(3);
+            this.effectsTab.Size = new System.Drawing.Size(750, 485);
+            this.effectsTab.TabIndex = 8;
+            this.effectsTab.Text = "Roadie Work";
+            // 
+            // roadieDataViewer1
+            // 
+            this.roadieDataViewer1.Location = new System.Drawing.Point(6, 6);
+            this.roadieDataViewer1.Name = "roadieDataViewer1";
+            this.roadieDataViewer1.Size = new System.Drawing.Size(738, 473);
+            this.roadieDataViewer1.SongData = null;
+            this.roadieDataViewer1.TabIndex = 0;
             // 
             // Form1
             // 
@@ -322,6 +333,7 @@
             this.bassTab.ResumeLayout(false);
             this.drumsTab.ResumeLayout(false);
             this.bandBonusesTab.ResumeLayout(false);
+            this.effectsTab.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -354,6 +366,7 @@
         private InstrumentDataViewer drumsDataViewer;
         private System.Windows.Forms.TabPage bandBonusesTab;
         private BandBonusesDataViewer bandBonusesDataViewer1;
+        private RoadieDataViewer roadieDataViewer1;
     }
 }
 

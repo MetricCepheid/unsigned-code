@@ -108,6 +108,8 @@ namespace Unsigned
         private CamBlendPos[] CamBlends;
         private Vector3 camPos, camUp, camFor;
 
+        private Vector3 mainLightColor;
+
         private uint cNear, cFar;
 
         private SongData songData;
@@ -140,6 +142,7 @@ namespace Unsigned
             this.Filename = Filename;
             this.songData = songData;
             LoadWorld(Filename,nugget);
+            mainLightColor = new Vector3(0f, 0f, 0f);
         }
 
         public void Update(SongTime songTime)
@@ -225,10 +228,33 @@ namespace Unsigned
                 Entities[i].Update(songTime);
             }
 
-            Fan.Update(GetBeatTime(songTime));
+            for (int i = 0; i < songData.effects.effects.Length; i++)
+            {
+                if (songTime.TotalSongTime.TotalSeconds >= songData.effects.effects[i].time / 1000f && songTime.TotalSongTime.TotalSeconds <= (songData.effects.effects[i].time + songData.effects.effects[i].length) / 1000f)
+                {
+                    if (songData.effects.effects[i] is SongData.NormalLightingSpecialEffect)
+                    {
+                        SongData.NormalLightingSpecialEffect ef = (SongData.NormalLightingSpecialEffect)songData.effects.effects[i];
+                        mainLightColor = new Vector3(ef.color.R / 255f, ef.color.G / 255f, ef.color.B / 255f);
+                    }
+                    else if (songData.effects.effects[i] is SongData.GradientLightingSpecialEffect)
+                    {
+                        SongData.GradientLightingSpecialEffect ef = (SongData.GradientLightingSpecialEffect)songData.effects.effects[i];
+                        Vector3 mainLightColor1 = new Vector3(ef.color1.R / 255f, ef.color1.G / 255f, ef.color1.B / 255f);
+                        Vector3 mainLightColor2 = new Vector3(ef.color2.R / 255f, ef.color2.G / 255f, ef.color2.B / 255f);
+                        float lerp = ((float)songTime.TotalSongTime.TotalSeconds - songData.effects.effects[i].time / 1000f) / (songData.effects.effects[i].length / 1000f);
+                        mainLightColor = ((lerp) * mainLightColor2) + ((1 - lerp) * mainLightColor1);
+                    }
+                }
+            }
+
+            {
+                float r = GetAbsoluteBeatTime(songTime);
+                Fan.Update(r);
+            }
             Vector3 vocalistPos = Vector3.Zero;
-            for(int i=0;i<rockers.Length;i++)
-                if(rockers[i].GetInstrument().CodeName=="LVX")
+            for (int i = 0; i < rockers.Length; i++)
+                if (rockers[i].GetInstrument().CodeName == "LVX")
                     vocalistPos = rockers[i].Position;
             for (int i = 0; i < Fans.Length; i++)
                 Fans[i].Update(songTime, vocalistPos);
@@ -601,10 +627,11 @@ namespace Unsigned
             effect.AmbientMaterial = new Color(50, 50, 50);
             effect.View = GetViewMatrix();
             effect.Projection = GetProjMatrix();
-            effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, 3, -1), new Color(0.5f,0.5f,0.5f), Color.White);
+            effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, 3, -1), new Color(mainLightColor), Color.White);
             effect.LightingEnabled = Configuration.Lighting;
             effect.NormalMapEnabled = Configuration.NormalMapping;
             effect.SpecularEnabled = Configuration.Specular;
+            //effect.Cartoon = true;
 
             effect.Begin();
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
@@ -620,8 +647,8 @@ namespace Unsigned
                     mMatWorld = matIdentity * matScale;
                     effect.World = mMatWorld;
                     effect.Shininess = StaticTexture[StaticGeom[i].texIndex].shininess;
-                    effect.DiffuseMaterial = new Color(200, 200, 200);
-                    effect.SpecularMaterial = new Color(200, 200, 200);
+                    effect.DiffuseMaterial = new Color(mainLightColor);
+                    effect.SpecularMaterial = new Color(1.0f,1.0f,1.0f);
                     if (lastTexApplied != StaticGeom[i].texIndex)
                     {
                         effect.DiffuseTexture = StaticTexture[StaticGeom[i].texIndex].tex;
@@ -679,6 +706,30 @@ namespace Unsigned
                 val *= songData.info.barlines[i].numBeats;
                 val %= 1.0f;
                 return val;
+            }
+            return 0;
+        }
+
+        private float GetAbsoluteBeatTime(SongTime songTime)
+        {
+            float currentTime = (float)songTime.TotalSongTime.TotalSeconds;
+            int ret = 0;
+            for (int i = 0; i < songData.info.barlines.Length - 1; i++)
+            {
+                if (currentTime * 1000 < songData.info.barlines[i].time)
+                {
+                    continue;
+                }
+                if (currentTime * 1000 > songData.info.barlines[i + 1].time)
+                {
+                    ret += (int)songData.info.barlines[i].numBeats;
+                    continue;
+                }
+                float start = songData.info.barlines[i].time / 1000f;
+                float end = songData.info.barlines[i + 1].time / 1000f;
+                float val = (currentTime - start) / (end - start);
+                val *= songData.info.barlines[i].numBeats;
+                return val+ret;
             }
             return 0;
         }

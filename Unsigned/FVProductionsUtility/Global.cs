@@ -29,6 +29,7 @@ namespace FVProductions.Utility
                 //return new Rectangle(ScreenWidth / 10, ScreenHeight / 10, ScreenWidth * 8 / 10, ScreenHeight * 8 / 10);
             }
         }
+        public static Rectangle ScreenArea { get { return new Rectangle(Global.Graphics.GraphicsDevice.Viewport.X, Global.Graphics.GraphicsDevice.Viewport.Y, Global.Graphics.GraphicsDevice.Viewport.Width, Global.Graphics.GraphicsDevice.Viewport.Height); } }
 
         public static Color UnsignedOrange = new Color(255, 170, 0);
         public static Color UnsignedYellow = new Color(255, 217, 0);

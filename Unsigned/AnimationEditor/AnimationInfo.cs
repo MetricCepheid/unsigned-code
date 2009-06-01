@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
+using Microsoft.Xna.Framework;
 
 namespace AnimationEditor
 {
@@ -91,6 +93,85 @@ namespace AnimationEditor
         public void RemoveAt(int index)
         {
             animValues.RemoveAt(index);
+        }
+    }
+
+    public class Joint
+    {
+        public String Name;
+        public Vector3 preOffset, postOffset;
+        public int JointMatrix;
+        public List<Joint> Children;
+
+        public Joint(String name, int matIndex)
+        {
+            Name = name;
+            JointMatrix = matIndex;
+            Children = new List<Joint>();
+        }
+    }
+
+    public class AnimationMatrixInfo
+    {
+        public Joint RootJoint;
+        public Matrix[] Matrices;
+
+        public AnimationMatrixInfo()
+        {
+            
+        }
+
+        public void Load(Stream stream)
+        {
+            StreamReader sr = new StreamReader(stream);
+
+            int count = 0;
+
+            RootJoint = new Joint(sr.ReadLine(), count);
+            RootJoint.preOffset = ReadVector3Line(sr);
+            RootJoint.postOffset = ReadVector3Line(sr);
+            count++;
+
+            while (!sr.EndOfStream)
+            {
+                Joint jt = new Joint(sr.ReadLine(), count);
+                count++;
+                Get(sr.ReadLine()).Children.Add(jt);
+                jt.preOffset = ReadVector3Line(sr);
+                jt.postOffset = ReadVector3Line(sr);
+            }
+
+            sr.Close();
+        }
+
+        private Vector3 ReadVector3Line(StreamReader sr)
+        {
+            String line = sr.ReadLine();
+            Vector3 ret = Vector3.Zero;
+            ret.X = Single.Parse(line.Substring(0, line.IndexOf(',')).Trim());
+            line = line.Substring(line.IndexOf(',') + 1);
+            ret.Y = Single.Parse(line.Substring(0, line.IndexOf(',')).Trim());
+            line = line.Substring(line.IndexOf(',') + 1);
+            ret.Z = Single.Parse(line.Trim());
+            return ret;
+        }
+
+        public Joint Get(String index)
+        {
+            return GetHelper(RootJoint, index);
+        }
+
+        private Joint GetHelper(Joint j, String idx)
+        {
+            if (j.Name == idx)
+                return j;
+            for (int i = 0; i < j.Children.Count; i++)
+            {
+                Joint jj = GetHelper(j.Children[i], idx);
+                if (jj != null)
+                    return jj;
+            }
+            return null;
         }
     }
 }

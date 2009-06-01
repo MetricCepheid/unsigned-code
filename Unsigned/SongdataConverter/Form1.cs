@@ -49,6 +49,7 @@ namespace SongdataConverter
             bassDataViewer.SongData = SongData;
             drumsDataViewer.SongData = SongData;
             bandBonusesDataViewer1.SongData = SongData;
+            roadieDataViewer1.SongData = SongData;
 
             if (SongData == null)
                 this.Text = "Unsigned 2.0 SongData Conversion Utility";

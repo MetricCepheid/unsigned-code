@@ -891,6 +891,10 @@ namespace Unsigned
                 effect.SpecularEnabled = Configuration.Specular;
                 effect.NormalMapEnabled = Configuration.NormalMapping;
 
+                effect.DiffuseMaterial = Color.White;
+                effect.SpecularMaterial = Color.White;
+                effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, 3, -1), Color.White, Color.White);
+
                 effect.CommitChanges();
 
                 effect.Begin();
@@ -917,6 +921,7 @@ namespace Unsigned
 #if DEBUG
                 spriteBatch.Begin();
                 //spriteBatch.DrawString(Global.DefaultFont, "" + ((int)(RockMeterLevel*10000)/100f), new Vector2(20, 120), Color.Red);
+                if(instrumentType.HasSolos)
                 for (int i = 0; i < Solos.Length; i++)
                 {
                     if (songTime.TotalSongTime.TotalSeconds >= Solos[i].Start && songTime.TotalSongTime.TotalSeconds <= Solos[i].End)
@@ -1073,16 +1078,16 @@ namespace Unsigned
                     if(whammyValues.Count>0)
                         diff = Math.Abs(whammyValues[0].Value - whammyAmount);
                     whammyValues.Insert(0, new Wave(whammyAmount, 0));
-                    if (Global.Random.Next(10) == 0)
+                    if (Global.Random.Next(5) == 0)
                         for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)
                             if (Notes[currentNoteIndex].HasFret(i))
-                                myParticles.AddSparks(i, 1, false);
+                                myParticles.AddSparks(i, 1, 0.25f, false);
                 }
                 else
-                    if (Global.Random.Next(15) == 0)
+                    if (Global.Random.Next(8) == 0)
                         for (int i = 0; i < GetBoardType().NumDrawnTracks; i++)
                             if (Notes[currentNoteIndex].HasFret(i))
-                                myParticles.AddSparks(i, 1, false);
+                                myParticles.AddSparks(i, 1, 0.25f, false);
                 score += (float)(songTime.ElapsedGameTime.TotalSeconds * bpm * (0.1f+diff) * Notes[currentNoteIndex].NumNotes * GetScoreMultiplier());
 
                 bool rp = false;
@@ -1536,7 +1541,7 @@ namespace Unsigned
 
         private void DrawNotes(SongTime songTime)
         {
-            effect.DirectionalLight = new DirectionalLight(true,new Vector3(0, 2, 1),new Color(200, 200, 200),new Color(150, 150, 150));
+            effect.DirectionalLight = new DirectionalLight(true,new Vector3(0, 2, 1),Color.White,Color.White);
             effect.DiffuseMaterial = new Color(200, 200, 200);
 
             Global.Graphics.GraphicsDevice.RenderState.AlphaBlendEnable = true;

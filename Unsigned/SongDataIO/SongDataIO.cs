@@ -887,6 +887,16 @@ namespace SongDataIO
                     SongData.NormalLightingSpecialEffect ef = new SongData.NormalLightingSpecialEffect(time, len, new SongData.Color(255, 255, 255));
                     uint color = reader.ReadUInt32();
                     ef.color = new SongData.Color((byte)(color & 0x000000FF), (byte)((color & 0x0000FF00) >> 8), (byte)((color & 0x00FF0000) >> 16), (byte)((color & 0xFF000000) >> 24));
+                    ret.effects.effects[i] = ef;
+                }
+                else if (tp[0] == 'l' && tp[1] == 'g')
+                {
+                    SongData.GradientLightingSpecialEffect ef = new SongData.GradientLightingSpecialEffect(time, len, new SongData.Color(255, 255, 255), new SongData.Color(255, 255, 255));
+                    uint color1 = reader.ReadUInt32();
+                    uint color2 = reader.ReadUInt32();
+                    ef.color1 = new SongData.Color((byte)(color1 & 0x000000FF), (byte)((color1 & 0x0000FF00) >> 8), (byte)((color1 & 0x00FF0000) >> 16), (byte)((color1 & 0xFF000000) >> 24));
+                    ef.color2 = new SongData.Color((byte)(color2 & 0x000000FF), (byte)((color2 & 0x0000FF00) >> 8), (byte)((color2 & 0x00FF0000) >> 16), (byte)((color2 & 0xFF000000) >> 24));
+                    ret.effects.effects[i] = ef;
                 }
             }
             reader.Close();
@@ -1060,8 +1070,8 @@ namespace SongDataIO
                     SongData.SpecialEffect effect = songdata.effects.effects[ei];
                     
                     writer.Write((uint)effect.time);
-                    writer.Write((char)effect.type.ToCharArray()[0]);
-                    writer.Write((char)effect.type.ToCharArray()[1]);
+                    writer.Write((char)effect.type[0]);
+                    writer.Write((char)effect.type[1]);
                     writer.Write((uint)effect.length);
 
                     if (effect is SongData.NormalLightingSpecialEffect)
@@ -1070,6 +1080,17 @@ namespace SongDataIO
                         writer.Write((byte)((effect as SongData.NormalLightingSpecialEffect).color.G));
                         writer.Write((byte)((effect as SongData.NormalLightingSpecialEffect).color.B));
                         writer.Write((byte)((effect as SongData.NormalLightingSpecialEffect).color.A));
+                    }
+                    else if (effect is SongData.GradientLightingSpecialEffect)
+                    {
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color1.R));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color1.G));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color1.B));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color1.A));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.R));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.G));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.B));
+                        writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.A));
                     }
                 }
             }

@@ -3,8 +3,6 @@ float4x4 View;
 float4x4 Projection;
 
 float3 LightDirection = float3(0,4,2.5);
-float4 LightDiffuse = float4(1,1,1,1);
-float4 LightSpecular = float4(1,1,1,1);
 
 float4 Ambient = float4(0,0,0,1);
 float4 Diffuse = float4(1,1,1,1);
@@ -15,6 +13,8 @@ float SpecularPower = 1.0f;
 float Alpha = 1.0f;
 
 float3 EyePos;
+
+float CELL_LEVELS = 4.0f;
 
 texture2D normalTex;
 sampler2D NormalMapSampler = sampler_state
@@ -147,7 +147,7 @@ float4 PixelShader_NO_NM( VS_OUTPUT input ) : COLOR0
     
     // use the normal we looked up to do phong diffuse style lighting.    
     float nDotL = max(dot(normalFromMap, lightDirection), 0);
-    float4 diffuse = Diffuse * nDotL;
+    float4 diffuse = saturate(Diffuse * nDotL);
     
     // use phong to calculate specular highlights: reflect the incoming light
     // vector off the normal, and use a dot product to see how "similar"
@@ -155,7 +155,7 @@ float4 PixelShader_NO_NM( VS_OUTPUT input ) : COLOR0
     float3 reflectedLight = reflect(lightDirection, normalFromMap);
     float rDotV = max(dot(reflectedLight, viewDirection), 0);
     float3 specInfo = tex2D(SpecularTextureSampler,input.texCoord);
-    float4 specular = specInfo.r * Diffuse * pow(rDotV, specInfo.g*SpecularPower);
+    float4 specular = specInfo.r * Specular * pow(rDotV, specInfo.g*SpecularPower);
     
     float4 diffuseTexture = tex2D(DiffuseTextureSampler, input.texCoord);
     
@@ -178,7 +178,7 @@ float4 PixelShader_NO_SP( VS_OUTPUT input ) : COLOR0
     
     // use the normal we looked up to do phong diffuse style lighting.    
     float nDotL = max(dot(normalFromMap, lightDirection), 0);
-    float4 diffuse = Diffuse * nDotL;
+    float4 diffuse = saturate(Diffuse * nDotL);
     
     float4 diffuseTexture = tex2D(DiffuseTextureSampler, input.texCoord);
     
@@ -197,12 +197,51 @@ float4 PixelShader_NO_NMSP( VS_OUTPUT input ) : COLOR0
     
     // use the normal we looked up to do phong diffuse style lighting.    
     float nDotL = max(dot(normalFromMap, lightDirection), 0);
-    float4 diffuse = Diffuse * nDotL;
+    float4 diffuse = saturate(Diffuse * nDotL);
     
     float4 diffuseTexture = tex2D(DiffuseTextureSampler, input.texCoord);
     
     // return the combined result.
     return float4(((saturate(diffuse + Ambient) * diffuseTexture)).rgb,diffuseTexture.a*Alpha);
+}
+
+
+
+float4 PixelShader_CARTOON( VS_OUTPUT input ) : COLOR0
+{
+    float3 normalFromMap = tex2D(NormalMapSampler, input.texCoord)*2-1;
+    normalFromMap = mul(normalFromMap, input.tangentToWorld);
+    normalFromMap = normalize(normalFromMap);
+    
+    // clean up our inputs a bit
+    float3 viewDirection = normalize(input.worldPosition-EyePos);
+    float3 lightDirection = LightDirection;    
+    
+    // use the normal we looked up to do phong diffuse style lighting.    
+    float nDotL = max(dot(normalFromMap, lightDirection), 0);
+    
+    // use phong to calculate specular highlights: reflect the incoming light
+    // vector off the normal, and use a dot product to see how "similar"
+    // the reflected vector is to the view vector.    
+    float3 reflectedLight = reflect(lightDirection, normalFromMap);
+    float rDotV = max(dot(reflectedLight, viewDirection), 0);
+    float3 specInfo = tex2D(SpecularTextureSampler,input.texCoord);
+    float specularV = specInfo.r * pow(rDotV, specInfo.g*SpecularPower);
+    
+    float totalValue = Ambient.r+nDotL+specularV;
+    float aPC = Ambient.r/totalValue;
+    float dPC = nDotL/totalValue;
+    float sPC = specularV/totalValue;
+    totalValue = (int)(totalValue*CELL_LEVELS)/CELL_LEVELS;
+    
+    float4 ambient = aPC*totalValue;
+    float4 diffuse = saturate(Diffuse * (dPC*totalValue));
+    float4 specular = Specular * (sPC*totalValue);
+    
+    float4 diffuseTexture = tex2D(DiffuseTextureSampler, input.texCoord);
+    
+    // return the combined result.
+    return float4(((saturate(diffuse + ambient) * diffuseTexture) + specular).rgb,diffuseTexture.a*Alpha);
 }
 
 Technique maintechnique
@@ -247,5 +286,14 @@ Technique maintechnique_NO_NMSP
     {
         VertexShader = compile vs_1_1 VertexShader();
         PixelShader = compile ps_2_0 PixelShader_NO_NMSP();
+    }
+}
+
+Technique maintechnique_CARTOON
+{
+    Pass Go
+    {
+        VertexShader = compile vs_1_1 VertexShader();
+        PixelShader = compile ps_2_0 PixelShader_CARTOON();
     }
 }
