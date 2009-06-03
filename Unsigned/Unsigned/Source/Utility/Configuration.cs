@@ -25,7 +25,22 @@ namespace Unsigned
         /// Whether the game window is fullscreen or widescreen
         /// is irrelevant if FullScreen is true
         /// </summary>
-        public static bool WideScreen { get; set; }
+        private static bool _ws;
+        public static bool WideScreen 
+        {
+            get
+            {
+                if (FullScreen)
+                    _ws = (Global.Graphics.GraphicsDevice.DisplayMode.Width / (float)Global.Graphics.GraphicsDevice.DisplayMode.Height) > 1.35f;
+                return _ws;
+            }
+            set
+            {
+                _ws = value;
+                if (FullScreen)
+                    _ws = (Global.Graphics.GraphicsDevice.DisplayMode.Width / (float)Global.Graphics.GraphicsDevice.DisplayMode.Height) > 1.35f;
+            }
+        }
 
         /// <summary>
         /// Whether or not the game should render 2D mode
@@ -136,12 +151,22 @@ namespace Unsigned
         /// <summary>
         /// How loud the SFX are (0-100)
         /// </summary>
-        public static int SoundEffectsVolume { get; set; }
+        private static int _sev;
+        public static int SoundEffectsVolume
+        {
+            get { return _sev; }
+            set { _sev = Math.Min(100, Math.Max(0, value)); }
+        }
 
         /// <summary>
         /// How loud the music is (0-100)
         /// </summary>
-        public static int MusicVolume { get; set; }
+        private static int _mv;
+        public static int MusicVolume
+        {
+            get { return _mv; }
+            set { _mv = Math.Min(100, Math.Max(0, value)); }
+        }
 
         /// <summary>
         /// An int from 0-2 describing how detailed the crowd is
@@ -149,8 +174,8 @@ namespace Unsigned
         private static int _crowdDetail;
         public static int CrowdDetail
         {
-            get { return _partDetail; }
-            set { _partDetail = Math.Min(2, Math.Max(0, value)); }
+            get { return _crowdDetail; }
+            set { _crowdDetail = Math.Min(2, Math.Max(0, value)); }
         }
 
         /// <summary>
