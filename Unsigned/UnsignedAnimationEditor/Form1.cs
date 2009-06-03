@@ -51,5 +51,20 @@ namespace UnsignedAnimationEditor
             AnimInfo.Skeleton = new Skeleton();
             AnimInfo.Skeleton.Load(System.IO.File.OpenRead("GuitaristHierarchy.txt"));
         }
+
+        private void pictureBox1_MouseEnter(object sender, EventArgs e)
+        {
+            Game.CanUseMouse = true;
+        }
+
+        private void pictureBox1_MouseLeave(object sender, EventArgs e)
+        {
+            Game.CanUseMouse = false;
+        }
+
+        private void Form1_MouseLeave(object sender, EventArgs e)
+        {
+            Game.CanUseMouse = false;
+        }
     }
 }

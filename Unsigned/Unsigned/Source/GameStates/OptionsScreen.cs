@@ -17,11 +17,8 @@ namespace Unsigned
         private FVShader effect;
 
         private Texture2D concrTex, concrBM;
-        private Texture2D tamp1, tamp1bm, tamp2, tamp2bm;
-        private Texture2D tknob, ttape;
-        private Texture2D tledon, tledoff, tswitchon, tswitchoff;
-
-        private FVModel mAmp1, mAmp2;
+        private Texture2D gibsonTex;
+        private FVModel gibsonMdl;
 
         private String[] guiStyle = { "Rock Band", "Unsigned", "Guitar Hero", };
         private String[][] languageNames = { new[] { "English", "French", "Spanish", "German" },
@@ -41,8 +38,10 @@ namespace Unsigned
 
         private enum OPTIONS
         {
-            OPT_ROCKLEVEL = 1,
+            NONE,
+            OPT_ROCKLEVEL,
             OPT_LANGUAGE,
+            OPT_WIDESCREEN,
             OPT_RESOLUTION,
             OPT_FULLSCREEN,
             OPT_GUISTYLE,
@@ -51,12 +50,55 @@ namespace Unsigned
             OPT_NORMALMAPPING,
             OPT_SPECULAR,
             OPT_PARTICLELEVEL,
+            OPT_RENDERVENUES,
+            OPT_WAVELEVEL,
+            OPT_MUSICVOL,
+            OPT_SFXVOL,
             MAX,
         };
 
+        private struct OptionsSet
+        {
+            public String Name;
+            public OPTIONS[] options;
+
+            public OptionsSet(String name)
+            {
+                Name = name;
+                options = new OPTIONS[6];
+            }
+        }
+
+        private List<OptionsSet> Options;
+
         public OptionsScreen()
         {
-
+            Options = new List<OptionsSet>();
+            {
+                OptionsSet o = new OptionsSet("Graphics");
+                o.options[0] = OPTIONS.OPT_FULLSCREEN;
+                o.options[1] = OPTIONS.OPT_WIDESCREEN;
+                o.options[2] = OPTIONS.OPT_RESOLUTION;
+                o.options[3] = OPTIONS.OPT_LIGHTING;
+                o.options[4] = OPTIONS.OPT_SPECULAR;
+                o.options[5] = OPTIONS.OPT_NORMALMAPPING;
+                Options.Add(o);
+            }
+            {
+                OptionsSet o = new OptionsSet("Gameplay");
+                o.options[0] = OPTIONS.OPT_RENDER3D;
+                o.options[1] = OPTIONS.OPT_RENDERVENUES;
+                o.options[2] = OPTIONS.OPT_GUISTYLE;
+                o.options[3] = OPTIONS.OPT_PARTICLELEVEL;
+                o.options[4] = OPTIONS.OPT_WAVELEVEL;
+                Options.Add(o);
+            }
+            {
+                OptionsSet o = new OptionsSet("Audio");
+                o.options[0] = OPTIONS.OPT_SFXVOL;
+                o.options[1] = OPTIONS.OPT_MUSICVOL;
+                Options.Add(o);
+            }
         }
 
         public override void Load()
@@ -66,25 +108,12 @@ namespace Unsigned
 
             spriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
 
-            mAmp1 = ModelLoader.LoadModel("meshes\\Options\\amp");
-            tamp1 = Content.Load<Texture2D>("textures\\Options\\amp");
-            tamp1bm = Content.Load<Texture2D>("textures\\Options\\ampBM");
-            mAmp2 = ModelLoader.LoadModel("meshes\\Options\\amppanel");
-            tamp2 = Content.Load<Texture2D>("textures\\Options\\amppanel");
-            tamp2bm = Content.Load<Texture2D>("textures\\Options\\amppanelBM");
-            tknob = Content.Load<Texture2D>("textures\\Options\\knob");
-            ttape = Content.Load<Texture2D>("textures\\Options\\tape");
-            tledon = Content.Load<Texture2D>("textures\\Options\\ledon");
-            tledoff = Content.Load<Texture2D>("textures\\Options\\ledoff");
-            tswitchon = Content.Load<Texture2D>("textures\\Options\\switchon");
-            tswitchoff = Content.Load<Texture2D>("textures\\Options\\switchoff");
             concrTex = Content.Load<Texture2D>("textures\\Options\\concr");
             concrBM = Content.Load<Texture2D>("textures\\Options\\concrBM");
+            gibsonTex = Content.Load<Texture2D>("textures\\Options\\header_gameplay");
+            gibsonMdl = ModelLoader.LoadModel("meshes\\Options\\gibsonHeader");
 
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
-
-            optionsSelected = OPTIONS.OPT_RESOLUTION;
-            rockLevel = 11;
         }
 
         public override void Unload()
@@ -176,12 +205,10 @@ namespace Unsigned
 #endif
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-                //graphics.PreferMultiSampling = true;
                 Global.Graphics.ApplyChanges();
 
                 VertexDeclaration vd = new VertexDeclaration(Global.Graphics.GraphicsDevice, VertexTangentBinormal.Elements);
                 Global.Graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-                //graphics.GraphicsDevice.
 
                 effect.NormalMapTexture = Global.TexDefaultBM;
                 effect.AmbientMaterial = new Color(24, 24, 24);
@@ -225,158 +252,39 @@ namespace Unsigned
                     effect.View = matView;
 
                     Matrix matRot, matScale, matTranslate;
-                    if (introlerp < 0.95f)
-                    {
-                        {//basebottom
-                            matTranslate = Matrix.CreateTranslation(0, 100, 0);
-                            matRot = Matrix.CreateRotationX((float)Math.PI);
-                            matScale = Matrix.CreateScale(40, 0, 32);
-
-                            effect.World = matScale * matRot * matTranslate;
-                            effect.DiffuseTexture = concrTex;
-                            effect.NormalMapTexture = concrBM;
-                            effect.Shininess = 0.25f;
-                            effect.CommitChanges();
-
-                            Global.Graphics.GraphicsDevice.DrawSquare();
-                        }
-                        {//basewall
-                            matTranslate = Matrix.CreateTranslation(0, 132, -4.6f);
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 2);
-                            matScale = Matrix.CreateScale(40, 0, 32);
-
-                            effect.World = matScale * matRot * matTranslate;
-                            effect.DiffuseTexture = concrTex;
-                            effect.NormalMapTexture = concrBM;
-                            effect.Shininess = 0.25f;
-                            effect.CommitChanges();
-
-                            Global.Graphics.GraphicsDevice.DrawSquare();
-                        }
-                        {//rightwall
-                            matTranslate = Matrix.CreateTranslation(6.8f, 132, 0f);
-                            matRot = Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationY(MathHelper.PiOver2);
-                            matScale = Matrix.CreateScale(40, 0, 32);
-
-                            effect.World = matScale * matRot * matTranslate;
-                            effect.DiffuseTexture = concrTex;
-                            effect.NormalMapTexture = concrBM;
-                            effect.Shininess = 0.25f;
-                            effect.CommitChanges();
-
-                            Global.Graphics.GraphicsDevice.DrawSquare();
-                        }
-                    }
-
-                    {//amp
-                        matTranslate = Matrix.CreateTranslation(0, 103.6f, 0);
-                        matRot = Matrix.Identity;
-                        matScale = Matrix.CreateScale(1, 1, 1);
+                    {//basebottom
+                        matTranslate = Matrix.CreateTranslation(0, 100, 0);
+                        matRot = Matrix.CreateRotationX((float)Math.PI);
+                        matScale = Matrix.CreateScale(40, 0, 32);
 
                         effect.World = matScale * matRot * matTranslate;
+                        effect.DiffuseTexture = concrTex;
+                        effect.NormalMapTexture = concrBM;
+                        effect.Shininess = 0.25f;
+                        effect.CommitChanges();
 
-                        effect.SpecularMaterial = Color.Gray;
-                        Global.Graphics.GraphicsDevice.VertexDeclaration = VertexTangentBinormal.VertexDeclaration;
+                        Global.Graphics.GraphicsDevice.DrawSquare();
+                    }
+                    {//basewall
+                        matTranslate = Matrix.CreateTranslation(0, 132, -4.6f);
+                        matRot = Matrix.CreateRotationX((float)Math.PI / 2);
+                        matScale = Matrix.CreateScale(40, 0, 32);
 
-                        effect.Shininess = 32f;
-                        if (introlerp < 0.95f)
-                        {
-                            effect.DiffuseTexture = tamp1;
-                            effect.NormalMapTexture = tamp1bm;
-                            effect.CommitChanges();
+                        effect.World = matScale * matRot * matTranslate;
+                        effect.DiffuseTexture = concrTex;
+                        effect.NormalMapTexture = concrBM;
+                        effect.Shininess = 0.25f;
+                        effect.CommitChanges();
 
-                            mAmp1.Draw();
-                        }
-
-                        effect.DiffuseTexture = tamp2;
-                        effect.NormalMapTexture = tamp2bm;
-                        effect.CommitChanges(); 
-                        
-                        mAmp2.Draw();
+                        Global.Graphics.GraphicsDevice.DrawSquare();
                     }
 
                     pass.End();
                 }
                 effect.End();
-                float xscale = -Global.ScreenWidth * 0.2f, scale = (Global.ScreenWidth / 1024f);
+
+
                 spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
-
-                {//rocklev
-                    float x = 0.2f * (int)OPTIONS.OPT_ROCKLEVEL, y = 0.3f+(((int)OPTIONS.OPT_ROCKLEVEL%2)*0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * Global.ScreenWidth + optionsOffset * xscale), (int)(y * Global.ScreenHeight), (int)(0.02f*Global.ScreenWidth+Global.DefaultFont.MeasureString(Localizer.Get("Rock Level")).X*scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Rock Level"), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.01f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, "" + rockLevel, new Vector2(((x + 0.1f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.05f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(tknob, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_ROCKLEVEL ? Color.White : Color.Gray, (rockLevel / 10f) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//res
-                    float x = 0.2f * (int)OPTIONS.OPT_RESOLUTION, y = 0.3f + (((int)OPTIONS.OPT_RESOLUTION % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * Global.ScreenWidth + optionsOffset * xscale), (int)(y * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Resolution")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Resolution"), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.01f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, "" + Configuration.ResolutionWidthOptions[Configuration.ResIndex] + "x" + (Configuration.WideScreen?Configuration.ResolutionHeightWideOptions[Configuration.ResIndex]:Configuration.ResolutionHeightFullOptions[Configuration.ResIndex]), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.05f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(tknob, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_RESOLUTION ? Color.White : Color.Gray, (Configuration.ResIndex / (float)(Configuration.ResolutionWidthOptions.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//gui
-                    float x = 0.2f * (int)OPTIONS.OPT_GUISTYLE, y = 0.3f + (((int)OPTIONS.OPT_GUISTYLE % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * Global.ScreenWidth + optionsOffset * xscale), (int)(y * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Math.Max(Global.DefaultFont.MeasureString(Localizer.Get("HUD Style")).X, Global.DefaultFont.MeasureString(guiStyle[(int)Configuration.GUIStyle]).X) * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("HUD Style"), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.01f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, guiStyle[(int)Configuration.GUIStyle], new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.05f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(tknob, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_GUISTYLE ? Color.White : Color.Gray, ((float)Configuration.GUIStyle / (guiStyle.Length - 1)) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//3don
-                    float x = 0.2f * (int)OPTIONS.OPT_RENDER3D, y = 0.3f + (((int)OPTIONS.OPT_RENDER3D % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * Global.ScreenWidth + optionsOffset * xscale), (int)((y - 0.05f) * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("3D Mode")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("3D Mode"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y - 0.04f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, Configuration.RenderVenues ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.RenderVenues ? tswitchon : tswitchoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_RENDER3D ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.RenderVenues ? tledon : tledoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), (y - 0.13f) * Global.ScreenHeight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//fulls
-                    float x = 0.2f * (int)OPTIONS.OPT_FULLSCREEN, y = 0.3f + (((int)OPTIONS.OPT_FULLSCREEN % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * Global.ScreenWidth + optionsOffset * xscale), (int)((y - 0.05f) * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Full Screen")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Full Screen"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y - 0.04f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, Configuration.FullScreen ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.FullScreen ? tswitchon : tswitchoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_FULLSCREEN ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.FullScreen ? tledon : tledoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), (y - 0.13f) * Global.ScreenHeight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//light
-                    float x = 0.2f * (int)OPTIONS.OPT_LIGHTING, y = 0.3f+(((int)OPTIONS.OPT_LIGHTING%2)*0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * Global.ScreenWidth + optionsOffset * xscale), (int)((y - 0.05f) * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Lighting")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Lighting"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y - 0.04f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, Configuration.Lighting ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.Lighting ? tswitchon : tswitchoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_LIGHTING ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.Lighting ? tledon : tledoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), (y - 0.13f) * Global.ScreenHeight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//normalmapping
-                    float x = 0.2f * (int)OPTIONS.OPT_NORMALMAPPING, y = 0.3f + (((int)OPTIONS.OPT_NORMALMAPPING % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * Global.ScreenWidth + optionsOffset * xscale), (int)((y - 0.05f) * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Normal Mapping")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Normal Mapping"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y - 0.04f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, Configuration.NormalMapping ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.NormalMapping ? tswitchon : tswitchoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_NORMALMAPPING ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.NormalMapping ? tledon : tledoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), (y - 0.13f) * Global.ScreenHeight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//specular
-                    float x = 0.2f * (int)OPTIONS.OPT_SPECULAR, y = 0.3f + (((int)OPTIONS.OPT_SPECULAR % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.03f) * Global.ScreenWidth + optionsOffset * xscale), (int)((y - 0.05f) * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Specular Highlights")).X * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Specular Highlights"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y - 0.04f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, Configuration.Specular ? Localizer.Get("On") : Localizer.Get("Off"), new Vector2(((x + 0.04f) * Global.ScreenWidth + optionsOffset * xscale), (y) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.Specular ? tswitchon : tswitchoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_SPECULAR ? Color.White : Color.Gray, 0, new Vector2(tswitchon.Width / 2, tswitchon.Height / 2), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(Configuration.Specular ? tledon : tledoff, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), (y - 0.13f) * Global.ScreenHeight), null, Color.White, 0, new Vector2(tledon.Width / 2, tledon.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//language
-                    float x = 0.2f * (int)OPTIONS.OPT_LANGUAGE, y = 0.3f + (((int)OPTIONS.OPT_LANGUAGE % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * Global.ScreenWidth + optionsOffset * xscale), (int)(y * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Language")).X * 1.5f * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Language"), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.01f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, "" + languageNames[(int)Configuration.CurrentLanguage][(int)Configuration.CurrentLanguage], new Vector2(((x + 0.1f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.05f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(tknob, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_LANGUAGE ? Color.White : Color.Gray, ((int)Configuration.CurrentLanguage / (float)Localizer.Language.Length) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
-                }
-                {//particle detail
-                    float x = 0.2f * (int)OPTIONS.OPT_PARTICLELEVEL, y = 0.3f + (((int)OPTIONS.OPT_PARTICLELEVEL % 2) * 0.3f);
-                    spriteBatch.Draw(ttape, new Rectangle((int)((x + 0.07f) * Global.ScreenWidth + optionsOffset * xscale), (int)(y * Global.ScreenHeight), (int)(0.02f * Global.ScreenWidth + Global.DefaultFont.MeasureString(Localizer.Get("Particle Detail")).X * 1.5f * scale), (int)(0.1f * Global.ScreenHeight)), Color.White);
-                    spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Particle Detail"), new Vector2(((x + 0.08f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.01f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), Global.ScreenWidth / 1024f, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(Global.DefaultFont, "" + Configuration.ParticleDetails[(int)Configuration.ParticleDetail], new Vector2(((x + 0.1f) * Global.ScreenWidth + optionsOffset * xscale), (y + 0.05f) * Global.ScreenHeight), Color.Black, 0, new Vector2(0, 0), scale, SpriteEffects.None, 0);
-                    spriteBatch.Draw(tknob, new Vector2((x * Global.ScreenWidth + optionsOffset * xscale), y * Global.ScreenHeight), null, optionsSelected == OPTIONS.OPT_PARTICLELEVEL ? Color.White : Color.Gray, ((int)Configuration.ParticleDetail / (float)Configuration.ParticleDetails.Length) * -MathHelper.Pi, new Vector2(tknob.Width / 2, tknob.Height / 2), scale, SpriteEffects.None, 0);
-                }
-
 
                 if (knobBroken > 4)
                 {
@@ -405,6 +313,82 @@ namespace Unsigned
                 return;
             }
 #endif
+        }
+
+        private String GetValue(OPTIONS option)
+        {
+            switch (option)
+            {
+                case OPTIONS.OPT_FULLSCREEN:
+                    return Configuration.FullScreen ? "Full" : "Windowed";
+                case OPTIONS.OPT_GUISTYLE:
+                    return guiStyle[(int)Configuration.GUIStyle];
+                case OPTIONS.OPT_LANGUAGE:
+                    return languageNames[(int)Configuration.CurrentLanguage][(int)Configuration.CurrentLanguage];
+                case OPTIONS.OPT_LIGHTING:
+                    return Configuration.Lighting ? "On" : "Off";
+                case OPTIONS.OPT_MUSICVOL:
+                    return "" + Configuration.MusicVolume;
+                case OPTIONS.OPT_NORMALMAPPING:
+                    return Configuration.NormalMapping ? "On" : "Off";
+                case OPTIONS.OPT_PARTICLELEVEL:
+                    return Configuration.ParticleDetails[Configuration.ParticleDetail];
+                case OPTIONS.OPT_RENDER3D:
+                    return Configuration.TwoDimensionalMode ? "2D" : "3D";
+                case OPTIONS.OPT_RENDERVENUES:
+                    return Configuration.RenderVenues ? "On" : "Off";
+                case OPTIONS.OPT_RESOLUTION:
+                    return Configuration.ResolutionWidthOptions[Configuration.ResIndex] + "x" + (Configuration.WideScreen ? Configuration.ResolutionHeightWideOptions[Configuration.ResIndex] : Configuration.ResolutionHeightFullOptions[Configuration.ResIndex]);
+                case OPTIONS.OPT_ROCKLEVEL:
+                    return "11";
+                case OPTIONS.OPT_SFXVOL:
+                    return "" + Configuration.SoundEffectsVolume;
+                case OPTIONS.OPT_SPECULAR:
+                    return Configuration.Specular ? "On" : "Off";
+                case OPTIONS.OPT_WAVELEVEL:
+                    return "" + Configuration.WaveDetail;
+                case OPTIONS.OPT_WIDESCREEN:
+                    return Configuration.WideScreen ? "Wide (16:9)" : "Standard (4:3)";
+            }
+            return "INVALID";
+        }
+
+        private void IncrementValue(OPTIONS option)
+        {
+            switch (option)
+            {
+                case OPTIONS.OPT_FULLSCREEN:
+                    return Configuration.FullScreen ? "Full" : "Windowed";
+                case OPTIONS.OPT_GUISTYLE:
+                    return guiStyle[(int)Configuration.GUIStyle];
+                case OPTIONS.OPT_LANGUAGE:
+                    return languageNames[(int)Configuration.CurrentLanguage][(int)Configuration.CurrentLanguage];
+                case OPTIONS.OPT_LIGHTING:
+                    return Configuration.Lighting ? "On" : "Off";
+                case OPTIONS.OPT_MUSICVOL:
+                    return "" + Configuration.MusicVolume;
+                case OPTIONS.OPT_NORMALMAPPING:
+                    return Configuration.NormalMapping ? "On" : "Off";
+                case OPTIONS.OPT_PARTICLELEVEL:
+                    return Configuration.ParticleDetails[Configuration.ParticleDetail];
+                case OPTIONS.OPT_RENDER3D:
+                    return Configuration.TwoDimensionalMode ? "2D" : "3D";
+                case OPTIONS.OPT_RENDERVENUES:
+                    return Configuration.RenderVenues ? "On" : "Off";
+                case OPTIONS.OPT_RESOLUTION:
+                    return Configuration.ResolutionWidthOptions[Configuration.ResIndex] + "x" + (Configuration.WideScreen ? Configuration.ResolutionHeightWideOptions[Configuration.ResIndex] : Configuration.ResolutionHeightFullOptions[Configuration.ResIndex]);
+                case OPTIONS.OPT_ROCKLEVEL:
+                    return "11";
+                case OPTIONS.OPT_SFXVOL:
+                    return "" + Configuration.SoundEffectsVolume;
+                case OPTIONS.OPT_SPECULAR:
+                    return Configuration.Specular ? "On" : "Off";
+                case OPTIONS.OPT_WAVELEVEL:
+                    return "" + Configuration.WaveDetail;
+                case OPTIONS.OPT_WIDESCREEN:
+                    return Configuration.WideScreen ? "Wide (16:9)" : "Standard (4:3)";
+            }
+            return "INVALID";
         }
     }
 }

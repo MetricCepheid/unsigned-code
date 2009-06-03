@@ -76,5 +76,15 @@ namespace UnsignedAnimationEditor
                 keyframeTrackBar1.Enabled = false;
             }
         }
+
+        private void keyframeTrackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            AnimationInfo.CurrentAnimationTimeValue = keyframeTrackBar1.Value * 2;
+        }
+
+        private void frameComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AnimationInfo.SelectedJointIndex = frameComboBox.SelectedIndex;
+        }
     }
 }

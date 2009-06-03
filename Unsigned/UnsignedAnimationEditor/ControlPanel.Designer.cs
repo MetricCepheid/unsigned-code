@@ -35,9 +35,9 @@
             this.addKeyframeButton = new System.Windows.Forms.Button();
             this.rmvKeyframeButton = new System.Windows.Forms.Button();
             this.newAnimButton = new System.Windows.Forms.Button();
-            this.keyframeTrackBar1 = new UnsignedAnimationEditor.KeyframeTrackBar();
             this.frameComboBox = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.keyframeTrackBar1 = new UnsignedAnimationEditor.KeyframeTrackBar();
             this.SuspendLayout();
             // 
             // animComboBox
@@ -99,6 +99,24 @@
             this.newAnimButton.UseVisualStyleBackColor = true;
             this.newAnimButton.Click += new System.EventHandler(this.button3_Click);
             // 
+            // frameComboBox
+            // 
+            this.frameComboBox.FormattingEnabled = true;
+            this.frameComboBox.Location = new System.Drawing.Point(4, 238);
+            this.frameComboBox.Name = "frameComboBox";
+            this.frameComboBox.Size = new System.Drawing.Size(164, 24);
+            this.frameComboBox.TabIndex = 7;
+            this.frameComboBox.SelectedIndexChanged += new System.EventHandler(this.frameComboBox_SelectedIndexChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(4, 215);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(42, 17);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "Joint:";
+            // 
             // keyframeTrackBar1
             // 
             this.keyframeTrackBar1.BackColor = System.Drawing.Color.Transparent;
@@ -111,23 +129,7 @@
             this.keyframeTrackBar1.TabIndex = 3;
             this.keyframeTrackBar1.TickFrequency = 5;
             this.keyframeTrackBar1.Value = 0;
-            // 
-            // frameComboBox
-            // 
-            this.frameComboBox.FormattingEnabled = true;
-            this.frameComboBox.Location = new System.Drawing.Point(4, 238);
-            this.frameComboBox.Name = "frameComboBox";
-            this.frameComboBox.Size = new System.Drawing.Size(164, 24);
-            this.frameComboBox.TabIndex = 7;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 215);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(42, 17);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Joint:";
+            this.keyframeTrackBar1.ValueChanged += new System.EventHandler(this.keyframeTrackBar1_ValueChanged);
             // 
             // ControlPanel
             // 

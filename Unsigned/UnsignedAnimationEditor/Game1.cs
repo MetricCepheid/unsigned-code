@@ -38,6 +38,8 @@ namespace UnsignedAnimationEditor
 
         private Dictionary<String, FVModel> models;
 
+        public bool CanUseMouse { get; set; }
+
         public Game1(IntPtr drawSurface)
         {
             DrawSurface = drawSurface;
@@ -106,36 +108,58 @@ namespace UnsignedAnimationEditor
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
-            
-            if (Mouse.GetState().MiddleButton == ButtonState.Pressed)
+            Point mousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
+
+            if (CanUseMouse)
             {
-                float dx = Mouse.GetState().X - lastMousePos.X;
-                float dy = Mouse.GetState().Y - lastMousePos.Y;
-                if (Keyboard.GetState().IsKeyDown(Keys.LeftControl))
+                if (Mouse.GetState().MiddleButton == ButtonState.Pressed)
                 {
-                    float scaleChange = 1.0f;
-                    while (dy > 0)
+                    float dx = mousePos.X - lastMousePos.X;
+                    float dy = mousePos.Y - lastMousePos.Y;
+                    if (Keyboard.GetState().IsKeyDown(Keys.LeftControl))
                     {
-                        scaleChange *= 1.001f;
-                        dy--;
+                        float scaleChange = 1.0f;
+                        while (dy > 0)
+                        {
+                            scaleChange *= 1.001f;
+                            dy--;
+                        }
+                        while (dy < 0)
+                        {
+                            scaleChange *= 0.999f;
+                            dy++;
+                        }
+                        Scale *= scaleChange;
                     }
-                    while (dy < 0)
+                    else
                     {
-                        scaleChange *= 0.999f;
-                        dy++;
+                        yaw += dx * 0.01f;
+                        pitch += dy * 0.01f;
                     }
-                    Scale *= scaleChange;
                 }
-                else
+                else if (Mouse.GetState().LeftButton == ButtonState.Pressed)
                 {
-                    yaw += dx * 0.01f;
-                    pitch += dy * 0.01f;
+                    if (AnimationInfo != null)
+                    {
+                        Frame ck = AnimationInfo.CurrentKeyframe;
+                        if (ck != null)
+                        {
+                            if (AnimationInfo.SelectedJointIndex >= 0)
+                            {
+                                float dx = mousePos.X - lastMousePos.X;
+                                float dy = mousePos.Y - lastMousePos.Y;
+
+                                ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationY(dx * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
+                                ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationX(dy * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
+                            }
+                        }
+                    }
                 }
             }
 
             
 
-            lastMousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
+            lastMousePos = mousePos;
 
             while (pitch > MathHelper.Pi)
                 pitch -= MathHelper.TwoPi;
@@ -194,9 +218,9 @@ namespace UnsignedAnimationEditor
 
             spriteBatch.Begin();
 
-            MouseState st = Mouse.GetState();
-            spriteBatch.DrawString(Global.DefaultFont, "" + st.X + ", " + st.Y, new Vector2(0, 0), Color.White);
+            spriteBatch.DrawString(Global.DefaultFont, "" + lastMousePos.X + ", " + lastMousePos.Y, new Vector2(0, 0), Color.White);
             spriteBatch.DrawString(Global.DefaultFont, "" + Scale, new Vector2(0, 20), Color.White);
+            spriteBatch.Draw(Global.TexWhite, new Rectangle(0, Global.ScreenHeight - 20, 20, 20), CanUseMouse ? Color.Lime : Color.Red);
 
             spriteBatch.End();
 
@@ -221,13 +245,13 @@ namespace UnsignedAnimationEditor
 
         void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)  
         {
-                e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = DrawSurface;  
+            e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = DrawSurface;  
         }  
           
         private void Game1_VisibleChanged(object sender, EventArgs e)  
         {  
-                if (System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible == true)  
-                    System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible = false;  
+            if (System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible == true)  
+                System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible = false;  
         }  
     }
 }

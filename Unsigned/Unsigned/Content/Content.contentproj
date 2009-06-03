@@ -1216,6 +1216,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="textures\Options\header_gameplay.jpg">
+      <Name>header_gameplay</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\Options\gibsonHeader.x">
+      <Name>gibsonHeader</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="textures\instruments\GibsonSG\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v3.0\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

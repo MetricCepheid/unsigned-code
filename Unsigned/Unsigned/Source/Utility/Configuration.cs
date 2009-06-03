@@ -28,15 +28,14 @@ namespace Unsigned
         public static bool WideScreen { get; set; }
 
         /// <summary>
+        /// Whether or not the game should render 2D mode
+        /// </summary>
+        public static bool TwoDimensionalMode { get; set; }
+
+        /// <summary>
         /// Whether or not the game should render the background venues
         /// </summary>
-        static bool _rv;
-        public static bool RenderVenues { get { return _rv; }
-            set
-            {
-                _rv = value;
-            }
-        }
+        public static bool RenderVenues { get; set; }
 
         /// <summary>
         /// If the screen should be rendered at half-res and scaled up for performance issues
@@ -135,6 +134,34 @@ namespace Unsigned
         public static Localizer.Language CurrentLanguage;
 
         /// <summary>
+        /// How loud the SFX are (0-100)
+        /// </summary>
+        public static int SoundEffectsVolume { get; set; }
+
+        /// <summary>
+        /// How loud the music is (0-100)
+        /// </summary>
+        public static int MusicVolume { get; set; }
+
+        /// <summary>
+        /// An int from 0-2 describing how detailed the crowd is
+        /// </summary>
+        private static int _crowdDetail;
+        public static int CrowdDetail
+        {
+            get { return _partDetail; }
+            set { _partDetail = Math.Min(2, Math.Max(0, value)); }
+        }
+
+        /// <summary>
+        /// The description Strings for each level of CrowdDetail
+        /// </summary>
+        public static String[] CrowdDetails =
+        {
+            "None", "Still", "Animated",
+        };
+
+        /// <summary>
         /// Whether lighting is enabled at all for rendering
         /// </summary>
         public static bool Lighting { get; set; }
@@ -158,6 +185,10 @@ namespace Unsigned
                 CurrentLanguage = Localizer.Language.FRENCH;
             else if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower() == "de")
                 CurrentLanguage = Localizer.Language.GERMAN;
+            SoundEffectsVolume = 70;
+            MusicVolume = 100;
+            CrowdDetail = 2;
+            TwoDimensionalMode = false;
         }
 
         public static void Load()
@@ -209,6 +240,10 @@ namespace Unsigned
                         {
                             HalfRender = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                         }
+                        else if (varName == "2dmodenbld")
+                        {
+                            TwoDimensionalMode = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        }
                         else if (varName == "rendervnus")
                         {
                             RenderVenues = Boolean.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
@@ -221,6 +256,18 @@ namespace Unsigned
                         else if (varName == "particldtl")
                         {
                             ParticleDetail = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        }
+                        else if (varName == "crowddetal")
+                        {
+                            CrowdDetail = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        }
+                        else if (varName == "musicvolum")
+                        {
+                            MusicVolume = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
+                        }
+                        else if (varName == "sndfxvolum")
+                        {
+                            SoundEffectsVolume = Int32.Parse(str.Substring(str.IndexOf('=') + 1).Trim());
                         }
                         else if (varName == "lightingon")
                         {
@@ -302,6 +349,10 @@ namespace Unsigned
                 fout.WriteLine("NrmMapping = " + NormalMapping);
                 fout.WriteLine("SpecularHl = " + Specular);
                 fout.WriteLine("TxLanguage = " + Localizer.LangCodes[(int)CurrentLanguage]);
+                fout.WriteLine("crowddetal = " + CrowdDetail);
+                fout.WriteLine("musicvolum = " + MusicVolume);
+                fout.WriteLine("sndfxvolum = " + SoundEffectsVolume);
+                fout.WriteLine("2dmodenbld = " + TwoDimensionalMode);
             }
             catch (Exception e)
             {

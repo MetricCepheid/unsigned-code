@@ -8,8 +8,6 @@ Content\head.xnb
 Content\eye.xnb
 Content\legs.xnb
 Content\torso.xnb
-Content\defaultFont.xnb
-Content\NormalMappedShader.xnb
 Content\bodyparts\calf.xnb
 Content\bodyparts\chest.xnb
 Content\bodyparts\foot.xnb
@@ -19,4 +17,6 @@ Content\bodyparts\hand0.xnb
 Content\bodyparts\head.xnb
 Content\bodyparts\thigh.xnb
 Content\bodyparts\upperarm.xnb
+Content\defaultFont.xnb
+Content\NormalMappedShader.xnb
 DefaultHierarchy.txt

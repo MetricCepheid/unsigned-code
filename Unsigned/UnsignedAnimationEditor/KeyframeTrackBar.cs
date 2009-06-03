@@ -11,6 +11,8 @@ namespace UnsignedAnimationEditor
 {
     public partial class KeyframeTrackBar : UserControl
     {
+        public event EventHandler ValueChanged;
+
         private int _value=0, _min=0, _max=100;
         private int _tickF = 1;
         public int Minimum 
@@ -187,7 +189,11 @@ namespace UnsignedAnimationEditor
                 int oldVal = Value;
                 Value = Minimum + (int)((Maximum - Minimum) * val);
                 if (oldVal != Value)
+                {
                     Invalidate();
+                    if (ValueChanged != null)
+                        ValueChanged.Invoke(this, new EventArgs());
+                }
             }
         }
     }

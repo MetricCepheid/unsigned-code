@@ -24,9 +24,28 @@ namespace UnsignedAnimationEditor
 
         public int KeyframeCount { get { return Frames.Count; } }
 
-        internal Matrix GetJointMatrix(float animViewPos, int jointIndex)
+        internal Matrix GetJointMatrix(int animViewPos, int jointIndex)
         {
-            return Matrix.Identity;
+            if (Frames.Count <= 0)
+                return Matrix.Identity;
+            if (Frames.Count == 1)
+                return Frames[0].Matrices[jointIndex];
+            if (animViewPos < Frames[0].Time)
+                return Frames[0].Matrices[jointIndex];
+            if (animViewPos > Frames[Frames.Count-1].Time)
+                return Frames[Frames.Count - 1].Matrices[jointIndex];
+            for (int i = 0; i < Frames.Count; i++)
+                if (Frames[i].Time == animViewPos)
+                    return Frames[i].Matrices[jointIndex];
+            for (int i = 0; i < Frames.Count - 1; i++)
+            {
+                if (animViewPos > Frames[i].Time && animViewPos < Frames[i + 1].Time)
+                {
+                    float lerp = (animViewPos - Frames[i].Time) / (float)(Frames[i + 1].Time - Frames[i].Time);
+                    return Matrix.Lerp(Frames[i].Matrices[jointIndex], Frames[i + 1].Matrices[jointIndex], lerp);
+                }
+            }
+            throw new Exception();
         }
 
         public override string ToString()
@@ -49,14 +68,14 @@ namespace UnsignedAnimationEditor
     public class Frame : IComparable<Frame>
     {
         public int Time; // 0-100 (for rounding errors)
-        private Matrix[] matrices;
+        public Matrix[] Matrices;
 
         public Frame(int time, int numMatrices)
         {
             Time = time;
-            matrices = new Matrix[numMatrices];
+            Matrices = new Matrix[numMatrices];
             for (int i = 0; i < numMatrices; i++)
-                matrices[i] = Matrix.Identity;
+                Matrices[i] = Matrix.Identity;
         }
 
         public int CompareTo(Frame other)
@@ -175,9 +194,29 @@ namespace UnsignedAnimationEditor
         public Skeleton Skeleton;
         public List<Animation> Animations;
         public int AnimationIndex;
-        public float CurrentAnimationTimeValue;
+        public int CurrentAnimationTimeValue;
+        public int SelectedJointIndex;
 
         public Animation CurrentAnimation { get { return AnimationIndex<0 || AnimationIndex>=Animations.Count ? null : Animations[AnimationIndex]; } }
+
+        public Frame CurrentKeyframe
+        {
+            get
+            {
+                Animation ca = CurrentAnimation;
+                if (ca != null)
+                {
+                    for (int i = 0; i < ca.KeyframeCount; i++)
+                    {
+                        if (ca.Keyframe(i).Time == CurrentAnimationTimeValue)
+                        {
+                            return ca.Keyframe(i);
+                        }
+                    }
+                }
+                return null;
+            }
+        }
 
         public AnimationInfo()
         {
