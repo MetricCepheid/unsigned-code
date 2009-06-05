@@ -13,14 +13,10 @@ using FVProductions.Utility;
 
 namespace Unsigned
 {
-    public struct StaticWorldObject
+    public struct ModelInstance
     {
-        public int ModelIndex;
-        public char ModelType;
-        public float x, y, z;
-        public float Orientation;
-        public int TextureIndex, BMIndex;
-        public float Shininess;
+        public String ModelIndex, TextureIndex;
+        public Vector3 Position, Rotation, Scale;
     }
 
     public struct VenueGeometry
@@ -104,9 +100,16 @@ namespace Unsigned
         private static Material[] StaticTexture;
         private int lastTexApplied;
         private List<Entity> Entities;
-        private static FVModel[] Models;
+        private static Dictionary<String,FVModel> Models;
+        private static Dictionary<String, Texture2D> ModelTextures;
         private CamBlendPos[] CamBlends;
         private Vector3 camPos, camUp, camFor;
+        private List<ModelInstance> modelInstances;
+
+        private Texture2D texAmpBoomer;
+        private FVModelArrays mdlAmpBoomer, mdlAmpBoomer1, mdlAmpBoomer2;
+        private float boomerLerp, targetBoomerLerp;
+        private int bassNoteIndex, drumsNoteIndex;
 
         private Vector3 mainLightColor;
 
@@ -143,6 +146,7 @@ namespace Unsigned
             this.songData = songData;
             LoadWorld(Filename,nugget);
             mainLightColor = new Vector3(0f, 0f, 0f);
+            boomerLerp = 0;
         }
 
         public void Update(SongTime songTime)
@@ -150,25 +154,25 @@ namespace Unsigned
 #if DEBUG_CAM_CONTROL
             KeyboardState kbs = Keyboard.GetState();
             if (kbs.IsKeyDown(Keys.H))
-                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp += Vector3.Transform(new Vector3(0, 0, -64),Matrix.CreateRotationY(DEBUG_rot.X)) * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if (kbs.IsKeyDown(Keys.K))
-                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) - 90, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) - 90, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp += Vector3.Transform(new Vector3(0, 0, 64), Matrix.CreateRotationY(DEBUG_rot.X)) * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if (kbs.IsKeyDown(Keys.U))
-                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI), 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI), 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp += Vector3.Transform(new Vector3(64, 0, 0), Matrix.CreateRotationY(DEBUG_rot.X)) * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if (kbs.IsKeyDown(Keys.J))
-                DEBUG_cp += new Vector3((float)Game1.dirdistTOhdist((DEBUG_rot.X*180/Math.PI) + 180, 32), 0, (float)Game1.dirdistTOvdist((DEBUG_rot.X*180/Math.PI) + 180, 32))*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp += Vector3.Transform(new Vector3(-64, 0, 0), Matrix.CreateRotationY(DEBUG_rot.X)) * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if (kbs.IsKeyDown(Keys.O))
-                DEBUG_cp += new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp += new Vector3(0,32,0)*(songTime.ElapsedGameTime.Milliseconds*0.001f);
             if (kbs.IsKeyDown(Keys.L))
-                DEBUG_cp -= new Vector3(0,32,0)*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_cp -= new Vector3(0, 32, 0) * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if(kbs.IsKeyDown(Keys.NumPad8))
-                DEBUG_rot.Y+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_rot.Y += MathHelper.PiOver4 * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if(kbs.IsKeyDown(Keys.NumPad2))
-                DEBUG_rot.Y-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_rot.Y -= MathHelper.PiOver4 * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if(kbs.IsKeyDown(Keys.NumPad4))
-                DEBUG_rot.X+=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_rot.X += MathHelper.PiOver4 * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
             if(kbs.IsKeyDown(Keys.NumPad6))
-                DEBUG_rot.X-=MathHelper.PiOver4*(gameTime.ElapsedGameTime.Milliseconds*0.001f);
+                DEBUG_rot.X -= MathHelper.PiOver4 * (songTime.ElapsedGameTime.Milliseconds * 0.001f);
 #endif
             if (camtime == -1)
             {//sets the next camera view once the previous one is finished
@@ -245,6 +249,18 @@ namespace Unsigned
                         float lerp = ((float)songTime.TotalSongTime.TotalSeconds - songData.effects.effects[i].time / 1000f) / (songData.effects.effects[i].length / 1000f);
                         mainLightColor = ((lerp) * mainLightColor2) + ((1 - lerp) * mainLightColor1);
                     }
+                    else if (songData.effects.effects[i] is SongData.StrobeLightingSpecialEffect)
+                    {
+                        SongData.StrobeLightingSpecialEffect ef = (SongData.StrobeLightingSpecialEffect)songData.effects.effects[i];
+                        Vector3 mainLightColor1 = new Vector3(ef.color1.R / 255f, ef.color1.G / 255f, ef.color1.B / 255f);
+                        Vector3 mainLightColor2 = new Vector3(ef.color2.R / 255f, ef.color2.G / 255f, ef.color2.B / 255f);
+                        float lerp = (GetBeatTime(songTime)*ef.frequency)%1.0f;
+                        if (lerp < 0.5f)
+                            lerp *= 2;
+                        else
+                            lerp = 1 - ((lerp - 0.5f) * 2);
+                        mainLightColor = ((lerp) * mainLightColor2) + ((1 - lerp) * mainLightColor1);
+                    }
                 }
             }
 
@@ -258,6 +274,37 @@ namespace Unsigned
                     vocalistPos = rockers[i].Position;
             for (int i = 0; i < Fans.Length; i++)
                 Fans[i].Update(songTime, vocalistPos);
+
+            for (int i = 0; i < songData.instruments.Length; i++)
+            {
+                if (songData.instruments[i].instrumentType == "SET")
+                {
+                    if (songData.instruments[i].diffSets[3].phrases[0].notes[drumsNoteIndex].time / 1000f < songTime.TotalSongTime.TotalSeconds &&
+                        (songData.instruments[i].diffSets[3].phrases[0].notes[drumsNoteIndex].type&0x10)!=0)
+                    {
+                        targetBoomerLerp = 1f;
+                        drumsNoteIndex++;
+                    }
+                    else if ((songData.instruments[i].diffSets[3].phrases[0].notes[drumsNoteIndex].type & 0x10) == 0)
+                    {
+                        drumsNoteIndex++;
+                    }
+                } 
+                if (songData.instruments[i].instrumentType == "BAS")
+                {
+                    if (songData.instruments[i].diffSets[3].phrases[0].notes[bassNoteIndex].time / 1000f < songTime.TotalSongTime.TotalSeconds)
+                    {
+                        targetBoomerLerp = 0.75f;
+                        bassNoteIndex++;
+                    }
+                }
+            }
+            targetBoomerLerp -= (float)songTime.ElapsedGameTime.TotalSeconds * 10;
+            if (targetBoomerLerp < 0)
+                targetBoomerLerp = 0;
+            boomerLerp = ((1 - ((float)songTime.ElapsedGameTime.TotalSeconds * 50)) * boomerLerp) + ((((float)songTime.ElapsedGameTime.TotalSeconds * 50)) * targetBoomerLerp);
+            for (int i = 0; i < mdlAmpBoomer.VB.Length; i++)
+                mdlAmpBoomer.VB[i] = ((1 - boomerLerp) * mdlAmpBoomer1.VB[i]) + ((boomerLerp) * mdlAmpBoomer2.VB[i]);
         }
 
         public void SetLights(Effect engine, uint songtime)
@@ -446,13 +493,27 @@ namespace Unsigned
 
             Filename = "Content\\Venues\\" + Filename;
 
+            Models = new Dictionary<String, FVModel>();
+            ModelTextures = new Dictionary<String, Texture2D>();
+
+            texAmpBoomer = Content.Load<Texture2D>("textures\\venues\\amp_boomer_1");
+            mdlAmpBoomer1 = ModelLoader.LoadModelArrays("meshes\\venues\\amp_boomer_1");
+            mdlAmpBoomer2 = ModelLoader.LoadModelArrays("meshes\\venues\\amp_boomer_2");
+            mdlAmpBoomer = new FVModelArrays();
+            mdlAmpBoomer.VB = new VertexTangentBinormal[mdlAmpBoomer1.VB.Length];
+            mdlAmpBoomer.IB = new int[mdlAmpBoomer1.IB.Length];
+            for (int i = 0; i < mdlAmpBoomer.VB.Length; i++)
+                mdlAmpBoomer.VB[i] = mdlAmpBoomer1.VB[i];
+            for (int i = 0; i < mdlAmpBoomer.IB.Length; i++)
+                mdlAmpBoomer.IB[i] = mdlAmpBoomer1.IB[i];
+
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
 
             rockers = new Rocker[4];
-            rockers[0] = new Rocker(nugget.characterIndices[0], InstrumentMaster.Singleton.GetInstrument("LGT"));
-            rockers[1] = new Rocker(nugget.characterIndices[1], InstrumentMaster.Singleton.GetInstrument("LVX"));
-            rockers[2] = new Rocker(nugget.characterIndices[2], InstrumentMaster.Singleton.GetInstrument("SET"));
-            rockers[3] = new Rocker(nugget.characterIndices[3], InstrumentMaster.Singleton.GetInstrument("BAS"));
+            rockers[0] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("LGT"));
+            rockers[1] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("LVX"));
+            rockers[2] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("SET"));
+            rockers[3] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("BAS"));
 
             //TODO: fix for customized Content
             //String BaseModelDirectory = "meshes\\instruments\\";
@@ -612,6 +673,29 @@ namespace Unsigned
                         }
                     }
                 }
+                if (type.Equals("mdl"))
+                {
+                    int num = fin.ReadInt32();
+                    modelInstances = new List<ModelInstance>();
+                    for (int j = 0; j < num; j++)
+                    {
+                        int subNum = fin.ReadInt32();
+                        for (int k = 0; k < subNum; k++)
+                        {
+                            ModelInstance inst = new ModelInstance();
+                            inst.ModelIndex = fin.ReadString();
+                            inst.TextureIndex = fin.ReadString();
+                            inst.Position = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                            inst.Rotation = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                            inst.Scale = new Vector3(fin.ReadSingle(), fin.ReadSingle(), fin.ReadSingle());
+                            modelInstances.Add(inst);
+                            if (!Models.ContainsKey(inst.ModelIndex))
+                                Models.Add(inst.ModelIndex, ModelLoader.LoadModel("meshes\\venues\\" + inst.ModelIndex));
+                            if (!ModelTextures.ContainsKey(inst.TextureIndex))
+                                ModelTextures.Add(inst.TextureIndex, Content.Load<Texture2D>("textures\\venues\\" + inst.TextureIndex));
+                        }
+                    }
+                }
             }
 
             fin.Close();
@@ -627,7 +711,7 @@ namespace Unsigned
             effect.AmbientMaterial = new Color(50, 50, 50);
             effect.View = GetViewMatrix();
             effect.Projection = GetProjMatrix();
-            effect.DirectionalLight = new DirectionalLight(true, new Vector3(1, 3, -1), new Color(mainLightColor), Color.White);
+            effect.DirectionalLight = new DirectionalLight(true, new Vector3(-1, 3, -2), new Color(mainLightColor), Color.White);
             effect.LightingEnabled = Configuration.Lighting;
             effect.NormalMapEnabled = Configuration.NormalMapping;
             effect.SpecularEnabled = Configuration.Specular;
@@ -648,7 +732,7 @@ namespace Unsigned
                     effect.World = mMatWorld;
                     effect.Shininess = StaticTexture[StaticGeom[i].texIndex].shininess;
                     effect.DiffuseMaterial = new Color(mainLightColor);
-                    effect.SpecularMaterial = new Color(1.0f,1.0f,1.0f);
+                    effect.SpecularMaterial = new Color(mainLightColor);
                     if (lastTexApplied != StaticGeom[i].texIndex)
                     {
                         effect.DiffuseTexture = StaticTexture[StaticGeom[i].texIndex].tex;
@@ -669,6 +753,47 @@ namespace Unsigned
                 for (int i = 0; i < Entities.Count; i++)
                 {
                     Entities[i].Draw(effect, camPos);
+                }
+                for (int i = 0; i < modelInstances.Count; i++)
+                {
+                    effect.World = Matrix.CreateScale(modelInstances[i].Scale) * Matrix.CreateRotationY(-modelInstances[i].Rotation.Y/180f*MathHelper.Pi+MathHelper.PiOver2) * Matrix.CreateTranslation(modelInstances[i].Position);
+                    effect.DiffuseTexture = ModelTextures[modelInstances[i].TextureIndex];
+                    effect.NormalMapTexture = Global.TexDefaultBM;
+                    effect.CommitChanges();
+
+                    Models[modelInstances[i].ModelIndex].Draw();
+
+                    if (modelInstances[i].ModelIndex == "amp1")
+                    {
+                        effect.DiffuseTexture = texAmpBoomer;
+                        Matrix w = Matrix.CreateScale(modelInstances[i].Scale) * Matrix.CreateRotationY(-modelInstances[i].Rotation.Y / 180f * MathHelper.Pi + MathHelper.PiOver2) * Matrix.CreateTranslation(modelInstances[i].Position);
+
+                        effect.World = Matrix.CreateTranslation(-0.45f, 0.65f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(-0.45f, 1.52f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(0.45f, 0.65f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(0.45f, 1.52f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+
+                        effect.World = Matrix.CreateTranslation(-0.45f, 2.82f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(-0.45f, 3.68f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(0.45f, 2.82f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                        effect.World = Matrix.CreateTranslation(0.45f, 3.68f, 0.80f) * w;
+                        effect.CommitChanges();
+                        mdlAmpBoomer.Draw();
+                    }
                 }
 
                 pass.End();
@@ -710,6 +835,7 @@ namespace Unsigned
             return 0;
         }
 
+        // gets number of beats plus current beat time
         private float GetAbsoluteBeatTime(SongTime songTime)
         {
             float currentTime = (float)songTime.TotalSongTime.TotalSeconds;

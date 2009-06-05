@@ -898,6 +898,16 @@ namespace SongDataIO
                     ef.color2 = new SongData.Color((byte)(color2 & 0x000000FF), (byte)((color2 & 0x0000FF00) >> 8), (byte)((color2 & 0x00FF0000) >> 16), (byte)((color2 & 0xFF000000) >> 24));
                     ret.effects.effects[i] = ef;
                 }
+                else if (tp[0] == 'l' && tp[1] == 's')
+                {
+                    SongData.StrobeLightingSpecialEffect ef = new SongData.StrobeLightingSpecialEffect(time, len, new SongData.Color(255, 255, 255), new SongData.Color(255, 255, 255), 0);
+                    uint color1 = reader.ReadUInt32();
+                    uint color2 = reader.ReadUInt32();
+                    ef.color1 = new SongData.Color((byte)(color1 & 0x000000FF), (byte)((color1 & 0x0000FF00) >> 8), (byte)((color1 & 0x00FF0000) >> 16), (byte)((color1 & 0xFF000000) >> 24));
+                    ef.color2 = new SongData.Color((byte)(color2 & 0x000000FF), (byte)((color2 & 0x0000FF00) >> 8), (byte)((color2 & 0x00FF0000) >> 16), (byte)((color2 & 0xFF000000) >> 24));
+                    ef.frequency = reader.ReadSingle();
+                    ret.effects.effects[i] = ef;
+                }
             }
             reader.Close();
             return ret;
@@ -1091,6 +1101,18 @@ namespace SongDataIO
                         writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.G));
                         writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.B));
                         writer.Write((byte)((effect as SongData.GradientLightingSpecialEffect).color2.A));
+                    }
+                    else if (effect is SongData.StrobeLightingSpecialEffect)
+                    {
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color1.R));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color1.G));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color1.B));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color1.A));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color2.R));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color2.G));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color2.B));
+                        writer.Write((byte)((effect as SongData.StrobeLightingSpecialEffect).color2.A));
+                        writer.Write((effect as SongData.StrobeLightingSpecialEffect).frequency);
                     }
                 }
             }

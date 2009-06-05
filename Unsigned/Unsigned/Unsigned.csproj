@@ -152,6 +152,12 @@
     <Content Include="Configuration\keymapping.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\animations\DefaultHierarchy.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\animations\GuitaristHierarchy.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\boards\board0.PNG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -294,6 +300,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\animations\LGT.una">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Content\meshes\avatars\torso.ms3d">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

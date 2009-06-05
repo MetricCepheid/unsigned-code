@@ -30,6 +30,21 @@ namespace HFPS_LEVEL_COMPILER
             public char ct;
         }
 
+        private struct ModelTemplate
+        {
+            public String name;
+            public String[] modelNames;
+            public String[] textureNames;
+            public String[] modelFlags;
+            public Vector3 scale;
+        }
+
+        private struct Model
+        {
+            public String name;
+            public Vector3 pos, rot, scale;
+        }
+
         private struct DLight
         {
             public Vector3 pos;
@@ -141,6 +156,8 @@ namespace HFPS_LEVEL_COMPILER
             List<TempTarget> targetnodes = new List<TempTarget>();
             List<TempDLight> dlights = new List<TempDLight>();
             List<TempFan> fans = new List<TempFan>();
+            List<Model> models = new List<Model>();
+            ModelTemplate[] mdlTemplates = new ModelTemplate[0];
             Vector3 guitarist = Vector3.Zero, 
                     bassist = Vector3.Zero, 
                     drummer = Vector3.Zero, 
@@ -205,6 +222,50 @@ namespace HFPS_LEVEL_COMPILER
                     cNear = (uint)Near;
                     cFar = (uint)Far;
                     
+                    fss.ReadLine();// "}"
+                }
+                else if (now.Equals("models"))
+                {
+                    fss.ReadLine();// "{"
+
+                    mdlTemplates = new ModelTemplate[Int32.Parse(fss.ReadLine().Trim())];
+
+                    for (int i = 0; i < mdlTemplates.Length; i++)
+                    {
+                        String name = fss.ReadLine().Trim();
+                        Vector3 sc = new Vector3();
+                        {
+                            String str = fss.ReadLine().Trim();
+                            sc.X = Single.Parse(str.Substring(0, str.IndexOf(',')));
+                            str = str.Substring(str.IndexOf(',') + 1);
+                            sc.Y = Single.Parse(str.Substring(0, str.IndexOf(',')));
+                            str = str.Substring(str.IndexOf(',') + 1);
+                            sc.Z = Single.Parse(str);
+                        }
+                        String[] mdlNames = new String[Int32.Parse(fss.ReadLine().Trim())];
+                        String[] mdlFlags = new String[mdlNames.Length];
+                        String[] mdlTextures = new String[mdlNames.Length];
+                        for (int k = 0; k < mdlNames.Length; k++)
+                        {
+                            mdlNames[k] = fss.ReadLine().Trim();
+                            if (mdlNames[k].IndexOf(':') >= 0)
+                            {
+                                mdlFlags[k] = mdlNames[k].Substring(mdlNames[k].IndexOf(':') + 1);
+                                mdlNames[k] = mdlNames[k].Substring(0, mdlNames[k].IndexOf(':'));
+                            }
+                            else
+                                mdlFlags[k] = "";
+                            mdlTextures[k] = fss.ReadLine().Trim();
+                        }
+                        ModelTemplate t = new ModelTemplate();
+                        t.name = name;
+                        t.modelNames = mdlNames;
+                        t.modelFlags = mdlFlags;
+                        t.textureNames = mdlTextures;
+                        t.scale = sc;
+                        mdlTemplates[i] = t;
+                    }
+
                     fss.ReadLine();// "}"
                 }
             }
@@ -492,7 +553,7 @@ namespace HFPS_LEVEL_COMPILER
                     float speed = 0;
                     float position = 0;//0-1 for doors etc
                     TriggerOutput[] targets = new TriggerOutput[0];
-                    String name = "";
+                    String name = "", modelName = "";
                     String str = fs.ReadLine().Trim();// this should be "{"
                     str = fs.ReadLine().Trim();
                     TempFiller[] VisBuffer = new TempFiller[0], 
@@ -834,6 +895,10 @@ namespace HFPS_LEVEL_COMPILER
                             {
                                 name = val;
                             }
+                            else if (var.Equals("model"))
+                            {
+                                modelName = val;
+                            }
                             else if (var.Equals("_cone"))
                             {
                                 outercone = (float)Double.Parse(val);
@@ -931,6 +996,15 @@ namespace HFPS_LEVEL_COMPILER
                     else if (classname.Equals("npc_citizen"))
                     {
                         fans.Add(new TempFan(pos * scale));
+                    }
+                    else if(classname == "prop_static")
+                    {
+                        Model m = new Model();
+                        m.name = modelName;
+                        m.pos = pos * scale;
+                        m.rot = angles;
+                        m.scale = new Vector3(1, 1, 1);
+                        models.Add(m);
                     }
                 }
                 else if (mainStr.Equals("cameras"))
@@ -1055,6 +1129,8 @@ namespace HFPS_LEVEL_COMPILER
                 numEs++;
             if (fdlights.Length > 0)
                 numEs++;
+            if (models.Count > 0)
+                numEs++;
 
             fsw.Write(numEs);
 
@@ -1097,6 +1173,36 @@ namespace HFPS_LEVEL_COMPILER
                         fsw.Write(fdlights[i].targs[k].dir.X);
                         fsw.Write(fdlights[i].targs[k].dir.Y);
                         fsw.Write(fdlights[i].targs[k].dir.Z);
+                    }
+                }
+            }
+
+            if (models.Count > 0)
+            {
+                fsw.Write("mdl");
+                fsw.Write(models.Count);
+                for (int i = 0; i < models.Count; i++)
+                {
+                    for (int k = 0; k < mdlTemplates.Length; k++)
+                    {
+                        if (mdlTemplates[k].name == models[i].name)
+                        {
+                            fsw.Write(mdlTemplates[k].modelNames.Length);
+                            for (int j = 0; j < mdlTemplates[k].modelNames.Length; j++)
+                            {
+                                fsw.Write(mdlTemplates[k].modelNames[j]);
+                                fsw.Write(mdlTemplates[k].textureNames[j]);
+                                fsw.Write(models[i].pos.X);
+                                fsw.Write(models[i].pos.Y);
+                                fsw.Write(models[i].pos.Z);
+                                fsw.Write(models[i].rot.X);
+                                fsw.Write(models[i].rot.Y);
+                                fsw.Write(models[i].rot.Z);
+                                fsw.Write(mdlTemplates[k].scale.X);
+                                fsw.Write(mdlTemplates[k].scale.Y);
+                                fsw.Write(mdlTemplates[k].scale.Z);
+                            }
+                        }
                     }
                 }
             }

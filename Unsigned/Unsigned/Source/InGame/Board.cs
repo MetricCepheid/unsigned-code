@@ -522,6 +522,8 @@ namespace Unsigned
                 {
                     if (Notes[currentNoteIndex].End < songTime.TotalSongTime.TotalSeconds || strummed)
                         currentNoteIndex++;
+                    else if (!GameNote.IsValidFrettage(Notes[currentNoteIndex], pressed))
+                        currentNoteIndex++;
                 }
                 else
                 {

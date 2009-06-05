@@ -36,7 +36,7 @@ namespace FVProductions.Utility
         public void Draw()
         {
             Global.Graphics.GraphicsDevice.VertexDeclaration = VertexTangentBinormal.VertexDeclaration;
-            Global.Graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexTangentBinormal>(PrimitiveType.TriangleList, VB, 0, NumVertices, IB, 0, IB.Length / 3);
+            Global.Graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexTangentBinormal>(PrimitiveType.TriangleList, VB, 0, VB.Length, IB, 0, IB.Length / 3);
         }
     }
 }

@@ -234,5 +234,34 @@ namespace Unsigned
         {
             hidden = true;
         }
+
+        public static bool IsValidFrettage(GameNote note, ulong press)
+        {
+            if (note.NumNotes > 1)
+            {
+                for (int i = 0; i < note.frets.Length; i++)
+                    if (note.frets[i] != ((((ulong)1 << i) & press) != 0))
+                        return false;
+                return true;
+            }
+            else
+            {
+                bool foundNote = false;
+                for (int i = 0; i < note.frets.Length; i++)
+                {
+                    if (!foundNote)
+                    {
+                        if (note.frets[i])
+                            if ((((ulong)1 << i) & press) == 0)
+                                return false;
+                            else
+                                foundNote = true;
+                    }
+                    else if ((((ulong)1 << i) & press) != 0)
+                        return false;
+                }
+                return true;
+            }
+        }
     }
 }

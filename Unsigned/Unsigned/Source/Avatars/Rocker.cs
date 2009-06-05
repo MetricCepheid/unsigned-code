@@ -11,22 +11,26 @@ namespace Unsigned
 {
     class Rocker
     {
+        public static SongData SongData;
         public Vector3 Position { get; set; }
         public float Yaw { get; set; }
-        private FVModel model;
+        private Dictionary<String,FVModel> models;
         private Texture2D tex;
-        private int characterIndex;
         private Instrument instrument;
+        private Texture2D texInstr;
+        private FVModel mdlInstr;
+        private CharacterIdol idol;
                                      
-        public Rocker(int characterindex, Instrument instr)
+        public Rocker(CharacterIdol idol, Instrument instr)
         {
-            this.characterIndex = characterindex;
             instrument = instr;
             Yaw = 0;
+            this.idol = idol;
         }
 
-        protected void LoadModel(ContentManager Content)
+        public void Load(ContentManager Content, String brand, int index)
         {
+
         }
 
         public void Draw(GameTime gameTime)
@@ -35,7 +39,7 @@ namespace Unsigned
 
         public CharacterIdol GetCharacter()
         {
-            return CharacterMaster.Singleton.GetCharacter(characterIndex);
+            return idol;
         }
 
         public Instrument GetInstrument()

@@ -7,6 +7,7 @@ namespace UnsignedAnimationEditor
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+        [STAThread]
         static void Main(string[] args)
         {
             Form1 form = new Form1();

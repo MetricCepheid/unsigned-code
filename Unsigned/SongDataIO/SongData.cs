@@ -182,6 +182,24 @@ namespace SongDataIO
         }
 
         /// <summary>
+        /// Represents a return to normalcy in regards to lighting
+        /// </summary>
+        public class StrobeLightingSpecialEffect : SpecialEffect
+        {
+            public Color color1, color2;
+            public float frequency;
+            public StrobeLightingSpecialEffect(uint time, uint length, Color col1, Color col2, float frequency)
+            {
+                this.time = time;
+                this.length = length;
+                this.color1 = col1;
+                this.color2 = col2;
+                this.type = "ls";
+                this.frequency = frequency;
+            }
+        }
+
+        /// <summary>
         /// Holds all lighting effects in the track
         /// </summary>
         public struct EffectsTrack

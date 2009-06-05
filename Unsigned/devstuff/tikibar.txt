@@ -1,0 +1,62 @@
+//SETTINGS for TikiBar
+tex
+{
+	WOOD/WOODWALL006A
+	ceil
+	1
+	WOOD/WOODWALL009A
+	wall
+	1
+	STONE/STONEWALL050F
+	paintedWall
+	1
+	METAL/CITADEL_METALWALL076A
+	stageFloor
+	1
+	METAL/METALCOMBINEGRATE001A
+	stageWall
+	1
+	CONCRETE/CONCRETE_BTS_FLOOR001A
+	floor
+	1
+	WOOD/WOODFLOOR008A
+	barWall
+	1
+	WOOD/WOODWALL032A
+	barTop
+	1
+	NATURE/GRASSFLOOR003A
+	reedTop
+	1
+	NATURE/BLENDGRASSDIRT001A
+	reedFade
+	1
+	METAL/CITADEL_METALWALL063A
+	metalRod
+	1
+}
+scale
+{
+	0.8
+}
+clip
+{
+	20
+	1470
+}
+models
+{
+	2
+	palm_tree
+	300,300,300
+	2
+	palm_trunk
+	palm_tree
+	palm_leaves
+	palm_tree
+	amp1
+	30,30,30
+	1
+	amp1
+	amp1
+}

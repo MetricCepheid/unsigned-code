@@ -18,7 +18,7 @@ namespace Unsigned
 
         private Texture2D concrTex, concrBM;
         private Texture2D gibsonTex;
-        private FVModel gibsonMdl;
+        private FVModel gibsonMdl, keyMdl;
 
         private String[] guiStyle = { "Rock Band", "Unsigned", "Guitar Hero", };
         private String[][] languageNames = { new[] { "English", "French", "Spanish", "German" },
@@ -57,11 +57,36 @@ namespace Unsigned
         {
             public String Name;
             public OPTIONS[] options;
+            public float[] keyRots, keyRotTargs;
 
             public OptionsSet(String name)
             {
                 Name = name;
                 options = new OPTIONS[6];
+                keyRots = new float[6];
+                keyRotTargs = new float[6];
+                for (int i = 0; i < keyRots.Length; i++)
+                {
+                    keyRots[i] = (float)Global.Random.NextDouble();
+                    keyRotTargs[i] = keyRots[i];
+                }
+            }
+
+            public void Update(GameTime gameTime)
+            {
+                float lerp = (float)gameTime.ElapsedGameTime.TotalSeconds * 10;
+                for (int i = 0; i < keyRots.Length; i++)
+                    keyRots[i] = ((1 - lerp) * keyRots[i]) + ((lerp) * keyRotTargs[i]);
+            }
+
+            public void Increment(int index)
+            {
+                keyRotTargs[index] += MathHelper.Pi / 3;
+            }
+
+            public void Decrement(int index)
+            {
+                keyRotTargs[index] -= MathHelper.Pi / 3;
             }
         }
 
@@ -114,6 +139,7 @@ namespace Unsigned
             concrBM = Content.Load<Texture2D>("textures\\Options\\concrBM");
             gibsonTex = Content.Load<Texture2D>("textures\\Options\\header_gameplay");
             gibsonMdl = ModelLoader.LoadModel("meshes\\Options\\gibsonHeader");
+            keyMdl = ModelLoader.LoadModel("meshes\\Options\\guitarPeg");
 
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
         }
@@ -127,6 +153,9 @@ namespace Unsigned
         public override void Update(GameTime gameTime)
         {
             Peripheral[] conts = PeripheralManager.Singleton.GetPeripherals();
+
+            for (int i = 0; i < Options.Count; i++)
+                Options[i].Update(gameTime);
 
             int offset = 0;
             bool green = false, red = false;
@@ -182,10 +211,16 @@ namespace Unsigned
             {
                 if (offset > 0)
                     for (int i = 0; i < offset; i++)
-                        IncrementValue(Options[majorIndex].options[minorIndex]);
+                    {
+                        if(IncrementValue(Options[majorIndex].options[minorIndex]))
+                            Options[majorIndex].Increment(minorIndex);
+                    }
                 if (offset < 0)
                     for (int i = 0; i < -offset; i++)
-                        DecrementValue(Options[majorIndex].options[minorIndex]);
+                    {
+                        if(DecrementValue(Options[majorIndex].options[minorIndex]))
+                            Options[majorIndex].Decrement(minorIndex);
+                    }
             }
 
             if (green)
@@ -234,6 +269,7 @@ namespace Unsigned
             float camLerp = (float)gameTime.ElapsedGameTime.TotalSeconds*10;
             camPos = ((1 - camLerp) * camPos) + ((camLerp) * targPos);
         }
+
         public override void Render(GameTime gameTime)
         {
             UnsignedGame game = UnsignedGame.Singleton;
@@ -252,8 +288,8 @@ namespace Unsigned
                 effect.NormalMapTexture = Global.TexDefaultBM;
                 effect.AmbientMaterial = new Color(24, 24, 24);
                 effect.DiffuseMaterial = new Color(200, 200, 200);
-                effect.SpecularMaterial = Color.White;
-                effect.DirectionalLight = new DirectionalLight(true, new Vector3(1f, -0f, 3f), new Color(200, 200, 200), Color.White);
+                effect.SpecularMaterial = new Color(64,64,64);
+                effect.DirectionalLight = new DirectionalLight(true, new Vector3(-1f, -1f, -3f), Color.White, Color.White);
                 Global.Graphics.GraphicsDevice.RenderState.CullMode = CullMode.None;
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
@@ -296,38 +332,45 @@ namespace Unsigned
                         effect.World = matScale * matRot * matTranslate;
                         effect.DiffuseTexture = concrTex;
                         effect.NormalMapTexture = concrBM;
-                        effect.Shininess = 0.25f;
+                        effect.Shininess = 32f;
                         effect.CommitChanges();
 
                         Global.Graphics.GraphicsDevice.DrawSquare();
                     }
 
                     {
-                        matTranslate = Matrix.CreateTranslation(-15, 120, 0f);
                         matRot = Matrix.Identity;
                         matScale = Matrix.CreateScale(10, 10, 10);
+                        effect.DiffuseMaterial = Color.White;
+                        effect.SpecularMaterial = Color.White;
 
-                        effect.World = matScale * matRot * matTranslate;
-                        effect.DiffuseTexture = gibsonTex;
-                        effect.NormalMapTexture = Global.TexDefaultBM;
-                        effect.Shininess = 32f;
-                        effect.CommitChanges();
+                        for (int i = 0; i < Options.Count; i++)
+                        {
+                            effect.DiffuseTexture = gibsonTex;
+                            effect.AmbientMaterial = Color.Gray;
+                            effect.DiffuseMaterial = Color.White;
+                            effect.SpecularMaterial = Color.White;
+                            effect.NormalMapTexture = Global.TexDefaultBM;
+                            effect.Shininess = 32f;
+                            matTranslate = Matrix.CreateTranslation(-15+(15*i), 120, 0f);
+                            effect.World = matScale * matRot * matTranslate;
+                            effect.CommitChanges();
 
-                        gibsonMdl.Draw();
+                            gibsonMdl.Draw();
 
-                        matTranslate = Matrix.CreateTranslation(0, 120, 0f);
+                            for (int k = 0; k < Options[i].options.Length; k++)
+                            {
+                                effect.DiffuseTexture = Global.TexWhite;
+                                effect.NormalMapTexture = Global.TexDefaultBM;
+                                effect.World = Matrix.CreateScale((k < 3 ? 10 : -10),10,10) * 
+                                               Matrix.CreateRotationX(Options[i].keyRots[k]) * 
+                                               Matrix.CreateTranslation(-15 + (15 * i), 120, 0f) * 
+                                               Matrix.CreateTranslation(1.9f * (k < 3 ? -1 : 1), 6.4f - (1.75f * (k % 3)), 0.5f);
+                                effect.CommitChanges();
 
-                        effect.World = matScale * matRot * matTranslate;
-                        effect.CommitChanges();
-
-                        gibsonMdl.Draw();
-
-                        matTranslate = Matrix.CreateTranslation(15, 120, 0f);
-
-                        effect.World = matScale * matRot * matTranslate;
-                        effect.CommitChanges();
-
-                        gibsonMdl.Draw();
+                                keyMdl.Draw();
+                            }
+                        }
                     }
 
                     pass.End();
@@ -476,19 +519,20 @@ namespace Unsigned
             return "INVALID";
         }
 
-        private void IncrementValue(OPTIONS option)
+        private bool IncrementValue(OPTIONS option)
         {
             switch (option)
             {
                 case OPTIONS.OPT_CROWD:
                     {
+                        int cd = Configuration.CrowdDetail;
                         Configuration.CrowdDetail++;
-                        break;
+                        return cd != Configuration.CrowdDetail;
                     }
                 case OPTIONS.OPT_FULLSCREEN:
                     {
                         Configuration.FullScreen = !Configuration.FullScreen;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_GUISTYLE:
                     {
@@ -498,7 +542,7 @@ namespace Unsigned
                         if (gs > MAX_GUI_STYLE)
                             gs -= (MAX_GUI_STYLE + 1);
                         Configuration.GUIStyle = (GameUIMaster.GUIStyle)gs;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_LANGUAGE:
                     {
@@ -507,40 +551,44 @@ namespace Unsigned
                         if (lang >= (int)Localizer.Language.Length)
                             lang -= (int)Localizer.Language.Length;
                         Configuration.CurrentLanguage = (Localizer.Language)lang;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_LIGHTING:
                     {
                         Configuration.Lighting = !Configuration.Lighting;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_MUSICVOL:
                     {
+                        int mv = Configuration.MusicVolume;
                         Configuration.MusicVolume += 10;
-                        break;
+                        return mv != Configuration.MusicVolume;
                     }
                 case OPTIONS.OPT_NORMALMAPPING:
                     {
+                        bool cnm = Configuration.NormalMapping;
                         Configuration.NormalMapping = !Configuration.NormalMapping;
-                        break;
+                        return cnm != Configuration.NormalMapping;
                     }
                 case OPTIONS.OPT_PARTICLELEVEL:
                     {
+                        int pd = Configuration.ParticleDetail;
                         Configuration.ParticleDetail++;
-                        break;
+                        return pd != Configuration.ParticleDetail;
                     }
                 case OPTIONS.OPT_RENDER3D:
                     {
                         Configuration.TwoDimensionalMode = !Configuration.TwoDimensionalMode;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_RENDERVENUES:
                     {
                         Configuration.RenderVenues = !Configuration.RenderVenues;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_RESOLUTION:
                     {
+                        int ocf = Configuration.ResIndex;
                         Rectangle dr = new Rectangle(0, 0, Global.Graphics.GraphicsDevice.DisplayMode.Width, Global.Graphics.GraphicsDevice.DisplayMode.Height);
                         int cf = Configuration.ResIndex;
                         cf++;
@@ -558,29 +606,33 @@ namespace Unsigned
                                 break;
                         }
                         Configuration.ResIndex = cf;
-                        break;
+                        return Configuration.ResIndex != ocf;
                     }
                 case OPTIONS.OPT_ROCKLEVEL:
                     {
-                        break;
+                        return false;
                     }
                 case OPTIONS.OPT_SFXVOL:
                     {
+                        int sev = Configuration.SoundEffectsVolume;
                         Configuration.SoundEffectsVolume += 10;
-                        break;
+                        return sev != Configuration.SoundEffectsVolume;
                     }
                 case OPTIONS.OPT_SPECULAR:
                     {
+                        bool s = Configuration.Specular;
                         Configuration.Specular = !Configuration.Specular;
-                        break;
+                        return s != Configuration.Specular;
                     }
                 case OPTIONS.OPT_WAVELEVEL:
                     {
+                        int wd = Configuration.WaveDetail;
                         Configuration.WaveDetail++;
-                        break;
+                        return wd != Configuration.WaveDetail;
                     }
                 case OPTIONS.OPT_WIDESCREEN:
                     {
+                        bool ws = Configuration.WideScreen;
                         Configuration.WideScreen = !Configuration.WideScreen;
                         Rectangle dr = new Rectangle(0, 0, Global.Graphics.GraphicsDevice.DisplayMode.Width, Global.Graphics.GraphicsDevice.DisplayMode.Height);
                         int cf = Configuration.ResIndex;
@@ -596,24 +648,26 @@ namespace Unsigned
                                 break;
                         }
                         Configuration.ResIndex = cf;
-                        break;
+                        return ws != Configuration.WideScreen;
                     }
             }
+            return false;
         }
 
-        private void DecrementValue(OPTIONS option)
+        private bool DecrementValue(OPTIONS option)
         {
             switch (option)
             {
                 case OPTIONS.OPT_CROWD:
                     {
+                        int cd = Configuration.CrowdDetail;
                         Configuration.CrowdDetail--;
-                        break;
+                        return cd != Configuration.CrowdDetail;
                     }
                 case OPTIONS.OPT_FULLSCREEN:
                     {
                         Configuration.FullScreen = !Configuration.FullScreen;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_GUISTYLE:
                     {
@@ -623,7 +677,7 @@ namespace Unsigned
                         if (gs < 0)
                             gs += (MAX_GUI_STYLE + 1);
                         Configuration.GUIStyle = (GameUIMaster.GUIStyle)gs;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_LANGUAGE:
                     {
@@ -632,40 +686,44 @@ namespace Unsigned
                         if (lang < 0)
                             lang += (int)Localizer.Language.Length;
                         Configuration.CurrentLanguage = (Localizer.Language)lang;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_LIGHTING:
                     {
                         Configuration.Lighting = !Configuration.Lighting;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_MUSICVOL:
                     {
+                        int mv = Configuration.MusicVolume;
                         Configuration.MusicVolume -= 10;
-                        break;
+                        return mv != Configuration.MusicVolume;
                     }
                 case OPTIONS.OPT_NORMALMAPPING:
                     {
+                        bool nm = Configuration.NormalMapping;
                         Configuration.NormalMapping = !Configuration.NormalMapping;
-                        break;
+                        return nm != Configuration.NormalMapping;
                     }
                 case OPTIONS.OPT_PARTICLELEVEL:
                     {
+                        int pd = Configuration.ParticleDetail;
                         Configuration.ParticleDetail--;
-                        break;
+                        return pd != Configuration.ParticleDetail;
                     }
                 case OPTIONS.OPT_RENDER3D:
                     {
                         Configuration.TwoDimensionalMode = !Configuration.TwoDimensionalMode;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_RENDERVENUES:
                     {
                         Configuration.RenderVenues = !Configuration.RenderVenues;
-                        break;
+                        return true;
                     }
                 case OPTIONS.OPT_RESOLUTION:
                     {
+                        int ri = Configuration.ResIndex;
                         Rectangle dr = new Rectangle(0, 0, Global.Graphics.GraphicsDevice.DisplayMode.Width, Global.Graphics.GraphicsDevice.DisplayMode.Height);
                         int cf = Configuration.ResIndex;
                         cf--;
@@ -683,29 +741,33 @@ namespace Unsigned
                                 break;
                         }
                         Configuration.ResIndex = cf;
-                        break;
+                        return ri != Configuration.ResIndex;
                     }
                 case OPTIONS.OPT_ROCKLEVEL:
                     {
-                        break;
+                        return false;
                     }
                 case OPTIONS.OPT_SFXVOL:
                     {
+                        int sev = Configuration.SoundEffectsVolume;
                         Configuration.SoundEffectsVolume -= 10;
-                        break;
+                        return sev != Configuration.SoundEffectsVolume;
                     }
                 case OPTIONS.OPT_SPECULAR:
                     {
+                        bool sp = Configuration.Specular;
                         Configuration.Specular = !Configuration.Specular;
-                        break;
+                        return sp != Configuration.Specular;
                     }
                 case OPTIONS.OPT_WAVELEVEL:
                     {
+                        int wd = Configuration.WaveDetail;
                         Configuration.WaveDetail--;
-                        break;
+                        return wd != Configuration.WaveDetail;
                     }
                 case OPTIONS.OPT_WIDESCREEN:
                     {
+                        bool ws = Configuration.WideScreen;
                         Configuration.WideScreen = !Configuration.WideScreen;
                         Rectangle dr = new Rectangle(0, 0, Global.Graphics.GraphicsDevice.DisplayMode.Width, Global.Graphics.GraphicsDevice.DisplayMode.Height);
                         int cf = Configuration.ResIndex;
@@ -721,9 +783,10 @@ namespace Unsigned
                                 break;
                         }
                         Configuration.ResIndex = cf;
-                        break;
+                        return ws != Configuration.WideScreen;
                     }
             }
+            return false;
         }
     }
 }

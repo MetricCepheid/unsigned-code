@@ -34,6 +34,9 @@ namespace UnsignedAnimationEditor
 
         private float Scale;
 
+        private Texture2D texGuitar;
+        private FVModel mdlGuitar;
+
         private Texture2D texCharacter;
 
         private Dictionary<String, FVModel> models;
@@ -83,6 +86,9 @@ namespace UnsignedAnimationEditor
                 models.Add(str.ToUpper(), ModelLoader.LoadModel("bodyparts\\" + str));
             }
 
+            mdlGuitar = ModelLoader.LoadModel("instruments\\guitar\\gibson\\mdl0");
+            texGuitar = Content.Load<Texture2D>("instruments\\guitar\\gibson\\tex0");
+
             spriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
 
             Global.DefaultFont = Content.Load<SpriteFont>("defaultFont");
@@ -95,7 +101,6 @@ namespace UnsignedAnimationEditor
         /// </summary>
         protected override void UnloadContent()
         {
-
         }
 
         /// <summary>
@@ -149,8 +154,13 @@ namespace UnsignedAnimationEditor
                                 float dx = mousePos.X - lastMousePos.X;
                                 float dy = mousePos.Y - lastMousePos.Y;
 
-                                ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationY(dx * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
-                                ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationX(dy * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
+                                if (!Keyboard.GetState().IsKeyDown(Keys.LeftControl))
+                                {
+                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = ck.Matrices[AnimationInfo.SelectedJointIndex] * Matrix.CreateRotationY(dx * 0.01f);
+                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = ck.Matrices[AnimationInfo.SelectedJointIndex] * Matrix.CreateRotationZ(dy * 0.01f);
+                                }
+                                else
+                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationX(dy * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
                             }
                         }
                     }
@@ -233,9 +243,17 @@ namespace UnsignedAnimationEditor
                                  Matrix.Identity : 
                                  AnimationInfo.CurrentAnimation.GetJointMatrix(AnimationInfo.CurrentAnimationTimeValue, j.JointMatrix);
             Matrix postWorld = JointMatrix * Matrix.CreateTranslation(j.postOffset) * world;
+            if (j.Name.ToUpper() == "GUITAR")
+            {
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.Texture = texGuitar;
+                effect.CommitChanges();
+                mdlGuitar.Draw();
+            }
             if (models.ContainsKey(j.Name.ToUpper()))
             {
                 effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.Texture = texCharacter;
                 effect.CommitChanges();
                 models[j.Name.ToUpper()].Draw();
             }

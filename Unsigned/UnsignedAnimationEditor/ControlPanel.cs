@@ -66,7 +66,7 @@ namespace UnsignedAnimationEditor
                     frameComboBox.Items.Add(arr[i]);
                 keyframeTrackBar1.Keyframes.Clear();
                 for (int i = 0; i < AnimationInfo.CurrentAnimation.KeyframeCount; i++)
-                    keyframeTrackBar1.Keyframes.Add((int)(AnimationInfo.CurrentAnimation.Keyframe(i).Time*(keyframeTrackBar1.Maximum-keyframeTrackBar1.Minimum))+keyframeTrackBar1.Minimum);
+                    keyframeTrackBar1.Keyframes.Add(AnimationInfo.CurrentAnimation.Keyframe(i).Time/2);
                 frameComboBox.Enabled = true;
                 keyframeTrackBar1.Enabled = true;
             }
@@ -85,6 +85,13 @@ namespace UnsignedAnimationEditor
         private void frameComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             AnimationInfo.SelectedJointIndex = frameComboBox.SelectedIndex;
+        }
+
+        public void AnimationInfoChanged()
+        {
+            ResetComboBox();
+            keyframeTrackBar1.Value = AnimationInfo.CurrentAnimationTimeValue / 2;
+            comboBox1_SelectedIndexChanged(this, new EventArgs());
         }
     }
 }

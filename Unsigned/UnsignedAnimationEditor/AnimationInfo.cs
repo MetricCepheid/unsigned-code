@@ -10,7 +10,7 @@ namespace UnsignedAnimationEditor
     public class Animation
     {
         public String Name;
-        private List<Frame> Frames;
+        public List<Frame> Frames;
         public float Length;
         private int NumMatrices;
 
