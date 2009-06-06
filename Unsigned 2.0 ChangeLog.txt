@@ -1,0 +1,39 @@
+Unsigned 2.0 Change Log
+
+=========Settings========================================================
+
+The first time the game is started, it will detect many things about the system, including default language.
+
+Option to view FPS has been deprecated.
+
+Option to set "graphics level" has been deprecated.
+
+2D mode added! Requires SM1.1.
+
+Fixed Particles
+
+=========InGameFeatures==================================================
+
+Solos implemented!
+
+Band Multipliers (when multiple band members use Rock Power)
+
+Big Rock Endings!
+
+=========Look&Feel=======================================================
+
+Rock Power has changed to a light blue color throughout the game.
+
+The "Unsigned Orange" has been used throughout the game and menus to tie together the overall look.
+
+Additional stars are shown on the side of the Unsigned-Style HUD to show how many stars have been achieved on a certain song.
+
+Results Screen now shows the percentage of notes hit, the number of RP phrases hit, and the player's streak.
+
+VenueCompiler now allows models, such as those pretty palm trees
+
+Fans!
+
+Rocker Idols!
+
+Animated Amps bump with bass drum and bass guitar notes
