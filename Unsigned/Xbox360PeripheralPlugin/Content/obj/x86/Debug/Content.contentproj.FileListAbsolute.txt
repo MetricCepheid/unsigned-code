@@ -1,2 +1,3 @@
 C:\projects\Unsigned3.0\Unsigned\Xbox360PeripheralPlugin\Content\obj\x86\Debug\ResolveAssemblyReference.cache
 C:\projects\Unsigned2.0\Unsigned\Xbox360PeripheralPlugin\Content\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\projects\Unsigned2.1\Unsigned\Xbox360PeripheralPlugin\Content\obj\x86\Debug\ResolveAssemblyReference.cache
