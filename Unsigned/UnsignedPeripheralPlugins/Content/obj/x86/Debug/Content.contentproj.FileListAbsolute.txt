@@ -1,4 +1,0 @@
-E:\Unsigned3.0\Unsigned\UnsignedPeripheralPlugins\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\projects\Unsigned3.0\Unsigned\UnsignedPeripheralPlugins\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\projects\Unsigned2.0\Unsigned\UnsignedPeripheralPlugins\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\projects\Unsigned2.1\Unsigned\UnsignedPeripheralPlugins\Content\obj\x86\Debug\ResolveAssemblyReference.cache
