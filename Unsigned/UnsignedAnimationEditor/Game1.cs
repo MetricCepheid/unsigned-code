@@ -36,6 +36,7 @@ namespace UnsignedAnimationEditor
 
         private Texture2D texGuitar;
         private FVModel mdlGuitar;
+        private Dictionary<String, FVModel> mdlDrums;
 
         private Texture2D texCharacter;
 
@@ -84,6 +85,20 @@ namespace UnsignedAnimationEditor
                 String str = files[i].Substring(files[i].LastIndexOf('\\') + 1);
                 str = str.Substring(0, str.LastIndexOf('.'));
                 models.Add(str.ToUpper(), ModelLoader.LoadModel("bodyparts\\" + str));
+            }
+
+            {
+                mdlDrums = new Dictionary<String, FVModel>();
+                String[] dfs = Directory.GetFiles("Content\\instruments\\drums\\yahama\\");
+                for (int i = 0; i < dfs.Length; i++)
+                {
+                    String subName = dfs[i].Substring(dfs[i].LastIndexOf('\\') + 1);
+                    subName = subName.Substring(0, subName.LastIndexOf('.'));
+                    if (subName.StartsWith("mdl0"))
+                    {
+                        mdlDrums.Add(subName.Substring(5).ToUpper(), ModelLoader.LoadModel("instruments\\drums\\yahama\\" + subName));
+                    }
+                }
             }
 
             mdlGuitar = ModelLoader.LoadModel("instruments\\guitar\\gibson\\mdl0");
@@ -250,12 +265,19 @@ namespace UnsignedAnimationEditor
                 effect.CommitChanges();
                 mdlGuitar.Draw();
             }
-            if (models.ContainsKey(j.Name.ToUpper()))
+            else if (models.ContainsKey(j.Name.ToUpper()))
             {
                 effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
                 effect.Texture = texCharacter;
                 effect.CommitChanges();
                 models[j.Name.ToUpper()].Draw();
+            }
+            else if (mdlDrums.ContainsKey(j.Name.ToUpper()))
+            {
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.Texture = Global.TexWhite;
+                effect.CommitChanges();
+                mdlDrums[j.Name.ToUpper()].Draw();
             }
             for (int i = 0; i < j.Children.Count; i++)
                 DrawJoint(j.Children[i], postWorld);

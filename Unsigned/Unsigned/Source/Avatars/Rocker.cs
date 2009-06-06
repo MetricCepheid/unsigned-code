@@ -17,7 +17,7 @@ namespace Unsigned
         private Dictionary<String,FVModel> models;
         private Texture2D tex;
         private Instrument instrument;
-        private Texture2D texInstr;
+        private Dictionary<String, Texture2D> texInstr;
         private Dictionary<String,FVModel> mdlInstr;
         private CharacterIdol idol;
         private AnimationInfo Animation;
@@ -64,7 +64,23 @@ namespace Unsigned
                         }
                     }
                 }
-                texInstr = Content.Load<Texture2D>("textures\\instruments\\" + instrument.CodeName + "\\" + idol.InstrumentBrand + "\\tex" + idol.InstrumentIndex);
+                {
+                    texInstr = new Dictionary<String, Texture2D>();
+                    String path = "textures\\instruments\\" + instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
+                    String contentPath = "Content\\" + path;
+                    String[] mdlFiles = System.IO.Directory.GetFiles(contentPath);
+                    for (int i = 0; i < mdlFiles.Length; i++)
+                    {
+                        String str = mdlFiles[i].Substring(mdlFiles[i].LastIndexOf('\\') + 1);
+                        str = str.Substring(0, str.LastIndexOf('.'));
+                        if (str.StartsWith("tex" + idol.InstrumentIndex))
+                        {
+                            String loadStr = mdlFiles[i].Substring(mdlFiles[i].IndexOf("textures\\"));
+                            loadStr = loadStr.Substring(0, loadStr.IndexOf('.'));
+                            texInstr.Add(str.Substring(str.IndexOf('_') + 1).ToUpper(), Content.Load<Texture2D>(loadStr));
+                        }
+                    }
+                }
             }
             tex = Content.Load<Texture2D>("textures\\avatars\\fanTex");
             String skeleFilename = "Content\\animations\\"+instrument.CodeName+"Hierarchy.txt";
@@ -108,7 +124,7 @@ namespace Unsigned
             else if (mdlInstr != null && mdlInstr.ContainsKey(j.Name.ToUpper()))
             {
                 effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
-                effect.DiffuseTexture = texInstr;
+                effect.DiffuseTexture = texInstr[j.Name.ToUpper()];
                 effect.CommitChanges();
                 mdlInstr[j.Name.ToUpper()].Draw();
             }

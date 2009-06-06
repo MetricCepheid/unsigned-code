@@ -1310,13 +1310,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\instruments\LGT\Gobsin\tex0.png">
-      <Name>tex0</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="meshes\instruments\SET\Yahama\mdl0_BAS.x">
       <Name>mdl0_BAS</Name>
       <Importer>XImporter</Importer>
@@ -1354,8 +1347,52 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\instruments\BAS\Itanex\tex0.jpg">
-      <Name>tex0</Name>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_BAS.png">
+      <Name>tex0_BAS</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_CSH.png">
+      <Name>tex0_CSH</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_FTM.png">
+      <Name>tex0_FTM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_HHT.png">
+      <Name>tex0_HHT</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_RDC.png">
+      <Name>tex0_RDC</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_SND.png">
+      <Name>tex0_SND</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="textures\instruments\SET\Yahama\tex0_TTM.png">
+      <Name>tex0_TTM</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\LGT\Gobsin\tex0_GTR.png">
+      <Name>tex0_GTR</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\BAS\Itanex\tex0_BAS.jpg">
+      <Name>tex0_BAS</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

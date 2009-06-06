@@ -34,6 +34,11 @@ namespace Unsigned
                 randIdol.InstrumentBrand = "Itanex";
                 randIdol.InstrumentIndex = 0;
             }
+            if (instr.CodeName == "SET")
+            {
+                randIdol.InstrumentBrand = "Yahama";
+                randIdol.InstrumentIndex = 0;
+            }
             randIdol.Name = "GenericRocker";
             randIdol.Filename = null;
             return randIdol;

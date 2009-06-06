@@ -168,6 +168,43 @@
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="instruments\drums\yahama\mdl0_BAS.x">
+      <Name>mdl0_BAS</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_CSH.x">
+      <Name>mdl0_CSH</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_FTM.x">
+      <Name>mdl0_FTM</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_HHT.x">
+      <Name>mdl0_HHT</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_RDC.x">
+      <Name>mdl0_RDC</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_SND.x">
+      <Name>mdl0_SND</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="instruments\drums\yahama\mdl0_TTM.x">
+      <Name>mdl0_TTM</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v3.0\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -81,15 +81,15 @@ namespace Unsigned
             PeripheralManager.Singleton.CheckConnections();
 
             //TEST CODE, takes you right into the action!
-            /*SessionInfo info = new SessionInfo();
+            SessionInfo info = new SessionInfo();
             info.characterIndices[0] = -1;
             info.difficulties[0] = Difficulty.Expert;
             info.instruments[0] = 1;
             info.peripherals[0] = PeripheralManager.Singleton.GetPeripherals()[0];
-            info.songFileName = "C:\\projects\\Unsigned3.0\\Unsigned\\Unsigned\\bin\\x86\\Debug\\songdata\\hotsauce.uns";
+            info.songFileName = "songdata\\dontstop.uns";
             //info.songFileName = "C:\\projects\\Unsigned3.0\\Unsigned\\Unsigned\\bin\\x86\\Debug\\songdata\\Destroyer of Senses.gba";
-            currentState = new GameState(info);*/
-            //END TEST CODE
+            currentState = new GameState(info);
+            //END TEST CODE */
 
 #if DEBUG
             this.IsFixedTimeStep = false;

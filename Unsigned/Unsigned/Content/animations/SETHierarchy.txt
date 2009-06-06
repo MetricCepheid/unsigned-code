@@ -61,7 +61,11 @@ LeftFoot
 LeftCalf
 0.74,-3.81,0.24
 0.17,-1.46,0.16
-Bass
-Chest
+BAS
+Root
 0,0,0
-0,0,0.5
+0,0,2
+TTM
+Root
+0,0,0
+0,2.6,2
