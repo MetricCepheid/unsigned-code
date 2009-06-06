@@ -29,8 +29,6 @@ namespace Unsigned
 
         private float knobBroken;
 
-        private float intro;
-
         private enum OPTIONS
         {
             NONE,

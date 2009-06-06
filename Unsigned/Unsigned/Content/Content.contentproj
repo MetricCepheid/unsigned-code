@@ -1212,14 +1212,149 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="meshes\instruments\LGT\Gibson\mdl0.x">
-      <Name>mdl0</Name>
+    <Compile Include="meshes\avatars\chest.x">
+      <Name>chest</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\groin.x">
+      <Name>groin</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\head.x">
+      <Name>head</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\leftcalf.x">
+      <Name>leftcalf</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\leftfoot.x">
+      <Name>leftfoot</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\leftforearm.x">
+      <Name>leftforearm</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\lefthand0.x">
+      <Name>lefthand0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\leftthigh.x">
+      <Name>leftthigh</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\leftupperarm.x">
+      <Name>leftupperarm</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\rightcalf.x">
+      <Name>rightcalf</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\rightfoot.x">
+      <Name>rightfoot</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\rightforearm.x">
+      <Name>rightforearm</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\righthand0.x">
+      <Name>righthand0</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\rightthigh.x">
+      <Name>rightthigh</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\avatars\rightupperarm.x">
+      <Name>rightupperarm</Name>
       <Importer>XImporter</Importer>
       <Processor>ModelProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\instruments\LGT\Gibson\tex0.png">
+    <Compile Include="textures\avatars\fanTex.jpg">
+      <Name>fanTex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\instruments\LGT\Gobsin\mdl0_GTR.x">
+      <Name>mdl0_GTR</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\instruments\BAS\Itanex\mdl0_BAS.x">
+      <Name>mdl0_BAS</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\LGT\Gobsin\tex0.png">
+      <Name>tex0</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_BAS.x">
+      <Name>mdl0_BAS</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_CSH.x">
+      <Name>mdl0_CSH</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_FTM.x">
+      <Name>mdl0_FTM</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_HHT.x">
+      <Name>mdl0_HHT</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_RDC.x">
+      <Name>mdl0_RDC</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_SND.x">
+      <Name>mdl0_SND</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+    <Compile Include="meshes\instruments\SET\Yahama\mdl0_TTM.x">
+      <Name>mdl0_TTM</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\BAS\Itanex\tex0.jpg">
       <Name>tex0</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>

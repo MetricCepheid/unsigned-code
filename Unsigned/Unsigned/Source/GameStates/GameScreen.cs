@@ -192,7 +192,7 @@ namespace Unsigned
                 //postProcessor.SetRenderingTarget();
 
                 if(Configuration.RenderVenues)
-                    venue.Render(gameTime);
+                    venue.Render(songTime);
 #if !DEBUG
             }
             catch(Exception e)

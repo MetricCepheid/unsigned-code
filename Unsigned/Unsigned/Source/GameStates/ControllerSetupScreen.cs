@@ -157,13 +157,13 @@ namespace Unsigned
                                     alsochosen = true;
                             if (nugget.confirmStates[i] >= SessionInfo.ConfirmState.CHOOSING_INSTRUMENT)
                                 for (int r = 0; r < 20; r++)
-                                    spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).name, new Vector2(70 - r, 20 - (r / 2)),
+                                    spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name, new Vector2(70 - r, 20 - (r / 2)),
                                         new Color(128, 85, 0, (byte)(50 - (r * 2))), 0, new Vector2(0, 0),
-                                        (rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).name).X,
+                                        (rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
                                         SpriteEffects.None, 0);
-                            spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i]<0?"[Create New]":CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).name, new Vector2(70, 20),
+                            spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i]<0?"[Create New]":CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name, new Vector2(70, 20),
                                 alsochosen ? Color.Red : Color.Black, 0, new Vector2(0, 0),
-                                (rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).name).X,
+                                (rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
                                 SpriteEffects.None, 0);
                         }
 

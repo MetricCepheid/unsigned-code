@@ -5,12 +5,39 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using SongDataIO;
 
 namespace Unsigned
 {
-    public struct CharacterIdol
+    /// <summary>
+    /// Represents a set of data to construct the
+    /// appearance for a rocker
+    /// </summary>
+    public class CharacterIdol
     {
-        public String name, filename;
+        public String Name, Filename;
+        public String InstrumentBrand;
+        public int InstrumentIndex;
+
+        internal static CharacterIdol RandomIdol(Instrument instr)
+        {
+            CharacterIdol randIdol = new CharacterIdol();
+            randIdol.InstrumentBrand = "[none]";
+            randIdol.InstrumentIndex = -1;
+            if (instr.CodeName == "LGT")
+            {
+                randIdol.InstrumentBrand = "Gobsin";
+                randIdol.InstrumentIndex = 0;
+            }
+            if (instr.CodeName == "BAS")
+            {
+                randIdol.InstrumentBrand = "Itanex";
+                randIdol.InstrumentIndex = 0;
+            }
+            randIdol.Name = "GenericRocker";
+            randIdol.Filename = null;
+            return randIdol;
+        }
     }
 
     public class CharacterMaster
@@ -40,8 +67,8 @@ namespace Unsigned
                     BinaryReader bin = new BinaryReader(File.OpenRead(files[i]));
                     if (bin.ReadChar() == 'U' && bin.ReadChar() == 'N' && bin.ReadChar() == 'C')
                     {
-                        idol.filename = files[i];
-                        idol.name = bin.ReadString();
+                        idol.Filename = files[i];
+                        idol.Name = bin.ReadString();
                         list.Add(idol);
                     }
                     bin.Close();
@@ -65,7 +92,7 @@ namespace Unsigned
         public CharacterIdol GetCharacter(String index)
         {
             for (int i = 0; i < idols.Count; i++)
-                if (idols[i].name.Equals(index))
+                if (idols[i].Name.Equals(index))
                     return idols[i];
             throw new IndexOutOfRangeException();
         }

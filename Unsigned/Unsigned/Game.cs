@@ -112,9 +112,6 @@ namespace Unsigned
             Global.TexWhite = Content.Load<Texture2D>("textures\\global\\white");
             currentState.Load();
 
-            MS3DProcessor.MS3DImporter m = new MS3DProcessor.MS3DImporter();
-            m.Import("Content\\meshes\\avatars\\torso.ms3d", null);
-
 #if DEBUG
             fpsSpriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
             screenshotRT = new RenderTarget2D(Global.Graphics.GraphicsDevice, Global.ScreenWidth, Global.ScreenHeight, 0, SurfaceFormat.Color);

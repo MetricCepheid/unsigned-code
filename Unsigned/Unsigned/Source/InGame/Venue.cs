@@ -1,4 +1,4 @@
-//#define DEBUG_CAM_CONTROL
+#define DEBUG_CAM_CONTROL
 
 using System;
 using System.Collections.Generic;
@@ -135,7 +135,6 @@ namespace Unsigned
         private float camblendvalue;
         private uint[] camtimes { get { return songData.effects.cameraSwitches; } }
 
-        private const int DS_BASSDRUM = 0, DS_CRASHCYMBAL = 1, DS_RIDECYMBAL = 2, DS_HIHATCYMBAL = 3, DS_FLOORTOM = 4, DS_TOMTOMS = 5, DS_SNARE = 6;
         private Rocker[] rockers;
 
         public static float SCALE = 1f;
@@ -509,17 +508,17 @@ namespace Unsigned
 
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
 
-            rockers = new Rocker[4];
-            rockers[0] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("LGT"));
-            rockers[1] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("LVX"));
-            rockers[2] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("SET"));
-            rockers[3] = new Rocker(CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("BAS"));
+            Rocker.SongData = songData;
 
-            //TODO: fix for customized Content
-            //String BaseModelDirectory = "meshes\\instruments\\";
-            //String BaseTextureDirectory = "textures\\instruments\\";
-            //String GuitarDirectory = "GibsonSG\\";
-            //String DrumsDirectory = "Drums01\\";
+            rockers = new Rocker[4];
+            rockers[0] = new Rocker(nugget.characterIndices[0] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("LGT")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[0]), InstrumentMaster.Singleton.GetInstrument("LGT"));
+            rockers[1] = new Rocker(nugget.characterIndices[1] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("LVX")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[1]), InstrumentMaster.Singleton.GetInstrument("LVX"));
+            rockers[2] = new Rocker(nugget.characterIndices[2] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("SET")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[2]), InstrumentMaster.Singleton.GetInstrument("SET"));
+            rockers[3] = new Rocker(nugget.characterIndices[3] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("BAS")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[3]), InstrumentMaster.Singleton.GetInstrument("BAS"));
+
+            for (int i = 0; i < rockers.Length; i++)
+                rockers[i].Load(Content);
+
             System.IO.BinaryReader fin = new System.IO.BinaryReader(System.IO.File.Open(Filename,System.IO.FileMode.Open,System.IO.FileAccess.Read));
 
             char[] header = fin.ReadChars(7);
@@ -702,7 +701,7 @@ namespace Unsigned
 
         }
 
-        public void Render(GameTime gameTime)
+        public void Render(SongTime songTime)
         {
             lastTexApplied=-1;
             Matrix matIdentity, matScale, mMatWorld;
@@ -794,6 +793,11 @@ namespace Unsigned
                         effect.CommitChanges();
                         mdlAmpBoomer.Draw();
                     }
+                }
+
+                for (int i = 0; i < rockers.Length; i++)
+                {
+                    rockers[i].Draw(songTime, effect);
                 }
 
                 pass.End();
