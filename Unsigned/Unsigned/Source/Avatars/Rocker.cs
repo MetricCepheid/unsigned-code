@@ -88,8 +88,11 @@ namespace Unsigned
             if (System.IO.File.Exists(skeleFilename) && System.IO.File.Exists(animFilename))
             {
                 Animation = AnimationInfo.Load(skeleFilename, animFilename);
-                Animation.AnimationIndex = 0;
-                Animation.CurrentAnimationTimeValue = 0;
+                if (Animation != null)
+                {
+                    Animation.AnimationIndex = 0;
+                    Animation.CurrentAnimationTimeValue = 0;
+                }
             }
         }
 
@@ -101,14 +104,15 @@ namespace Unsigned
 
             if (Animation != null)
             {
-                Joint j = Animation.Skeleton.RootJoint;
-
-                DrawJoint(j, w, effect);
+                DrawJoint(Animation.Skeleton.RootJoint, w, effect);
+                DrawJoint(Animation.Skeleton.InstrRootJoint, w, effect);
             }
         }
 
         private void DrawJoint(Joint j, Matrix world, FVShader effect)
         {
+            Vector3 offset = Animation.CurrentAnimation.GetOffset(Animation.CurrentAnimationTimeValue);
+            offset.Z = -offset.Z;
             Matrix JointMatrix = (Animation == null || Animation.CurrentAnimation == null) ?
                                  Matrix.Identity :
                                  Animation.CurrentAnimation.GetJointMatrix(Animation.CurrentAnimationTimeValue, j.JointMatrix);
@@ -116,7 +120,7 @@ namespace Unsigned
             
             if (models.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
                 effect.DiffuseTexture = tex;
                 effect.CommitChanges();
                 models[j.Name.ToUpper()].Draw();

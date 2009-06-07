@@ -39,6 +39,11 @@ namespace Unsigned
                 randIdol.InstrumentBrand = "Yahama";
                 randIdol.InstrumentIndex = 0;
             }
+            if (instr.CodeName == "LVX")
+            {
+                randIdol.InstrumentBrand = "FVProductions";
+                randIdol.InstrumentIndex = 0;
+            }
             randIdol.Name = "GenericRocker";
             randIdol.Filename = null;
             return randIdol;

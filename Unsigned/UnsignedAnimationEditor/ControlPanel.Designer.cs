@@ -37,7 +37,16 @@
             this.newAnimButton = new System.Windows.Forms.Button();
             this.frameComboBox = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.xOffsetNumeric = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.yOffsetNumeric = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
+            this.zOffsetNumeric = new System.Windows.Forms.NumericUpDown();
             this.keyframeTrackBar1 = new UnsignedAnimationEditor.KeyframeTrackBar();
+            ((System.ComponentModel.ISupportInitialize)(this.xOffsetNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.yOffsetNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.zOffsetNumeric)).BeginInit();
             this.SuspendLayout();
             // 
             // animComboBox
@@ -117,6 +126,90 @@
             this.label3.TabIndex = 8;
             this.label3.Text = "Joint:";
             // 
+            // xOffsetNumeric
+            // 
+            this.xOffsetNumeric.DecimalPlaces = 2;
+            this.xOffsetNumeric.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            this.xOffsetNumeric.Location = new System.Drawing.Point(4, 289);
+            this.xOffsetNumeric.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            -2147483648});
+            this.xOffsetNumeric.Name = "xOffsetNumeric";
+            this.xOffsetNumeric.Size = new System.Drawing.Size(120, 22);
+            this.xOffsetNumeric.TabIndex = 9;
+            this.xOffsetNumeric.ValueChanged += new System.EventHandler(this.xOffsetNumeric_ValueChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(4, 269);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(64, 17);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "X-Offset:";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(4, 314);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(64, 17);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "Y-Offset:";
+            // 
+            // yOffsetNumeric
+            // 
+            this.yOffsetNumeric.DecimalPlaces = 2;
+            this.yOffsetNumeric.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            this.yOffsetNumeric.Location = new System.Drawing.Point(4, 334);
+            this.yOffsetNumeric.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            -2147483648});
+            this.yOffsetNumeric.Name = "yOffsetNumeric";
+            this.yOffsetNumeric.Size = new System.Drawing.Size(120, 22);
+            this.yOffsetNumeric.TabIndex = 11;
+            this.yOffsetNumeric.ValueChanged += new System.EventHandler(this.yOffsetNumeric_ValueChanged);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(4, 359);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(64, 17);
+            this.label6.TabIndex = 14;
+            this.label6.Text = "Z-Offset:";
+            // 
+            // zOffsetNumeric
+            // 
+            this.zOffsetNumeric.DecimalPlaces = 2;
+            this.zOffsetNumeric.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            this.zOffsetNumeric.Location = new System.Drawing.Point(4, 379);
+            this.zOffsetNumeric.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            -2147483648});
+            this.zOffsetNumeric.Name = "zOffsetNumeric";
+            this.zOffsetNumeric.Size = new System.Drawing.Size(120, 22);
+            this.zOffsetNumeric.TabIndex = 13;
+            this.zOffsetNumeric.ValueChanged += new System.EventHandler(this.zOffsetNumeric_ValueChanged);
+            // 
             // keyframeTrackBar1
             // 
             this.keyframeTrackBar1.BackColor = System.Drawing.Color.Transparent;
@@ -135,6 +228,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.zOffsetNumeric);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.yOffsetNumeric);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.xOffsetNumeric);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.frameComboBox);
             this.Controls.Add(this.newAnimButton);
@@ -146,6 +245,9 @@
             this.Controls.Add(this.animComboBox);
             this.Name = "ControlPanel";
             this.Size = new System.Drawing.Size(175, 517);
+            ((System.ComponentModel.ISupportInitialize)(this.xOffsetNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.yOffsetNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.zOffsetNumeric)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -162,5 +264,11 @@
         private System.Windows.Forms.Button newAnimButton;
         private System.Windows.Forms.ComboBox frameComboBox;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown xOffsetNumeric;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown yOffsetNumeric;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.NumericUpDown zOffsetNumeric;
     }
 }

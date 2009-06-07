@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace UnsignedAnimationEditor
+namespace Unsigned
 {
     public class Animation
     {
@@ -24,7 +24,7 @@ namespace UnsignedAnimationEditor
 
         public int KeyframeCount { get { return Frames.Count; } }
 
-        internal Matrix GetJointMatrix(int animViewPos, int jointIndex)
+        public Matrix GetJointMatrix(int animViewPos, int jointIndex)
         {
             if (Frames.Count <= 0)
                 return Matrix.Identity;
@@ -48,7 +48,7 @@ namespace UnsignedAnimationEditor
             throw new Exception();
         }
 
-        internal Vector3 GetOffset(int animViewPos)
+        public Vector3 GetOffset(int animViewPos)
         {
             if (Frames.Count <= 0)
                 return Vector3.Zero;
@@ -77,12 +77,12 @@ namespace UnsignedAnimationEditor
             return Name;
         }
 
-        internal Frame Keyframe(int i)
+        public Frame Keyframe(int i)
         {
             return Frames[i];
         }
 
-        internal void AddKeyframe(int time)
+        public void AddKeyframe(int time)
         {
             Frames.Add(new Frame(time, NumMatrices));
             Frames.Sort();
@@ -277,6 +277,93 @@ namespace UnsignedAnimationEditor
             Animations = new List<Animation>();
             AnimationIndex = -1;
             CurrentAnimationTimeValue = 0;
+        }
+
+        public static AnimationInfo Load(String skeletonFilename, String animFilename)
+        {
+            AnimationInfo AnimInfo = new AnimationInfo();
+            AnimInfo.Skeleton = new Skeleton();
+            AnimInfo.Skeleton.Load(System.IO.File.OpenRead(skeletonFilename));
+            AnimInfo.LoadAnimation(animFilename);
+            return AnimInfo;
+        }
+
+        public void LoadAnimation(String animFilename)
+        {
+            BinaryReader br = new BinaryReader(File.OpenRead(animFilename));
+            Animations = new List<Animation>();
+            uint numAnims = br.ReadUInt32();
+            for (int i = 0; i < numAnims; i++)
+            {
+                Animation anim = new Animation(br.ReadString(), Skeleton.GetMatrixLength());
+                anim.Frames.Clear();
+                anim.Length = br.ReadSingle();
+                uint numKeyframes = br.ReadUInt32();
+                for (int k = 0; k < numKeyframes; k++)
+                {
+                    Frame f = new Frame(br.ReadInt32(), (int)br.ReadUInt32());
+                    f.Offset = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                    if (f.Matrices.Length != Skeleton.GetMatrixLength())
+                    {
+                        throw new Exception("Error: Skeleton does not match animation");
+                    }
+                    for (int j = 0; j < f.Matrices.Length; j++)
+                    {
+                        f.Matrices[j] = new Microsoft.Xna.Framework.Matrix(
+                            br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle(),
+                            br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle(),
+                            br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle(),
+                            br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                    }
+                    anim.Frames.Add(f);
+                }
+                Animations.Add(anim);
+            }
+            br.Close();
+        }
+
+        public void SaveAnimations(string animationFilename)
+        {
+            BinaryWriter bw = new BinaryWriter(File.OpenWrite(animationFilename));
+            bw.Write((uint)Animations.Count);
+            for (int i = 0; i < Animations.Count; i++)
+            {
+                bw.Write(Animations[i].Name);
+                bw.Write(Animations[i].Length);
+                bw.Write((uint)Animations[i].KeyframeCount);
+                for (int k = 0; k < Animations[i].KeyframeCount; k++)
+                {
+                    Frame f = Animations[i].Keyframe(k);
+                    bw.Write(f.Time);
+                    bw.Write((uint)f.Matrices.Length);
+                    bw.Write(f.Offset.X);
+                    bw.Write(f.Offset.Y);
+                    bw.Write(f.Offset.Z);
+                    for (int j = 0; j < f.Matrices.Length; j++)
+                    {
+                        bw.Write(f.Matrices[j].M11);
+                        bw.Write(f.Matrices[j].M12);
+                        bw.Write(f.Matrices[j].M13);
+                        bw.Write(f.Matrices[j].M14);
+
+                        bw.Write(f.Matrices[j].M21);
+                        bw.Write(f.Matrices[j].M22);
+                        bw.Write(f.Matrices[j].M23);
+                        bw.Write(f.Matrices[j].M24);
+
+                        bw.Write(f.Matrices[j].M31);
+                        bw.Write(f.Matrices[j].M32);
+                        bw.Write(f.Matrices[j].M33);
+                        bw.Write(f.Matrices[j].M34);
+
+                        bw.Write(f.Matrices[j].M41);
+                        bw.Write(f.Matrices[j].M42);
+                        bw.Write(f.Matrices[j].M43);
+                        bw.Write(f.Matrices[j].M44);
+                    }
+                }
+            }
+            bw.Close();
         }
     }
 }

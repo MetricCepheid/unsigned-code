@@ -1296,20 +1296,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="meshes\instruments\LGT\Gobsin\mdl0_GTR.x">
-      <Name>mdl0_GTR</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="meshes\instruments\BAS\Itanex\mdl0_BAS.x">
-      <Name>mdl0_BAS</Name>
-      <Importer>XImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="meshes\instruments\SET\Yahama\mdl0_BAS.x">
       <Name>mdl0_BAS</Name>
       <Importer>XImporter</Importer>
@@ -1384,15 +1370,43 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\instruments\LGT\Gobsin\tex0_GTR.png">
-      <Name>tex0_GTR</Name>
+    <Compile Include="meshes\instruments\LGT\Gobsin\mdl0_GUITAR.x">
+      <Name>mdl0_GUITAR</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\instruments\BAS\Itanex\mdl0_BASS.x">
+      <Name>mdl0_BASS</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\BAS\Itanex\tex0_BASS.jpg">
+      <Name>tex0_BASS</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="textures\instruments\BAS\Itanex\tex0_BAS.jpg">
-      <Name>tex0_BAS</Name>
+    <Compile Include="textures\instruments\LGT\Gobsin\tex0_GUITAR.png">
+      <Name>tex0_GUITAR</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="meshes\instruments\LVX\FVProductions\mdl0_STAND.x">
+      <Name>mdl0_STAND</Name>
+      <Importer>XImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="textures\instruments\LVX\FVProductions\tex0_STAND.png">
+      <Name>tex0_STAND</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using FVProductions.Utility;
+using Unsigned;
 
 namespace UnsignedAnimationEditor
 {
@@ -80,6 +81,18 @@ namespace UnsignedAnimationEditor
         private void keyframeTrackBar1_ValueChanged(object sender, EventArgs e)
         {
             AnimationInfo.CurrentAnimationTimeValue = keyframeTrackBar1.Value * 2;
+            if (AnimationInfo.CurrentKeyframe != null)
+            {
+                xOffsetNumeric.Value = (decimal)AnimationInfo.CurrentKeyframe.Offset.X;
+                yOffsetNumeric.Value = (decimal)AnimationInfo.CurrentKeyframe.Offset.Y;
+                zOffsetNumeric.Value = (decimal)AnimationInfo.CurrentKeyframe.Offset.Z;
+            }
+            else
+            {
+                xOffsetNumeric.Value = 0;
+                yOffsetNumeric.Value = 0;
+                zOffsetNumeric.Value = 0;
+            }
         }
 
         private void frameComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -92,6 +105,39 @@ namespace UnsignedAnimationEditor
             ResetComboBox();
             keyframeTrackBar1.Value = AnimationInfo.CurrentAnimationTimeValue / 2;
             comboBox1_SelectedIndexChanged(this, new EventArgs());
+        }
+
+        private void xOffsetNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            if (AnimationInfo != null)
+            {
+                if (AnimationInfo.CurrentKeyframe != null)
+                {
+                    AnimationInfo.CurrentKeyframe.Offset.X = (float)xOffsetNumeric.Value;
+                }
+            }
+        }
+
+        private void yOffsetNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            if (AnimationInfo != null)
+            {
+                if (AnimationInfo.CurrentKeyframe != null)
+                {
+                    AnimationInfo.CurrentKeyframe.Offset.Y = (float)yOffsetNumeric.Value;
+                }
+            }
+        }
+
+        private void zOffsetNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            if (AnimationInfo != null)
+            {
+                if (AnimationInfo.CurrentKeyframe != null)
+                {
+                    AnimationInfo.CurrentKeyframe.Offset.Z = (float)zOffsetNumeric.Value;
+                }
+            }
         }
     }
 }

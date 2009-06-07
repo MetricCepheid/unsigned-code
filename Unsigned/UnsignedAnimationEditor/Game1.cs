@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
 using FVProductions.Utility;
+using Unsigned;
 
 namespace UnsignedAnimationEditor
 {
@@ -36,6 +37,8 @@ namespace UnsignedAnimationEditor
 
         private Texture2D texGuitar;
         private FVModel mdlGuitar;
+        private Texture2D texMicrophone;
+        private FVModel mdlMicrophone;
         private Dictionary<String, FVModel> mdlDrums;
 
         private Texture2D texCharacter;
@@ -100,6 +103,9 @@ namespace UnsignedAnimationEditor
                     }
                 }
             }
+
+            mdlMicrophone = ModelLoader.LoadModel("instruments\\vocals\\FVProductions\\stand");
+            texMicrophone = Content.Load<Texture2D>("instruments\\vocals\\FVProductions\\tex0");
 
             mdlGuitar = ModelLoader.LoadModel("instruments\\guitar\\gibson\\mdl0");
             texGuitar = Content.Load<Texture2D>("instruments\\guitar\\gibson\\tex0");
@@ -169,13 +175,19 @@ namespace UnsignedAnimationEditor
                                 float dx = mousePos.X - lastMousePos.X;
                                 float dy = mousePos.Y - lastMousePos.Y;
 
-                                if (!Keyboard.GetState().IsKeyDown(Keys.LeftControl))
+                                if (Keyboard.GetState().IsKeyDown(Keys.LeftControl))
+                                {
+                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationX(dy * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
+                                }
+                                else if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
+                                {
+                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = ck.Matrices[AnimationInfo.SelectedJointIndex] * Matrix.CreateRotationY(dx * 0.01f);
+                                }
+                                else
                                 {
                                     ck.Matrices[AnimationInfo.SelectedJointIndex] = ck.Matrices[AnimationInfo.SelectedJointIndex] * Matrix.CreateRotationY(dx * 0.01f);
                                     ck.Matrices[AnimationInfo.SelectedJointIndex] = ck.Matrices[AnimationInfo.SelectedJointIndex] * Matrix.CreateRotationZ(dy * 0.01f);
                                 }
-                                else
-                                    ck.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.CreateRotationX(dy * 0.01f) * ck.Matrices[AnimationInfo.SelectedJointIndex];
                             }
                         }
                     }
@@ -220,7 +232,7 @@ namespace UnsignedAnimationEditor
             effect.SpecularColor = new Vector3(0.1f, 0.1f, 0.1f);
             effect.SpecularPower = 24f;
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Global.ScreenWidth / (float)Global.ScreenHeight, 0.1f, 100f);
-            effect.View = Matrix.CreateLookAt(new Vector3(0,yCamPos,12),new Vector3(0,yCamPos,0),Vector3.Up);
+            effect.View = Matrix.CreateLookAt(Vector3.Transform(new Vector3(0, 0, 12), Matrix.CreateRotationX(-pitch) * Matrix.CreateRotationY(-yaw)) + new Vector3(0, yCamPos, 0), new Vector3(0, yCamPos, 0), Vector3.Up);
             Matrix World = Matrix.CreateRotationY(yaw) * Matrix.CreateRotationX(pitch) * Matrix.CreateScale(Scale);
             effect.World = World;
             effect.Texture = texCharacter;
@@ -232,9 +244,8 @@ namespace UnsignedAnimationEditor
 
                 if (AnimationInfo != null)
                 {
-                    Joint j = AnimationInfo.Skeleton.RootJoint;
-
-                    DrawJoint(j, Matrix.CreateRotationY(yaw) * Matrix.CreateRotationX(pitch));
+                    DrawJoint(AnimationInfo.Skeleton.RootJoint, Matrix.Identity);
+                    DrawJoint(AnimationInfo.Skeleton.InstrRootJoint, Matrix.Identity);
                 }
 
                 pass.End();
@@ -257,24 +268,34 @@ namespace UnsignedAnimationEditor
             Matrix JointMatrix = (AnimationInfo==null || AnimationInfo.CurrentAnimation==null) ? 
                                  Matrix.Identity : 
                                  AnimationInfo.CurrentAnimation.GetJointMatrix(AnimationInfo.CurrentAnimationTimeValue, j.JointMatrix);
+            Matrix offset = j.Root.Name == "InstrRoot" ? Matrix.Identity :
+                            (AnimationInfo == null || AnimationInfo.CurrentAnimation == null) ? Matrix.Identity :
+                            Matrix.CreateTranslation(AnimationInfo.CurrentAnimation.GetOffset(AnimationInfo.CurrentAnimationTimeValue));
             Matrix postWorld = JointMatrix * Matrix.CreateTranslation(j.postOffset) * world;
-            if (j.Name.ToUpper() == "GUITAR")
+            if (j.Name.ToUpper() == "STAND")
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * offset;
+                effect.Texture = texMicrophone;
+                effect.CommitChanges();
+                mdlMicrophone.Draw();
+            }
+            else if (j.Name.ToUpper() == "GUITAR" || j.Name.ToUpper() == "BASS")
+            {
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * offset;
                 effect.Texture = texGuitar;
                 effect.CommitChanges();
                 mdlGuitar.Draw();
             }
             else if (models.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * offset;
                 effect.Texture = texCharacter;
                 effect.CommitChanges();
                 models[j.Name.ToUpper()].Draw();
             }
             else if (mdlDrums.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale);
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * offset;
                 effect.Texture = Global.TexWhite;
                 effect.CommitChanges();
                 mdlDrums[j.Name.ToUpper()].Draw();

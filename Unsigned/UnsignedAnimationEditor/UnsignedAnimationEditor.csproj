@@ -86,7 +86,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnimationInfo.cs" />
     <Compile Include="ControlPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -167,6 +166,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AnimationLib\AnimationLib.csproj">
+      <Project>{6D4C78AC-C462-45ED-922D-6FECC53DE9A8}</Project>
+      <Name>AnimationLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FVProductionsUtility\FVProductionsUtility.csproj">
       <Project>{C50179F4-3871-4E27-8414-96E465088B37}</Project>
       <Name>FVProductionsUtility</Name>
