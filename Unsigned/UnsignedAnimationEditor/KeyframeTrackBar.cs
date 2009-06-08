@@ -91,6 +91,13 @@ namespace UnsignedAnimationEditor
             Invalidate();
         }
 
+        internal void AddKeyframe(int time)
+        {
+            if (!Keyframes.Contains(time))
+                Keyframes.Add(time);
+            Invalidate();
+        }
+
         public void RemoveKeyframe()
         {
             if (Keyframes.Contains(Value))

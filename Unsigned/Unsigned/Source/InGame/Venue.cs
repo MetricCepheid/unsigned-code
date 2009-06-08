@@ -1,4 +1,4 @@
-#define DEBUG_CAM_CONTROL
+//#define DEBUG_CAM_CONTROL
 
 using System;
 using System.Collections.Generic;
@@ -136,14 +136,15 @@ namespace Unsigned
         private uint[] camtimes { get { return songData.effects.cameraSwitches; } }
 
         private Rocker[] rockers;
+        private NonplayingBoard[] nonplayingBoards;
 
         public static float SCALE = 1f;
 
-        public Venue(String Filename, SongData songData, SessionInfo nugget)
+        public Venue(String Filename, SongData songData, Board[] boards, SessionInfo nugget)
         {
             this.Filename = Filename;
             this.songData = songData;
-            LoadWorld(Filename,nugget);
+            LoadWorld(Filename,nugget,boards);
             mainLightColor = new Vector3(0f, 0f, 0f);
             boomerLerp = 0;
         }
@@ -278,6 +279,8 @@ namespace Unsigned
             {
                 if (songData.instruments[i].instrumentType == "SET")
                 {
+                    if (drumsNoteIndex >= songData.instruments[i].diffSets[3].phrases[0].notes.Length)
+                        continue;
                     if (songData.instruments[i].diffSets[3].phrases[0].notes[drumsNoteIndex].time / 1000f < songTime.TotalSongTime.TotalSeconds &&
                         (songData.instruments[i].diffSets[3].phrases[0].notes[drumsNoteIndex].type&0x10)!=0)
                     {
@@ -291,6 +294,8 @@ namespace Unsigned
                 } 
                 if (songData.instruments[i].instrumentType == "BAS")
                 {
+                    if (bassNoteIndex <= songData.instruments[i].diffSets[3].phrases[0].notes.Length)
+                        continue;
                     if (songData.instruments[i].diffSets[3].phrases[0].notes[bassNoteIndex].time / 1000f < songTime.TotalSongTime.TotalSeconds)
                     {
                         targetBoomerLerp = 0.75f;
@@ -485,7 +490,7 @@ namespace Unsigned
                                                        1f, 1000f);
         }
 
-        private void LoadWorld(String Filename, SessionInfo nugget) 
+        private void LoadWorld(String Filename, SessionInfo nugget, Board[] boards) 
         {
             Content = new ContentManager(Global.Services);
             Content.RootDirectory = "Content";
@@ -515,6 +520,29 @@ namespace Unsigned
             rockers[1] = new Rocker(nugget.characterIndices[1] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("LVX")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[1]), InstrumentMaster.Singleton.GetInstrument("LVX"));
             rockers[2] = new Rocker(nugget.characterIndices[2] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("SET")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[2]), InstrumentMaster.Singleton.GetInstrument("SET"));
             rockers[3] = new Rocker(nugget.characterIndices[3] < 0 ? CharacterIdol.RandomIdol(InstrumentMaster.Singleton.GetInstrument("BAS")) : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[3]), InstrumentMaster.Singleton.GetInstrument("BAS"));
+
+            bool[] used = new bool[4];
+
+            for (int i = 0; i < boards.Length; i++)
+                for (int k = 0; k < rockers.Length; k++)
+                    if (boards[i].InstrumentCode == rockers[k].GetInstrument().CodeName)
+                    {
+                        boards[i].Rocker = rockers[k];
+                        used[k] = true;
+                    }
+
+            nonplayingBoards = new NonplayingBoard[4 - boards.Length];
+
+            int npbIndex = 0;
+            for (int i = 0; i < used.Length; i++)
+            {
+                if (!used[i])
+                {
+                    nonplayingBoards[npbIndex] = new NonplayingBoard(songData, rockers[i].Instrument);
+                    nonplayingBoards[npbIndex].rocker = rockers[i];
+                    npbIndex++;
+                }
+            }
 
             for (int i = 0; i < rockers.Length; i++)
                 rockers[i].Load(Content);
@@ -715,6 +743,9 @@ namespace Unsigned
             effect.NormalMapEnabled = Configuration.NormalMapping;
             effect.SpecularEnabled = Configuration.Specular;
             //effect.Cartoon = true;
+
+            for (int i = 0; i < nonplayingBoards.Length; i++)
+                nonplayingBoards[i].Update(songTime);
 
             effect.Begin();
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)

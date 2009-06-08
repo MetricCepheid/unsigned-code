@@ -43,6 +43,8 @@
             this.yOffsetNumeric = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
             this.zOffsetNumeric = new System.Windows.Forms.NumericUpDown();
+            this.copyKeyframeButton = new System.Windows.Forms.Button();
+            this.resetJointButton = new System.Windows.Forms.Button();
             this.keyframeTrackBar1 = new UnsignedAnimationEditor.KeyframeTrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.xOffsetNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.yOffsetNumeric)).BeginInit();
@@ -111,7 +113,7 @@
             // frameComboBox
             // 
             this.frameComboBox.FormattingEnabled = true;
-            this.frameComboBox.Location = new System.Drawing.Point(4, 238);
+            this.frameComboBox.Location = new System.Drawing.Point(3, 291);
             this.frameComboBox.Name = "frameComboBox";
             this.frameComboBox.Size = new System.Drawing.Size(164, 24);
             this.frameComboBox.TabIndex = 7;
@@ -120,7 +122,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 215);
+            this.label3.Location = new System.Drawing.Point(3, 268);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(42, 17);
             this.label3.TabIndex = 8;
@@ -134,7 +136,7 @@
             0,
             0,
             131072});
-            this.xOffsetNumeric.Location = new System.Drawing.Point(4, 289);
+            this.xOffsetNumeric.Location = new System.Drawing.Point(3, 378);
             this.xOffsetNumeric.Minimum = new decimal(new int[] {
             100,
             0,
@@ -148,7 +150,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 269);
+            this.label4.Location = new System.Drawing.Point(3, 358);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(64, 17);
             this.label4.TabIndex = 10;
@@ -157,7 +159,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 314);
+            this.label5.Location = new System.Drawing.Point(3, 403);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(64, 17);
             this.label5.TabIndex = 12;
@@ -171,7 +173,7 @@
             0,
             0,
             131072});
-            this.yOffsetNumeric.Location = new System.Drawing.Point(4, 334);
+            this.yOffsetNumeric.Location = new System.Drawing.Point(3, 423);
             this.yOffsetNumeric.Minimum = new decimal(new int[] {
             100,
             0,
@@ -185,7 +187,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(4, 359);
+            this.label6.Location = new System.Drawing.Point(3, 448);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(64, 17);
             this.label6.TabIndex = 14;
@@ -199,7 +201,7 @@
             0,
             0,
             131072});
-            this.zOffsetNumeric.Location = new System.Drawing.Point(4, 379);
+            this.zOffsetNumeric.Location = new System.Drawing.Point(3, 468);
             this.zOffsetNumeric.Minimum = new decimal(new int[] {
             100,
             0,
@@ -209,6 +211,26 @@
             this.zOffsetNumeric.Size = new System.Drawing.Size(120, 22);
             this.zOffsetNumeric.TabIndex = 13;
             this.zOffsetNumeric.ValueChanged += new System.EventHandler(this.zOffsetNumeric_ValueChanged);
+            // 
+            // copyKeyframeButton
+            // 
+            this.copyKeyframeButton.Location = new System.Drawing.Point(4, 218);
+            this.copyKeyframeButton.Name = "copyKeyframeButton";
+            this.copyKeyframeButton.Size = new System.Drawing.Size(75, 23);
+            this.copyKeyframeButton.TabIndex = 15;
+            this.copyKeyframeButton.Text = "Copy KF";
+            this.copyKeyframeButton.UseVisualStyleBackColor = true;
+            this.copyKeyframeButton.Click += new System.EventHandler(this.copyKeyframeButton_Click);
+            // 
+            // resetJointButton
+            // 
+            this.resetJointButton.Location = new System.Drawing.Point(4, 322);
+            this.resetJointButton.Name = "resetJointButton";
+            this.resetJointButton.Size = new System.Drawing.Size(84, 23);
+            this.resetJointButton.TabIndex = 16;
+            this.resetJointButton.Text = "Reset Jnt";
+            this.resetJointButton.UseVisualStyleBackColor = true;
+            this.resetJointButton.Click += new System.EventHandler(this.resetJointButton_Click_1);
             // 
             // keyframeTrackBar1
             // 
@@ -228,6 +250,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.resetJointButton);
+            this.Controls.Add(this.copyKeyframeButton);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.zOffsetNumeric);
             this.Controls.Add(this.label5);
@@ -270,5 +294,7 @@
         private System.Windows.Forms.NumericUpDown yOffsetNumeric;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.NumericUpDown zOffsetNumeric;
+        private System.Windows.Forms.Button copyKeyframeButton;
+        private System.Windows.Forms.Button resetJointButton;
     }
 }

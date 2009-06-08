@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using FVProductions.Utility;
 using Unsigned;
+using Microsoft.Xna.Framework;
 
 namespace UnsignedAnimationEditor
 {
@@ -30,13 +31,14 @@ namespace UnsignedAnimationEditor
         private void button2_Click(object sender, EventArgs e)
         {
             keyframeTrackBar1.RemoveKeyframe();
+            AnimationInfo.CurrentAnimation.RemoveKeyframe(keyframeTrackBar1.Value * 2);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             InputDialog d = new InputDialog();
-            d.Question = "New Keyframe: Name?";
-            d.Text = "New Keyframe";
+            d.Question = "New Animation: Name?";
+            d.Text = "New Animation";
             if (d.ShowDialog() == DialogResult.OK)
             {
                 AnimationInfo.Animations.Add(new Animation(d.Answer, AnimationInfo.Skeleton.GetMatrixLength()));
@@ -56,8 +58,15 @@ namespace UnsignedAnimationEditor
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(AnimationInfo!=null)
-                AnimationInfo.AnimationIndex = animComboBox.SelectedIndex;
+            if (AnimationInfo != null)
+            {
+                if (animComboBox.SelectedIndex < 0)
+                    AnimationInfo.AnimationIndex = -1;
+                else
+                    for (int i = 0; i < AnimationInfo.Animations.Count; i++)
+                        if (AnimationInfo.Animations[i] == animComboBox.Items[animComboBox.SelectedIndex])
+                            AnimationInfo.AnimationIndex = i;
+            }
             frameComboBox.Items.Clear();
             frameComboBox.SelectedIndex = -1;
             if (AnimationInfo!=null && AnimationInfo.CurrentAnimation != null)
@@ -136,6 +145,36 @@ namespace UnsignedAnimationEditor
                 if (AnimationInfo.CurrentKeyframe != null)
                 {
                     AnimationInfo.CurrentKeyframe.Offset.Z = (float)zOffsetNumeric.Value;
+                }
+            }
+        }
+
+        private void copyKeyframeButton_Click(object sender, EventArgs e)
+        {
+            if (AnimationInfo != null)
+            {
+                if (AnimationInfo.CurrentAnimation != null)
+                {
+                    CopyKeyframeForm f = new CopyKeyframeForm();
+                    DialogResult dr = f.ShowDialog();
+                    if (dr == DialogResult.OK)
+                    {
+                        Frame fr = AnimationInfo.CurrentAnimation.GenerateNewFrame(AnimationInfo.CurrentAnimationTimeValue);
+                        fr.Time = f.TimeValue;
+                        keyframeTrackBar1.AddKeyframe(fr.Time/2);
+                        AnimationInfo.CurrentAnimation.AddKeyframe(fr);
+                    }
+                }
+            }
+        }
+
+        private void resetJointButton_Click_1(object sender, EventArgs e)
+        {
+            if (AnimationInfo != null)
+            {
+                if (AnimationInfo.CurrentKeyframe != null)
+                {
+                    AnimationInfo.CurrentKeyframe.Matrices[AnimationInfo.SelectedJointIndex] = Matrix.Identity;
                 }
             }
         }

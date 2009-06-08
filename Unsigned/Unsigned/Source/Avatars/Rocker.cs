@@ -9,23 +9,23 @@ using FVProductions.Utility;
 
 namespace Unsigned
 {
-    class Rocker
+    public class Rocker
     {
         public static SongData SongData;
         public Vector3 Position { get; set; }
         public float Yaw { get; set; }
         private Dictionary<String,FVModel> models;
         private Texture2D tex;
-        private Instrument instrument;
+        public Instrument Instrument;
         private Dictionary<String, Texture2D> texInstr;
         private Dictionary<String,FVModel> mdlInstr;
         private CharacterIdol idol;
-        private AnimationInfo Animation;
+        public AnimationWrapper Animation;
         private float Scale;
                                      
         public Rocker(CharacterIdol idol, Instrument instr)
         {
-            instrument = instr;
+            Instrument = instr;
             Yaw = 0;
             this.idol = idol;
             Scale = 10;
@@ -49,7 +49,7 @@ namespace Unsigned
             {
                 {
                     mdlInstr = new Dictionary<String, FVModel>();
-                    String path = "meshes\\instruments\\" + instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
+                    String path = "meshes\\instruments\\" + Instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
                     String contentPath = "Content\\"+path;
                     String[] mdlFiles = System.IO.Directory.GetFiles(contentPath);
                     for(int i=0;i<mdlFiles.Length;i++)
@@ -66,7 +66,7 @@ namespace Unsigned
                 }
                 {
                     texInstr = new Dictionary<String, Texture2D>();
-                    String path = "textures\\instruments\\" + instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
+                    String path = "textures\\instruments\\" + Instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
                     String contentPath = "Content\\" + path;
                     String[] mdlFiles = System.IO.Directory.GetFiles(contentPath);
                     for (int i = 0; i < mdlFiles.Length; i++)
@@ -83,39 +83,36 @@ namespace Unsigned
                 }
             }
             tex = Content.Load<Texture2D>("textures\\avatars\\fanTex");
-            String skeleFilename = "Content\\animations\\"+instrument.CodeName+"Hierarchy.txt";
-            String animFilename = "Content\\animations\\"+instrument.CodeName+".una";
+            String skeleFilename = "Content\\animations\\"+Instrument.CodeName+"Hierarchy.txt";
+            String animFilename = "Content\\animations\\"+Instrument.CodeName+".una";
             if (System.IO.File.Exists(skeleFilename) && System.IO.File.Exists(animFilename))
             {
-                Animation = AnimationInfo.Load(skeleFilename, animFilename);
-                if (Animation != null)
-                {
-                    Animation.AnimationIndex = 0;
-                    Animation.CurrentAnimationTimeValue = 0;
-                }
+                Animation = new AnimationWrapper(AnimationInfo.Load(skeleFilename, animFilename));
+                Animation.RunAnimation(AnimationWrapper.ARIType.RunToPoint, "MoveHand", 0.1f, 1.0f);
             }
         }
 
         public void Draw(SongTime songTime, FVShader effect)
         {
+            Animation.Update(songTime);
+
             Yaw = (float)Math.Atan2(Position.X, Position.Z+100)+MathHelper.Pi;
 
             Matrix w = Matrix.CreateRotationY(Yaw);
 
             if (Animation != null)
             {
-                DrawJoint(Animation.Skeleton.RootJoint, w, effect);
-                DrawJoint(Animation.Skeleton.InstrRootJoint, w, effect);
+                DrawJoint(Animation.RootJoint, w, effect);
+                DrawJoint(Animation.InstrRootJoint, w, effect);
             }
         }
 
         private void DrawJoint(Joint j, Matrix world, FVShader effect)
         {
-            Vector3 offset = Animation.CurrentAnimation.GetOffset(Animation.CurrentAnimationTimeValue);
+            Vector3 offset = j.Root.Name == "Root" ? Animation.GetOffset() : Vector3.Zero;
             offset.Z = -offset.Z;
-            Matrix JointMatrix = (Animation == null || Animation.CurrentAnimation == null) ?
-                                 Matrix.Identity :
-                                 Animation.CurrentAnimation.GetJointMatrix(Animation.CurrentAnimationTimeValue, j.JointMatrix);
+            offset.X = -offset.X;
+            Matrix JointMatrix = Animation.GetJointMatrix(j.JointMatrix);
             Matrix postWorld = JointMatrix * Matrix.CreateTranslation(j.postOffset) * world;
             
             if (models.ContainsKey(j.Name.ToUpper()))
@@ -127,7 +124,7 @@ namespace Unsigned
             }
             else if (mdlInstr != null && mdlInstr.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
+                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
                 effect.DiffuseTexture = texInstr[j.Name.ToUpper()];
                 effect.CommitChanges();
                 mdlInstr[j.Name.ToUpper()].Draw();
@@ -143,7 +140,7 @@ namespace Unsigned
 
         public Instrument GetInstrument()
         {
-            return instrument;
+            return Instrument;
         }
     }
 }

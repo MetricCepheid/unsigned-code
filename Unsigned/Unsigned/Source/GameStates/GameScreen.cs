@@ -54,7 +54,6 @@ namespace Unsigned
             ParticleMaster.Load(Content);
 
             songData = SongDataLoader.LoadSongData(sesInfo.songFileName);
-            venue = new Venue("tikibar.gbw", songData, sesInfo);
             song = new Song(UnsignedGame.Singleton.Window.Handle);
             song.InitSong(songData);
             postProcessor = new PostProcessor();
@@ -81,6 +80,7 @@ namespace Unsigned
                         count3D++;
                 }
             boards = boardsList.ToArray();
+            venue = new Venue("tikibar.gbw", songData, boards, sesInfo);
 
             ui = new GameUIMaster(boards, songData);
             ui.Load(Content);

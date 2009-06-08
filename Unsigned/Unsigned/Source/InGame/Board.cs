@@ -164,6 +164,8 @@ namespace Unsigned
         // a float for more accurate wave addition
         private float breScore;
         public int BREScore { get { return (int)(breScore); } }
+        // the rocker... to trigger animations
+        public Rocker Rocker;
 
         private Queue<SoloEndMessage> soloEndMessages;
 
@@ -463,6 +465,32 @@ namespace Unsigned
 
             bool strummed = Peripheral.WasPressed(PeripheralButton.UP) || Peripheral.WasPressed(PeripheralButton.DOWN);
 
+            if (instrumentType.NeedsStrum)
+            {
+                if(strummed)
+                    StrumAnimation();
+                int highNote = -1;
+                for (int i = 0; i < instrumentType.NumTracks; i++)
+                    if ((pressed&((ulong)1<<i))!=0)
+                        highNote = i;
+                if(highNote>=0)
+                    Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunToPoint, "MoveHand", 10.0f, highNote / (float)(instrumentType.NumTracks - 1));
+            }
+
+            if (!instrumentType.NeedsStrum)
+            {
+                for(int i=0;i<instrumentType.NumTracks;i++)
+                    if ((newPressed & ((ulong)1 << i)) != 0)
+                    {
+                        if (i >= instrumentType.NumDrawnTracks)
+                            Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "BassHit", 5f);
+                        else if (i < instrumentType.NumDrawnTracks / 2)
+                            Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "HitLeft", 5f);
+                        else
+                            Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "HitRight", 5f);
+                    }
+            }
+
             if (rpSheen < 1.5f && RockPowerActivated)
                 rpSheen += (float)songTime.ElapsedGameTime.TotalSeconds;
             
@@ -473,6 +501,8 @@ namespace Unsigned
                 {
                     RockPowerAmount = 0;
                     RockPowerActivated = false;
+                    if(instrumentType.CodeName == "BAS")
+                        Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunToPoint, "PowerSlide", 5f, 0f);
                 }
             }
 
@@ -506,14 +536,18 @@ namespace Unsigned
             }
             else
             {
-
-                if (RockPowerAmount >= 0.49999f)
-                    if (!RockPowerActivated)
-                        if (Peripheral.IsPressed(PeripheralButton.SELECT))
-                        {
-                            RockPowerActivated = true;
-                            rpSheen = 0;
-                        }
+                if((instrumentType.RPEnableType&Instrument.RockPowerEnableTypes.SELECT)!=0)
+                    if (RockPowerAmount >= 0.49999f)
+                        if (!RockPowerActivated)
+                            if (Peripheral.IsPressed(PeripheralButton.SELECT))
+                            {
+                                if(instrumentType.CodeName == "LGT")
+                                    Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "PowerSlide", 0.25f);
+                                else if(instrumentType.CodeName == "BAS")
+                                    Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunToPoint, "PowerSlide", 5f, 1f);
+                                RockPowerActivated = true;
+                                rpSheen = 0;
+                            }
 
                 Whammy(Peripheral.GetAnalogValue(PeripheralAnalog.WHAMMY_BAR), songTime);
 
@@ -590,6 +624,8 @@ namespace Unsigned
                                 {
                                     RockPowerActivated = true;
                                     rpSheen = 0;
+                                    if(instrumentType.CodeName == "SET")
+                                        Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "PowerSlide", 1f);
                                 }
                             }
                     }
@@ -990,6 +1026,12 @@ namespace Unsigned
         }
 
 
+
+
+        private void StrumAnimation()
+        {
+            Rocker.Animation.RunAnimation(AnimationWrapper.ARIType.RunOnce, "StrumGuitar", 4.0f);
+        }
 
         private float GetBeatTime(SongTime songTime)
         {

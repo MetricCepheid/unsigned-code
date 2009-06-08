@@ -24,7 +24,13 @@ namespace Unsigned
 
         public int KeyframeCount { get { return Frames.Count; } }
 
-        public Matrix GetJointMatrix(int animViewPos, int jointIndex)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="animViewPos">0-100</param>
+        /// <param name="jointIndex"></param>
+        /// <returns></returns>
+        public Matrix GetJointMatrix(float animViewPos, int jointIndex)
         {
             if (Frames.Count <= 0)
                 return Matrix.Identity;
@@ -42,13 +48,23 @@ namespace Unsigned
                 if (animViewPos > Frames[i].Time && animViewPos < Frames[i + 1].Time)
                 {
                     float lerp = (animViewPos - Frames[i].Time) / (float)(Frames[i + 1].Time - Frames[i].Time);
-                    return Matrix.Lerp(Frames[i].Matrices[jointIndex], Frames[i + 1].Matrices[jointIndex], lerp);
+                    Vector3 v1, v2;
+                    Vector3 s1, s2;
+                    Quaternion q1, q2;
+                    Frames[i].Matrices[jointIndex].Decompose(out s1, out q1, out v1);
+                    Frames[i + 1].Matrices[jointIndex].Decompose(out s2, out q2, out v2);
+                    return Matrix.CreateScale(Vector3.Lerp(s1, s2, lerp)) * Matrix.CreateFromQuaternion(Quaternion.Lerp(q1, q2, lerp)) * Matrix.CreateTranslation(Vector3.Lerp(v1, v2, lerp));
                 }
             }
             throw new Exception();
         }
 
-        public Vector3 GetOffset(int animViewPos)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="animViewPos">0-100</param>
+        /// <returns></returns>
+        public Vector3 GetOffset(float animViewPos)
         {
             if (Frames.Count <= 0)
                 return Vector3.Zero;
@@ -84,8 +100,42 @@ namespace Unsigned
 
         public void AddKeyframe(int time)
         {
-            Frames.Add(new Frame(time, NumMatrices));
+            bool contains = false;
+            for (int i = 0; i < Frames.Count; i++)
+                if (Frames[i].Time == time)
+                    contains = true;
+            if (!contains)
+            {
+                Frames.Add(new Frame(time, NumMatrices));
+                Frames.Sort();
+            }
+        }
+
+        public void RemoveKeyframe(int time)
+        {
+            for (int i = 0; i < Frames.Count; i++)
+                if (Frames[i].Time == time)
+                {
+                    Frames.RemoveAt(i);
+                    return;
+                }
+        }
+
+        public void AddKeyframe(Frame fr)
+        {
+            Frames.Add(fr);
             Frames.Sort();
+        }
+
+        public Frame GenerateNewFrame(int time)
+        {
+            Frame f = new Frame(time, Frames[0].Matrices.Length);
+            for (int i = 0; i < Frames[0].Matrices.Length; i++)
+            {
+                f.Matrices[i] = GetJointMatrix(time, i);
+                f.Offset = GetOffset(time);
+            }
+            return f;
         }
     }
 
