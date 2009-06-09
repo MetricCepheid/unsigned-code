@@ -407,11 +407,11 @@ namespace Unsigned
                 else if (mmLogoTime < 2)
                     spriteBatch.Draw(Global.TexWhite, new Rectangle(0, 0, Global.ScreenWidth, Global.ScreenHeight), new Color(0, 0, 0, (byte)(255 * (1 - (mmLogoTime - 1)))));
                 if (mmLogoTime < 1)
-                    spriteBatch.Draw(texHeader, (new Rectangle((int)(Global.ScreenWidth * -0.2f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenWidth * 0.4f), (int)(Global.ScreenHeight * .1f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenHeight * -0.3f), (int)(Global.ScreenWidth * 1.4f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenWidth * 0.2f), (int)(Global.ScreenHeight * 0.4f * (mmLogoTime)))), Color.White);
+                    spriteBatch.Draw(texHeader, (new Rectangle((int)(Global.ScreenWidth * -0.2f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenWidth * 0.4f), (int)(Global.ScreenHeight * .1f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenHeight * -0.3f), (int)(Global.ScreenWidth * 1.4f * (mmLogoTime)) + (int)((1 - mmLogoTime) * Global.ScreenWidth * 0.2f), (int)(Global.ScreenHeight * 0.33f * (mmLogoTime)))), Color.White);
                 else if (mmLogoTime < 2)
-                    spriteBatch.Draw(texHeader, (new Rectangle((int)((mmLogoTime - 1) * Global.ScreenWidth * 0.1f) + (int)((1 - (mmLogoTime - 1)) * -Global.ScreenWidth * 0.2f), (int)((mmLogoTime - 1) * Global.ScreenHeight * 0.2f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenHeight * 0.1f), (int)((mmLogoTime - 1) * Global.ScreenWidth * 0.8f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenWidth * 1.4f), (int)((mmLogoTime - 1) * Global.ScreenHeight * 0.2f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenHeight * .4f))), Color.White);
+                    spriteBatch.Draw(texHeader, (new Rectangle((int)((mmLogoTime - 1) * Global.ScreenWidth * 0.1f) + (int)((1 - (mmLogoTime - 1)) * -Global.ScreenWidth * 0.2f), (int)((mmLogoTime - 1) * Global.ScreenHeight * 0.2f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenHeight * 0.1f), (int)((mmLogoTime - 1) * Global.ScreenWidth * 0.8f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenWidth * 1.4f), (int)((mmLogoTime - 1) * Global.ScreenHeight * 0.167f) + (int)((1 - (mmLogoTime - 1)) * Global.ScreenHeight * .33f))), Color.White);
                 else
-                    spriteBatch.Draw(texHeader, new Rectangle((int)(Global.ScreenWidth * 0.1f), (int)(Global.ScreenHeight * 0.2f), (int)(Global.ScreenWidth * 0.8f), (int)(Global.ScreenHeight * .2f)), Color.White);
+                    spriteBatch.Draw(texHeader, new Rectangle((int)(Global.ScreenWidth * 0.1f), (int)(Global.ScreenHeight * 0.2f), (int)(Global.ScreenWidth * 0.8f), (int)(Global.ScreenHeight * .167f)), Color.White);
 
                 spriteBatch.End();
             }

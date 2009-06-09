@@ -81,7 +81,7 @@ namespace Unsigned
             PeripheralManager.Singleton.CheckConnections();
 
             //TEST CODE, takes you right into the action!
-            SessionInfo info = new SessionInfo();
+            /*SessionInfo info = new SessionInfo();
             info.characterIndices[0] = -1;
             info.difficulties[0] = Difficulty.Expert;
             info.instruments[0] = 1;
