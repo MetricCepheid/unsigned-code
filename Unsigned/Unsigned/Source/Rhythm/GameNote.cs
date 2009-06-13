@@ -207,7 +207,21 @@ namespace Unsigned
 
         public void Reset()
         {
-            //TODO: fill this in
+            for (int i = 0; i < isVisible.Length; i++)
+            {
+                if (pressed!=null)
+                    pressed[i] = false;
+                isVisible[i] = 1;
+            }
+            hitGoodFrettage = false;
+            Strummed = false;
+            Burning = false;
+            NumNotes = 0;
+            for (int i = 0; i < frets.Length; i++)
+                if (frets[i])
+                    NumNotes++;
+            dead = false;
+            hidden = false;
         }
 
         public bool IsVisible(int r)

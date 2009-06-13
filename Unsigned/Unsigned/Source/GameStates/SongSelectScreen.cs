@@ -21,6 +21,7 @@ namespace Unsigned
         private Texture2D SongListBG, SongHiLi, SongListBM;
         private RenderTarget2D SongListRT;
         private Texture2D concrTex, concrBM;
+        private Texture2D texDetailsBG, texDetailsBar;
 
         private int SONGLIST_WAVEQUALITY = 100;
         private VertexTangentBinormal[] songlistGeom;
@@ -71,6 +72,9 @@ namespace Unsigned
             concrTex = Content.Load<Texture2D>("textures\\SongSelect\\concr");
             concrBM = Content.Load<Texture2D>("textures\\SongSelect\\concrBM");
             SongHiLi = Content.Load<Texture2D>("textures\\SongSelect\\songhili");
+
+            texDetailsBar = Content.Load<Texture2D>("textures\\SongSelect\\detailsBar");
+            texDetailsBG = Content.Load<Texture2D>("textures\\SongSelect\\detailsBackground");
 
             effect = new FVShader(Global.Graphics.GraphicsDevice, Content.Load<Effect>("shaders\\UnsignedEngineShader"), "maintechnique");
         }
@@ -352,11 +356,22 @@ namespace Unsigned
                 }
                 effect.End();
                 spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
+
+                spriteBatch.Draw(texDetailsBG, new Rectangle((int)(Global.ScreenWidth * 0.15f), (int)(Global.ScreenHeight * 0.3f), (int)(Global.ScreenHeight * 0.3f), (int)(Global.ScreenHeight * 0.6f)), Color.White);
+                spriteBatch.Draw(texDetailsBar, new Rectangle(0, (int)(Global.ScreenHeight * 0.3f), (int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.3f)), (int)(Global.ScreenHeight * 0.02f)), Color.White);
+
+                if (setList.GetSubsets().Count > 0 && selectedSubSet < setList.GetSubsets().Count)
+                    if (setList.GetSubsets()[selectedSubSet].GetSongList().Count > 0 && selectedSong < setList.GetSubsets()[selectedSubSet].GetSongList().Count)
+                    {
+                        SongFileHeader h = setList.GetSubsets()[selectedSubSet].GetSongList()[selectedSong];
+                        spriteBatch.DrawString(Global.DefaultFont, h.SongName, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.35f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Global.DefaultFont, h.ArtistName, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.38f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Global.DefaultFont, "Genre: "+h.Genre, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.41f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Global.DefaultFont, "Length: " + h.Length.Minutes + ":" + (h.Length.Seconds<10?"0":"") + h.Length.Seconds, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.44f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Global.DefaultFont, "Year: " + h.Year, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.47f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                    }
+
                 spriteBatch.Draw(songchoosetop, new Rectangle(0, 0, Global.ScreenWidth, (int)((Global.ScreenHeight / 768f) * 256)), Color.White);
-                /*spriteBatch.Draw(GameUIMaster.Singleton.texButtonGreen, new Rectangle((int)(0.1f * Global.ScreenWidth), (int)(0.80f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight)), Color.White);
-                spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Select"), new Vector2((0.1f * Global.ScreenWidth) + (0.10f * Global.ScreenHeight), (0.80f * Global.ScreenHeight) + (0.09f * Global.ScreenHeight) - (Global.DefaultFont.MeasureString(Localizer.Get("Select")).Y)), Color.White);
-                spriteBatch.Draw(GameUIMaster.Singleton.texButtonRed, new Rectangle((int)(0.9f * Global.ScreenWidth) - (int)(0.09f * Global.ScreenHeight), (int)(0.80f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight)), Color.White);
-                spriteBatch.DrawString(Global.DefaultFont, Localizer.Get("Back"), new Vector2((0.9f * Global.ScreenWidth) - (0.10f * Global.ScreenHeight) - Global.DefaultFont.MeasureString(Localizer.Get("Back")).X, (0.80f * Global.ScreenHeight) + (0.09f * Global.ScreenHeight) - (Global.DefaultFont.MeasureString(Localizer.Get("Back")).Y)), Color.White);*/
                 spriteBatch.End();
 #if !DEBUG
             }

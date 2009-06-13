@@ -84,5 +84,10 @@ namespace Unsigned
                 }
             }
         }
+
+        internal void Reset()
+        {
+            currentNoteIndex = 0;
+        }
     }
 }

@@ -11,8 +11,10 @@ namespace Unsigned
         public int hitNotes, missedNotes;
         public int totalNotes, totalSPPH;//temp
         public int hitSPPH, missedSPPH;
-        public int streak;
+        public int streak, score;
+        public float numStars;
         public float percentSong;
         public Instrument instr;
+        public String OwnerName;
     }
 }

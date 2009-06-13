@@ -21,7 +21,7 @@ namespace Unsigned
         private Results addedResults;
         private float dialogscroll;
         private Texture2D failbg, resultsScroller;
-        private Texture2D coolbg1, coolbg2;
+        private Texture2D coolbg1, coolbg2, texStar;
 
         private SessionInfo sesInfo;
 
@@ -42,6 +42,7 @@ namespace Unsigned
             coolbg2 = Content.Load<Texture2D>("textures\\Results\\coolbg2");
             resultsScroller = Content.Load<Texture2D>("textures\\Results\\resultscroller");
             failbg = Content.Load<Texture2D>("textures\\Results\\faildialog");
+            texStar = Content.Load<Texture2D>("textures\\UI\\scorestarbg");
         }
 
         public override void Unload()
@@ -68,6 +69,18 @@ namespace Unsigned
                         }
                     if (green)
                     { 
+                        String songCodeName = sesInfo.songFileName.Substring(sesInfo.songFileName.LastIndexOf('\\')+1);
+                        songCodeName = songCodeName.Substring(0,songCodeName.IndexOf('.'));
+                        String[] instrCodeNames = new String[totalresults.Length];
+                        String[] instrOwners = new String[totalresults.Length];
+                        int[] streaks = new int[totalresults.Length];
+                        for(int i=0;i<instrCodeNames.Length;i++)
+                        {
+                            instrCodeNames[i] = totalresults[i].instr.CodeName;
+                            instrOwners[i] = totalresults[i].OwnerName;
+                            streaks[i] = totalresults[i].streak;
+                        }
+                        SaveDataManager.Singleton.AddEntry(songCodeName, instrCodeNames, instrOwners, addedResults.score, (int)addedResults.numStars, streaks);
                         UnsignedGame.Singleton.SwitchState(new SongSelectScreen(sesInfo));
                     }
                 }
@@ -121,17 +134,26 @@ namespace Unsigned
                 spriteBatch.Begin();
                 spriteBatch.Draw(coolbg1, new Rectangle((int)(0.1 * Global.ScreenWidth), (int)(0.1 * Global.ScreenHeight), (int)(0.8 * Global.ScreenWidth), (int)(0.8 * Global.ScreenHeight)), new Color(Global.UnsignedOrange, 30));
                 spriteBatch.Draw(failbg, new Rectangle(0, 0, Global.ScreenWidth, Global.ScreenHeight), Global.UnsignedOrange);
+                {//stars
+                    int startx = (int)((Global.ScreenWidth * 0.28f) - (Global.ScreenWidth * 0.025f * (int)addedResults.numStars));
+                    for (int i = 0; i < (int)addedResults.numStars; i++)
+                        spriteBatch.Draw(texStar, new Rectangle(startx + (int)(i * Global.ScreenWidth * 0.05f), (int)(Global.ScreenHeight * 0.25f), (int)(Global.ScreenWidth * 0.05f), (int)(Global.ScreenWidth * 0.05f)), Color.White);
+                }
+
+                spriteBatch.DrawString(Global.DefaultFont, "" + addedResults.score, new Vector2(Global.ScreenWidth * 0.75f, Global.ScreenHeight * 0.3f), Color.White, 0, Global.DefaultFont.MeasureString("" + addedResults.score) * 0.5f, Global.ScreenHeight / 800f, SpriteEffects.None, 0);
+
                 int numRS = 4;
                 for (int i = -1; i < numRS; i++)
                     spriteBatch.Draw(resultsScroller, new Rectangle((int)((dialogscroll * (Global.ScreenWidth / (float)numRS)) + (i * (Global.ScreenWidth / (float)numRS))), (int)((128f / 768) * Global.ScreenHeight), (int)(Global.ScreenWidth / (float)numRS + 1), (int)((64f / 768) * Global.ScreenHeight)), Global.UnsignedYellow);
                 for (int i = 0; i < numRS + 1; i++)
                     spriteBatch.Draw(resultsScroller, new Rectangle((int)((-dialogscroll * (Global.ScreenWidth / (float)numRS)) + (i * (Global.ScreenWidth / (float)numRS))), Global.ScreenHeight - (int)((192f / 768) * Global.ScreenHeight), (int)(Global.ScreenWidth / (float)numRS + 1), (int)((64f / 768) * Global.ScreenHeight)), Global.UnsignedYellow);
-                spriteBatch.DrawString(Global.DefaultFont, "Song Passed", new Vector2((Global.ScreenWidth / 2) - (Global.DefaultFont.MeasureString("Song Passed").X / 2), Global.ScreenHeight * 0.3f), Global.UnsignedYellow);
-                if (totalresults!=null && totalresults.Length != 0)
+                spriteBatch.DrawString(Global.DefaultFont, "Song Passed", new Vector2((Global.ScreenWidth / 2), Global.ScreenHeight * 0.3f), Global.UnsignedYellow, 0, Global.DefaultFont.MeasureString("Song Passed") * 0.5f, Global.ScreenHeight/600f, SpriteEffects.None,0);
+
+                if (totalresults != null && totalresults.Length != 0)
                     for (int i = 0; i < totalresults.Length; i++)
                     {
                         //calculate percent
-                        float percent = totalresults[i].hitNotes/(float)totalresults[i].totalNotes;
+                        float percent = totalresults[i].hitNotes / (float)totalresults[i].totalNotes;
                         int pc = (int)(Math.Round(percent * 100) + 0.5f);
                         //fix rounding errors
                         if (pc > 100)
@@ -142,27 +164,22 @@ namespace Unsigned
                             pc = 99;
                         //draw
                         String str1 = totalresults[i].instr.FullName,
-                               str2 = "" + pc +"%",
+                               str2 = "" + pc + "%",
                                str3 = "Rock Power Phrases: " + totalresults[i].hitSPPH + "/" + totalresults[i].totalSPPH,
-                               str4 = "Streak: " + totalresults[i].streak;
+                               str4 = "" + totalresults[i].streak + " Note Streak";
                         spriteBatch.DrawString(Global.DefaultFont,
                                                str1,
-                                               new Vector2((Global.ScreenWidth *0.2f), (Global.ScreenHeight * (0.4f + (0.1f * i)))), Color.White, 0, Vector2.Zero, Global.ScreenHeight/800f, SpriteEffects.None, 0);
+                                               new Vector2((Global.ScreenWidth * 0.2f), (Global.ScreenHeight * (0.35f + (0.07f * i)))), Color.White, 0, Vector2.Zero, Global.ScreenHeight / 800f, SpriteEffects.None, 0);
                         spriteBatch.DrawString(Global.DefaultFont,
                                                str2,
-                                               new Vector2((Global.ScreenWidth * 0.8f), (Global.ScreenHeight * (0.4f + (0.1f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str2).X,0), Global.ScreenHeight / 800f, SpriteEffects.None, 0);
+                                               new Vector2((Global.ScreenWidth * 0.5f), (Global.ScreenHeight * (0.35f + (0.07f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str2).X, 0), Global.ScreenHeight / 800f, SpriteEffects.None, 0);
                         spriteBatch.DrawString(Global.DefaultFont,
                                                 str3,
-                                               new Vector2((Global.ScreenWidth * 0.8f), (Global.ScreenHeight * (0.4f + 0.04f + (0.1f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str3).X,0),Global.ScreenHeight/800f, SpriteEffects.None, 0);
+                                               new Vector2((Global.ScreenWidth * 0.8f), (Global.ScreenHeight * (0.35f + 0.03f + (0.07f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str3).X, 0), Global.ScreenHeight / 900f, SpriteEffects.None, 0);
                         spriteBatch.DrawString(Global.DefaultFont,
                                                 str4,
-                                               new Vector2((Global.ScreenWidth * 0.8f), (Global.ScreenHeight * (0.4f + 0.08f + (0.1f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str4).X, 0), Global.ScreenHeight / 800f, SpriteEffects.None, 0);
-
+                                               new Vector2((Global.ScreenWidth * 0.8f), (Global.ScreenHeight * (0.35f + (0.07f * i)))), Color.White, 0, new Vector2(Global.DefaultFont.MeasureString(str4).X, 0), Global.ScreenHeight / 800f, SpriteEffects.None, 0);
                     }
-                /*
-                spriteBatch.Draw(GameUIMaster.Singleton.texButtonGreen, new Rectangle((int)(0.01f * Global.ScreenWidth), (int)(0.90f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight), (int)(0.09f * Global.ScreenHeight)), Color.White);
-                spriteBatch.DrawString(Global.DefaultFont, "Continue", new Vector2((0.01f * Global.ScreenWidth) + (0.10f * Global.ScreenHeight), (0.90f * Global.ScreenHeight) + (0.09f * Global.ScreenHeight) - (Global.DefaultFont.MeasureString("Continue").Y)), Color.White);
-                */
                 spriteBatch.End();
             }
             else
@@ -178,7 +195,7 @@ namespace Unsigned
                     spriteBatch.Draw(resultsScroller, new Rectangle((int)((-dialogscroll * (Global.ScreenWidth / (float)numRS)) + (i * (Global.ScreenWidth / (float)numRS))), Global.ScreenHeight - (int)((192f / 768) * Global.ScreenHeight), (int)(Global.ScreenWidth / (float)numRS + 1), (int)((64f / 768) * Global.ScreenHeight)), Color.White);
                 if (totalresults.Length > 0)
                 {
-                    String percent = "" + (int)(totalresults[4].percentSong * 100 + 0.5f) + "%";
+                    String percent = "" + (int)(addedResults.percentSong * 100 + 0.5f) + "%";
                     spriteBatch.DrawString(Global.DefaultFont, "Failed", new Vector2((Global.ScreenWidth / 2) - (Global.DefaultFont.MeasureString("Failed").X / 2), Global.ScreenHeight * 0.3f), Color.Red);
                     spriteBatch.DrawString(Global.DefaultFont, percent, new Vector2((Global.ScreenWidth / 2) - (Global.DefaultFont.MeasureString(percent).X / 2), Global.ScreenHeight * 0.4f), Color.Red);
                 }
@@ -218,27 +235,16 @@ namespace Unsigned
                     addedResults.missedSPPH += totalresults[i].missedSPPH;
                     addedResults.totalNotes += totalresults[i].totalNotes;
                     addedResults.totalSPPH += totalresults[i].totalSPPH;
+                    addedResults.numStars += totalresults[i].numStars;
+                    addedResults.score += totalresults[i].score;
                 }
+                addedResults.numStars /= totalresults.Length;
             }
         }
 
-        public void SetResults(Results[] results)
+        internal void SetPercentSong(float ps)
         {
-            if (totalresults == null || totalresults.Length == 0)
-            {
-                totalresults = results;
-                //song.pause();
-                addedResults = new Results();
-                for (int i = 0; i < results.Length; i++)
-                {
-                    addedResults.hitNotes += totalresults[i].hitNotes;
-                    addedResults.hitSPPH += totalresults[i].hitSPPH;
-                    addedResults.missedNotes += totalresults[i].missedNotes;
-                    addedResults.missedSPPH += totalresults[i].missedSPPH;
-                    addedResults.totalNotes += totalresults[i].totalNotes;
-                    addedResults.totalSPPH += totalresults[i].totalSPPH;
-                }
-            }
+            addedResults.percentSong = ps;
         }
     }
 }

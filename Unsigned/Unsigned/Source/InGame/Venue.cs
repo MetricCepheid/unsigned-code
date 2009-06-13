@@ -894,6 +894,18 @@ namespace Unsigned
             }
             return 0;
         }
+
+        internal void Reset()
+        {
+            boomerLerp = 0;
+            camtime = -1;
+            camindex = 0;
+            mainLightColor = Vector3.Zero;
+            for (int i = 0; i < rockers.Length; i++)
+                rockers[i].Reset();
+            for (int i = 0; i < nonplayingBoards.Length; i++)
+                nonplayingBoards[i].Reset();
+        }
     }
 }
 

@@ -42,5 +42,16 @@ namespace Unsigned
             graphicsDevice.VertexDeclaration = VertexTangentBinormal.VertexDeclaration;
             graphicsDevice.DrawUserPrimitives<VertexTangentBinormal>(PrimitiveType.TriangleList, square, 0, 2);
         }
+
+        public static void DrawString(this SpriteBatch sb, SpriteFont font, String str, Rectangle rect, Color col, float rotation, Vector2 source, float scale, SpriteEffects se, float layerDepth)
+        {
+            float sc = scale;
+            Vector2 size = font.MeasureString(str);
+            if (rect.Width < size.X*sc)
+                sc *= rect.Width / (size.X*sc);
+            if (rect.Height < size.Y * sc)
+                sc *= rect.Height / (size.Y*sc);
+            sb.DrawString(font, str, new Vector2(rect.X, rect.Y), col, rotation, source, sc, se, layerDepth);
+        }
     }
 }

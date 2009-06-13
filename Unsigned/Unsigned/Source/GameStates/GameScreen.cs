@@ -82,6 +82,30 @@ namespace Unsigned
             boards = boardsList.ToArray();
             venue = new Venue("tikibar.gbw", songData, boards, sesInfo);
 
+            Difficulty maxDiff = Difficulty.Easy;
+            for (int i = 0; i < boards.Length; i++)
+                if (sesInfo.difficulties[i] > maxDiff)
+                    maxDiff = sesInfo.difficulties[i];
+            switch (maxDiff)
+            {
+                case Difficulty.Expert:
+                    Board.SFade = 1.4f;
+                    Board.EFade = 1.8f;
+                    break;
+                case Difficulty.Hard:
+                    Board.SFade = 1.56f;
+                    Board.EFade = 2.0f;
+                    break;
+                case Difficulty.Medium:
+                    Board.SFade = 1.87f;
+                    Board.EFade = 2.4f;
+                    break;
+                case Difficulty.Easy:
+                    Board.SFade = 2.33f;
+                    Board.EFade = 3.0f;
+                    break;
+            }
+
             ui = new GameUIMaster(boards, songData);
             ui.Load(Content);
 
@@ -112,6 +136,7 @@ namespace Unsigned
 #else
                 TimeSpan elapsed = new TimeSpan(gameTime.ElapsedGameTime.Ticks);
 #endif
+                SongTime oldSongTime = songTime;
                 songTime = new SongTime(elapsed, songTime.TotalSongTime + elapsed);
                 if (!song.IsPlaying && songTime.TotalSongTime.TotalSeconds >= 0)
                     song.Play();
@@ -141,11 +166,25 @@ namespace Unsigned
                     return;
                 }
 
+                bool allFailed = true;
+                for (int i = 0; i < boards.Length; i++)
+                    if (!boards[i].IsFailing)
+                        allFailed = false;
+                if (false)//(allFailed)
+                {
+                    ResultsScreen r = new ResultsScreen(sesInfo, true);
+                    r.SetResults(boards);
+                    r.SetPercentSong((float)(currenttime / song.GetSongLength().TotalSeconds));
+                    song.Stop();
+                    UnsignedGame.Singleton.SwitchState(r);
+                    return;
+                }
+
                 if (Configuration.RenderVenues)
                     venue.Update(songTime);
 
                 for (int i = 0; i < boards.Length; i++)
-                    boards[i].Update(songTime);
+                    boards[i].Update(songTime, this);
 
                 ui.Update(songTime);
 
@@ -293,12 +332,28 @@ namespace Unsigned
         {
             for (int i = 0; i < boards.Length; i++)
                 boards[i].Reset();
+            venue.Reset();
             songTime = new SongTime(new TimeSpan(0), new TimeSpan(-40000000));
+            song.Restart();
         }
 
         public void ExitSong()
         {
             UnsignedGame.Singleton.SwitchState(new SongSelectScreen(sesInfo));
+        }
+
+        internal bool SaveAll()
+        {
+            bool anySaved = false;
+            for (int i = 0; i < boards.Length; i++)
+            {
+                if (boards[i].IsFailing)
+                {
+                    boards[i].Save();
+                    anySaved = true;
+                }
+            }
+            return anySaved;
         }
     }
 }

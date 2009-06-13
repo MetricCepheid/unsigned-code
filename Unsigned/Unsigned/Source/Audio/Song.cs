@@ -86,20 +86,24 @@ namespace Unsigned
 
         internal void Restart()
         {
+            playing = false;
             sound.Stop();
             sound = sEngine.Play2D(song, false, true, true);
             if (song == null || sound == null)
             {
                 System.Windows.Forms.MessageBox.Show("audio not found");
             }
-            sound.Paused = false;
             sound.Volume = 0.75f;
-            playing = true;
         }
 
         internal void SetTime(float p)
         {
             sound.PlayPosition = (uint)(p * 1000);
+        }
+
+        internal void Stop()
+        {
+            sound.Stop();
         }
     }
 }

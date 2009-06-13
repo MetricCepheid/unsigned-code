@@ -86,7 +86,8 @@ namespace Unsigned
 
         public void Update(SongTime songTime)
         {
-            rockstarOrientation = GetBeatTime(songTime) * (1 / 5f) * MathHelper.TwoPi;
+            draw_BeatTime = GetBeatTime(songTime);
+            rockstarOrientation = draw_BeatTime * (1 / 5f) * MathHelper.TwoPi;
             int score = 0;
             draw_SongTime = (float)songTime.TotalSongTime.TotalSeconds;
             draw_Failing = false;

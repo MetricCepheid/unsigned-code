@@ -142,5 +142,10 @@ namespace Unsigned
         {
             return Instrument;
         }
+
+        internal void Reset()
+        {
+            
+        }
     }
 }

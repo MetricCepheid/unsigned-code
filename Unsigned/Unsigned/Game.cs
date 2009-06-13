@@ -43,6 +43,10 @@ namespace Unsigned
             Global.Graphics = new GraphicsDeviceManager(this);
             Global.Services = Services;
             Global.Random = new Random();
+
+            String[] Keys = { "Game Name:" };
+            String[] Values = { "Unsigned" };
+            //XFireClient.SetCustomGameData(Keys.Length, Keys, Values);
         }
 
         protected override void Initialize()
@@ -81,11 +85,15 @@ namespace Unsigned
             PeripheralManager.Singleton.CheckConnections();
 
             //TEST CODE, takes you right into the action!
-            /*SessionInfo info = new SessionInfo();
+            SessionInfo info = new SessionInfo();
             info.characterIndices[0] = -1;
-            info.difficulties[0] = Difficulty.Expert;
+            info.difficulties[0] = Difficulty.Easy;
             info.instruments[0] = 1;
             info.peripherals[0] = PeripheralManager.Singleton.GetPeripherals()[0];
+            info.characterIndices[1] = -1;
+            info.difficulties[1] = Difficulty.Easy;
+            info.instruments[1] = 3;
+            info.peripherals[1] = PeripheralManager.Singleton.GetPeripherals()[1];
             info.songFileName = "songdata\\dontstop.uns";
             //info.songFileName = "C:\\projects\\Unsigned3.0\\Unsigned\\Unsigned\\bin\\x86\\Debug\\songdata\\Destroyer of Senses.gba";
             currentState = new GameState(info);
