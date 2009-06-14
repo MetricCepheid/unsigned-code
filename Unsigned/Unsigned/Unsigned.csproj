@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="Source\Avatars\AnimationWrapper.cs" />
     <Compile Include="Source\Avatars\Fan.cs" />
+    <Compile Include="Source\GameStates\IdolCreationState.cs" />
     <Compile Include="Source\GameStates\IBaseState.cs" />
     <Compile Include="Source\Graphics&amp;UI\PostProcessor.cs" />
     <Compile Include="Source\InGame\Board.cs" />
@@ -113,7 +114,6 @@
     <Compile Include="Source\GameStates\GameScreen.cs" />
     <Compile Include="Source\Utility\Configuration.cs" />
     <Compile Include="Source\Graphics&amp;UI\GameUIMaster.cs" />
-    <Compile Include="Source\Input\InputPeripherals.cs" />
     <Compile Include="Source\Input\KeyboardManager.cs" />
     <Compile Include="Source\Utility\ExtensionMethods.cs" />
     <Compile Include="Source\Utility\Localizer.cs" />
@@ -133,6 +133,7 @@
     <Compile Include="Source\Graphics&amp;UI\SpecialEffects.cs" />
     <Compile Include="Source\InGame\Venue.cs" />
     <Compile Include="Source\Utility\Results.cs" />
+    <Compile Include="Source\Utility\RoundTextChooser.cs" />
     <Compile Include="Source\Utility\SaveDataManager.cs" />
     <Compile Include="Source\Utility\SongTime.cs" />
     <Compile Include="Source\Utility\XFireClient.cs" />

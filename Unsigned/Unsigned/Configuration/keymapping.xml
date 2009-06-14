@@ -2,12 +2,14 @@
 	<player index="0">
 		<map type="MNU">
 			<key name="Confirm" button="Enter" />
-			<key name="Confirm" button="Space" />
+      <key name="Confirm" button="Space" />
 			<key name="Back" button="Back" />
 			<key name="Back" button="Escape" />
 			<key name="Switch" button="D" />
 			<key name="Up" button="Up" />
 			<key name="Down" button="Down" />
+      <key name="Left" button="Left" />
+      <key name="Right" button="Right" />
 		</map>
 		<map type="LGT">
 			<key name="Fret0" button="A" />
@@ -17,6 +19,8 @@
 			<key name="Fret4" button="G" />
 			<key name="Down" button="Down" />
 			<key name="Up" button="Up" />
+      <key name="Left" button="Left" />
+      <key name="Right" button="Right" />
 			<key name="Switch" button="D" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
@@ -34,6 +38,8 @@
 			<key name="Fret4" button="G" />
 			<key name="Down" button="Down" />
 			<key name="Up" button="Up" />
+      <key name="Left" button="Left" />
+      <key name="Right" button="Right" />
 			<key name="Switch" button="D" />
 			<key name="Select" button="RShift" />
 			<key name="Start" button="Escape" />
@@ -59,6 +65,8 @@
 			<key name="Up" button="Up" />
 			<key name="Down" button="D" />
 			<key name="Up" button="S" />
+      <key name="Left" button="Left" />
+      <key name="Right" button="Right" />
 		</map>
 	</player>
 </keymapping>

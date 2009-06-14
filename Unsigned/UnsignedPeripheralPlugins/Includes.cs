@@ -20,6 +20,8 @@ namespace UnsignedPeripheralPlugins
 
         UP,
         DOWN,
+        LEFT,
+        RIGHT,
 
         START,
         SELECT,

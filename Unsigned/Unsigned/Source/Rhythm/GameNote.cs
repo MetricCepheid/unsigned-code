@@ -176,14 +176,12 @@ namespace Unsigned
                 return good;
             }
             //needs strum
-            if(IsHOPO)
-                Strummed |= HOPOable;
-            if (Strummed)
+            if (Strummed || (IsHOPO && HOPOable))
                 return hitGoodFrettage;
             return false;
         }
 
-        public int Kill()
+        public int Kill(bool HOPOable)
         {
             for (int i = 0; i < isVisible.Length; i++)
                 isVisible[i] = 0;
@@ -199,9 +197,9 @@ namespace Unsigned
             }
             else
             {
-                if (hitGoodFrettage && Strummed)
+                if (hitGoodFrettage && (Strummed || (IsHOPO && HOPOable)))
                     dead = true;
-                return (hitGoodFrettage && Strummed) ? NumNotes : 0;
+                return (hitGoodFrettage && (Strummed || (IsHOPO && HOPOable))) ? NumNotes : 0;
             }
         }
 

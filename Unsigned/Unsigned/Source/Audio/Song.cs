@@ -12,14 +12,14 @@ namespace Unsigned
 {
     public class Song
     {
-        private bool playing = false;
-
-        public bool IsPlaying { get { return playing && !sound.Finished; } }
+        public bool IsPlaying { get { return !sound.Paused && !sound.Finished; } }
 
         private IntPtr WINDOW;
         ISoundEngine sEngine;
         ISoundSource song;
         ISound sound;
+
+        private bool started = false;
 
         public Song(IntPtr game)
         {
@@ -30,6 +30,8 @@ namespace Unsigned
         {
             if (songdata == null)
                 return false;
+
+            started = false;
 
             sEngine = new ISoundEngine();
             String fn = songdata.info.filename;
@@ -52,8 +54,8 @@ namespace Unsigned
 
         public void Play()
         {
-            sound.Paused = false; 
-            playing = true;
+            sound.Paused = false;
+            started = true;
         }
 
         public double GetTime()
@@ -64,14 +66,15 @@ namespace Unsigned
         internal void Pause()
         {
             sound.Paused = true;
-            playing = false;
         }
 
         internal void Resume(SongTime songTime)
         {
-            sound.PlayPosition = (uint)(songTime.TotalSongTime.TotalMilliseconds);
-            sound.Paused = false;
-            playing = true;
+            if (started)
+            {
+                sound.PlayPosition = (uint)(songTime.TotalSongTime.TotalMilliseconds);
+                sound.Paused = false;
+            }
         }
 
         public float PercentSong()
@@ -86,14 +89,9 @@ namespace Unsigned
 
         internal void Restart()
         {
-            playing = false;
-            sound.Stop();
-            sound = sEngine.Play2D(song, false, true, true);
-            if (song == null || sound == null)
-            {
-                System.Windows.Forms.MessageBox.Show("audio not found");
-            }
-            sound.Volume = 0.75f;
+            sound.Paused = true;
+            sound.PlayPosition = 0;
+            started = false;
         }
 
         internal void SetTime(float p)

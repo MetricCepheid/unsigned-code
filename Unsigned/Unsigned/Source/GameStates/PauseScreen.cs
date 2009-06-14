@@ -28,7 +28,8 @@ namespace Unsigned
 
         private float scale;
 
-        private float blackInAlpha;
+        private float blackInAlpha, blackOutAlpha;
+        private bool exiting;
 
         public PauseScreen()
         {
@@ -51,6 +52,8 @@ namespace Unsigned
             scale = Global.ScreenWidth / 800f;
 
             blackInAlpha = 0;
+            blackOutAlpha = 1;
+            exiting = false;
         }
 
         public void SetOwner(Peripheral p)
@@ -70,6 +73,13 @@ namespace Unsigned
 
         public void Update(GameTime gameTime)
         {
+            if (exiting)
+            {
+                blackOutAlpha -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (blackOutAlpha < 0)
+                    ClosePauseScreen.Invoke();
+                return;
+            }
             pauseMenuPos += pauseMenuVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (pauseMenuPos.X > (Global.ScreenWidth * 0.6f))
                 pauseMenuVel.X = -Math.Abs(pauseMenuVel.X);
@@ -137,18 +147,17 @@ namespace Unsigned
 
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.None);
 
-            spriteBatch.Draw(Global.TexWhite, new Rectangle(0, 0, Global.ScreenWidth, Global.ScreenHeight), new Color(0, 0, 0, blackInAlpha * 0.75f));
+            spriteBatch.Draw(Global.TexWhite, new Rectangle(0, 0, Global.ScreenWidth, Global.ScreenHeight), new Color(0, 0, 0, blackInAlpha * blackOutAlpha * 0.75f));
 
-            spriteBatch.Draw(texPauseBorder, pauseMenuPos, null, new Color(Global.UnsignedYellow,blackInAlpha), pauseRot, origin, scale, SpriteEffects.None, 0);
-            spriteBatch.Draw(texPauseWings, new Vector2(wingPosR.X, wingPosR.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha), -pauseWingRot.X / 2, new Vector2(32, 69), scale, SpriteEffects.None, 0);
-            spriteBatch.Draw(texPauseWings, new Vector2(wingPosL.X, wingPosL.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha), pauseWingRot.X / 2, new Vector2(texPauseWings.Width - 32, 69), scale, SpriteEffects.FlipHorizontally, 0);
+            spriteBatch.Draw(texPauseBorder, pauseMenuPos, null, new Color(Global.UnsignedYellow, blackInAlpha * blackOutAlpha), pauseRot, origin, scale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texPauseWings, new Vector2(wingPosR.X, wingPosR.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha * blackOutAlpha), -pauseWingRot.X / 2, new Vector2(32, 69), scale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texPauseWings, new Vector2(wingPosL.X, wingPosL.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha * blackOutAlpha), pauseWingRot.X / 2, new Vector2(texPauseWings.Width - 32, 69), scale, SpriteEffects.FlipHorizontally, 0);
             for (int i = 0; i < pauseTextDisp[currentState].Length; i++)
             {
-
-                spriteBatch.DrawString(Global.DefaultFont, pauseTextDisp[currentState][i], new Vector2(textPos[i].X, textPos[i].Y) + pauseMenuPos, pauseSelected == i ? new Color(Global.UnsignedOrange, blackInAlpha) : new Color(255, 230, 179, (byte)(blackInAlpha*255)), pauseRot, Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]) * 0.5f, Math.Min(((250f * scale) / Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]).X), scale * 2), SpriteEffects.None, 0);
+                spriteBatch.DrawString(Global.DefaultFont, pauseTextDisp[currentState][i], new Vector2(textPos[i].X, textPos[i].Y) + pauseMenuPos, pauseSelected == i ? new Color(Global.UnsignedOrange, blackInAlpha * blackOutAlpha) : new Color(255, 230, 179, (byte)(blackInAlpha * blackOutAlpha * 255)), pauseRot, Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]) * 0.5f, Math.Min(((250f * scale) / Global.DefaultFont.MeasureString(pauseTextDisp[currentState][i]).X), scale * 2), SpriteEffects.None, 0);
             }
-            spriteBatch.Draw(texPausePick, new Vector2(pickPosL.X, pickPosL.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha), pauseRot, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
-            spriteBatch.Draw(texPausePick, new Vector2(pickPosR.X, pickPosR.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha), pauseRot + MathHelper.Pi, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
+            spriteBatch.Draw(texPausePick, new Vector2(pickPosL.X, pickPosL.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha * blackOutAlpha), pauseRot, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
+            spriteBatch.Draw(texPausePick, new Vector2(pickPosR.X, pickPosR.Y) + pauseMenuPos, null, new Color(Global.UnsignedOrange, blackInAlpha * blackOutAlpha), pauseRot + MathHelper.Pi, new Vector2(texPausePick.Width, texPausePick.Height / 2), scale / 3, SpriteEffects.None, 0);
 
             spriteBatch.End();
         }
@@ -158,9 +167,14 @@ namespace Unsigned
             if (currentState == 0)
             {
                 if (pauseSelected == 0)
-                    ClosePauseScreen.Invoke();
+                {
+                    exiting = true;
+                }
                 else if (pauseSelected == 1)
-                { RestartSong.Invoke(); ClosePauseScreen.Invoke(); }
+                {
+                    RestartSong.Invoke();
+                    exiting = true;
+                }
                 else if (pauseSelected == 2)
                 {
                     currentState = 1;

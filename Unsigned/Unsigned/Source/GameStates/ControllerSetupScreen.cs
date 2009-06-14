@@ -110,8 +110,10 @@ namespace Unsigned
 
         public override void Update(GameTime gameTime)
         {
+#if !DEBUG
             try
             {
+#endif
                 if (joinBlue >= 1)
                     joinBlueDir = -1;
                 if (joinBlue <= 0)
@@ -157,13 +159,15 @@ namespace Unsigned
                                     alsochosen = true;
                             if (nugget.confirmStates[i] >= SessionInfo.ConfirmState.CHOOSING_INSTRUMENT)
                                 for (int r = 0; r < 20; r++)
-                                    spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name, new Vector2(70 - r, 20 - (r / 2)),
+                                    spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name, new Vector2(70 - r, 20 - (r)),
                                         new Color(128, 85, 0, (byte)(50 - (r * 2))), 0, new Vector2(0, 0),
-                                        (rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
+                                        Math.Min((rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
+                                        (30 + (r * 1)) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).Y),
                                         SpriteEffects.None, 0);
                             spriteBatch.DrawString(Global.DefaultFont, nugget.characterIndices[i]<0?"[Create New]":CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name, new Vector2(70, 20),
                                 alsochosen ? Color.Red : Color.Black, 0, new Vector2(0, 0),
-                                (rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
+                                Math.Min((rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).X,
+                                (30) / Global.DefaultFont.MeasureString(nugget.characterIndices[i] < 0 ? "[Create New]" : CharacterMaster.Singleton.GetCharacter(nugget.characterIndices[i]).Name).Y),
                                 SpriteEffects.None, 0);
                         }
 
@@ -173,11 +177,13 @@ namespace Unsigned
                                 for (int r = 0; r < 20; r++)
                                     spriteBatch.DrawString(Global.DefaultFont, InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName, new Vector2(70 - r, 200 + (r / 2)),
                                         new Color(128, 85, 0, (byte)(50 - (r * 2))), 0, new Vector2(0, 0),
-                                        (rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).X,
+                                        Math.Min((rtNote[i].Width - (80 - (r * 2))) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).X,
+                                        (30 + (r * 1)) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).Y),
                                         SpriteEffects.None, 0);
                             spriteBatch.DrawString(Global.DefaultFont, InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName, new Vector2(70, 200),
                                 Color.Black, 0, new Vector2(0, 0),
-                                (rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).X,
+                                Math.Min((rtNote[i].Width - 80) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).X,
+                                (30) / Global.DefaultFont.MeasureString(InstrumentMaster.Singleton.GetInstrument(nugget.instruments[i]).FullName).Y),
                                 SpriteEffects.None, 0);
                         }
 
@@ -187,6 +193,7 @@ namespace Unsigned
                     }
                     notesNeedRefreshing = false;
                 }
+#if !DEBUG
             }
             catch(Exception e)
             {
@@ -196,6 +203,7 @@ namespace Unsigned
             }
             try
             {
+#endif
                 Peripheral[] controllers = PeripheralManager.Singleton.GetPeripherals();
 
                 borderScroll += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -310,6 +318,11 @@ namespace Unsigned
                         {
                             // determing whether or not this player is trying to confirm with
                             // a name that someone else wants
+                            if (nugget.characterIndices[i] < 0)
+                            {
+                                UnsignedGame.Singleton.SwitchState(new IdolCreationState(this, nugget.peripherals[i]));
+                                return;
+                            }
                             bool hassamename = false;
                             for (int k = 0; k < nugget.peripherals.Length; k++)
                                 if (k == i)
@@ -318,7 +331,6 @@ namespace Unsigned
                                     continue;
                                 else if (nugget.characterIndices[k] == nugget.characterIndices[i])
                                     hassamename = true;
-                            // TODO: check if character has role compatible with peripheral
                             if (!hassamename)
                             {
                                 nugget.confirmStates[i] = SessionInfo.ConfirmState.CHOOSING_INSTRUMENT;
@@ -349,7 +361,7 @@ namespace Unsigned
                         }
                         if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                         {
-                            if (nugget.characterIndices[i] > 0)
+                            if (nugget.characterIndices[i] > -1)
                                 nugget.characterIndices[i]--;
                             notesNeedRefreshing = true;
                         }
@@ -397,6 +409,7 @@ namespace Unsigned
                 if (red)
                     if(allfree && !notesNeedRefreshing)
                         UnsignedGame.Singleton.SwitchState(new MainMenuScreen());
+#if !DEBUG
             }
             catch(Exception e)
             {
@@ -406,6 +419,7 @@ namespace Unsigned
             }
             try
             {
+#endif
                 for (int k = 0; k < 4; k++)
                     for (int i = 0; i < flames[k].Length; i++)
                         if (flames[k][i].Z > 0)
@@ -414,6 +428,7 @@ namespace Unsigned
                             flames[k][i].Y -= (k + 1) * 1.5f * gameTime.ElapsedGameTime.Milliseconds / 50f;
                             flames[k][i].X += (float)(Global.Random.NextDouble() - 0.5) * gameTime.ElapsedGameTime.Milliseconds / 25f;
                         }
+#if !DEBUG
             }
             catch(Exception e)
             {
@@ -421,6 +436,7 @@ namespace Unsigned
                 UnsignedGame.Singleton.Exit();
                 return;
             }
+#endif
         }
 
         public override void Render(GameTime gameTime)
@@ -431,8 +447,10 @@ namespace Unsigned
             float[] plf = new float[16];
             Vector3[] pld = new Vector3[16];
             Vector3[] pls = new Vector3[16];
+#if !DEBUG
             try
             {
+#endif
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferEnable = true;
                 Global.Graphics.GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
                 Global.Graphics.ApplyChanges();
@@ -454,6 +472,7 @@ namespace Unsigned
                 effect.DirectionalLight = new DirectionalLight(true, new Vector3(0, -0.1f, 1), Color.White, Color.White);
 
                 effect.CommitChanges();
+#if !DEBUG
             }
             catch(Exception e)
             {
@@ -463,6 +482,7 @@ namespace Unsigned
             }
             try
             {
+#endif
                 effect.Begin();
                 foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                 {
@@ -509,6 +529,7 @@ namespace Unsigned
                     pass.End();
                 }
                 effect.End();
+#if !DEBUG
             }
             catch (Exception e)
             {
@@ -518,6 +539,7 @@ namespace Unsigned
             }
             try
             {
+#endif
                 spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
 
                 //if (leader >= 0 && contguis[leader].status == 2)
@@ -553,6 +575,7 @@ namespace Unsigned
                 //spriteBatch.DrawString(DefaultFont, "" + contguis[0].loc + "::" + contguis[0].info, new Vector2(10, 10), Color.White);
 
                 spriteBatch.End();
+#if !DEBUG
             }
             catch (Exception e)
             {
@@ -560,6 +583,7 @@ namespace Unsigned
                 UnsignedGame.Singleton.Exit();
                 return;
             }
+#endif
         }
     }
 }

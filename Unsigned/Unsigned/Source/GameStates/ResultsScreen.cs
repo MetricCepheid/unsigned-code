@@ -135,7 +135,7 @@ namespace Unsigned
                 spriteBatch.Draw(coolbg1, new Rectangle((int)(0.1 * Global.ScreenWidth), (int)(0.1 * Global.ScreenHeight), (int)(0.8 * Global.ScreenWidth), (int)(0.8 * Global.ScreenHeight)), new Color(Global.UnsignedOrange, 30));
                 spriteBatch.Draw(failbg, new Rectangle(0, 0, Global.ScreenWidth, Global.ScreenHeight), Global.UnsignedOrange);
                 {//stars
-                    int startx = (int)((Global.ScreenWidth * 0.28f) - (Global.ScreenWidth * 0.025f * (int)addedResults.numStars));
+                    int startx = (int)((Global.ScreenWidth * 0.25f) - (Global.ScreenWidth * 0.025f * (int)addedResults.numStars));
                     for (int i = 0; i < (int)addedResults.numStars; i++)
                         spriteBatch.Draw(texStar, new Rectangle(startx + (int)(i * Global.ScreenWidth * 0.05f), (int)(Global.ScreenHeight * 0.25f), (int)(Global.ScreenWidth * 0.05f), (int)(Global.ScreenWidth * 0.05f)), Color.White);
                 }

@@ -35,6 +35,8 @@ namespace Unsigned
 
         private GameUIMaster ui;
 
+        private float audioChartOffset;
+
         public GameState(SessionInfo info)
         {
             for (int i = 0; i < info.peripherals.Length; i++)
@@ -73,7 +75,7 @@ namespace Unsigned
                 {
                     boardsList.Add(new Board(InstrumentMaster.Singleton.GetInstrument(sesInfo.instruments[i]),
                         InstrumentMaster.Singleton.GetInstrument(sesInfo.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL ? (int)(((((count3D * 2) + 1) / (num3D * 2.0f)) - 0.5f) * Global.ScreenWidth) : 0,
-                        songData, sesInfo.difficulties[i]));
+                        songData, sesInfo.difficulties[i], sesInfo.characterIndices[i]));
                     boardsList[i].LoadInstance(Content);
                     boardsList[i].Peripheral = sesInfo.peripherals[i];
                     if (InstrumentMaster.Singleton.GetInstrument(sesInfo.instruments[i]).Dimensions == Instrument.BoardDimensions.THREE_DIMENSIONAL)
@@ -110,6 +112,8 @@ namespace Unsigned
             ui.Load(Content);
 
             PauseScreen.Load(Content);
+
+            audioChartOffset = (int)SaveDataManager.Singleton.GetSongOffset(songData.info.filename)/1000f;
         }
 
         public override void Update(GameTime gameTime)
@@ -138,19 +142,20 @@ namespace Unsigned
 #endif
                 SongTime oldSongTime = songTime;
                 songTime = new SongTime(elapsed, songTime.TotalSongTime + elapsed);
-                if (!song.IsPlaying && songTime.TotalSongTime.TotalSeconds >= 0)
+                if (!song.IsPlaying && songTime.TotalSongTime.TotalSeconds-audioChartOffset >= 0)
                     song.Play();
+                double Song_Time = song.GetTime();
                 if (song.IsPlaying)
                 {
-                    if (Math.Abs(song.GetTime() - songTime.TotalSongTime.TotalSeconds) > 0.1f)
+                    if (Math.Abs(Song_Time - (songTime.TotalSongTime.TotalSeconds - audioChartOffset)) > 0.1f)
                     {
 #if DEBUG
                         if (Keyboard.GetState().IsKeyDown(Keys.P))
-                            song.SetTime((float)songTime.TotalSongTime.TotalSeconds);
+                            song.SetTime((float)(songTime.TotalSongTime.TotalSeconds-audioChartOffset));
                         else
-                            songTime = new SongTime(elapsed, new TimeSpan((long)(song.GetTime() * 10000000)));
+                            songTime = new SongTime(elapsed, new TimeSpan((long)((Song_Time + audioChartOffset) * 10000000)));
 #else
-                        songTime = new SongTime(elapsed, new TimeSpan((long)(song.GetTime() * 10000000)));
+                        songTime = new SongTime(elapsed, new TimeSpan((long)((song.GetTime()+audioChartOffset) * 10000000)));
 #endif
                     }
                 }
@@ -158,7 +163,9 @@ namespace Unsigned
 
                 Board.UpdateRPMultiplier(boards);
 
-                if (currenttime >= song.GetSongLength().TotalSeconds)
+                double Song_Length = song.GetSongLength().TotalSeconds;
+
+                if (currenttime >= Song_Length)
                 {
                     ResultsScreen r = new ResultsScreen(sesInfo, false);
                     r.SetResults(boards);
@@ -170,7 +177,7 @@ namespace Unsigned
                 for (int i = 0; i < boards.Length; i++)
                     if (!boards[i].IsFailing)
                         allFailed = false;
-                if (false)//(allFailed)
+                if (allFailed)
                 {
                     ResultsScreen r = new ResultsScreen(sesInfo, true);
                     r.SetResults(boards);

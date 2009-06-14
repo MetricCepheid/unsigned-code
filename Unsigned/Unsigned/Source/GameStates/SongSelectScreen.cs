@@ -31,6 +31,8 @@ namespace Unsigned
 
         SessionInfo nugget;
 
+        private float leftRightTimer;
+
         private int selectedSubSet, selectedSong;
 
         public SongSelectScreen(SessionInfo nugget)
@@ -93,10 +95,9 @@ namespace Unsigned
 #endif
                 chgd = SongListTex==null;
 
-
                 Peripheral[] peripherals = PeripheralManager.Singleton.GetPeripherals();
 
-                int collective = 0;
+                int collective = 0, lr = 0;
                 bool green = false, red = false, yellow = false;
 
                 for (int i = 0; i < 4; i++)
@@ -106,6 +107,10 @@ namespace Unsigned
                             collective--;
                         if (nugget.peripherals[i].WasPressed(PeripheralButton.UP))
                             collective++;
+                        if (nugget.peripherals[i].IsPressed(PeripheralButton.LEFT))
+                            lr--;
+                        if (nugget.peripherals[i].IsPressed(PeripheralButton.RIGHT))
+                            lr++;
                         if (nugget.peripherals[i].WasPressed(PeripheralButton.BACK))
                             red = true;
                         if (nugget.peripherals[i].WasPressed(PeripheralButton.SWITCH))
@@ -136,6 +141,56 @@ namespace Unsigned
                             nugget.songFileName = setList.GetSubsets()[selectedSubSet].GetSongList()[selectedSong].Filename;
                             UnsignedGame.Singleton.SwitchState(new DifficultyScreen(nugget));
                         }
+                }
+                if (lr == 0)
+                {
+                    leftRightTimer = 0;
+                }
+                else if(lr<0)
+                {
+                    leftRightTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    SongFileHeader header = null;
+                    if(setList.GetSubsets().Count>0 && selectedSubSet<setList.GetSubsets().Count)
+                        if (setList.GetSubsets()[selectedSubSet].GetSongList().Count > 0 && selectedSong < setList.GetSubsets()[selectedSubSet].GetSongList().Count)
+                        {
+                            header = setList.GetSubsets()[selectedSubSet].GetSongList()[selectedSong];
+                        }
+                    if (header != null)
+                    {
+                        if (leftRightTimer > -0.5f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), -2 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer > -1f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), -5 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer > -2f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), -20 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer > -5f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), -50 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), -200 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    }
+                }
+                else
+                {
+                    leftRightTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    SongFileHeader header = null;
+                    if (setList.GetSubsets().Count > 0 && selectedSubSet < setList.GetSubsets().Count)
+                        if (setList.GetSubsets()[selectedSubSet].GetSongList().Count > 0 && selectedSong < setList.GetSubsets()[selectedSubSet].GetSongList().Count)
+                        {
+                            header = setList.GetSubsets()[selectedSubSet].GetSongList()[selectedSong];
+                        }
+                    if (header != null)
+                    {
+                        if (leftRightTimer < 0.5f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), 2 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer < 1f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), 5 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer < 2f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), 20 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else if (leftRightTimer < 5f)
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), 50 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                        else
+                            SaveDataManager.Singleton.IncrementSongOffset(header.GetSimpleFileName(), 200 * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    }
                 }
                 if(collective != 0)
                 {
@@ -369,6 +424,7 @@ namespace Unsigned
                         spriteBatch.DrawString(Global.DefaultFont, "Genre: "+h.Genre, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.41f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
                         spriteBatch.DrawString(Global.DefaultFont, "Length: " + h.Length.Minutes + ":" + (h.Length.Seconds<10?"0":"") + h.Length.Seconds, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.44f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
                         spriteBatch.DrawString(Global.DefaultFont, "Year: " + h.Year, new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.47f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Global.DefaultFont, "Offset (ms): " + (int)SaveDataManager.Singleton.GetSongOffset(h.GetSimpleFileName()), new Rectangle((int)((Global.ScreenWidth * 0.15f) + (Global.ScreenHeight * 0.02f)), (int)(Global.ScreenHeight * 0.5f), (int)(Global.ScreenHeight * 0.26f), 1000), Color.Black, 0, Vector2.Zero, Global.ScreenHeight / 1000f, SpriteEffects.None, 0);
                     }
 
                 spriteBatch.Draw(songchoosetop, new Rectangle(0, 0, Global.ScreenWidth, (int)((Global.ScreenHeight / 768f) * 256)), Color.White);

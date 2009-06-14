@@ -77,15 +77,18 @@ namespace Unsigned
 
         private List<SongSlot> SongSlots;
 
+        private Dictionary<String, float> SongOffsets;
+
         private SaveDataManager()
         {
-            SongSlots = new List<SongSlot>();
-            Load();
         }
 
         public void Load()
         {
             BinaryReader br = new BinaryReader(File.OpenRead(SaveDataFilename));
+
+            SongSlots = new List<SongSlot>();
+            SongOffsets = new Dictionary<String, float>();
 
             int numSlots = br.ReadInt32();
 
@@ -116,6 +119,14 @@ namespace Unsigned
                     songSlot.Saves.Add(saveSlot);
                 }
                 SongSlots.Add(songSlot);
+            }
+
+            int numSongOffsets = br.ReadInt32();
+            for (int i = 0; i < numSongOffsets; i++)
+            {
+                String key = br.ReadString();
+                float offset = br.ReadSingle();
+                SongOffsets.Add(key, offset);
             }
 
             br.Close();
@@ -154,6 +165,13 @@ namespace Unsigned
                     bw.Write(saveSlot.NumStars);
                     bw.Write(saveSlot.Score);
                 }
+            }
+
+            bw.Write(SongOffsets.Keys.Count);
+            foreach (String key in SongOffsets.Keys)
+            {
+                bw.Write(key);
+                bw.Write(SongOffsets[key]);
             }
 
             bw.Close();
@@ -235,6 +253,25 @@ namespace Unsigned
                     }
                 }
             }
+        }
+
+        public void IncrementSongOffset(String songCodeName, float incr)
+        {
+            if (!SongOffsets.ContainsKey(songCodeName))
+            {
+                SongOffsets.Add(songCodeName, incr);
+            }
+            else
+            {
+                SongOffsets[songCodeName] = SongOffsets[songCodeName] + incr;
+            }
+        }
+
+        public float GetSongOffset(String songCodeName)
+        {
+            if (SongOffsets.ContainsKey(songCodeName))
+                return SongOffsets[songCodeName];
+            return 0;
         }
     }
 }

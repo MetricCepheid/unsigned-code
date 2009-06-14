@@ -121,6 +121,8 @@ namespace Unsigned
         // the particle handler
         private ParticleMaster myParticles;
 
+        // the character chosen
+        private CharacterIdol character;
         // where the board is drawn after being rendered
         private int xOffset;
         // the rotate of the flashes so they dont get stale
@@ -340,16 +342,27 @@ namespace Unsigned
             }
         }
 
-        public Board(Instrument type, int xOffset, SongData song, Difficulty difficulty)
+        public Board(Instrument type, int xOffset, SongData song, Difficulty difficulty, int characterIndex)
         {
             this.songData = song;
             this.instrumentType = type;
             this.xOffset = xOffset;
             this.difficulty = difficulty;
 
+            if (characterIndex < 0)
+            {
+                character = new CharacterIdol();
+                character.Name = "Unknown";
+            }
+            else
+            {
+                character = CharacterMaster.Singleton.GetCharacter(characterIndex);
+            }
+
             GenerateNoteArray();
 
             myResults.instr = type;
+            myResults.OwnerName = character.Name;
             myResults.totalNotes = Notes.Length;
             myResults.hitNotes = 0;
             myResults.missedNotes = 0;
@@ -562,7 +575,7 @@ namespace Unsigned
                         {
                             // guitar was tipped or select was pressed
                             // activate star power
-                            ActivateStarPower(gameState);
+                            ActivateRockPower(gameState);
                         }
 
                     // apply the whammy to a current held note
@@ -583,7 +596,7 @@ namespace Unsigned
                         {
                             // pass up notes
                             ResetMultiplier();
-                            score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                            score += ScorePerNote * Notes[currentNoteIndex].Kill(false) * GetScoreMultiplier();
                             FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
                             for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
                                 Hurt();
@@ -601,7 +614,7 @@ namespace Unsigned
                         {
                             // pass up last note
                             ResetMultiplier();
-                            score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                            score += ScorePerNote * Notes[currentNoteIndex].Kill(false) * GetScoreMultiplier();
                             FailRockPowerPhraseForNote(Notes[currentNoteIndex]);
                             for (int i = 0; i < Notes[currentNoteIndex].NumNotes; i++)
                                 Hurt();
@@ -647,7 +660,7 @@ namespace Unsigned
                                     // finish the fill with a smash!
                                     if (Fills[currentFillIndex].Use())
                                     {
-                                        ActivateStarPower(gameState);
+                                        ActivateRockPower(gameState);
                                     }
                                 }
                         }
@@ -666,14 +679,24 @@ namespace Unsigned
                                         else
                                         {
                                             // overstrum on a note
-                                            ResetMultiplier();
-                                            FailRockPowerPhraseForNow(songTime);
-                                            Hurt();
-                                            if (streak > myResults.streak)
-                                                myResults.streak = streak;
-                                            streak = 0;
-                                            if (breStarted)
-                                                breFailed = true;
+                                            bool skip = true;
+                                            if (currentNoteIndex > 0)
+                                                if (!Notes[currentNoteIndex - 1].Strummed && Notes[currentNoteIndex - 1].IsHOPO)
+                                            {
+                                                skip = true;
+                                                Notes[currentNoteIndex - 1].Strum();
+                                            }
+                                            if (!skip)
+                                            {
+                                                ResetMultiplier();
+                                                FailRockPowerPhraseForNow(songTime);
+                                                Hurt();
+                                                if (streak > myResults.streak)
+                                                    myResults.streak = streak;
+                                                streak = 0;
+                                                if (breStarted)
+                                                    breFailed = true;
+                                            }
                                         }
                                     }
                                     Notes[currentNoteIndex].AddHeld(pressed);
@@ -713,7 +736,7 @@ namespace Unsigned
                                 if (!Notes[currentNoteIndex].Burning && Notes[currentNoteIndex].IsGood(currentNoteIndex == 0 ? false : Notes[currentNoteIndex - 1].IsDead))
                                 {
                                     // hit note
-                                    score += ScorePerNote * Notes[currentNoteIndex].Kill() * GetScoreMultiplier();
+                                    score += ScorePerNote * Notes[currentNoteIndex].Kill(currentNoteIndex == 0 ? false : Notes[currentNoteIndex - 1].IsDead) * GetScoreMultiplier();
                                     myResults.hitNotes++;
                                     streak++;
                                     bool rp = false;
@@ -750,14 +773,24 @@ namespace Unsigned
                                 if (instrumentType.NeedsStrum && strummed)
                                 {
                                     // overstrum when no notes are nearby
-                                    FailRockPowerPhraseForNow(songTime);
-                                    ResetMultiplier();
-                                    Hurt();
-                                    if (streak > myResults.streak)
-                                        myResults.streak = streak;
-                                    streak = 0;
-                                    if (breStarted)
-                                        breFailed = true;
+                                    bool skip = false;
+                                    if (currentNoteIndex > 0)
+                                    if (!Notes[currentNoteIndex - 1].Strummed && Notes[currentNoteIndex-1].IsHOPO)
+                                    {
+                                        skip = true;
+                                        Notes[currentNoteIndex - 1].Strum();
+                                    }
+                                    if (!skip)
+                                    {
+                                        FailRockPowerPhraseForNow(songTime);
+                                        ResetMultiplier();
+                                        Hurt();
+                                        if (streak > myResults.streak)
+                                            myResults.streak = streak;
+                                        streak = 0;
+                                        if (breStarted)
+                                            breFailed = true;
+                                    }
                                 }
                                 if (!instrumentType.NeedsStrum && newPressed != 0)
                                 {
@@ -1313,8 +1346,10 @@ namespace Unsigned
             return sinRet*(timesWidth?whammyRet:0.1f);
         }
 
-        private void ActivateStarPower(GameState gs)
+        private void ActivateRockPower(GameState gs)
         {
+            if (RockPowerActivated)
+                return;
             if (RockPowerAmount >= 0.5)
             {
                 if (gs.SaveAll())

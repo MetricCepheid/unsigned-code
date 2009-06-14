@@ -139,6 +139,18 @@ namespace Unsigned
                         return true;
                     return false;
                 }
+            case PeripheralButton.LEFT:
+                {
+                    if (currentState.DPad.Left == ButtonState.Pressed)
+                        return true;
+                    return false;
+                }
+            case PeripheralButton.RIGHT:
+                {
+                    if (currentState.DPad.Right == ButtonState.Pressed)
+                        return true;
+                    return false;
+                }
             case PeripheralButton.CONFIRM:
                 {
                     if (currentState.Buttons.A == ButtonState.Pressed)
@@ -287,6 +299,14 @@ namespace Unsigned
                 bufferedMap[(int)PeripheralButton.DOWN] = true;
             else
                 bufferedMap[(int)PeripheralButton.DOWN] = false;
+            if (currentState.DPad.Left == ButtonState.Pressed && previousState.DPad.Left == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.LEFT] = true;
+            else
+                bufferedMap[(int)PeripheralButton.LEFT] = false;
+            if (currentState.DPad.Right == ButtonState.Pressed && previousState.DPad.Right == ButtonState.Released)
+                bufferedMap[(int)PeripheralButton.RIGHT] = true;
+            else
+                bufferedMap[(int)PeripheralButton.RIGHT] = false;
             if (currentState.Buttons.Back == ButtonState.Pressed && previousState.Buttons.Back == ButtonState.Released)
                 bufferedMap[(int)PeripheralButton.SELECT] = true;
             else

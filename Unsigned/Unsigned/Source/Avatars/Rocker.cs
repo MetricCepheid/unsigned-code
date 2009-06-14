@@ -13,7 +13,20 @@ namespace Unsigned
     {
         public static SongData SongData;
         public Vector3 Position { get; set; }
-        public float Yaw { get; set; }
+        private float _yaw = 0;
+        private bool setYaw = false;
+        public float Yaw 
+        { 
+            get 
+            { 
+                return _yaw; 
+            } 
+            set 
+            { 
+                _yaw = value; 
+                setYaw = true; 
+            } 
+        }
         private Dictionary<String,FVModel> models;
         private Texture2D tex;
         public Instrument Instrument;
@@ -26,7 +39,7 @@ namespace Unsigned
         public Rocker(CharacterIdol idol, Instrument instr)
         {
             Instrument = instr;
-            Yaw = 0;
+            _yaw = 0;
             this.idol = idol;
             Scale = 10;
         }
@@ -50,9 +63,9 @@ namespace Unsigned
                 {
                     mdlInstr = new Dictionary<String, FVModel>();
                     String path = "meshes\\instruments\\" + Instrument.CodeName + "\\" + idol.InstrumentBrand + "\\";
-                    String contentPath = "Content\\"+path;
+                    String contentPath = "Content\\" + path;
                     String[] mdlFiles = System.IO.Directory.GetFiles(contentPath);
-                    for(int i=0;i<mdlFiles.Length;i++)
+                    for (int i = 0; i < mdlFiles.Length; i++)
                     {
                         String str = mdlFiles[i].Substring(mdlFiles[i].LastIndexOf('\\') + 1);
                         str = str.Substring(0, str.LastIndexOf('.'));
@@ -60,7 +73,7 @@ namespace Unsigned
                         {
                             String loadStr = mdlFiles[i].Substring(mdlFiles[i].IndexOf("meshes\\"));
                             loadStr = loadStr.Substring(0, loadStr.IndexOf('.'));
-                            mdlInstr.Add(str.Substring(str.IndexOf('_')+1).ToUpper(), ModelLoader.LoadModel(loadStr));
+                            mdlInstr.Add(str.Substring(str.IndexOf('_') + 1).ToUpper(), ModelLoader.LoadModel(loadStr));
                         }
                     }
                 }
@@ -82,9 +95,35 @@ namespace Unsigned
                     }
                 }
             }
-            tex = Content.Load<Texture2D>("textures\\avatars\\fanTex");
-            String skeleFilename = "Content\\animations\\"+Instrument.CodeName+"Hierarchy.txt";
-            String animFilename = "Content\\animations\\"+Instrument.CodeName+".una";
+            {
+                ContentManager cntnt = new ContentManager(Global.Services);
+                cntnt.RootDirectory = "Content\\textures\\avatars";
+                RenderTarget2D rt = new RenderTarget2D(Global.Graphics.GraphicsDevice, 512, 512, 1, SurfaceFormat.Color);
+                DepthStencilBuffer dst = new DepthStencilBuffer(Global.Graphics.GraphicsDevice, 512, 512, Global.Graphics.GraphicsDevice.DepthStencilBuffer.Format);
+                RenderTarget2D lastRT = (RenderTarget2D)Global.Graphics.GraphicsDevice.GetRenderTarget(0);
+                DepthStencilBuffer lastDST = Global.Graphics.GraphicsDevice.DepthStencilBuffer;
+                Global.Graphics.GraphicsDevice.SetRenderTarget(0, rt);
+                Global.Graphics.GraphicsDevice.DepthStencilBuffer = dst;
+                Global.Graphics.GraphicsDevice.Clear(Color.Black);
+                SpriteBatch sb = new SpriteBatch(Global.Graphics.GraphicsDevice);
+                sb.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
+                sb.Draw(cntnt.Load<Texture2D>("skin_" + idol.SkinTexIndex), new Rectangle(0, 0, 512, 512), Color.White);
+                sb.Draw(cntnt.Load<Texture2D>("hair" + idol.HairTexIndex), new Rectangle(0, 0, 512, 512), Color.White);
+                sb.Draw(cntnt.Load<Texture2D>("shirt_base"), new Rectangle(0, 0, 512, 512), CharacterIdol.IdolColors[(int)idol.ShirtBGColor]);
+                sb.Draw(cntnt.Load<Texture2D>("pants_"+idol.PantsTexIndex), new Rectangle(0, 0, 512, 512), Color.White);
+                sb.Draw(cntnt.Load<Texture2D>("shoe"+idol.ShoeTexIndex), new Rectangle(0, 0, 512, 512), Color.White);
+                sb.Draw(cntnt.Load<Texture2D>("shirt_overlay"+idol.ShirtFGTexIndex), new Rectangle(0, 0, 512, 512), CharacterIdol.IdolColors[(int)idol.ShirtFGColor]);
+                sb.Draw(cntnt.Load<Texture2D>("necklace"+idol.NecklaceTexIndex), new Rectangle(0, 0, 512, 512), CharacterIdol.IdolColors[(int)idol.NecklaceColor]);
+                sb.End();
+                Global.Graphics.GraphicsDevice.SetRenderTarget(0, lastRT);
+                Global.Graphics.GraphicsDevice.DepthStencilBuffer = lastDST;
+                tex = rt.GetTexture();
+                rt.Dispose();
+                dst.Dispose();
+                cntnt.Unload();
+            }
+            String skeleFilename = "Content\\animations\\" + Instrument.CodeName + "Hierarchy.txt";
+            String animFilename = "Content\\animations\\" + Instrument.CodeName + ".una";
             if (System.IO.File.Exists(skeleFilename) && System.IO.File.Exists(animFilename))
             {
                 Animation = new AnimationWrapper(AnimationInfo.Load(skeleFilename, animFilename));
@@ -96,7 +135,8 @@ namespace Unsigned
         {
             Animation.Update(songTime);
 
-            Yaw = (float)Math.Atan2(Position.X, Position.Z+100)+MathHelper.Pi;
+            if(!setYaw)
+                _yaw = (float)Math.Atan2(Position.X, Position.Z+100)+MathHelper.Pi;
 
             Matrix w = Matrix.CreateRotationY(Yaw);
 

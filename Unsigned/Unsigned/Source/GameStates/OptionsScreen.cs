@@ -123,7 +123,7 @@ namespace Unsigned
                 o.options[1] = OPTIONS.OPT_MUSICVOL;
                 Options.Add(o);
             } 
-            camPos = new Vector3(-10f, 120f, 40f);
+            camPos = new Vector3(-15f, 120f, 40f);
         }
 
         public override void Load()
@@ -404,6 +404,18 @@ namespace Unsigned
                                 String str = GetTitle(Options[majorIndex].options[i]);
                                 spriteBatch.DrawString(Global.DefaultFont, str, new Vector2(textPos.X, textPos.Y), i == minorIndex ? (selectedMinor ? Color.Lime : Global.UnsignedYellow) : Global.UnsignedOrange, 0, new Vector2(i < 3 ? Global.DefaultFont.MeasureString(str).X : 0, Global.DefaultFont.MeasureString(str).Y), Global.ScreenHeight / 600f, SpriteEffects.None, 0);
                             }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Vector3 textPos = new Vector3(-15f + (i * 15f), 130f, 0f);
+                        textPos = Global.Graphics.GraphicsDevice.Viewport.Project(textPos, effect.Projection, effect.View, Matrix.Identity);
+                        {
+                            String str = Options[i].Name;
+                            spriteBatch.DrawString(Global.DefaultFont, str, new Vector2(textPos.X, textPos.Y), i == majorIndex ? Global.UnsignedYellow : Global.UnsignedOrange, 0, new Vector2(Global.DefaultFont.MeasureString(str).X * 0.5f, 0), Global.ScreenHeight / 600f, SpriteEffects.None, 0);
                         }
                     }
                 }

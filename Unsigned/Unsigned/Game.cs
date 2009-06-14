@@ -71,7 +71,12 @@ namespace Unsigned
 
             Configuration.Load();
 
-            Window.Title = "Unsigned";  
+            Window.Title = "Unsigned";
+
+            Global.Graphics.IsFullScreen = Configuration.FullScreen;
+            Global.Graphics.PreferredBackBufferWidth = Configuration.ResolutionWidthOptions[Configuration.ResIndex];
+            Global.Graphics.PreferredBackBufferHeight = Configuration.WideScreen?Configuration.ResolutionHeightWideOptions[Configuration.ResIndex]:Configuration.ResolutionHeightFullOptions[Configuration.ResIndex];
+            Global.Graphics.ApplyChanges();
 
             KeyboardPeripheral.LoadMapping("Configuration\\keymapping.xml");
 
@@ -85,7 +90,7 @@ namespace Unsigned
             PeripheralManager.Singleton.CheckConnections();
 
             //TEST CODE, takes you right into the action!
-            SessionInfo info = new SessionInfo();
+            /*SessionInfo info = new SessionInfo();
             info.characterIndices[0] = -1;
             info.difficulties[0] = Difficulty.Easy;
             info.instruments[0] = 1;
@@ -109,6 +114,8 @@ namespace Unsigned
         protected override void OnExiting(object sender, EventArgs args)
         {
             Configuration.Save();
+            SaveDataManager.Singleton.Save();
+            Logger.Save();
             base.OnExiting(sender, args);
         }
         
@@ -119,6 +126,8 @@ namespace Unsigned
             Global.DefaultFont = Content.Load<SpriteFont>("fonts\\BasicFont");
             Global.TexWhite = Content.Load<Texture2D>("textures\\global\\white");
             currentState.Load();
+
+            SaveDataManager.Singleton.Load();
 
 #if DEBUG
             fpsSpriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
