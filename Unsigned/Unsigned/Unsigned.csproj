@@ -316,10 +316,6 @@
       <Project>{8CFCBB97-7B4D-4E3A-BBBA-16CF470E0937}</Project>
       <Name>UnsignedPeripheralPlugins</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XFireSDK\XFireSDK.vcproj">
-      <Project>{689CC987-3311-445E-AF92-594ABCD59F4B}</Project>
-      <Name>XFireSDK</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\animations\BAS.una">

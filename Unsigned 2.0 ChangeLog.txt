@@ -8,8 +8,6 @@ Option to view FPS has been deprecated.
 
 Option to set "graphics level" has been deprecated.
 
-2D mode added! Requires SM1.1.
-
 Fixed Particles
 
 =========InGameFeatures==================================================
@@ -19,6 +17,14 @@ Solos implemented!
 Band Multipliers (when multiple band members use Rock Power)
 
 Big Rock Endings!
+
+=========Idols===========================================================
+
+Idols on stage!
+
+Idols have customizeable appearances
+
+Idol animations on-stage react to players input
 
 =========Look&Feel=======================================================
 
@@ -34,6 +40,12 @@ VenueCompiler now allows models, such as those pretty palm trees
 
 Fans!
 
-Rocker Idols!
-
 Animated Amps bump with bass drum and bass guitar notes
+
+=========SongData Converter==============================================
+
+Allows users to convert chart files to Unsigned Songdata files
+
+Allows users to update old songdata files to new songdata files
+
+Create lighting schemes, camera switches, solos, and Big Rock Endings to make your song more immersive
