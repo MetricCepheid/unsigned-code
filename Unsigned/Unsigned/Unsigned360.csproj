@@ -1,16 +1,16 @@
 ﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
-    <ProjectGuid>{E702C8D8-A390-40E8-AC53-B873A25EB00F}</ProjectGuid>
-    <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{5267F64F-73DB-4F3F-8135-C884FF317E53}</ProjectGuid>
+    <ProjectTypeGuids>{2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">Xbox 360</Platform>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Unsigned</RootNamespace>
     <AssemblyName>Unsigned</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <XnaFrameworkVersion>v3.0</XnaFrameworkVersion>
-    <XnaPlatform>Windows</XnaPlatform>
+    <XnaPlatform>Xbox 360</XnaPlatform>
     <XnaCrossPlatformGroupID>8d81fb59-55ed-44ee-8c84-2e2b7901b26e</XnaCrossPlatformGroupID>
     <ApplicationIcon>Game.ico</ApplicationIcon>
     <Thumbnail>GameThumbnail.png</Thumbnail>
@@ -30,74 +30,34 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\x86\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE;WINDOWS</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;XBOX;XBOX360</DefineConstants>
+    <XnaCompressContent>true</XnaCompressContent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoStdLib>true</NoStdLib>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <PlatformTarget>x86</PlatformTarget>
-    <XnaCompressContent>false</XnaCompressContent>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\x86\Release</OutputPath>
-    <DefineConstants>TRACE;WINDOWS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoStdLib>true</NoStdLib>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <PlatformTarget>x86</PlatformTarget>
+    <DefineConstants>TRACE;XBOX;XBOX360</DefineConstants>
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="irrKlang.NET, Version=1.0.4.0, Culture=neutral, PublicKeyToken=a854741bd80517c7">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\irrKlang.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework, Version=3.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86">
-      <Private>False</Private>
-      <SpecificVersion>True</SpecificVersion>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline, Version=3.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.Game, Version=3.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=MSIL">
-      <Private>False</Private>
-      <SpecificVersion>True</SpecificVersion>
-    </Reference>
-    <Reference Include="mscorlib">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="XFireSDK, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\XFireSDK.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Source\Audio\Song360.cs" />
-    <Compile Include="Source\Avatars\AnimationWrapper.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Source\Avatars\AnimationWrapper.cs" />
     <Compile Include="Source\Avatars\Fan.cs" />
     <Compile Include="Source\GameStates\IdolCreationState.cs" />
     <Compile Include="Source\GameStates\IBaseState.cs" />
@@ -301,28 +261,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AnimLib\AnimLib.csproj">
-      <Project>{8E3E7BB7-404D-4A4B-A9F1-478A8C98D5E3}</Project>
-      <Name>AnimLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FVProductionsUtility\FVProductionsUtility.csproj">
-      <Project>{C50179F4-3871-4E27-8414-96E465088B37}</Project>
-      <Name>FVProductionsUtility</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MS3DProcessor\MS3DProcessor.csproj">
-      <Project>{D1ADD913-3FA7-4055-A879-D4DA8AF34966}</Project>
-      <Name>MS3DProcessor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SongDataIO\SongDataIO.csproj">
-      <Project>{26577F40-7604-4C07-8EED-C5CF468945F1}</Project>
-      <Name>SongDataIO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\UnsignedPeripheralPlugins\UnsignedPeripheralPlugins.csproj">
-      <Project>{8CFCBB97-7B4D-4E3A-BBBA-16CF470E0937}</Project>
-      <Name>UnsignedPeripheralPlugins</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Content\animations\BAS.una">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -341,6 +279,45 @@
     <None Include="Content\venues\tikibar.gbw">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=3.0.0.0, Culture=neutral, PublicKeyToken=51c3bfb2db46012c, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=3.0.0.0, Culture=neutral, PublicKeyToken=51c3bfb2db46012c, processorArchitecture=MSIL" />
+    <Reference Include="mscorlib">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>False</Private>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <Private>False</Private>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AnimLib\AnimLib360.csproj">
+      <Project>{1D9637A5-6539-4E82-B54F-275A20E655A9}</Project>
+      <Name>AnimLib360</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FVProductionsUtility\FVProductionsUtility360.csproj">
+      <Project>{0a60e294-ed79-4639-8222-cecae748678a}</Project>
+      <Name>FVProductionsUtility360</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SongDataIO\SongDataIO360.csproj">
+      <Project>{6d3bbe07-349e-43ab-92fc-ead6223ee135}</Project>
+      <Name>SongDataIO360</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnsignedPeripheralPlugins\UnsignedPeripheralPlugins360.csproj">
+      <Project>{48f03453-c2bc-4f8f-a13c-6792044d1cf6}</Project>
+      <Name>UnsignedPeripheralPlugins360</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\meshes\" />

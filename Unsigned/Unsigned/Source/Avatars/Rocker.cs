@@ -157,14 +157,14 @@ namespace Unsigned
             
             if (models.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
+                effect.World = Matrix.CreateTranslation(j.preOffset*-1) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
                 effect.DiffuseTexture = tex;
                 effect.CommitChanges();
                 models[j.Name.ToUpper()].Draw();
             }
             else if (mdlInstr != null && mdlInstr.ContainsKey(j.Name.ToUpper()))
             {
-                effect.World = Matrix.CreateTranslation(-j.preOffset) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
+                effect.World = Matrix.CreateTranslation(j.preOffset*-1) * postWorld * Matrix.CreateTranslation(offset) * Matrix.CreateScale(Scale) * Matrix.CreateTranslation(Position);
                 effect.DiffuseTexture = texInstr[j.Name.ToUpper()];
                 effect.CommitChanges();
                 mdlInstr[j.Name.ToUpper()].Draw();

@@ -109,9 +109,9 @@ namespace SongDataIO
             else if (variable.ToLower().Trim().Equals("numdrawntracks"))
                 NumDrawnTracks = Int32.Parse(value);
             else if (variable.ToLower().Trim().Equals("rpenabletype"))
-                RPEnableType = (RockPowerEnableTypes)Enum.Parse(typeof(RockPowerEnableTypes), value.Trim().ToUpper());
+                RPEnableType = (RockPowerEnableTypes)Enum.Parse(typeof(RockPowerEnableTypes), value.Trim().ToUpper(), true);
             else if (variable.ToLower().Trim().Equals("dimensions"))
-                Dimensions = (BoardDimensions)Enum.Parse(typeof(BoardDimensions), value.Trim().ToUpper());
+                Dimensions = (BoardDimensions)Enum.Parse(typeof(BoardDimensions), value.Trim().ToUpper(), true);
             else if (variable.ToLower().Trim().Equals("codename"))
                 CodeName = value;
             else if (variable.ToLower().Trim().Equals("fullname"))
@@ -129,7 +129,7 @@ namespace SongDataIO
             else if (variable.ToLower().Trim().Equals("containstext"))
                 ContainsText = Boolean.Parse(value);
             else if (variable.ToLower().Trim().Equals("typesofphrase"))
-                TypesOfPhrases = (PhraseType)Enum.Parse(Type.GetType("PhraseType"), value.Trim().ToUpper());
+                TypesOfPhrases = (PhraseType)Enum.Parse(Type.GetType("PhraseType"), value.Trim().ToUpper(), true);
             else if (variable.ToLower().Trim().Equals("needsstrum"))
                 NeedsStrum = Boolean.Parse(value);
             else if (variable.ToLower().Trim().Equals("maxmultiplier"))

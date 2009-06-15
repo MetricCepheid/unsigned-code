@@ -32,10 +32,11 @@ namespace Unsigned
         private SpriteBatch fpsSpriteBatch;
         private float[] lastframes = new float[60];
         private int frameIndex;
+#if !XBOX
         RenderTarget2D screenshotRT;
-#endif
-
         private bool SHOULD_TAKE_SCREENSHOT;
+#endif
+#endif
 
         public UnsignedGame()
         {
@@ -54,9 +55,11 @@ namespace Unsigned
 #if DEBUG
             for (int i = 0; i < lastframes.Length; i++)
                 lastframes[i] = 1 / 30f;
-#endif
 
+#if !XBOX
             SHOULD_TAKE_SCREENSHOT = false;
+#endif
+#endif
 
             Version SM = Global.Graphics.GraphicsDevice.GraphicsDeviceCapabilities.PixelShaderVersion;
 
@@ -131,7 +134,9 @@ namespace Unsigned
 
 #if DEBUG
             fpsSpriteBatch = new SpriteBatch(Global.Graphics.GraphicsDevice);
+#if !XBOX
             screenshotRT = new RenderTarget2D(Global.Graphics.GraphicsDevice, Global.ScreenWidth, Global.ScreenHeight, 0, SurfaceFormat.Color);
+#endif
 #endif
         }
 
@@ -151,14 +156,14 @@ namespace Unsigned
 
         protected override void Draw(GameTime gameTime)
         {
-#if DEBUG
+#if DEBUG && !XBOX
             if (SHOULD_TAKE_SCREENSHOT)
             {
                 Global.Graphics.GraphicsDevice.SetRenderTarget(0, screenshotRT);
             }
 #endif
             currentState.Render(gameTime);
-#if DEBUG
+#if DEBUG && !XBOX
             if (SHOULD_TAKE_SCREENSHOT)
             {
                 Global.Graphics.GraphicsDevice.SetRenderTarget(0, null);
@@ -195,7 +200,9 @@ namespace Unsigned
 
         internal void TakeScreenshot()
         {
+#if !XBOX
             SHOULD_TAKE_SCREENSHOT = true;
+#endif
         }
     }
 }

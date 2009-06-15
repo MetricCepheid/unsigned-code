@@ -1,9 +1,8 @@
-#if !XBOX
+﻿#if XBOX
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnsignedPeripheralPlugins;
-using System.Reflection;
 
 namespace Unsigned
 {
@@ -22,40 +21,18 @@ namespace Unsigned
 
         private List<Type> peripheralTypes;
 
-        private Assembly[] controllerAssemblies;
-
         private Peripheral[] connections;
         private Peripheral[] ownedPeripherals;
 
         private PeripheralManager()
         {
             peripheralTypes = new List<Type>();
-            List<Assembly> assemblies = new List<Assembly>();
-            String DLLPath = System.IO.Directory.GetCurrentDirectory() + "\\Configuration\\ControllerPlugins\\";
-            if (System.IO.Directory.Exists(DLLPath))
-            {
-                String[] files = System.IO.Directory.GetFiles(DLLPath);
-                for (int i = 0; i < files.Length; i++)
-                    if (files[i].ToLower().EndsWith(".dll"))
-                        assemblies.Add(Assembly.LoadFile( files[i]));
-                controllerAssemblies = assemblies.ToArray();
-            }
-            else
-                controllerAssemblies = new Assembly[0];
             ownedPeripherals = new Peripheral[4];
             connections = new Peripheral[0];
         }
 
         public void ReloadDLLs()
         {
-            peripheralTypes = new List<Type>();
-            for(int i=0;i<controllerAssemblies.Length;i++)
-                foreach (Type typ in controllerAssemblies[i].GetTypes())
-                {
-                    if (!peripheralTypes.Contains(typ))
-                        peripheralTypes.Add(typ);
-                }
-
         }
 
         public Peripheral GetPeripheral(int index)
@@ -75,8 +52,8 @@ namespace Unsigned
 
         public void RelinquishOwnership(Peripheral p)
         {
-            for(int i=0;i<4;i++)
-                if(ownedPeripherals[i]==p)
+            for (int i = 0; i < 4; i++)
+                if (ownedPeripherals[i] == p)
                     ownedPeripherals[i] = null;
         }
 

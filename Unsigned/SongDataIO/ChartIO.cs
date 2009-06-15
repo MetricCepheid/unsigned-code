@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if !XBOX
 using System.Windows.Forms;
+#endif
 using Microsoft.Xna.Framework.Graphics;
 using SongDataIO;
 

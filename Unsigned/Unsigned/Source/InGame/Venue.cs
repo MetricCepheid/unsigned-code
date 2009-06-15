@@ -568,8 +568,13 @@ namespace Unsigned
             for (int i = 0; i < StaticTexture.Length; i++)
             {
                 String n = fin.ReadString();
+#if XBOX
+                Texture2D a = Content.Load<Texture2D>("textures\\Venues\\"+n+"Tex");
+                Texture2D c = Content.Load<Texture2D>("textures\\Venues\\" + n + "BM");
+#else
                 Texture2D a = Texture2D.FromFile(Global.Graphics.GraphicsDevice,"Content\\textures\\Venues\\"+n+"Tex.png");
                 Texture2D c = Texture2D.FromFile(Global.Graphics.GraphicsDevice,"Content\\textures\\Venues\\"+n+"BM.png");
+#endif
                 a.GenerateMipMaps(TextureFilter.Anisotropic);
                 c.GenerateMipMaps(TextureFilter.Anisotropic);
                 StaticTexture[i] = new Material(a, c);

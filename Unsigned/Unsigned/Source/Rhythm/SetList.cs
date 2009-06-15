@@ -258,7 +258,7 @@ namespace Unsigned
         /// The internal collection of songs in this subset
         /// A dictionary is used to ensure that songs are unique in this subset
         /// </summary>
-        private SortedDictionary<String, SongFileHeader> songs;
+        private Dictionary<String, SongFileHeader> songs;
 
         /// <summary>
         /// The externally exposed collection of songs in this subset
@@ -291,7 +291,7 @@ namespace Unsigned
         public SubSet(String name)
         {
             this.name = name;
-            songs = new SortedDictionary<String, SongFileHeader>();
+            songs = new Dictionary<String, SongFileHeader>();
         }
     }
 
@@ -320,7 +320,7 @@ namespace Unsigned
         /// The internal collection of subsets in this setlist
         /// A dictionary is used to ensure that subsets are unique in this setlist
         /// </summary>
-        private IDictionary<String, SubSet> subSets = new SortedDictionary<string, SubSet>();
+        private IDictionary<String, SubSet> subSets = new Dictionary<string, SubSet>();
 
         /// <summary>
         /// A filepath to a custom setlist that can be used to order this setlist
@@ -434,7 +434,7 @@ namespace Unsigned
 
             StreamReader reader = new StreamReader(customSetListFilePath);
 
-            subSets = new SortedDictionary<String, SubSet>();
+            subSets = new Dictionary<String, SubSet>();
 
             String line;
             SubSet currentSubSet = null;
@@ -510,7 +510,7 @@ namespace Unsigned
         public void OrderByDecade()
         {
             currentSortOrder = SortOrders.Decade;
-            subSets = new SortedDictionary<String, SubSet>();
+            subSets = new Dictionary<String, SubSet>();
 
             SubSet unknownYearSubSet = new SubSet("<Unknown Year>");
 
@@ -559,7 +559,7 @@ namespace Unsigned
             const string UNKNOWN_GENRE = "<Unknown Genre>";
             SubSet noGenreSubSet = new SubSet(UNKNOWN_GENRE);
 
-            subSets = new SortedDictionary<String, SubSet>();
+            subSets = new Dictionary<String, SubSet>();
 
             foreach (SongFileHeader header in allSongs.Values)
             {
@@ -594,7 +594,7 @@ namespace Unsigned
         public void OrderBySongName()
         {
             currentSortOrder = SortOrders.SongName;
-            subSets = new SortedDictionary<String, SubSet>();
+            subSets = new Dictionary<String, SubSet>();
 
             foreach (SongFileHeader song in allSongs.Values)
             {
@@ -618,7 +618,7 @@ namespace Unsigned
             const string ARTIST_NOT_DEFINED = "<Unknown Artist>";
             SubSet noArtistSubSet = new SubSet(ARTIST_NOT_DEFINED);
 
-            subSets = new SortedDictionary<String, SubSet>();
+            subSets = new Dictionary<String, SubSet>();
 
             foreach (SongFileHeader header in allSongs.Values)
             {

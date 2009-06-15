@@ -428,7 +428,11 @@ namespace Unsigned
             if (boardBGs.Length <= 0)
                 boardBackground = Content.Load<Texture2D>("textures\\global\\black");
             else
+#if XBOX
+                boardBackground = Content.Load<Texture2D>(boardBGs[Global.Random.Next(boardBGs.Length)]); 
+#else
                 boardBackground = Texture2D.FromFile(Global.Graphics.GraphicsDevice, boardBGs[Global.Random.Next(boardBGs.Length)]); 
+#endif
             myParticles = new ParticleMaster(this);
         }
 

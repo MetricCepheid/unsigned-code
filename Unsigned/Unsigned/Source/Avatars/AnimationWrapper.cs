@@ -234,7 +234,7 @@ namespace Unsigned
                     bool anyChanged = false;
                     for (int j = 0; j < AnimInfo.Animations[i].Frames.Count; j++)
                     {
-                        if (AnimInfo.Animations[i].Frames[j].Matrices[k] != Matrix.Identity)
+                        if (!AnimInfo.Animations[i].Frames[j].Matrices[k].Equals(Matrix.Identity))
                         {
                             anyChanged = true;
                         }

@@ -19,8 +19,6 @@ namespace Unsigned
 
         private Board[] boards;
 
-        private PostProcessor postProcessor;
-
         private PauseScreen pauseMenu;
 
         private Song song;
@@ -56,10 +54,12 @@ namespace Unsigned
             ParticleMaster.Load(Content);
 
             songData = SongDataLoader.LoadSongData(sesInfo.songFileName);
+#if XBOX
+            song = new Song();
+#else
             song = new Song(UnsignedGame.Singleton.Window.Handle);
+#endif
             song.InitSong(songData);
-            postProcessor = new PostProcessor();
-            postProcessor.Load(Content);
             Board.Load(Content);
 
             List<Board> boardsList = new List<Board>();
