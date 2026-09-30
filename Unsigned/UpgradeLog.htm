@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          Migration Report
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          Migration Report - Unsigned</h1><div id="content"><h2 _locID="OverviewTitle">Overview</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">Project</th><th _locID="PathTableHeader">Path</th><th _locID="ErrorsTableHeader">Errors</th><th _locID="WarningsTableHeader">Warnings</th><th _locID="MessagesTableHeader">Messages</th></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#AnimationEditor">AnimationEditor</a></strong></td><td>AnimationEditor\AnimationEditor.csproj</td><td class="textCentered"><a href="#AnimationEditorError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#AnimLib">AnimLib</a></strong></td><td>AnimLib\AnimLib.csproj</td><td class="textCentered"><a href="#AnimLibError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#AnimLib360">AnimLib360</a></strong></td><td>AnimLib\AnimLib360.csproj</td><td class="textCentered"><a href="#AnimLib360Error">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#FVProductionsUtility">FVProductionsUtility</a></strong></td><td>FVProductionsUtility\FVProductionsUtility.csproj</td><td class="textCentered"><a href="#FVProductionsUtilityError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#FVProductionsUtility360">FVProductionsUtility360</a></strong></td><td>FVProductionsUtility\FVProductionsUtility360.csproj</td><td class="textCentered"><a href="#FVProductionsUtility360Error">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#SongDataIO">SongDataIO</a></strong></td><td>SongDataIO\SongDataIO.csproj</td><td class="textCentered"><a href="#SongDataIOError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#SongDataIO360">SongDataIO360</a></strong></td><td>SongDataIO\SongDataIO360.csproj</td><td class="textCentered"><a href="#SongDataIO360Error">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Unsigned">Unsigned</a></strong></td><td>Unsigned\Unsigned.csproj</td><td class="textCentered"><a href="#UnsignedError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Unsigned360">Unsigned360</a></strong></td><td>Unsigned\Unsigned360.csproj</td><td class="textCentered"><a href="#Unsigned360Error">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#UnsignedAnimationEditor">UnsignedAnimationEditor</a></strong></td><td>UnsignedAnimationEditor\UnsignedAnimationEditor.csproj</td><td class="textCentered"><a href="#UnsignedAnimationEditorError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#UnsignedPeripheralPlugins">UnsignedPeripheralPlugins</a></strong></td><td>UnsignedPeripheralPlugins\UnsignedPeripheralPlugins.csproj</td><td class="textCentered"><a href="#UnsignedPeripheralPluginsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#UnsignedPeripheralPlugins360">UnsignedPeripheralPlugins360</a></strong></td><td>UnsignedPeripheralPlugins\UnsignedPeripheralPlugins360.csproj</td><td class="textCentered"><a href="#UnsignedPeripheralPlugins360Error">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Xbox360PeripheralPlugin">Xbox360PeripheralPlugin</a></strong></td><td>Xbox360PeripheralPlugin\Xbox360PeripheralPlugin.csproj</td><td class="textCentered"><a href="#Xbox360PeripheralPluginError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconWarningEncoded" /><td><strong><a href="#Solution"><span _locID="OverviewSolutionSpan">Solution</span></a></strong></td><td>Unsigned.sln</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#SolutionWarning">1</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Solution'); return false;">2</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#MS3DProcessor">MS3DProcessor</a></strong></td><td>MS3DProcessor\MS3DProcessor.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('MS3DProcessor'); return false;">10</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#SongdataConverter">SongdataConverter</a></strong></td><td>SongdataConverter\SongdataConverter.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('SongdataConverter'); return false;">58</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#SongdataVersionChecker">SongdataVersionChecker</a></strong></td><td>SongdataVersionChecker\SongdataVersionChecker.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('SongdataVersionChecker'); return false;">16</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#VenueCompiler">VenueCompiler</a></strong></td><td>VenueCompiler\VenueCompiler.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('VenueCompiler'); return false;">3</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">Solution and projects</h2><div id="messages"><a name="AnimationEditor" /><h3>AnimationEditor</h3><table><tr id="AnimationEditorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassAnimationEditor"><td class="IconErrorEncoded"><a name="AnimationEditorError" /></td><td class="messageCell"><strong>AnimationEditor\AnimationEditor.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="AnimLib" /><h3>AnimLib</h3><table><tr id="AnimLibHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassAnimLib"><td class="IconErrorEncoded"><a name="AnimLibError" /></td><td class="messageCell"><strong>AnimLib\AnimLib.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="AnimLib360" /><h3>AnimLib360</h3><table><tr id="AnimLib360HeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassAnimLib360"><td class="IconErrorEncoded"><a name="AnimLib360Error" /></td><td class="messageCell"><strong>AnimLib\AnimLib360.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2</span></td></tr></table><a name="FVProductionsUtility" /><h3>FVProductionsUtility</h3><table><tr id="FVProductionsUtilityHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassFVProductionsUtility"><td class="IconErrorEncoded"><a name="FVProductionsUtilityError" /></td><td class="messageCell"><strong>FVProductionsUtility\FVProductionsUtility.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="FVProductionsUtility360" /><h3>FVProductionsUtility360</h3><table><tr id="FVProductionsUtility360HeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassFVProductionsUtility360"><td class="IconErrorEncoded"><a name="FVProductionsUtility360Error" /></td><td class="messageCell"><strong>FVProductionsUtility\FVProductionsUtility360.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2</span></td></tr></table><a name="SongDataIO" /><h3>SongDataIO</h3><table><tr id="SongDataIOHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassSongDataIO"><td class="IconErrorEncoded"><a name="SongDataIOError" /></td><td class="messageCell"><strong>SongDataIO\SongDataIO.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="SongDataIO360" /><h3>SongDataIO360</h3><table><tr id="SongDataIO360HeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassSongDataIO360"><td class="IconErrorEncoded"><a name="SongDataIO360Error" /></td><td class="messageCell"><strong>SongDataIO\SongDataIO360.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2</span></td></tr></table><a name="Unsigned" /><h3>Unsigned</h3><table><tr id="UnsignedHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassUnsigned"><td class="IconErrorEncoded"><a name="UnsignedError" /></td><td class="messageCell"><strong>Unsigned\Unsigned.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="Unsigned360" /><h3>Unsigned360</h3><table><tr id="Unsigned360HeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassUnsigned360"><td class="IconErrorEncoded"><a name="Unsigned360Error" /></td><td class="messageCell"><strong>Unsigned\Unsigned360.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2</span></td></tr></table><a name="UnsignedAnimationEditor" /><h3>UnsignedAnimationEditor</h3><table><tr id="UnsignedAnimationEditorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassUnsignedAnimationEditor"><td class="IconErrorEncoded"><a name="UnsignedAnimationEditorError" /></td><td class="messageCell"><strong>UnsignedAnimationEditor\UnsignedAnimationEditor.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="UnsignedPeripheralPlugins" /><h3>UnsignedPeripheralPlugins</h3><table><tr id="UnsignedPeripheralPluginsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassUnsignedPeripheralPlugins"><td class="IconErrorEncoded"><a name="UnsignedPeripheralPluginsError" /></td><td class="messageCell"><strong>UnsignedPeripheralPlugins\UnsignedPeripheralPlugins.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="UnsignedPeripheralPlugins360" /><h3>UnsignedPeripheralPlugins360</h3><table><tr id="UnsignedPeripheralPlugins360HeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassUnsignedPeripheralPlugins360"><td class="IconErrorEncoded"><a name="UnsignedPeripheralPlugins360Error" /></td><td class="messageCell"><strong>UnsignedPeripheralPlugins\UnsignedPeripheralPlugins360.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2</span></td></tr></table><a name="Xbox360PeripheralPlugin" /><h3>Xbox360PeripheralPlugin</h3><table><tr id="Xbox360PeripheralPluginHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="ErrorRowClassXbox360PeripheralPlugin"><td class="IconErrorEncoded"><a name="Xbox360PeripheralPluginError" /></td><td class="messageCell"><strong>Xbox360PeripheralPlugin\Xbox360PeripheralPlugin.csproj:
+        </strong><span>The application which this project type is based on was not found. Please try this link for further information: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=6D335F3A-9D43-41b4-9D22-F6F17C4BE596</span></td></tr></table><a name="Solution" /><h3 _locID="ProjectDisplayNameHeader">Solution</h3><table><tr id="SolutionHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="WarningRowClassSolution"><td class="IconWarningEncoded"><a name="SolutionWarning" /></td><td class="messageCell"><strong>Unsigned.sln:
+        </strong><span>Visual Studio needs to make non-functional changes to this project in order to enable the project to open in released versions of Visual Studio newer than Visual Studio 2010 SP1 without impacting project behavior.</span></td></tr><tr name="MessageRowHeaderShowSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          Show 2 additional messages
+        </a></td></tr><tr name="MessageRowClassSolution" style="display: none"><td class="IconInfoEncoded"><a name="SolutionMessage" /></td><td class="messageCell"><strong>Unsigned.sln:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\Unsigned.sln</span></td></tr><tr name="MessageRowClassSolution" style="display: none"><td class="IconInfoEncoded"><a name="SolutionMessage" /></td><td class="messageCell"><strong>Unsigned.sln:
+        </strong><span>Solution migrated successfully</span></td></tr><tr style="display: none" name="MessageRowHeaderHideSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          Hide 2 additional messages
+        </a></td></tr></table><a name="MS3DProcessor" /><h3>MS3DProcessor</h3><table><tr id="MS3DProcessorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="MessageRowHeaderShowMS3DProcessor"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="MS3DProcessorMessage" onclick="ToggleMessageVisibility('MS3DProcessor'); return false;">
+          Show 10 additional messages
+        </a></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DProcessor.csproj:
+        </strong><span>Project file successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\MS3DProcessor.csproj</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\ExtensionMethods.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\ExtensionMethods.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\FVModelContent.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\FVModelContent.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\FVModelWriter.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\FVModelWriter.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DImporter.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\MS3DImporter.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DProcessor.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\MS3DProcessor.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DSourceData.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\MS3DSourceData.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\Properties\AssemblyInfo.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\MS3DProcessor\Properties\AssemblyInfo.cs</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DProcessor.csproj:
+        </strong><span>Project migrated successfully</span></td></tr><tr name="MessageRowClassMS3DProcessor" style="display: none"><td class="IconInfoEncoded"><a name="MS3DProcessorMessage" /></td><td class="messageCell"><strong>MS3DProcessor\MS3DProcessor.csproj:
+        </strong><span>Scan complete: Migration not required for project files.</span></td></tr><tr style="display: none" name="MessageRowHeaderHideMS3DProcessor"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="MS3DProcessorMessage" onclick="ToggleMessageVisibility('MS3DProcessor'); return false;">
+          Hide 10 additional messages
+        </a></td></tr></table><a name="SongdataConverter" /><h3>SongdataConverter</h3><table><tr id="SongdataConverterHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="MessageRowHeaderShowSongdataConverter"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="SongdataConverterMessage" onclick="ToggleMessageVisibility('SongdataConverter'); return false;">
+          Show 58 additional messages
+        </a></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongdataConverter.csproj:
+        </strong><span>Project file successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\SongdataConverter.csproj</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\AboutForm.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\AboutForm.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\AboutForm.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\AboutForm.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesViewerControl.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesViewerControl.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesViewerControl.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesViewerControl.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ColorPanel.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ColorPanel.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ColorPanel.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ColorPanel.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ConfirmDialog.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ConfirmDialog.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ConfirmDialog.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ConfirmDialog.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesDataViewer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesDataViewer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesDataViewer.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesDataViewer.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\LightingEffectDialog.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\LightingEffectDialog.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\LightingEffectDialog.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\LightingEffectDialog.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieViewerControl.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieViewerControl.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieViewerControl.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieViewerControl.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieDataViewer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieDataViewer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieDataViewer.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieDataViewer.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Form1.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Form1.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Form1.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Form1.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\InstrumentDataViewer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\InstrumentDataViewer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\InstrumentDataViewer.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\InstrumentDataViewer.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Keyboard.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Keyboard.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\NotesViewerControl.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\NotesViewerControl.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\NotesViewerControl.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\NotesViewerControl.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Program.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Program.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Properties\AssemblyInfo.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Properties\AssemblyInfo.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Properties\Resources.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Properties\Resources.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Properties\Settings.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Properties\Settings.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongInfoViewer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\SongInfoViewer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongInfoViewer.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\SongInfoViewer.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\TextEditorForm.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\TextEditorForm.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\TextEditorForm.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\TextEditorForm.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Properties\Settings.settings:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Properties\Settings.settings</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Content\BASicon.png:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Content\BASicon.png</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Content\LGTicon.png:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Content\LGTicon.png</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Content\LVXicon.png:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Content\LVXicon.png</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Content\SETicon.png:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Content\SETicon.png</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Instruments\BAS.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Instruments\BAS.txt</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Instruments\LGT.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Instruments\LGT.txt</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Instruments\LVX.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Instruments\LVX.txt</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Instruments\SET.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Instruments\SET.txt</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Content\trash.png:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Content\trash.png</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\AboutForm.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\AboutForm.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesViewerControl.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesViewerControl.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ColorPanel.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ColorPanel.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\ConfirmDialog.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\ConfirmDialog.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\BandBonusesDataViewer.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\BandBonusesDataViewer.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\LightingEffectDialog.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\LightingEffectDialog.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieViewerControl.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieViewerControl.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\RoadieDataViewer.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\RoadieDataViewer.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Form1.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Form1.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\InstrumentDataViewer.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\InstrumentDataViewer.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\NotesViewerControl.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\NotesViewerControl.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\Properties\Resources.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\Properties\Resources.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongInfoViewer.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\SongInfoViewer.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\TextEditorForm.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataConverter\TextEditorForm.resx</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongdataConverter.csproj:
+        </strong><span>Project migrated successfully</span></td></tr><tr name="MessageRowClassSongdataConverter" style="display: none"><td class="IconInfoEncoded"><a name="SongdataConverterMessage" /></td><td class="messageCell"><strong>SongdataConverter\SongdataConverter.csproj:
+        </strong><span>Scan complete: Migration not required for project files.</span></td></tr><tr style="display: none" name="MessageRowHeaderHideSongdataConverter"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="SongdataConverterMessage" onclick="ToggleMessageVisibility('SongdataConverter'); return false;">
+          Hide 58 additional messages
+        </a></td></tr></table><a name="SongdataVersionChecker" /><h3>SongdataVersionChecker</h3><table><tr id="SongdataVersionCheckerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="MessageRowHeaderShowSongdataVersionChecker"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="SongdataVersionCheckerMessage" onclick="ToggleMessageVisibility('SongdataVersionChecker'); return false;">
+          Show 16 additional messages
+        </a></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\SongdataVersionChecker.csproj:
+        </strong><span>Project file successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\SongdataVersionChecker.csproj</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Form1.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Form1.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Form1.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Form1.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Program.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Program.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Properties\AssemblyInfo.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Properties\AssemblyInfo.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Properties\Resources.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Properties\Resources.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Properties\Settings.Designer.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Properties\Settings.Designer.cs</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Properties\Settings.settings:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Properties\Settings.settings</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Instruments\BAS.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Instruments\BAS.txt</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Instruments\LGT.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Instruments\LGT.txt</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Instruments\LVX.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Instruments\LVX.txt</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Instruments\SET.txt:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Instruments\SET.txt</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Form1.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Form1.resx</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\Properties\Resources.resx:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\SongdataVersionChecker\Properties\Resources.resx</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\SongdataVersionChecker.csproj:
+        </strong><span>Project migrated successfully</span></td></tr><tr name="MessageRowClassSongdataVersionChecker" style="display: none"><td class="IconInfoEncoded"><a name="SongdataVersionCheckerMessage" /></td><td class="messageCell"><strong>SongdataVersionChecker\SongdataVersionChecker.csproj:
+        </strong><span>Scan complete: Migration not required for project files.</span></td></tr><tr style="display: none" name="MessageRowHeaderHideSongdataVersionChecker"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="SongdataVersionCheckerMessage" onclick="ToggleMessageVisibility('SongdataVersionChecker'); return false;">
+          Hide 16 additional messages
+        </a></td></tr></table><a name="VenueCompiler" /><h3>VenueCompiler</h3><table><tr id="VenueCompilerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Message</th></tr><tr name="MessageRowHeaderShowVenueCompiler"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="VenueCompilerMessage" onclick="ToggleMessageVisibility('VenueCompiler'); return false;">
+          Show 3 additional messages
+        </a></td></tr><tr name="MessageRowClassVenueCompiler" style="display: none"><td class="IconInfoEncoded"><a name="VenueCompilerMessage" /></td><td class="messageCell"><strong>VenueCompiler\VenueCompiler.csproj:
+        </strong><span>Project file successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\VenueCompiler\VenueCompiler.csproj</span></td></tr><tr name="MessageRowClassVenueCompiler" style="display: none"><td class="IconInfoEncoded"><a name="VenueCompilerMessage" /></td><td class="messageCell"><strong>VenueCompiler\Program.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\VenueCompiler\Program.cs</span></td></tr><tr name="MessageRowClassVenueCompiler" style="display: none"><td class="IconInfoEncoded"><a name="VenueCompilerMessage" /></td><td class="messageCell"><strong>VenueCompiler\Properties\AssemblyInfo.cs:
+        </strong><span>File successfully backed up as C:\Users\user\GitProjects\unsigned-code\Unsigned\Backup\VenueCompiler\Properties\AssemblyInfo.cs</span></td></tr><tr style="display: none" name="MessageRowHeaderHideVenueCompiler"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="VenueCompilerMessage" onclick="ToggleMessageVisibility('VenueCompiler'); return false;">
+          Hide 3 additional messages
+        </a></td></tr></table></div></div></body></html>
