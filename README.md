@@ -13,3 +13,7 @@ Unsigned is a Rock Band clone built off of GarageBand (2004) eventually stemed i
 # WHAT DOES COMPILE
 **it works :3**
 - VenueCompiler
+
+# TO-DO
+- VenueCompiler
+  - Update support for Hammer++ VMF exports
