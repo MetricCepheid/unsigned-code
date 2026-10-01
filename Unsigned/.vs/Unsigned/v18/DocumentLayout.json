@@ -1,12 +1,37 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\user\\GitProjects\\unsigned-code\\Unsigned\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{230F9E77-9B22-44D4-A8E1-CF0C6690B577}|VenueCompiler\\VenueCompiler.csproj|c:\\users\\user\\gitprojects\\unsigned-code\\unsigned\\venuecompiler\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{230F9E77-9B22-44D4-A8E1-CF0C6690B577}|VenueCompiler\\VenueCompiler.csproj|solutionrelative:venuecompiler\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\user\\GitProjects\\unsigned-code\\Unsigned\\VenueCompiler\\Program.cs",
+              "RelativeDocumentMoniker": "VenueCompiler\\Program.cs",
+              "ToolTip": "C:\\Users\\user\\GitProjects\\unsigned-code\\Unsigned\\VenueCompiler\\Program.cs",
+              "RelativeToolTip": "VenueCompiler\\Program.cs",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-01T15:54:20.718Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

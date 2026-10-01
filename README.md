@@ -10,6 +10,7 @@ Unsigned is a Rock Band clone built off of GarageBand (2004) eventually stemed i
 - SongdataVersionChecker
   - REQUIRES SongDataIO
 
-**Does compile but doesn't work**
+# WHAT DOES COMPILE
+**it works :3**
 - VenueCompiler
   - Built against version 'v2.0.50727' of the runtime and cannot be loaded in the 4.0 runtime (obviously lol)
